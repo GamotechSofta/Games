@@ -78,33 +78,35 @@ const Login = () => {
       let body;
       let deviceId = '';
       
-      if (isLogin) {
-        try {
-          deviceId = typeof localStorage !== 'undefined' ? (localStorage.getItem('deviceId') || '') : '';
-          if (!deviceId) {
-            deviceId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-              ? crypto.randomUUID()
-              : `web-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('deviceId', deviceId);
-            }
+      // Use same deviceId for both login and signup so admin can see Device ID / IP
+      try {
+        deviceId = typeof localStorage !== 'undefined' ? (localStorage.getItem('deviceId') || '') : '';
+        if (!deviceId) {
+          deviceId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `web-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('deviceId', deviceId);
           }
-        } catch (e) {
-          deviceId = `web-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
         }
+      } catch (e) {
+        deviceId = `web-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      }
 
+      if (isLogin) {
         endpoint = '/users/login';
         body = { phone: formData.phone, password: formData.password, deviceId: deviceId || undefined };
       } else {
         endpoint = '/users/signup';
-        body = { 
+        body = {
           username: `${formData.firstName} ${formData.lastName}`.trim(),
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
-          referredBy: refParam || undefined 
+          referredBy: refParam || undefined,
+          deviceId: deviceId || undefined,
         };
       }
 

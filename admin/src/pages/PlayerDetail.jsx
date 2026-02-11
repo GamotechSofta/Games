@@ -571,11 +571,15 @@ const PlayerDetail = () => {
                         </div>
                         <div className="min-w-0 col-span-2 sm:col-span-1">
                             <p className="text-gray-500 uppercase tracking-wider text-xs">Device ID</p>
-                            <p className="text-gray-300 font-mono text-xs truncate break-all" title={displayDeviceId || ''}>{displayDeviceId || '—'}</p>
+                            <p className="text-gray-300 font-mono text-xs truncate break-all" title={displayDeviceId ? String(displayDeviceId) : 'Captured on login or signup'}>
+                                {displayDeviceId || '—'}
+                            </p>
                         </div>
                         <div className="min-w-0 col-span-2 sm:col-span-1">
                             <p className="text-gray-500 uppercase tracking-wider text-xs">IP Address</p>
-                            <p className="text-gray-300 font-mono text-xs truncate" title={player.lastLoginIp || ''}>{formatIpDisplay(player.lastLoginIp)}</p>
+                            <p className="text-gray-300 font-mono text-xs truncate" title={player.lastLoginIp ? String(player.lastLoginIp) : 'Captured on login or signup'}>
+                                {formatIpDisplay(player.lastLoginIp)}
+                            </p>
                         </div>
                         <div className="min-w-0">
                             <p className="text-gray-500 uppercase tracking-wider text-xs">Status</p>

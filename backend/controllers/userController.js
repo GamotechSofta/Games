@@ -154,7 +154,7 @@ export const userHeartbeat = async (req, res) => {
 
 export const userSignup = async (req, res) => {
     try {
-        const { username, email, password, phone } = req.body;
+        const { username, email, password, phone, deviceId } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({
@@ -217,6 +217,8 @@ export const userSignup = async (req, res) => {
         }
         const source = referredBy ? 'bookie' : 'super_admin';
         const now = new Date();
+        const clientIp = getClientIp(req);
+        const trimmedDeviceId = (deviceId != null && String(deviceId).trim()) ? String(deviceId).trim() : '';
         const userDoc = {
             username: username.trim(),
             email: email.toLowerCase(),
@@ -228,6 +230,9 @@ export const userSignup = async (req, res) => {
             source,
             referredBy,
             lastActiveAt: now,
+            lastLoginIp: clientIp || null,
+            lastLoginDeviceId: trimmedDeviceId || null,
+            loginDevices: trimmedDeviceId ? [{ deviceId: trimmedDeviceId, firstLoginAt: now, lastLoginAt: now }] : [],
             createdAt: now,
             updatedAt: now,
         };
