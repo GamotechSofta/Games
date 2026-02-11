@@ -38,7 +38,7 @@ const BottomNavbar = () => {
     {
       id: 'bank',
       label: 'Passbook',
-      path: '/bank',
+      path: '/passbook',
       icon: (
         <img
           src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770813159/passbook_1_sstp7k.png"

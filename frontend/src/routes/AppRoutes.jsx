@@ -6,7 +6,6 @@ import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
 import BidOptions from '../pages/BidOptions';
 import GameBid from '../pages/GameBid/index';
-import Bank from '../pages/Bank';
 import Funds from '../pages/Funds';
 import Download from '../pages/Download';
 import Login from '../pages/Login';
@@ -157,7 +156,7 @@ const AppRoutes = () => {
           <Route path="/" element={<Home />} />
           <Route path="/bidoptions" element={<BidOptions />} />
           <Route path="/game-bid" element={<GameBid />} />
-          <Route path="/bank" element={<Bank />} />
+          <Route path="/bank" element={<Passbook />} />
           <Route path="/funds" element={<Funds />} />
           <Route path="/download" element={<Download />} />
           <Route path="/passbook" element={<Passbook />} />

@@ -34,44 +34,46 @@ const IconRefresh = () => (
   </svg>
 );
 
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-const formatTime = (dateStr) => {
-  const d = new Date(dateStr);
-  return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-};
-
 const formatAmount = (amount) => {
   const n = Number(amount);
   if (!Number.isFinite(n)) return '0.00';
   return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-/* ───────── Skeleton Loader ───────── */
-const SkeletonRow = () => (
-  <div className="flex items-center gap-3.5 px-4 py-4 animate-pulse">
-    <div className="w-10 h-10 rounded-xl bg-white/5" />
-    <div className="flex-1 space-y-2">
-      <div className="h-3.5 w-32 rounded-lg bg-white/5" />
-      <div className="h-3 w-20 rounded-lg bg-white/5" />
-    </div>
-    <div className="space-y-2 text-right">
-      <div className="h-4 w-16 rounded-lg bg-white/5 ml-auto" />
-      <div className="h-3 w-12 rounded-lg bg-white/5 ml-auto" />
-    </div>
-  </div>
-);
+const formatTxDateTime = (dateStr) => {
+  try {
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return '-';
+    const date = d.toLocaleDateString('en-GB').replace(/\//g, '-');
+    const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return `${date} ${String(time).toUpperCase()}`;
+  } catch {
+    return '-';
+  }
+};
+
+const statusUi = (statusRaw) => {
+  const s = (statusRaw || '').toString().toLowerCase();
+  if (s === 'approved' || s === 'completed') return { label: 'Success', className: 'text-emerald-400', dot: 'bg-emerald-500' };
+  if (s === 'rejected') return { label: 'Rejected', className: 'text-red-400', dot: 'bg-red-500' };
+  return { label: 'Pending', className: 'text-yellow-400', dot: 'bg-yellow-500' };
+};
+
+const methodLabel = (methodRaw) => {
+  const m = (methodRaw || '').toString().toLowerCase();
+  if (m === 'bank_transfer') return 'bank';
+  if (m === 'upi') return 'upi';
+  if (m === 'wallet') return 'wallet';
+  if (m === 'cash') return 'cash';
+  return m || '-';
+};
 
 const Passbook = () => {
   const navigate = useNavigate();
-  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all' | 'credit' | 'debit'
-  const [balance, setBalance] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [page, setPage] = useState(1);
 
   const user = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); }
@@ -79,83 +81,78 @@ const Passbook = () => {
   }, []);
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (!user.id) return;
+    const userId = user?.id || user?._id;
+    if (!userId) {
+      setLoading(false);
+      setRefreshing(false);
+      return;
+    }
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
 
     try {
-      const [txRes, balRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/wallet/my-transactions?userId=${user.id}&limit=500`),
-        fetch(`${API_BASE_URL}/wallet/balance?userId=${user.id}`),
+      const [depRes, witRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/payments/my-deposits?userId=${userId}`),
+        fetch(`${API_BASE_URL}/payments/my-withdrawals?userId=${userId}`),
       ]);
-      const txData = await txRes.json();
-      const balData = await balRes.json();
+      const depJson = await depRes.json();
+      const witJson = await witRes.json();
+      const deposits = depJson?.success && Array.isArray(depJson?.data) ? depJson.data : [];
+      const withdrawals = witJson?.success && Array.isArray(witJson?.data) ? witJson.data : [];
 
-      if (txData.success) setTransactions(txData.data || []);
-      if (balData.success) setBalance(balData.data?.balance ?? 0);
+      const combined = [
+        ...deposits.map((p) => ({ ...p, _kind: 'deposit' })),
+        ...withdrawals.map((p) => ({ ...p, _kind: 'withdrawal' })),
+      ];
+      combined.sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+
+      setRows(combined);
+      setPage(1);
     } catch (err) {
       console.error('Passbook fetch error:', err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user.id]);
+  }, [user?.id, user?._id]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  /* ── Derived data ── */
-  const filtered = useMemo(() => {
-    if (filter === 'all') return transactions;
-    return transactions.filter((t) => t.type === filter);
-  }, [transactions, filter]);
+  const PAGE_SIZE = 5;
+  const totalPages = Math.max(1, Math.ceil((rows?.length || 0) / PAGE_SIZE));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const pagedRows = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return (rows || []).slice(start, start + PAGE_SIZE);
+  }, [rows, currentPage]);
 
-  const stats = useMemo(() => {
-    let totalCredit = 0, totalDebit = 0, creditCount = 0, debitCount = 0;
-    transactions.forEach((t) => {
-      const amt = Number(t.amount) || 0;
-      if (t.type === 'credit') { totalCredit += amt; creditCount++; }
-      else { totalDebit += amt; debitCount++; }
-    });
-    return { totalCredit, totalDebit, creditCount, debitCount };
-  }, [transactions]);
-
-  /* ── Group transactions by date ── */
-  const grouped = useMemo(() => {
-    const map = new Map();
-    filtered.forEach((t) => {
-      const key = formatDate(t.createdAt);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(t);
-    });
-    return Array.from(map.entries());
-  }, [filtered]);
-
-  const filters = [
-    { key: 'all', label: 'All', count: transactions.length },
-    { key: 'credit', label: 'Credited', count: stats.creditCount },
-    { key: 'debit', label: 'Withdrawn', count: stats.debitCount },
-  ];
+  const showStickyPager = !loading && (rows?.length || 0) > 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-
-      {/* ── Sticky Header ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5">
+    <div
+      className={`min-h-screen bg-black text-white ${
+        showStickyPager
+          ? 'pb-[calc(10rem+env(safe-area-inset-bottom,0px))]'
+          : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))]'
+      }`}
+    >
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center active:scale-95 transition-all"
             aria-label="Back"
           >
             <IconBack />
           </button>
-          <h2 className="text-base font-semibold tracking-wide flex-1">Passbook</h2>
+          <h2 className="text-base font-semibold tracking-wide flex-1">Transaction History</h2>
           <button
             type="button"
             onClick={() => fetchData(true)}
             disabled={refreshing}
-            className={`w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all ${refreshing ? 'animate-spin' : ''}`}
+            className={`w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center active:scale-95 transition-all ${refreshing ? 'animate-spin' : ''}`}
             aria-label="Refresh"
           >
             <IconRefresh />
@@ -163,158 +160,116 @@ const Passbook = () => {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
+      <div className="max-w-lg mx-auto px-4 pt-4 pb-6">
+        {loading ? (
+          <div className="text-center py-10 text-white/60 text-sm">Loading history...</div>
+        ) : rows.length === 0 ? (
+          <div className="text-center py-10 text-white/60 text-sm">No transactions found.</div>
+        ) : (
+          <div className="space-y-4">
+            {pagedRows.map((p) => {
+              const ui = statusUi(p.status);
+              const isWithdrawal = p._kind === 'withdrawal';
+              const bank = p.bankDetailId || {};
+              const via = methodLabel(p.method);
+              const modeText = `${isWithdrawal ? 'Withdraw' : 'Deposit'} (${ui.label.toLowerCase()})`;
+              const name = (bank.accountHolderName || '').toString().trim() || '-';
+              const bankName = (bank.bankName || '').toString().trim() || '-';
+              const acct = (bank.accountNumber || '').toString().trim() || '-';
+              const ifsc = (bank.ifscCode || '').toString().trim() || '-';
+              const utr = (p.upiTransactionId || p.transactionId || '').toString().trim() || '-';
 
-        {/* ── Balance Card ── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] border border-white/10 shadow-2xl">
-          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-yellow-500/5 blur-2xl" />
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-blue-500/5 blur-2xl" />
-          
-          <div className="relative p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Current Balance</p>
-                <p className="text-[#f2c14e] text-3xl font-extrabold tracking-tight">
-                  ₹{balance !== null ? formatAmount(balance) : '---'}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-[#f2c14e]/10 border border-[#f2c14e]/20 flex items-center justify-center text-[#f2c14e]">
-                <IconWallet />
-              </div>
-            </div>
-
-            {/* Credit / Debit Summary */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" />
-                    </svg>
-                  </div>
-                  <span className="text-emerald-400/70 text-[10px] font-semibold uppercase tracking-wider">Credited</span>
-                </div>
-                <p className="text-emerald-400 text-lg font-bold">₹{formatAmount(stats.totalCredit)}</p>
-              </div>
-              <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-6 h-6 rounded-lg bg-red-500/20 flex items-center justify-center text-red-400">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5V4.5m0 0L5.25 11.25M12 4.5l6.75 6.75" />
-                    </svg>
-                  </div>
-                  <span className="text-red-400/70 text-[10px] font-semibold uppercase tracking-wider">Withdrawn</span>
-                </div>
-                <p className="text-red-400 text-lg font-bold">₹{formatAmount(stats.totalDebit)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Filter Tabs ── */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hidden pb-1">
-          {filters.map((f) => {
-            const active = filter === f.key;
-            return (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all active:scale-95 ${
-                  active
-                    ? 'bg-[#f2c14e]/15 border border-[#f2c14e]/30 text-[#f2c14e]'
-                    : 'bg-[#141416] border border-white/5 text-gray-400 hover:text-white hover:border-white/10'
-                }`}
-              >
-                {f.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  active ? 'bg-[#f2c14e]/20 text-[#f2c14e]' : 'bg-white/5 text-gray-500'
-                }`}>
-                  {f.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ── Transaction History ── */}
-        <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
-          <div className="px-5 pt-5 pb-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Transaction History</h3>
-          </div>
-
-          {loading ? (
-            <div className="pb-2">
-              {[...Array(6)].map((_, i) => <SkeletonRow key={i} />)}
-            </div>
-          ) : filtered.length === 0 ? (
-            /* Empty state */
-            <div className="flex flex-col items-center justify-center py-12 px-4">
-              <IconEmpty />
-              <p className="text-gray-400 font-semibold mt-4 text-sm">No transactions found</p>
-              <p className="text-gray-600 text-xs mt-1 text-center">
-                {filter === 'all'
-                  ? 'Your transaction history will appear here'
-                  : `No ${filter === 'credit' ? 'credit' : 'withdrawal'} transactions yet`}
-              </p>
-            </div>
-          ) : (
-            <div className="pb-2">
-              {grouped.map(([date, txs]) => (
-                <div key={date}>
-                  {/* Date Header */}
-                  <div className="px-5 py-2 mt-1">
-                    <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest">{date}</p>
-                  </div>
-
-                  {/* Transactions */}
-                  {txs.map((tx, idx) => {
-                    const isCredit = tx.type === 'credit';
-                    return (
-                      <div
-                        key={tx._id || idx}
-                        className="flex items-center gap-3.5 px-4 py-3.5 mx-2 rounded-2xl hover:bg-white/[0.02] transition-colors"
-                      >
-                        {/* Icon */}
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          isCredit
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-red-500/10 text-red-400'
-                        }`}>
-                          {isCredit ? <IconCredit /> : <IconDebit />}
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">
-                            {tx.description || (isCredit ? 'Amount Credited' : 'Amount Withdrawn')}
-                          </p>
-                          <p className="text-gray-500 text-xs mt-0.5">{formatTime(tx.createdAt)}</p>
-                        </div>
-
-                        {/* Amount */}
-                        <div className="text-right shrink-0">
-                          <p className={`text-sm font-bold ${isCredit ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {isCredit ? '+' : '-'}₹{formatAmount(tx.amount)}
-                          </p>
-                          <p className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${
-                            isCredit ? 'text-emerald-500/50' : 'text-red-500/50'
-                          }`}>
-                            {isCredit ? 'Credit' : 'Debit'}
-                          </p>
-                        </div>
+              return (
+                <div key={p._id} className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+                  <div className="flex items-start justify-between gap-4 px-4 pt-4">
+                    <div className="text-xl font-extrabold text-white">₹{Number(p.amount || 0).toLocaleString('en-IN')}</div>
+                    <div className="text-right">
+                      <div className={`inline-flex items-center gap-2 font-semibold ${ui.className}`}>
+                        <span className={`w-2.5 h-2.5 rounded-full ${ui.dot}`} />
+                        {ui.label}
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                      <div className="text-[11px] text-white/50 mt-1">{formatTxDateTime(p.createdAt)}</div>
+                    </div>
+                  </div>
 
-        {/* Bottom spacer */}
-        <div className="h-2" />
+                  <div className="mt-3 h-px bg-white/10" />
+
+                  <div className="px-4 py-3 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-white/60 text-xs">Via</div>
+                      <div className="text-white/80">{via}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/60 text-xs">Mode</div>
+                      <div className="text-white/80">{modeText}</div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-white/10" />
+
+                  <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                    <div>
+                      <div className="text-white/60 text-xs">Name</div>
+                      <div className="text-white/80 truncate">{isWithdrawal ? name : '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/60 text-xs">{isWithdrawal ? 'Bank Name' : 'UTR'}</div>
+                      <div className="text-white/80 truncate">{isWithdrawal ? bankName : utr}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/60 text-xs">{isWithdrawal ? 'A/c No.' : 'Method'}</div>
+                      <div className="text-white/80 truncate">{isWithdrawal ? acct : via}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/60 text-xs">{isWithdrawal ? 'Ifsc' : 'Status'}</div>
+                      <div className="text-white/80 truncate">{isWithdrawal ? ifsc : ui.label}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Sticky pagination above mobile bottom navbar */}
+      {showStickyPager && (
+        <div
+          className="fixed left-0 right-0 z-[60] md:hidden px-3 sm:px-4 pointer-events-none"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
+        >
+          <div className="mx-auto w-full max-w-[520px] pointer-events-auto">
+            <div className="bg-[#202124] rounded-full border border-white/10 px-4 py-2 flex items-center justify-between shadow-[0_10px_22px_rgba(0,0,0,0.40)]">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="flex items-center gap-1 text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className="text-lg leading-none">‹</span>
+                <span>PREV</span>
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm border border-white/10"
+                >
+                  {currentPage}
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className="flex items-center gap-1 text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span>NEXT</span>
+                <span className="text-lg leading-none">›</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

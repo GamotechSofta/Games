@@ -283,7 +283,7 @@ export const getMyWithdrawals = async (req, res) => {
         }
 
         const withdrawals = await Payment.find({ userId, type: 'withdrawal' })
-            .populate('bankDetailId', 'accountHolderName bankName accountNumber upiId')
+            .populate('bankDetailId', 'accountHolderName bankName accountNumber upiId ifscCode')
             .sort({ createdAt: -1 })
             .limit(100)
             .lean();

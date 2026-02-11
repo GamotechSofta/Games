@@ -10,7 +10,7 @@ const AppHeader = () => {
 
   const menuItems = [
     { label: 'My Bets', path: '/bids' },
-    { label: 'Bank', path: '/funds?tab=bank-detail' },
+    { label: 'Passbook', path: '/bank' },
     { label: 'Funds', path: '/funds' },
     { label: 'Top Winners', path: '/top-winners' },
     { label: 'Starline Winners', path: '/support' },
@@ -290,10 +290,10 @@ const AppHeader = () => {
                         alt="My Bets"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Bank' ? (
+                    ) : item.label === 'Passbook' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777283/bank_il6uwi.png"
-                        alt="Bank"
+                        alt="Passbook"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
                     ) : item.label === 'Funds' ? (
