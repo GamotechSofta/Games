@@ -21,6 +21,8 @@ import MarketResultHistory from '../pages/MarketResultHistory';
 import StartlineDashboard from '../pages/StartlineDashboard';
 import TopWinners from '../pages/TopWinners';
 import StarlineMarket from '../pages/StarlineMarket';
+import KingBazaarDashboard from '../pages/KingBazaarDashboard';
+import KingBazaarMarket from '../pages/KingBazaarMarket';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -122,6 +124,8 @@ const Layout = ({ children }) => {
     location.pathname === '/starline-bet-history' ||
     location.pathname === '/market-result-history' ||
     location.pathname === '/startline-dashboard' ||
+    location.pathname === '/king-bazaar-dashboard' ||
+    location.pathname === '/king-bazaar-market' ||
     isSupportPage;
   const isBetsPage = location.pathname === '/bids';
   const isHistoryPage =
@@ -170,6 +174,8 @@ const AppRoutes = () => {
           <Route path="/market-result-history" element={<MarketResultHistory />} />
           <Route path="/startline-dashboard" element={<StartlineDashboard />} />
           <Route path="/starline-market" element={<StarlineMarket />} />
+          <Route path="/king-bazaar-dashboard" element={<KingBazaarDashboard />} />
+          <Route path="/king-bazaar-market" element={<KingBazaarMarket />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/top-winners" element={<TopWinners />} />
         </Routes>

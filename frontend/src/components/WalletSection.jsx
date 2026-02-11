@@ -252,7 +252,7 @@ const WalletSection = () => {
         </button>
 
         <button 
-          onClick={() => navigate('/bidoptions', { state: { marketType: 'king' } })}
+          onClick={() => navigate('/king-bazaar-dashboard')}
           className="group relative rounded-xl min-[375px]:rounded-2xl sm:rounded-3xl bg-[#1a1a1a] p-3 min-[375px]:p-4 sm:p-5 md:p-6 text-left shadow-[0_8px_20px_rgba(0,0,0,0.4)] border border-white/10 hover:border-purple-500/30 hover:bg-[#222] active:scale-95 transition-all duration-200"
         >
           <div className="flex items-center justify-between gap-2 min-[375px]:gap-3">

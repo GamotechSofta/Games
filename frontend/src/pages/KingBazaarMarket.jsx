@@ -1,64 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 
-const STARLINE_MARKET_IMAGE_URL =
+// Reuse the same hosted assets for consistent UI.
+const KING_BAZAAR_MARKET_IMAGE_URL =
   'https://res.cloudinary.com/dzd47mpdo/image/upload/v1770641576/Untitled_1080_x_1080_px_1_gyjbpl.svg';
 
-const STARLINE_MARKET_FIRST_IMAGE_URL =
+const KING_BAZAAR_MARKET_FIRST_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722977/Untitled_design_11_1_1_fqrqpr_xnt8al.png';
-
-const STARLINE_MARKET_SECOND_IMAGE_URL =
+const KING_BAZAAR_MARKET_SECOND_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_10_2_1_x8ji72_ugka1w.png';
-
-const STARLINE_MARKET_THIRD_IMAGE_URL =
+const KING_BAZAAR_MARKET_THIRD_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722977/Untitled_design_3_1_qqgezq_lgd9wq.png';
-
-const STARLINE_MARKET_FOURTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_FOURTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722977/Untitled_design_4_1_wm47pu_qethnu.png';
-
-const STARLINE_MARKET_FIFTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_FIFTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_7_1_b7mxik_dzpbre.png';
-
-const STARLINE_MARKET_SIXTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_SIXTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_5_2_op4u73_o0eaqv.png';
-
-const STARLINE_MARKET_SEVENTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_SEVENTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722975/Untitled_design_8_1_zdpype_cn1gwg.png';
-
-// Reuse existing (already hosted) assets so every slot can have a unique image.
-const STARLINE_MARKET_EIGHTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_EIGHTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722975/Untitled_design_9_1_oc8usl_hzconw.png';
-const STARLINE_MARKET_NINTH_IMAGE_URL =
+const KING_BAZAAR_MARKET_NINTH_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_14_1_hmsbwv_twcatd.png';
-const STARLINE_MARKET_TENTH_IMAGE_URL =
-  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722977/Untitled_design_11_1_1_fqrqpr_xnt8al.png';
-const STARLINE_MARKET_ELEVENTH_IMAGE_URL =
-  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_7_1_b7mxik_dzpbre.png';
-const STARLINE_MARKET_TWELFTH_IMAGE_URL =
-  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722975/Untitled_design_9_1_oc8usl_hzconw.png';
-const STARLINE_MARKET_THIRTEENTH_IMAGE_URL =
-  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722976/Untitled_design_10_2_1_x8ji72_ugka1w.png';
-const STARLINE_MARKET_FOURTEENTH_IMAGE_URL =
-  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722977/Untitled_design_4_1_wm47pu_qethnu.png';
 
-// Order matches `scheduleTimes`: 11:00, 12:00, ..., 23:00, 00:00
-const STARLINE_MARKET_IMAGE_OVERRIDES = [
-  STARLINE_MARKET_FIRST_IMAGE_URL,
-  STARLINE_MARKET_SECOND_IMAGE_URL,
-  STARLINE_MARKET_THIRD_IMAGE_URL,
-  STARLINE_MARKET_FOURTH_IMAGE_URL,
-  STARLINE_MARKET_FIFTH_IMAGE_URL,
-  STARLINE_MARKET_SIXTH_IMAGE_URL,
-  STARLINE_MARKET_SEVENTH_IMAGE_URL,
-  STARLINE_MARKET_EIGHTH_IMAGE_URL,
-  STARLINE_MARKET_NINTH_IMAGE_URL,
-  STARLINE_MARKET_TENTH_IMAGE_URL,
-  STARLINE_MARKET_ELEVENTH_IMAGE_URL,
-  STARLINE_MARKET_TWELFTH_IMAGE_URL,
-  STARLINE_MARKET_THIRTEENTH_IMAGE_URL,
-  STARLINE_MARKET_FOURTEENTH_IMAGE_URL,
+const KING_BAZAAR_MARKET_IMAGE_OVERRIDES = [
+  KING_BAZAAR_MARKET_FIRST_IMAGE_URL,
+  KING_BAZAAR_MARKET_SECOND_IMAGE_URL,
+  KING_BAZAAR_MARKET_THIRD_IMAGE_URL,
+  KING_BAZAAR_MARKET_FOURTH_IMAGE_URL,
+  KING_BAZAAR_MARKET_FIFTH_IMAGE_URL,
+  KING_BAZAAR_MARKET_SIXTH_IMAGE_URL,
+  KING_BAZAAR_MARKET_SEVENTH_IMAGE_URL,
+  KING_BAZAAR_MARKET_EIGHTH_IMAGE_URL,
+  KING_BAZAAR_MARKET_NINTH_IMAGE_URL,
 ];
 
 const formatTime12 = (time24) => {
@@ -73,8 +50,12 @@ const formatTime12 = (time24) => {
   return `${h12}:${min} ${ampm}`;
 };
 
-const sumDigits = (s) => [...String(s)].reduce((acc, c) => acc + (Number(c) || 0), 0);
-const openDigit = (open3) => (open3 && /^\d{3}$/.test(String(open3)) ? String(sumDigits(open3) % 10) : '*');
+const jodiFromDisplayResult = (displayResultRaw) => {
+  const s = (displayResultRaw || '').toString().trim();
+  const m = s.match(/^[0-9*]{3}-([0-9*]{2})-[0-9*]{3}$/);
+  const j = m?.[1] || '**';
+  return j.split('').join(' '); // '**' -> '* *', '45' -> '4 5'
+};
 
 const getTodayIST = (now = new Date()) =>
   new Intl.DateTimeFormat('en-CA', {
@@ -94,7 +75,6 @@ const getTodayTargetMsIST = (timeHHMM, nowMs) => {
   const todayIST = getTodayIST(new Date(nowMs));
   const t = (timeHHMM || '').toString().slice(0, 5);
   if (!/^\d{2}:\d{2}$/.test(t)) return null;
-  // Special-case 00:00: treat as end-of-day midnight (next day) for this schedule.
   const dateStr = t === '00:00' ? addDaysIST(todayIST, 1) : todayIST;
   const targetToday = new Date(`${dateStr}T${t}:00+05:30`).getTime();
   if (Number.isNaN(targetToday)) return null;
@@ -126,11 +106,25 @@ const formatCountdown = (ms) => {
   return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
 };
 
-const StarlineMarket = () => {
+const isKingBazaarMarket = (market) => {
+  const t = (market?.marketType || '').toString().trim().toLowerCase();
+  if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
+  const name = (market?.marketName || market?.gameName || '').toString().trim().toLowerCase();
+  return name.includes('king bazaar') || name.includes('king-bazaar') || name.includes('kingbazaar');
+};
+
+const normName = (s) => (s || '').toString().toLowerCase().replace(/[\s_-]+/g, '');
+
+const DEMO_SLOTS = [
+  '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
+];
+
+const KingBazaarMarket = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
-  const marketLabel = (location.state?.marketLabel || location.state?.label || 'Starline').toString();
+  const marketLabel = (location.state?.marketLabel || location.state?.label || 'King Bazaar').toString();
+  const marketNameFilter = (location.state?.marketName || '').toString().trim().toLowerCase();
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
@@ -141,7 +135,7 @@ const StarlineMarket = () => {
     return () => window.clearInterval(t);
   }, []);
 
-  // Only show slots that exist in the API for this market – no predefined/placeholder slots
+  // Show markets from API if available, otherwise show frontend-only demo slots.
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -150,21 +144,19 @@ const StarlineMarket = () => {
         const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : [];
-        const keyNorm = (marketKey || '').toString().trim().toLowerCase();
-
-        const filtered = list.filter((m) => {
-          const name = (m?.marketName || m?.gameName || '').toString().toLowerCase();
-          const isStar = m?.marketType === 'startline' || name.includes('starline') || name.includes('startline');
-          if (!isStar) return false;
-          const group = (m?.starlineGroup || '').toString().trim().toLowerCase();
-          if (!keyNorm) return true;
-          return group === keyNorm;
+        const filtered = list.filter(isKingBazaarMarket).filter((m) => {
+          if (!marketNameFilter) return true;
+          const name = (m?.marketName || m?.gameName || '').toString().trim().toLowerCase();
+          // Support minor naming variations (spaces/dashes/underscores/case)
+          return normName(name) === normName(marketNameFilter) || normName(name).includes(normName(marketNameFilter));
         });
 
         const mapped = filtered
           .map((m) => {
             const st = (m.startingTime || '').toString().trim().slice(0, 5);
-            const status = isPastClosingTime(m) ? 'closed' : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
+            const status = isPastClosingTime(m)
+              ? 'closed'
+              : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
             return {
               id: m._id,
               marketName: m.marketName || m.gameName || marketLabel,
@@ -172,24 +164,60 @@ const StarlineMarket = () => {
               closingTime: m.closingTime || m.startingTime || null,
               openingNumber: m.openingNumber || null,
               closingNumber: m.closingNumber || null,
+              displayResult: m.displayResult || '***-**-***',
               status,
+              _raw: m,
+              _isDemo: false,
             };
           })
           .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
 
-        if (!cancelled) setItems(mapped);
+        if (!cancelled) {
+          if (mapped.length > 0) {
+            setItems(mapped);
+          } else {
+            setItems(
+              DEMO_SLOTS.map((t) => ({
+                id: `king-demo-${t}`,
+                marketName: marketLabel,
+                startingTime: t,
+                closingTime: t,
+                openingNumber: null,
+                closingNumber: null,
+                displayResult: '***-**-***',
+                status: 'open',
+                _raw: null,
+                _isDemo: true,
+              })),
+            );
+          }
+        }
       } catch {
-        if (!cancelled) setItems([]);
+        if (!cancelled) {
+          setItems(
+            DEMO_SLOTS.map((t) => ({
+              id: `king-demo-${t}`,
+              marketName: marketLabel,
+              startingTime: t,
+              closingTime: t,
+              openingNumber: null,
+              closingNumber: null,
+              displayResult: '***-**-***',
+              status: 'open',
+              _raw: null,
+              _isDemo: true,
+            })),
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
     run();
     return () => { cancelled = true; };
-  }, [marketKey, marketLabel]);
+  }, [marketLabel, marketNameFilter]);
 
-  const title = marketLabel || 'Starline';
-  const isKalyanStarline = title.toString().toLowerCase().includes('kalyan');
+  const title = marketLabel || 'King Bazaar';
 
   return (
     <div className="min-h-screen bg-black text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -197,7 +225,7 @@ const StarlineMarket = () => {
         <div className="flex items-center gap-3 md:gap-4 md:rounded-3xl md:border md:border-white/10 md:bg-[#111113] md:px-6 md:py-5 md:shadow-[0_18px_48px_rgba(0,0,0,0.55)]">
           <button
             type="button"
-            onClick={() => navigate('/startline-dashboard')}
+            onClick={() => navigate('/king-bazaar-dashboard')}
             className="w-11 h-11 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition shrink-0"
             aria-label="Back"
           >
@@ -206,12 +234,13 @@ const StarlineMarket = () => {
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-sm text-white/60 leading-none">Starline Market</div>
+            <div className="text-sm text-white/60 leading-none">King Bazaar Market</div>
             <div className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide truncate">{title}</div>
-            <div className="hidden sm:block mt-1 text-xs text-white/50">Select a time slot to place bets. Green = open, red = closed for today.</div>
+            <div className="hidden sm:block mt-1 text-xs text-white/50">
+              Select a time slot to place bets. Green = open, red = closed for today.
+            </div>
           </div>
 
-          {/* Desktop legend */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400/90 shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
@@ -223,13 +252,6 @@ const StarlineMarket = () => {
             </div>
           </div>
         </div>
-
-        {!loading && items.length === 0 && (
-          <div className="mt-4 md:mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm">
-            <p className="font-medium">No time slots for {title} yet.</p>
-            <p className="mt-1 text-amber-200/90">Slots are added in <strong>Admin → Markets → Starline Market</strong>. Once added, they will appear here.</p>
-          </div>
-        )}
 
         <div className="mt-4 md:mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5">
           {loading ? (
@@ -244,11 +266,11 @@ const StarlineMarket = () => {
                 m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
               const isClosedForToday = slotClosed || hasDeclaredOpen;
               const statusText = isClosedForToday ? 'Close For Today' : 'Open';
-              const pill = `${hasDeclaredOpen ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
-              const canOpen = !isClosedForToday;
+              const pill = jodiFromDisplayResult(m.displayResult || m._raw?.displayResult);
               const countdown = formatCountdown(msUntilNextIST(m.startingTime, tick));
-              const imageUrl = STARLINE_MARKET_IMAGE_OVERRIDES[idx % STARLINE_MARKET_IMAGE_OVERRIDES.length] || STARLINE_MARKET_IMAGE_URL;
-              const isFourteenthImage = imageUrl === STARLINE_MARKET_FOURTEENTH_IMAGE_URL;
+              const imageUrl = KING_BAZAAR_MARKET_IMAGE_OVERRIDES[idx % KING_BAZAAR_MARKET_IMAGE_OVERRIDES.length] || KING_BAZAAR_MARKET_IMAGE_URL;
+
+              const canOpen = !isClosedForToday;
 
               return (
                 <button
@@ -257,10 +279,9 @@ const StarlineMarket = () => {
                   disabled={!canOpen}
                   onClick={() => {
                     if (!canOpen) return;
-                    navigate('/bidoptions', {
-                      state: {
-                        marketType: 'starline',
-                        market: {
+                    const marketForBidOptions = m._raw
+                      ? {
+                          ...(m._raw || {}),
                           _id: m.id,
                           marketName: m.marketName,
                           gameName: m.marketName,
@@ -269,7 +290,22 @@ const StarlineMarket = () => {
                           openingNumber: m.openingNumber,
                           closingNumber: m.closingNumber,
                           status: m.status === 'running' ? 'running' : 'open',
-                        },
+                        }
+                      : {
+                          _id: 'king-demo-market',
+                          marketType: 'king',
+                          marketName: m.marketName,
+                          gameName: m.marketName,
+                          startingTime: m.startingTime,
+                          closingTime: m.closingTime,
+                          openingNumber: null,
+                          closingNumber: null,
+                          status: 'open',
+                        };
+                    navigate('/bidoptions', {
+                      state: {
+                        marketType: 'king',
+                        market: marketForBidOptions,
                       },
                     });
                   }}
@@ -279,12 +315,11 @@ const StarlineMarket = () => {
                       : 'border-white/10 opacity-95 cursor-not-allowed'
                   }`}
                 >
-                  {/* Top image area (photo-style) */}
                   <div className="relative h-[150px] md:h-[190px] overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#15171b] to-[#050505]">
                     <img
                       src={imageUrl}
-                      alt="Starline Market"
-                      className={`absolute inset-0 w-full h-full object-contain p-0 ${isFourteenthImage ? 'scale-125' : ''} ${
+                      alt="King Bazaar Market"
+                      className={`absolute inset-0 w-full h-full object-contain p-0 ${
                         canOpen ? '' : 'opacity-70 md:grayscale'
                       }`}
                       loading="lazy"
@@ -292,7 +327,6 @@ const StarlineMarket = () => {
                     />
                   </div>
 
-                  {/* Bottom info area */}
                   <div className="bg-[#202124] border-t border-white/10 px-3 py-2.5 md:px-4 md:py-3.5">
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-[12px] md:text-sm font-extrabold text-[#d4af37] truncate">
@@ -304,8 +338,8 @@ const StarlineMarket = () => {
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <div
                         className={`font-extrabold text-[#d4af37] tracking-wide ${
-                          isKalyanStarline
-                            ? (String(pill).includes('*') ? 'text-[22px] md:text-[28px] leading-none' : 'text-[18px] md:text-[22px]')
+                          String(pill).includes('*')
+                            ? 'text-[22px] md:text-[28px] leading-none'
                             : 'text-[16px] md:text-[18px]'
                         }`}
                       >
@@ -339,5 +373,5 @@ const StarlineMarket = () => {
   );
 };
 
-export default StarlineMarket;
+export default KingBazaarMarket;
 

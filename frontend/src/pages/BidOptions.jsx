@@ -6,6 +6,15 @@ const BidOptions = () => {
   const location = useLocation();
   const market = location.state?.market;
   const marketType = (location.state?.marketType || '').toString().trim().toLowerCase();
+  const inferredKing = (() => {
+    const t = marketType;
+    if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
+    const mType = (market?.marketType || '').toString().trim().toLowerCase();
+    if (mType === 'king' || mType === 'king-bazaar' || mType === 'kingbazaar') return true;
+    const name = (market?.marketName || market?.gameName || '').toString().toLowerCase();
+    return name.includes('king bazaar') || name.includes('king-bazaar') || name.includes('kingbazaar');
+  })();
+  const isKingBazaar = inferredKing;
   const inferredStarline = (() => {
     const t = marketType;
     if (t === 'starline' || t === 'startline' || t === 'star-line') return true;
@@ -31,6 +40,7 @@ const BidOptions = () => {
     {
       id: 1,
       title: 'Single Digit',
+      displayTitle: 'Single Digit',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
@@ -42,6 +52,7 @@ const BidOptions = () => {
     {
       id: 2,
       title: 'Single Digit Bulk',
+      displayTitle: 'Single Digit Bulk',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
@@ -53,6 +64,7 @@ const BidOptions = () => {
     {
       id: 3,
       title: 'Jodi',
+      displayTitle: 'Jodi',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
@@ -64,6 +76,7 @@ const BidOptions = () => {
     {
       id: 4,
       title: 'Jodi Bulk',
+      displayTitle: 'Jodi Bulk',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
@@ -75,6 +88,7 @@ const BidOptions = () => {
     {
       id: 5,
       title: 'Single Pana',
+      displayTitle: 'Single Pana',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
@@ -86,6 +100,7 @@ const BidOptions = () => {
     {
       id: 6,
       title: 'Single Pana Bulk',
+      displayTitle: 'Single Pana Bulk',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
@@ -97,6 +112,7 @@ const BidOptions = () => {
     {
       id: 7,
       title: 'Double Pana',
+      displayTitle: 'Double Pana',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
@@ -108,6 +124,7 @@ const BidOptions = () => {
     {
       id: 8,
       title: 'Double Pana Bulk',
+      displayTitle: 'Double Pana Bulk',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
@@ -119,6 +136,7 @@ const BidOptions = () => {
     {
       id: 9,
       title: 'Triple Pana',
+      displayTitle: 'Triple Pana',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714392/Untitled_1080_x_1080_px_1080_x_1080_px_9_ugcdef.svg"
@@ -130,6 +148,7 @@ const BidOptions = () => {
     {
       id: 10,
       title: 'Full Sangam',
+      displayTitle: 'Full Sangam',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033671/Untitled_design_2_kr1imj.svg"
@@ -141,6 +160,7 @@ const BidOptions = () => {
     {
       id: 11,
       title: 'Half Sangam (O)',
+      displayTitle: 'Half Sangam (O)',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
@@ -157,7 +177,36 @@ const BidOptions = () => {
 
   // When market is "CLOSED IS RUNNING", hide options that require OPEN session.
   const isRunning = market.status === 'running';
-  const visibleOptionsBase = isStarline
+  const visibleOptionsBase = isKingBazaar
+    ? [
+        {
+          id: 'king-single-open',
+          title: 'Single Digit',
+          displayTitle: 'Single Digit (OPEN)',
+          sessionPreset: 'OPEN',
+          icon: options.find((o) => o.title === 'Single Digit')?.icon,
+        },
+        {
+          id: 'king-single-close',
+          title: 'Single Digit',
+          displayTitle: 'Single Digit (CLOSE)',
+          sessionPreset: 'CLOSE',
+          icon: options.find((o) => o.title === 'Single Digit')?.icon,
+        },
+        {
+          id: 'king-jodi',
+          title: 'Jodi',
+          displayTitle: 'Jodi',
+          icon: options.find((o) => o.title === 'Jodi')?.icon,
+        },
+        {
+          id: 'king-jodi-bulk',
+          title: 'Jodi Bulk',
+          displayTitle: 'Jodi Bulk',
+          icon: options.find((o) => o.title === 'Jodi Bulk')?.icon,
+        },
+      ]
+    : isStarline
     ? options.filter((opt) => {
         const t = (opt.title || '').toString().trim();
         const allowed = new Set([
@@ -224,6 +273,7 @@ const BidOptions = () => {
               state: {
                 market,
                 betType: option.title,
+                sessionPreset: option.sessionPreset,
                 gameMode: option.title.toLowerCase().includes('bulk') ? 'bulk' : 'easy'
               }
             })}
@@ -236,7 +286,7 @@ const BidOptions = () => {
 
             {/* Title */}
             <span className="text-white text-[10px] sm:text-[11px] md:text-sm font-semibold tracking-[0.14em] sm:tracking-[0.18em] uppercase text-center line-clamp-2 leading-tight">
-              {option.title}
+              {option.displayTitle || option.title}
             </span>
           </div>
         ))}

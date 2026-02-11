@@ -129,7 +129,7 @@ const Section1 = () => {
 
         {/* ── KING BAZAAR Button ── */}
         <button
-          onClick={() => navigate('/bidoptions', { state: { marketType: 'king' } })}
+          onClick={() => navigate('/king-bazaar-dashboard')}
           className="group relative overflow-hidden rounded-xl bg-[#111113] border border-[#f2c14e]/25 hover:border-[#f2c14e]/60 transition-all duration-300 active:scale-[0.97] cursor-pointer shrink-0"
         >
           <div className="absolute inset-0 bg-gradient-to-l from-[#f2c14e]/[0.06] to-transparent group-hover:from-[#f2c14e]/[0.12] transition-all duration-300" />

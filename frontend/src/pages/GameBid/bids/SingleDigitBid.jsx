@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const SingleDigitBid = ({ market, title }) => {
+    const location = useLocation();
+    const sessionPresetRaw = (location.state?.sessionPreset || '').toString().trim().toUpperCase();
+    const sessionPreset = (sessionPresetRaw === 'OPEN' || sessionPresetRaw === 'CLOSE') ? sessionPresetRaw : null;
     // Single Digit: show Special Mode first (per requirement)
     const [activeTab, setActiveTab] = useState('special');
-    const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
+    const [session, setSession] = useState(() => (sessionPreset || (market?.status === 'running' ? 'CLOSE' : 'OPEN')));
     const [bids, setBids] = useState([]);
     const [inputNumber, setInputNumber] = useState('');
     const [inputPoints, setInputPoints] = useState('');
@@ -118,6 +122,11 @@ const SingleDigitBid = ({ market, title }) => {
     const dateText = new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
     const isRunning = market?.status === 'running'; // "CLOSED IS RUNNING"
+
+    useEffect(() => {
+        if (!sessionPreset) return;
+        setSession((s) => (s === sessionPreset ? s : sessionPreset));
+    }, [sessionPreset]);
 
     useEffect(() => {
         if (isRunning) setSession('CLOSE');
