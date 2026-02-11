@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet } from 'react-icons/fa';
+import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet, FaBuilding, FaLock } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -501,14 +501,20 @@ const PlayerDetail = () => {
                                 <><FaUserCheck className="w-4 h-4" /> Unsuspend</>
                             )}
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); setWalletSetBalance(''); }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
-                            title="Edit wallet"
-                        >
-                            <FaWallet className="w-4 h-4" /> Edit Wallet
-                        </button>
+                        {player.userBookieType === 'bookie_collects' ? (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed" title="This user's wallet is managed by their bookie">
+                                <FaLock className="w-3.5 h-3.5" /> Bookie Manages Wallet
+                            </span>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); setWalletSetBalance(''); }}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
+                                title="Edit wallet"
+                            >
+                                <FaWallet className="w-4 h-4" /> Edit Wallet
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={handleDeletePlayer}
@@ -588,6 +594,20 @@ const PlayerDetail = () => {
                             </span>
                         </div>
                         <div className="min-w-0">
+                            <p className="text-gray-500 uppercase tracking-wider text-xs">Source</p>
+                            {player.userBookieType === 'bookie_collects' ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30 mt-0.5">
+                                    <FaBuilding className="w-2.5 h-2.5" /> {player.userBookieName || 'Bookie Collects'}
+                                </span>
+                            ) : player.userBookieType === 'admin_collects' ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 mt-0.5">
+                                    <FaBuilding className="w-2.5 h-2.5" /> {player.userBookieName || 'Admin Collects'}
+                                </span>
+                            ) : (
+                                <span className="text-blue-400 text-xs font-medium mt-0.5 inline-block">Direct User</span>
+                            )}
+                        </div>
+                        <div className="min-w-0">
                             <p className="text-gray-500 uppercase tracking-wider text-xs">Balance</p>
                             <p className="text-green-400 font-mono font-semibold">{player.walletBalance ?? 0}</p>
                         </div>
@@ -602,6 +622,16 @@ const PlayerDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Bookie Collects wallet notice */}
+            {player.userBookieType === 'bookie_collects' && (
+                <div className="mb-4 min-w-0">
+                    <div className="rounded-xl border border-amber-500/60 bg-amber-500/10 px-4 py-3 text-amber-200 text-sm font-medium flex items-center gap-2">
+                        <FaLock className="w-4 h-4 shrink-0" />
+                        <span>This user belongs to <strong>{player.userBookieName || 'a Bookie Collects bookie'}</strong>. Wallet is managed by the bookie — you cannot add or deduct money.</span>
+                    </div>
+                </div>
+            )}
 
             {/* Multiple devices warning (admin-only) – red when multiple devices */}
             {Array.isArray(player.loginDevices) && player.loginDevices.length > 1 && (
@@ -771,7 +801,13 @@ const PlayerDetail = () => {
                             <div><p className="text-gray-500 text-sm">Email</p><p className="text-white">{player.email}</p></div>
                             <div><p className="text-gray-500 text-sm">Phone</p><p className="text-white">{player.phone || '—'}</p></div>
                             <div><p className="text-gray-500 text-sm">Role</p><p className="text-white capitalize">{player.role || 'Player'}</p></div>
-                            <div><p className="text-gray-500 text-sm">Source</p><p className="text-white">{player.source === 'bookie' ? 'Bookie' : 'Super Admin'}</p></div>
+                            <div><p className="text-gray-500 text-sm">Source</p><p className="text-white">{
+                                player.userBookieType === 'bookie_collects'
+                                    ? `Bookie Collects (${player.userBookieName || 'Bookie'})`
+                                    : player.userBookieType === 'admin_collects'
+                                        ? `Admin Collects (${player.userBookieName || 'Bookie'})`
+                                        : 'Direct User (Super Admin)'
+                            }</p></div>
                             <div><p className="text-gray-500 text-sm">Created</p><p className="text-white">{player.createdAt ? new Date(player.createdAt).toLocaleString('en-IN') : '—'}</p></div>
                         </div>
                     </div>
@@ -779,8 +815,8 @@ const PlayerDetail = () => {
 
             </div>
 
-            {/* Edit Wallet Modal */}
-            {walletModalOpen && (
+            {/* Edit Wallet Modal - blocked for bookie_collects users */}
+            {walletModalOpen && player.userBookieType !== 'bookie_collects' && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
                     <div className="bg-gray-800 rounded-xl border border-gray-600 shadow-xl w-full max-w-md">
                         <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">

@@ -502,12 +502,26 @@ export const getSingleUser = async (req, res) => {
         const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
         const isOnline = lastActive > 0 && Date.now() - lastActive < ONLINE_THRESHOLD_MS;
 
+        // Enrich with bookie info (bookieType, bookieName) for admin detail view
+        let userBookieType = 'direct';
+        let userBookieName = '';
+        if (user.referredBy) {
+            const bookieId = user.referredBy._id || user.referredBy;
+            const bookieDoc = await Admin.findById(bookieId).select('username bookieType').lean();
+            if (bookieDoc) {
+                userBookieType = bookieDoc.bookieType || 'admin_collects';
+                userBookieName = bookieDoc.username || '';
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: {
                 ...withBalance,
                 walletBalance: withBalance.walletBalance ?? 0,
                 isOnline,
+                userBookieType,
+                userBookieName,
             },
         });
     } catch (error) {

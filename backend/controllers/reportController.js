@@ -8,7 +8,8 @@ export const getReport = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         const dateFilter = {};
-        const bookieUserIds = await getBookieUserIds(req.admin);
+        const admin = req.admin;
+        const bookieUserIds = await getBookieUserIds(admin);
 
         if (startDate || endDate) {
             dateFilter.createdAt = {};

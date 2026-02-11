@@ -1,6 +1,7 @@
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import User from '../models/user/user.js';
 import Bet from '../models/bet/bet.js';
+import Admin from '../models/admin/admin.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 
@@ -12,8 +13,35 @@ export const getAllWallets = async (req, res) => {
             query.userId = { $in: bookieUserIds };
         }
         const wallets = await Wallet.find(query)
-            .populate('userId', 'username email')
+            .populate('userId', 'username email referredBy')
             .sort({ balance: -1 });
+
+        // For admin view: enrich each wallet with the user's bookie type
+        if (req.admin?.role === 'super_admin') {
+            const enriched = [];
+            // Collect unique bookie IDs
+            const bookieIds = [...new Set(wallets.filter(w => w.userId?.referredBy).map(w => String(w.userId.referredBy)))];
+            const bookieMap = {};
+            if (bookieIds.length > 0) {
+                const bookieDocs = await Admin.find({ _id: { $in: bookieIds } }).select('_id username bookieType').lean();
+                for (const b of bookieDocs) {
+                    bookieMap[String(b._id)] = b;
+                }
+            }
+            for (const w of wallets) {
+                const obj = w.toObject();
+                if (w.userId?.referredBy) {
+                    const bookie = bookieMap[String(w.userId.referredBy)];
+                    obj.userBookieType = bookie?.bookieType || 'admin_collects';
+                    obj.userBookieName = bookie?.username || '';
+                } else {
+                    obj.userBookieType = 'direct';
+                    obj.userBookieName = '';
+                }
+                enriched.push(obj);
+            }
+            return res.status(200).json({ success: true, data: enriched });
+        }
 
         res.status(200).json({ success: true, data: wallets });
     } catch (error) {
@@ -135,6 +163,31 @@ export const adjustBalance = async (req, res) => {
             });
         }
 
+        // Admin cannot adjust wallet for bookie_collects bookie's users
+        if (req.admin?.role === 'super_admin') {
+            const targetUser = await User.findById(userId).select('referredBy').lean();
+            if (targetUser?.referredBy) {
+                const userBookie = await Admin.findById(targetUser.referredBy).select('bookieType').lean();
+                if (userBookie?.bookieType === 'bookie_collects') {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'This user belongs to a Bookie Collects bookie. Only the bookie can manage their wallet.',
+                    });
+                }
+            }
+        }
+
+        // Bookie can only adjust if they are bookie_collects type
+        if (req.admin?.role === 'bookie') {
+            const selfBookie = await Admin.findById(req.admin._id).select('bookieType').lean();
+            if (!selfBookie || selfBookie.bookieType !== 'bookie_collects') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Only Bookie Collects type bookies can adjust user wallets. Admin manages wallets for your users.',
+                });
+            }
+        }
+
         let wallet = await Wallet.findOne({ userId });
         if (!wallet) {
             wallet = new Wallet({ userId, balance: 0 });
@@ -159,11 +212,12 @@ export const adjustBalance = async (req, res) => {
 
         await wallet.save();
 
+        const adjustedBy = req.admin?.role === 'bookie' ? 'Bookie' : 'Admin';
         await WalletTransaction.create({
             userId,
             type,
             amount: numAmount,
-            description: `Admin ${type}: ₹${numAmount}`,
+            description: `${adjustedBy} ${type}: ₹${numAmount}`,
         });
 
         const player = await User.findById(userId).select('username').lean();
@@ -217,6 +271,31 @@ export const setBalance = async (req, res) => {
             });
         }
 
+        // Admin cannot set wallet for bookie_collects bookie's users
+        if (req.admin?.role === 'super_admin') {
+            const targetUser = await User.findById(userId).select('referredBy').lean();
+            if (targetUser?.referredBy) {
+                const userBookie = await Admin.findById(targetUser.referredBy).select('bookieType').lean();
+                if (userBookie?.bookieType === 'bookie_collects') {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'This user belongs to a Bookie Collects bookie. Only the bookie can manage their wallet.',
+                    });
+                }
+            }
+        }
+
+        // Bookie can only set if they are bookie_collects type
+        if (req.admin?.role === 'bookie') {
+            const selfBookie = await Admin.findById(req.admin._id).select('bookieType').lean();
+            if (!selfBookie || selfBookie.bookieType !== 'bookie_collects') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Only Bookie Collects type bookies can set user wallets.',
+                });
+            }
+        }
+
         let wallet = await Wallet.findOne({ userId });
         if (!wallet) {
             wallet = new Wallet({ userId, balance: 0 });
@@ -228,11 +307,12 @@ export const setBalance = async (req, res) => {
 
         const diff = newBalance - previousBalance;
         const type = diff >= 0 ? 'credit' : 'debit';
+        const adjustedBy = req.admin?.role === 'bookie' ? 'Bookie' : 'Admin';
         await WalletTransaction.create({
             userId,
             type,
             amount: Math.abs(diff),
-            description: `Admin set balance to ₹${newBalance} (was ₹${previousBalance})`,
+            description: `${adjustedBy} set balance to ₹${newBalance} (was ₹${previousBalance})`,
         });
 
         const player = await User.findById(userId).select('username').lean();
