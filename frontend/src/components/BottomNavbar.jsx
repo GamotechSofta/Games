@@ -41,7 +41,7 @@ const BottomNavbar = () => {
       path: '/bank',
       icon: (
         <img
-          src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770813028/passbook_xbnscj.png"
+          src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770813159/passbook_1_sstp7k.png"
           alt="Passbook"
           className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
