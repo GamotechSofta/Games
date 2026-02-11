@@ -19,7 +19,7 @@ const BookieManagement = () => {
     const [selectedBookie, setSelectedBookie] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     
-    // Form data - create: firstName, lastName, email, phone, password, confirmPassword; edit: same + optional password
+    // Form data - create: firstName, lastName, email, phone, password, confirmPassword, bookieType, commissionPercentage, upiId
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -27,6 +27,9 @@ const BookieManagement = () => {
         phone: '',
         password: '',
         confirmPassword: '',
+        bookieType: 'admin_collects',
+        commissionPercentage: '',
+        upiId: '',
     });
 
     const [formLoading, setFormLoading] = useState(false);
@@ -126,6 +129,9 @@ const BookieManagement = () => {
                 email: formData.email.trim(),
                 phone: formData.phone.replace(/\D/g, '').slice(0, 10),
                 password: formData.password,
+                bookieType: formData.bookieType || 'admin_collects',
+                commissionPercentage: formData.commissionPercentage !== '' ? Number(formData.commissionPercentage) : 0,
+                upiId: formData.bookieType === 'bookie_collects' ? (formData.upiId || '').trim() : '',
             };
             const response = await fetch(`${API_BASE_URL}/admin/bookies`, {
                 method: 'POST',
@@ -136,7 +142,7 @@ const BookieManagement = () => {
             if (data.success) {
                 setSuccess('Bookie account created successfully!');
                 setShowCreateModal(false);
-                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
+                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', bookieType: 'admin_collects', commissionPercentage: '', upiId: '' });
                 fetchBookies();
                 setTimeout(() => setSuccess(''), 3000);
             } else {
@@ -174,6 +180,9 @@ const BookieManagement = () => {
                 lastName: trimmedLast,
                 email: formData.email.trim(),
                 phone: formData.phone.replace(/\D/g, '').slice(0, 10) || formData.phone,
+                bookieType: formData.bookieType || 'admin_collects',
+                commissionPercentage: formData.commissionPercentage !== '' ? Number(formData.commissionPercentage) : 0,
+                upiId: formData.bookieType === 'bookie_collects' ? (formData.upiId || '').trim() : '',
             };
             if (formData.password) updateData.password = formData.password;
 
@@ -187,7 +196,7 @@ const BookieManagement = () => {
                 setSuccess('Bookie updated successfully!');
                 setShowEditModal(false);
                 setSelectedBookie(null);
-                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
+                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', bookieType: 'admin_collects', commissionPercentage: '', upiId: '' });
                 fetchBookies();
                 setTimeout(() => setSuccess(''), 3000);
             } else {
@@ -304,6 +313,9 @@ const BookieManagement = () => {
             phone: bookie.phone || '',
             password: '',
             confirmPassword: '',
+            bookieType: bookie.bookieType || 'admin_collects',
+            commissionPercentage: bookie.commissionPercentage ?? '',
+            upiId: '', // UPI is encrypted server-side, can't prefill
         });
         setShowEditModal(true);
     };
@@ -336,7 +348,7 @@ const BookieManagement = () => {
                         <h1 className="text-2xl sm:text-3xl font-bold">Bookie Accounts Management</h1>
                         <button
                             onClick={() => {
-                                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
+                                setFormData({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '', bookieType: 'admin_collects', commissionPercentage: '', upiId: '' });
                                 setShowCreateModal(true);
                             }}
                             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2.5 px-4 rounded-lg transition-colors text-sm sm:text-base"
@@ -391,6 +403,12 @@ const BookieManagement = () => {
                                             Phone
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                            Type
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                            Rate
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                                             Status
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -424,6 +442,18 @@ const BookieManagement = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-gray-300">
                                                 {bookie.phone || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                                    bookie.bookieType === 'bookie_collects'
+                                                        ? 'bg-purple-900/50 text-purple-400 border border-purple-700'
+                                                        : 'bg-blue-900/50 text-blue-400 border border-blue-700'
+                                                }`}>
+                                                    {bookie.bookieType === 'bookie_collects' ? 'Bookie Collects' : 'Admin Collects'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="text-yellow-400 font-semibold">{bookie.commissionPercentage || 0}%</span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -497,8 +527,8 @@ const BookieManagement = () => {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold">Create New Bookie</h2>
                             <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-white">
@@ -558,6 +588,59 @@ const BookieManagement = () => {
                                     />
                                     <p className="mt-1 text-xs text-gray-500">Bookies log in with phone + password.</p>
                                 </div>
+                                {/* Bookie Type */}
+                                <div>
+                                    <label className="block text-gray-300 text-sm font-medium mb-2">Bookie Type *</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button type="button" onClick={() => setFormData({ ...formData, bookieType: 'admin_collects' })}
+                                            className={`p-3 rounded-lg border text-sm font-medium transition-all ${formData.bookieType === 'admin_collects' ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                                            <div className="font-semibold">Admin Collects</div>
+                                            <div className="text-xs mt-1 opacity-75">Admin pays bookie commission</div>
+                                        </button>
+                                        <button type="button" onClick={() => setFormData({ ...formData, bookieType: 'bookie_collects' })}
+                                            className={`p-3 rounded-lg border text-sm font-medium transition-all ${formData.bookieType === 'bookie_collects' ? 'border-purple-500 bg-purple-500/10 text-purple-400' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                                            <div className="font-semibold">Bookie Collects</div>
+                                            <div className="text-xs mt-1 opacity-75">Bookie pays admin platform charge</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                {/* Commission / Platform Rate */}
+                                <div>
+                                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                                        {formData.bookieType === 'bookie_collects' ? 'Platform Charge %' : 'Commission Rate %'} *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="commissionPercentage"
+                                        value={formData.commissionPercentage}
+                                        onChange={(e) => setFormData({ ...formData, commissionPercentage: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        placeholder="e.g. 10"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        {formData.bookieType === 'bookie_collects'
+                                            ? 'Percentage bookie pays admin as platform charge'
+                                            : 'Percentage admin pays bookie as commission'}
+                                    </p>
+                                </div>
+                                {/* UPI ID (only for bookie_collects) */}
+                                {formData.bookieType === 'bookie_collects' && (
+                                    <div>
+                                        <label className="block text-gray-300 text-sm font-medium mb-2">Bookie UPI ID</label>
+                                        <input
+                                            type="text"
+                                            name="upiId"
+                                            value={formData.upiId}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                            placeholder="e.g. bookie@upi (optional, bookie can set later)"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">Users will see this UPI for payments. Bookie can update it later.</p>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-gray-300 text-sm font-medium mb-2">Password *</label>
                                     <div className="relative">
@@ -616,8 +699,8 @@ const BookieManagement = () => {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold">Edit Bookie</h2>
                             <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-white">
@@ -673,6 +756,54 @@ const BookieManagement = () => {
                                         required
                                     />
                                 </div>
+                                {/* Bookie Type */}
+                                <div>
+                                    <label className="block text-gray-300 text-sm font-medium mb-2">Bookie Type</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button type="button" onClick={() => setFormData({ ...formData, bookieType: 'admin_collects' })}
+                                            className={`p-3 rounded-lg border text-sm font-medium transition-all ${formData.bookieType === 'admin_collects' ? 'border-yellow-500 bg-yellow-500/10 text-yellow-400' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                                            <div className="font-semibold">Admin Collects</div>
+                                            <div className="text-xs mt-1 opacity-75">Admin pays bookie commission</div>
+                                        </button>
+                                        <button type="button" onClick={() => setFormData({ ...formData, bookieType: 'bookie_collects' })}
+                                            className={`p-3 rounded-lg border text-sm font-medium transition-all ${formData.bookieType === 'bookie_collects' ? 'border-purple-500 bg-purple-500/10 text-purple-400' : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                                            <div className="font-semibold">Bookie Collects</div>
+                                            <div className="text-xs mt-1 opacity-75">Bookie pays admin platform charge</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                {/* Commission / Platform Rate */}
+                                <div>
+                                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                                        {formData.bookieType === 'bookie_collects' ? 'Platform Charge %' : 'Commission Rate %'}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="commissionPercentage"
+                                        value={formData.commissionPercentage}
+                                        onChange={(e) => setFormData({ ...formData, commissionPercentage: e.target.value })}
+                                        className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        placeholder="e.g. 10"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                    />
+                                </div>
+                                {/* UPI ID (only for bookie_collects) */}
+                                {formData.bookieType === 'bookie_collects' && (
+                                    <div>
+                                        <label className="block text-gray-300 text-sm font-medium mb-2">Bookie UPI ID</label>
+                                        <input
+                                            type="text"
+                                            name="upiId"
+                                            value={formData.upiId}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                            placeholder="Leave empty to keep current UPI"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">Leave empty to keep current. Bookie can also update from their panel.</p>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-gray-300 text-sm font-medium mb-2">
                                         New Password (leave empty to keep current)

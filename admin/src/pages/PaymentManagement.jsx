@@ -13,7 +13,10 @@ const PaymentManagement = () => {
     const [filters, setFilters] = useState({
         status: '',
         type: '',
+        bookieType: '', // '', 'bookie_collects', 'admin_collects', 'direct'
+        bookieId: '',   // specific bookie _id
     });
+    const [bookies, setBookies] = useState([]); // all bookies for the filter dropdown
 
     // Modal state
     const [actionModal, setActionModal] = useState({ show: false, payment: null, action: '' });
@@ -29,10 +32,11 @@ const PaymentManagement = () => {
     // Detail modal for viewing full payment details
     const [detailModal, setDetailModal] = useState({ show: false, payment: null });
 
+    // Only refetch from server when status/type change (bookieType & bookieId are client-side filters)
     useEffect(() => {
         fetchPayments();
         fetchPendingCounts();
-    }, [filters]);
+    }, [filters.status, filters.type]);
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
@@ -41,6 +45,14 @@ const PaymentManagement = () => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
             })
             .catch(() => setHasSecretDeclarePassword(false));
+
+        // Fetch bookies for filter dropdown
+        fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAuthHeaders() })
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.success) setBookies(json.data || []);
+            })
+            .catch(() => {});
     }, []);
 
     const getAuthHeaders = () => {
@@ -178,8 +190,30 @@ const PaymentManagement = () => {
             : 'bg-purple-600/20 text-purple-400 border-purple-600/40';
     };
 
-    const hasActiveFilters = filters.status || filters.type;
+    const hasActiveFilters = filters.status || filters.type || filters.bookieType || filters.bookieId;
     const pendingRequireAction = pendingCounts.total > 0;
+
+    // Bookies filtered by selected bookieType (for the second dropdown)
+    const filteredBookies = filters.bookieType && filters.bookieType !== 'direct'
+        ? bookies.filter((b) => (b.bookieType || 'admin_collects') === filters.bookieType)
+        : [];
+
+    // Client-side bookieType + bookieId filter
+    const filteredPayments = (() => {
+        let result = payments;
+        if (filters.bookieId) {
+            // Specific bookie selected
+            result = result.filter((p) => p.bookieId?._id === filters.bookieId);
+        } else if (filters.bookieType) {
+            result = result.filter((p) => {
+                if (filters.bookieType === 'direct') return !p.bookieId;
+                if (filters.bookieType === 'bookie_collects') return p.bookieId?.bookieType === 'bookie_collects';
+                if (filters.bookieType === 'admin_collects') return p.bookieId?.bookieType === 'admin_collects';
+                return true;
+            });
+        }
+        return result;
+    })();
 
     return (
         <AdminLayout onLogout={handleLogout} title="Payments">
@@ -202,7 +236,7 @@ const PaymentManagement = () => {
                             ? 'border-amber-500 bg-amber-500/10'
                             : 'border-gray-700 bg-gray-800/80 hover:border-gray-600'
                     }`}
-                    onClick={() => setFilters({ status: 'pending', type: 'deposit' })}
+                    onClick={() => setFilters({ status: 'pending', type: 'deposit', bookieType: '', bookieId: '' })}
                     title="Click to view pending deposits"
                 >
                     <div className="flex items-center justify-between">
@@ -220,7 +254,7 @@ const PaymentManagement = () => {
                             ? 'border-amber-500 bg-amber-500/10'
                             : 'border-gray-700 bg-gray-800/80 hover:border-gray-600'
                     }`}
-                    onClick={() => setFilters({ status: 'pending', type: 'withdrawal' })}
+                    onClick={() => setFilters({ status: 'pending', type: 'withdrawal', bookieType: '', bookieId: '' })}
                     title="Click to view pending withdrawals"
                 >
                     <div className="flex items-center justify-between">
@@ -238,7 +272,7 @@ const PaymentManagement = () => {
                             ? 'border-blue-500 bg-blue-500/10'
                             : 'border-gray-700 bg-gray-800/80 hover:border-gray-600'
                     }`}
-                    onClick={() => setFilters({ status: '', type: '' })}
+                    onClick={() => setFilters({ status: '', type: '', bookieType: '', bookieId: '' })}
                     title="Click to view all payments"
                 >
                     <div className="flex items-center justify-between">
@@ -290,9 +324,37 @@ const PaymentManagement = () => {
                             <option value="withdrawal">Withdrawal</option>
                         </select>
                     </div>
+                    <div className="flex-1 sm:max-w-[200px]">
+                        <label className="block text-xs text-gray-500 mb-1">Bookie Type</label>
+                        <select
+                            value={filters.bookieType}
+                            onChange={(e) => setFilters({ ...filters, bookieType: e.target.value, bookieId: '' })}
+                            className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-amber-500/50"
+                        >
+                            <option value="">All Sources</option>
+                            <option value="bookie_collects">Bookie Collects</option>
+                            <option value="admin_collects">Admin Collects</option>
+                            <option value="direct">Direct Users</option>
+                        </select>
+                    </div>
+                    {filteredBookies.length > 0 && (
+                        <div className="flex-1 sm:max-w-[200px]">
+                            <label className="block text-xs text-gray-500 mb-1">Bookie Name</label>
+                            <select
+                                value={filters.bookieId}
+                                onChange={(e) => setFilters({ ...filters, bookieId: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-amber-500/50"
+                            >
+                                <option value="">All {filters.bookieType === 'bookie_collects' ? 'Bookie Collects' : 'Admin Collects'}</option>
+                                {filteredBookies.map((b) => (
+                                    <option key={b._id} value={b._id}>{b.username}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div className="flex items-end">
                         <button
-                            onClick={() => setFilters({ status: '', type: '' })}
+                            onClick={() => setFilters({ status: '', type: '', bookieType: '', bookieId: '' })}
                             className="px-4 py-2.5 bg-gray-600 hover:bg-gray-500 rounded-lg text-white text-sm font-medium transition-colors"
                         >
                             Clear Filters
@@ -305,12 +367,12 @@ const PaymentManagement = () => {
             {!loading && (
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <p className="text-sm text-gray-400">
-                        Showing <span className="font-semibold text-white">{payments.length}</span> payment{payments.length !== 1 ? 's' : ''}
+                        Showing <span className="font-semibold text-white">{filteredPayments.length}</span> payment{filteredPayments.length !== 1 ? 's' : ''}
                         {hasActiveFilters && (
                             <span className="ml-2 text-amber-400">(filtered)</span>
                         )}
                     </p>
-                    {pendingRequireAction && payments.some((p) => p.status === 'pending') && (
+                    {pendingRequireAction && filteredPayments.some((p) => p.status === 'pending') && (
                         <p className="text-xs text-amber-400 flex items-center gap-2">
                             <FaClock className="w-3.5 h-3.5" />
                             Some payments need your approval
@@ -348,7 +410,7 @@ const PaymentManagement = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-700">
-                                {payments.length === 0 ? (
+                                {filteredPayments.length === 0 ? (
                                     <tr>
                                         <td colSpan="8" className="px-6 py-16 text-center">
                                             <div className="max-w-sm mx-auto">
@@ -361,7 +423,7 @@ const PaymentManagement = () => {
                                                 </p>
                                                 {hasActiveFilters && (
                                                     <button
-                                                        onClick={() => setFilters({ status: '', type: '' })}
+                                                        onClick={() => setFilters({ status: '', type: '', bookieType: '', bookieId: '' })}
                                                         className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-white text-sm font-medium"
                                                     >
                                                         Clear Filters
@@ -371,7 +433,7 @@ const PaymentManagement = () => {
                                         </td>
                                     </tr>
                                 ) : (
-                                    payments.map((payment) => (
+                                    filteredPayments.map((payment) => (
                                         <tr key={payment._id} className="hover:bg-gray-700/50">
                                             <td className="px-4 py-4 text-xs text-gray-400 whitespace-nowrap">
                                                 #{payment._id.slice(-6).toUpperCase()}
@@ -384,6 +446,13 @@ const PaymentManagement = () => {
                                                     <p className="text-xs text-gray-500 truncate">
                                                         {payment.userId?.email || payment.userId?.phone || ''}
                                                     </p>
+                                                    {payment.bookieId && (
+                                                        <p className="text-[10px] mt-0.5 truncate">
+                                                            <span className={`px-1.5 py-0.5 rounded ${payment.bookieId.bookieType === 'bookie_collects' ? 'bg-purple-900/40 text-purple-400' : 'bg-blue-900/40 text-blue-400'}`}>
+                                                                {payment.bookieId.username}
+                                                            </span>
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
@@ -474,7 +543,11 @@ const PaymentManagement = () => {
                                                     >
                                                         <FaEye className="w-3.5 h-3.5 shrink-0" /> View Details
                                                     </button>
-                                                    {payment.status === 'pending' ? (
+                                                    {payment.bookieId?.bookieType === 'bookie_collects' ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-600/20 border border-purple-500/40 rounded-lg text-xs font-medium text-purple-400">
+                                                            Bookie Manages
+                                                        </span>
+                                                    ) : payment.status === 'pending' ? (
                                                         <>
                                                             <button
                                                                 onClick={() => openActionModal(payment, 'approve')}
@@ -851,7 +924,13 @@ const PaymentManagement = () => {
                                 {detailModal.payment.processedBy?.username && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">Processed By</span>
-                                        <span className="text-white">{detailModal.payment.processedBy.username}</span>
+                                        <span className="text-white">{detailModal.payment.processedBy.username} <span className="text-xs text-gray-500">({detailModal.payment.processedByType || 'admin'})</span></span>
+                                    </div>
+                                )}
+                                {detailModal.payment.bookieId && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Bookie</span>
+                                        <span className="text-white">{detailModal.payment.bookieId?.username || '—'} <span className="text-xs text-gray-500">({detailModal.payment.bookieId?.bookieType === 'bookie_collects' ? 'Collects' : 'Admin Collects'})</span></span>
                                     </div>
                                 )}
                                 {detailModal.payment.adminRemarks && (
@@ -871,7 +950,11 @@ const PaymentManagement = () => {
                             >
                                 Close
                             </button>
-                            {detailModal.payment.status === 'pending' && (
+                            {detailModal.payment.bookieId?.bookieType === 'bookie_collects' ? (
+                                <span className="flex-1 px-4 py-2 bg-purple-600/20 border border-purple-500/40 rounded-lg text-purple-400 font-medium text-center text-sm">
+                                    Bookie Manages This Payment
+                                </span>
+                            ) : detailModal.payment.status === 'pending' ? (
                                 <>
                                     <button
                                         onClick={() => {
@@ -892,7 +975,7 @@ const PaymentManagement = () => {
                                         Reject
                                     </button>
                                 </>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 </div>

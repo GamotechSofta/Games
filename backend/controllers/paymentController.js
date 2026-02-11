@@ -2,24 +2,64 @@ import Payment from '../models/payment/payment.js';
 import BankDetail from '../models/bankDetail/bankDetail.js';
 import { Wallet } from '../models/wallet/wallet.js';
 import Admin from '../models/admin/admin.js';
+import User from '../models/user/user.js';
 import bcrypt from 'bcryptjs';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { uploadToCloudinary } from '../config/cloudinary.js';
+import { decrypt } from '../utils/encryption.js';
 
 // ============ CONFIG API ============
 
 /**
  * Get payment configuration (UPI details, limits)
- * Public API - no auth required
+ * Public API - accepts optional ?userId to resolve correct UPI based on bookie type
  */
 export const getPaymentConfig = async (req, res) => {
     try {
+        const { userId } = req.query;
+
+        // Default: use .env UPI (admin's fallback)
+        let upiId = process.env.UPI_ID || 'example@paytm';
+        let upiName = process.env.UPI_NAME || 'Golden Games';
+
+        // If userId provided, check if user belongs to a bookie_collects bookie
+        if (userId) {
+            try {
+                const user = await User.findById(userId).select('referredBy').lean();
+                if (user?.referredBy) {
+                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId username').lean();
+                    if (bookie?.bookieType === 'bookie_collects' && bookie.upiId) {
+                        // Use bookie's UPI
+                        upiId = decrypt(bookie.upiId);
+                        upiName = bookie.username || 'Bookie';
+                    } else {
+                        // admin_collects or bookie has no UPI set - try admin's DB UPI first
+                        const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
+                        if (superAdmin?.upiId) {
+                            upiId = decrypt(superAdmin.upiId);
+                            upiName = superAdmin.username || upiName;
+                        }
+                    }
+                } else {
+                    // Direct user (no bookie) - try admin's DB UPI
+                    const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
+                    if (superAdmin?.upiId) {
+                        upiId = decrypt(superAdmin.upiId);
+                        upiName = superAdmin.username || upiName;
+                    }
+                }
+            } catch (err) {
+                console.error('Error resolving UPI for user:', userId, err.message);
+                // Fallback to env UPI on error
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: {
-                upiId: process.env.UPI_ID || 'example@paytm',
-                upiName: process.env.UPI_NAME || 'Golden Games',
+                upiId,
+                upiName,
                 minDeposit: parseInt(process.env.MIN_DEPOSIT) || 100,
                 maxDeposit: parseInt(process.env.MAX_DEPOSIT) || 50000,
                 minWithdrawal: parseInt(process.env.MIN_WITHDRAWAL) || 500,
@@ -69,8 +109,20 @@ export const createDepositRequest = async (req, res) => {
             }
         }
 
+        // Auto-resolve bookieId from user's referredBy
+        let bookieId = null;
+        try {
+            const userDoc = await User.findById(userId).select('referredBy').lean();
+            if (userDoc?.referredBy) {
+                bookieId = userDoc.referredBy;
+            }
+        } catch (err) {
+            console.error('Failed to resolve bookieId for deposit:', err.message);
+        }
+
         const payment = await Payment.create({
             userId,
+            bookieId,
             type: 'deposit',
             amount,
             method: 'upi',
@@ -155,8 +207,20 @@ export const createWithdrawalRequest = async (req, res) => {
             });
         }
 
+        // Auto-resolve bookieId from user's referredBy
+        let bookieId = null;
+        try {
+            const userDoc = await User.findById(userId).select('referredBy').lean();
+            if (userDoc?.referredBy) {
+                bookieId = userDoc.referredBy;
+            }
+        } catch (err) {
+            console.error('Failed to resolve bookieId for withdrawal:', err.message);
+        }
+
         const payment = await Payment.create({
             userId,
+            bookieId,
             type: 'withdrawal',
             amount,
             method: 'bank_transfer',
@@ -233,24 +297,40 @@ export const getMyWithdrawals = async (req, res) => {
 // ============ ADMIN APIs ============
 
 /**
- * Admin: Get all payments with filters
+ * Admin/Bookie: Get all payments with filters
+ * - Bookie: sees only their users' payments
+ * - Admin: sees ALL payments (including bookie_collects) but can only manage admin_collects + direct
  */
 export const getPayments = async (req, res) => {
     try {
-        const { status, type } = req.query;
+        const { status, type, bookieId: filterBookieId } = req.query;
         const query = {};
 
-        const bookieUserIds = await getBookieUserIds(req.admin);
-        if (bookieUserIds !== null) {
-            query.userId = { $in: bookieUserIds };
+        if (req.admin?.role === 'bookie') {
+            // Bookie: show payments from their users (bookieId match OR userId match for old payments)
+            const bookieUserIds = await getBookieUserIds(req.admin);
+            if (bookieUserIds !== null && bookieUserIds.length > 0) {
+                query.$or = [
+                    { bookieId: req.admin._id },
+                    { userId: { $in: bookieUserIds } },
+                ];
+            } else {
+                query.bookieId = req.admin._id;
+            }
+        } else if (req.admin?.role === 'super_admin' && filterBookieId) {
+            // Admin filtering by specific bookie
+            query.bookieId = filterBookieId === 'direct' ? null : filterBookieId;
         }
+        // Admin without filter: no bookieId restriction → sees ALL payments
+
         if (status) query.status = status;
         if (type) query.type = type;
 
         const payments = await Payment.find(query)
             .populate('userId', 'username email phone')
+            .populate('bookieId', 'username bookieType')
             .populate('bankDetailId', 'accountHolderName bankName accountNumber upiId ifscCode')
-            .populate('processedBy', 'username')
+            .populate('processedBy', 'username role')
             .sort({ createdAt: -1 })
             .limit(1000);
 
@@ -261,15 +341,31 @@ export const getPayments = async (req, res) => {
 };
 
 /**
- * Admin: Get pending payments count
+ * Admin/Bookie: Get pending payments count
+ * Same separation: bookie sees their users, admin sees only admin-managed payments
  */
 export const getPendingCount = async (req, res) => {
     try {
         const query = { status: 'pending' };
         
-        const bookieUserIds = await getBookieUserIds(req.admin);
-        if (bookieUserIds !== null) {
-            query.userId = { $in: bookieUserIds };
+        if (req.admin?.role === 'bookie') {
+            // Bookie: count payments for their users
+            const bookieUserIds = await getBookieUserIds(req.admin);
+            if (bookieUserIds !== null && bookieUserIds.length > 0) {
+                query.$or = [
+                    { bookieId: req.admin._id },
+                    { userId: { $in: bookieUserIds } },
+                ];
+            } else {
+                query.bookieId = req.admin._id;
+            }
+        } else if (req.admin?.role === 'super_admin') {
+            // Admin: only count payments that admin manages (exclude bookie_collects)
+            const bookieCollectsBookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' }).select('_id').lean();
+            const excludeBookieIds = bookieCollectsBookies.map(b => b._id);
+            if (excludeBookieIds.length > 0) {
+                query.bookieId = { $nin: excludeBookieIds };
+            }
         }
 
         const depositCount = await Payment.countDocuments({ ...query, type: 'deposit' });
@@ -289,21 +385,33 @@ export const getPendingCount = async (req, res) => {
 };
 
 /**
- * Admin: Approve payment
+ * Admin/Bookie: Approve payment
+ * Bookies can only approve if their bookieType is 'bookie_collects' and payment belongs to their users
  * Body: { adminRemarks?: string, secretDeclarePassword?: string } – secret required if admin has it set
  */
 export const approvePayment = async (req, res) => {
     try {
-        const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
-        if (adminWithSecret?.secretDeclarePassword) {
-            const provided = (req.body.secretDeclarePassword ?? '').toString().trim();
-            const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
-            if (!isValid) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Invalid secret declare password',
-                    code: 'INVALID_SECRET_DECLARE_PASSWORD',
-                });
+        // Secret password check (only for super_admin)
+        if (req.admin?.role === 'super_admin') {
+            const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+            if (adminWithSecret?.secretDeclarePassword) {
+                const provided = (req.body.secretDeclarePassword ?? '').toString().trim();
+                const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
+                if (!isValid) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Invalid secret declare password',
+                        code: 'INVALID_SECRET_DECLARE_PASSWORD',
+                    });
+                }
+            }
+        }
+
+        // Bookie permission check
+        if (req.admin?.role === 'bookie') {
+            const bookieDoc = await Admin.findById(req.admin._id).select('bookieType').lean();
+            if (bookieDoc?.bookieType !== 'bookie_collects') {
+                return res.status(403).json({ success: false, message: 'Only "Bookie Collects" type bookies can manage payments' });
             }
         }
 
@@ -313,6 +421,23 @@ export const approvePayment = async (req, res) => {
         const payment = await Payment.findById(id).populate('userId');
         if (!payment) {
             return res.status(404).json({ success: false, message: 'Payment not found' });
+        }
+
+        // Admin cannot approve bookie_collects payments – only the bookie manages those
+        if (req.admin?.role === 'super_admin' && payment.bookieId) {
+            const paymentBookie = await Admin.findById(payment.bookieId).select('bookieType').lean();
+            if (paymentBookie?.bookieType === 'bookie_collects') {
+                return res.status(403).json({ success: false, message: 'This payment is managed by the bookie, not admin' });
+            }
+        }
+
+        // Bookie can only approve their own users' payments
+        if (req.admin?.role === 'bookie') {
+            const bookieUserIds = await getBookieUserIds(req.admin);
+            const paymentUserId = payment.userId?._id?.toString() || payment.userId?.toString();
+            if (bookieUserIds !== null && !bookieUserIds.some(uid => uid.toString() === paymentUserId)) {
+                return res.status(403).json({ success: false, message: 'This payment does not belong to your users' });
+            }
         }
 
         if (payment.status !== 'pending') {
@@ -334,6 +459,7 @@ export const approvePayment = async (req, res) => {
         payment.status = 'approved';
         payment.adminRemarks = adminRemarks || 'Approved';
         payment.processedBy = req.admin._id;
+        payment.processedByType = req.admin?.role === 'bookie' ? 'bookie' : 'admin';
         payment.processedAt = new Date();
         await payment.save();
 
@@ -372,16 +498,41 @@ export const approvePayment = async (req, res) => {
 };
 
 /**
- * Admin: Reject payment
+ * Admin/Bookie: Reject payment
  */
 export const rejectPayment = async (req, res) => {
     try {
+        // Bookie permission check
+        if (req.admin?.role === 'bookie') {
+            const bookieDoc = await Admin.findById(req.admin._id).select('bookieType').lean();
+            if (bookieDoc?.bookieType !== 'bookie_collects') {
+                return res.status(403).json({ success: false, message: 'Only "Bookie Collects" type bookies can manage payments' });
+            }
+        }
+
         const { id } = req.params;
         const { adminRemarks } = req.body;
 
         const payment = await Payment.findById(id).populate('userId');
         if (!payment) {
             return res.status(404).json({ success: false, message: 'Payment not found' });
+        }
+
+        // Admin cannot reject bookie_collects payments – only the bookie manages those
+        if (req.admin?.role === 'super_admin' && payment.bookieId) {
+            const paymentBookie = await Admin.findById(payment.bookieId).select('bookieType').lean();
+            if (paymentBookie?.bookieType === 'bookie_collects') {
+                return res.status(403).json({ success: false, message: 'This payment is managed by the bookie, not admin' });
+            }
+        }
+
+        // Bookie can only reject their own users' payments
+        if (req.admin?.role === 'bookie') {
+            const bookieUserIds = await getBookieUserIds(req.admin);
+            const paymentUserId = payment.userId?._id?.toString() || payment.userId?.toString();
+            if (bookieUserIds !== null && !bookieUserIds.some(uid => uid.toString() === paymentUserId)) {
+                return res.status(403).json({ success: false, message: 'This payment does not belong to your users' });
+            }
         }
 
         if (payment.status !== 'pending') {
@@ -391,6 +542,7 @@ export const rejectPayment = async (req, res) => {
         payment.status = 'rejected';
         payment.adminRemarks = adminRemarks || 'Rejected';
         payment.processedBy = req.admin._id;
+        payment.processedByType = req.admin?.role === 'bookie' ? 'bookie' : 'admin';
         payment.processedAt = new Date();
         await payment.save();
 

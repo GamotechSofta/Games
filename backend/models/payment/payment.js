@@ -6,6 +6,12 @@ const paymentSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    /** Which bookie this user belongs to (null = direct/admin user) */
+    bookieId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+        default: null,
+    },
     type: {
         type: String,
         required: true,
@@ -52,10 +58,16 @@ const paymentSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
-    // Which admin processed this
+    // Which admin/bookie processed this
     processedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Admin',
+    },
+    // Was it processed by admin or bookie
+    processedByType: {
+        type: String,
+        enum: ['admin', 'bookie'],
+        default: 'admin',
     },
     // When was it processed
     processedAt: {
@@ -78,6 +90,7 @@ const paymentSchema = new mongoose.Schema({
 // Indexes for faster queries
 paymentSchema.index({ userId: 1, type: 1, status: 1 });
 paymentSchema.index({ status: 1, createdAt: -1 });
+paymentSchema.index({ bookieId: 1, status: 1 });
 
 const Payment = mongoose.model('Payment', paymentSchema);
 export default Payment;

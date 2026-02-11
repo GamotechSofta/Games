@@ -1,6 +1,7 @@
 import Admin from '../models/admin/admin.js';
 import bcrypt from 'bcryptjs';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 /**
  * Admin login
@@ -136,7 +137,7 @@ export const createBookie = async (req, res) => {
             });
         }
 
-        const { username, firstName, lastName, email, password, phone } = req.body;
+        const { username, firstName, lastName, email, password, phone, bookieType, commissionPercentage, upiId } = req.body;
 
         const derivedUsername = (firstName != null && lastName != null)
             ? `${String(firstName).trim()} ${String(lastName).trim()}`.trim()
@@ -195,6 +196,22 @@ export const createBookie = async (req, res) => {
             return res.status(409).json({ success: false, message: 'A bookie with this name already exists' });
         }
 
+        // Validate bookieType
+        const validBookieTypes = ['admin_collects', 'bookie_collects'];
+        const finalBookieType = validBookieTypes.includes(bookieType) ? bookieType : 'admin_collects';
+
+        // Validate commission percentage
+        let finalCommission = 0;
+        if (commissionPercentage !== undefined && commissionPercentage !== null) {
+            finalCommission = Math.min(100, Math.max(0, Number(commissionPercentage) || 0));
+        }
+
+        // Encrypt UPI ID if provided
+        let encryptedUpi = '';
+        if (upiId && String(upiId).trim()) {
+            encryptedUpi = encrypt(String(upiId).trim());
+        }
+
         const bookie = new Admin({
             username: derivedUsername,
             password,
@@ -202,6 +219,9 @@ export const createBookie = async (req, res) => {
             email: (email && String(email).trim()) ? email.trim().toLowerCase() : '',
             phone: trimmedPhone,
             status: 'active',
+            bookieType: finalBookieType,
+            commissionPercentage: finalCommission,
+            upiId: encryptedUpi,
         });
         await bookie.save();
 
@@ -225,6 +245,8 @@ export const createBookie = async (req, res) => {
                 email: bookie.email,
                 phone: bookie.phone,
                 status: bookie.status,
+                bookieType: bookie.bookieType,
+                commissionPercentage: bookie.commissionPercentage,
             },
         });
     } catch (error) {
@@ -339,7 +361,7 @@ export const updateBookie = async (req, res) => {
         }
 
         const { id } = req.params;
-        const { username, firstName, lastName, email, phone, status, password, uiTheme } = req.body;
+        const { username, firstName, lastName, email, phone, status, password, uiTheme, bookieType, commissionPercentage, upiId } = req.body;
 
         const bookie = await Admin.findOne({ _id: id, role: 'bookie' });
         if (!bookie) {
@@ -395,6 +417,22 @@ export const updateBookie = async (req, res) => {
             if (uiTheme.primaryColor !== undefined) bookie.uiTheme.primaryColor = uiTheme.primaryColor ? String(uiTheme.primaryColor).trim() : undefined;
             if (uiTheme.accentColor !== undefined) bookie.uiTheme.accentColor = uiTheme.accentColor ? String(uiTheme.accentColor).trim() : undefined;
         }
+        // Update bookieType
+        if (bookieType !== undefined) {
+            const validBookieTypes = ['admin_collects', 'bookie_collects'];
+            if (validBookieTypes.includes(bookieType)) bookie.bookieType = bookieType;
+        }
+
+        // Update commission percentage
+        if (commissionPercentage !== undefined && commissionPercentage !== null) {
+            bookie.commissionPercentage = Math.min(100, Math.max(0, Number(commissionPercentage) || 0));
+        }
+
+        // Update UPI ID (encrypt)
+        if (upiId !== undefined) {
+            bookie.upiId = upiId && String(upiId).trim() ? encrypt(String(upiId).trim()) : '';
+        }
+
         // Update password if provided
         if (password) {
             if (password.length < 6) {
@@ -429,6 +467,8 @@ export const updateBookie = async (req, res) => {
                 status: bookie.status,
                 role: bookie.role,
                 uiTheme: bookie.uiTheme,
+                bookieType: bookie.bookieType,
+                commissionPercentage: bookie.commissionPercentage,
             },
         });
     } catch (error) {
@@ -560,6 +600,55 @@ export const toggleBookieStatus = async (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /admin/me/upi
+ * Get admin's own UPI ID (decrypted)
+ */
+export const getAdminUpi = async (req, res) => {
+    try {
+        const admin = await Admin.findById(req.admin._id).select('upiId').lean();
+        if (!admin) {
+            return res.status(404).json({ success: false, message: 'Admin not found' });
+        }
+        const upiId = admin.upiId ? decrypt(admin.upiId) : '';
+        res.status(200).json({ success: true, data: { upiId } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * PATCH /admin/me/upi
+ * Set/update admin's UPI ID
+ * Body: { upiId: string }
+ */
+export const setAdminUpi = async (req, res) => {
+    try {
+        const { upiId } = req.body;
+        const admin = await Admin.findById(req.admin._id);
+        if (!admin) {
+            return res.status(404).json({ success: false, message: 'Admin not found' });
+        }
+        const trimmed = (upiId || '').trim();
+        admin.upiId = trimmed ? encrypt(trimmed) : '';
+        await admin.save({ validateBeforeSave: false });
+
+        await logActivity({
+            action: 'update_upi_id',
+            performedBy: admin.username,
+            performedByType: admin.role === 'super_admin' ? 'super_admin' : 'bookie',
+            targetType: 'admin',
+            targetId: admin._id.toString(),
+            details: `UPI ID updated by ${admin.username}`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({ success: true, message: 'UPI ID updated successfully', data: { upiId: trimmed } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

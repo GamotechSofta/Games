@@ -17,6 +17,7 @@ import Wallet from './pages/Wallet';
 
 import HelpDesk from './pages/HelpDesk';
 import PlayerDetail from './pages/PlayerDetail';
+import Settings from './pages/Settings';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -76,6 +77,7 @@ const AppRoutes = () => (
         <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
 
         <Route path="/help-desk" element={<PrivateRoute><HelpDesk /></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
 );

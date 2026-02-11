@@ -23,7 +23,9 @@ const AddFund = () => {
 
     const fetchConfig = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/payments/config`);
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user?.id || '';
+            const res = await fetch(`${API_BASE_URL}/payments/config${userId ? `?userId=${userId}` : ''}`);
             const data = await res.json();
             if (data.success) {
                 setConfig(data.data);

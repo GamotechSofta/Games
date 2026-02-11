@@ -15,6 +15,7 @@ import {
     FaUsers,
     FaTimes,
     FaMoneyBillWave,
+    FaCog,
 } from 'react-icons/fa';
 
 const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
@@ -35,6 +36,7 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
         { path: '/wallet', label: 'Wallet', icon: FaWallet },
 
         { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },
+        { path: '/settings', label: 'Settings', icon: FaCog },
     ];
 
     const isActive = (path) => {

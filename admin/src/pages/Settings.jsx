@@ -24,6 +24,12 @@ const Settings = () => {
     const [statusMsg, setStatusMsg] = useState('');
     const [hasSecret, setHasSecret] = useState(false);
 
+    // UPI ID state
+    const [upiId, setUpiId] = useState('');
+    const [upiLoading, setUpiLoading] = useState(false);
+    const [upiMsg, setUpiMsg] = useState('');
+    const [currentUpi, setCurrentUpi] = useState('');
+
     useEffect(() => {
         fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
             .then((res) => res.json())
@@ -31,6 +37,16 @@ const Settings = () => {
                 if (json.success) setHasSecret(json.hasSecretDeclarePassword || false);
             })
             .catch(() => setHasSecret(false));
+        // Fetch current UPI
+        fetch(`${API_BASE_URL}/admin/me/upi`, { headers: getAuthHeaders() })
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.success && json.data?.upiId) {
+                    setCurrentUpi(json.data.upiId);
+                    setUpiId(json.data.upiId);
+                }
+            })
+            .catch(() => {});
     }, []);
 
     const handleSetSecret = async (e) => {
@@ -82,6 +98,35 @@ const Settings = () => {
             setStatusMsg('Network error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveUpi = async (e) => {
+        e.preventDefault();
+        setUpiMsg('');
+        const trimmed = upiId.trim();
+        if (!trimmed) {
+            setUpiMsg('Please enter a UPI ID');
+            return;
+        }
+        setUpiLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/me/upi`, {
+                method: 'PATCH',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ upiId: trimmed }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                setCurrentUpi(trimmed);
+                setUpiMsg('UPI ID saved successfully');
+            } else {
+                setUpiMsg(json.message || 'Failed to save UPI ID');
+            }
+        } catch {
+            setUpiMsg('Network error');
+        } finally {
+            setUpiLoading(false);
         }
     };
 
@@ -188,6 +233,43 @@ const Settings = () => {
                                 className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg disabled:opacity-50 transition-colors"
                             >
                                 {loading ? 'Saving...' : 'Set Secret Password'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {/* UPI ID Section */}
+                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden max-w-xl mt-6">
+                    <h2 className="text-lg font-bold text-yellow-500 bg-gray-800 px-4 py-3 border-b border-gray-700">
+                        Admin UPI ID
+                    </h2>
+                    <div className="p-4 space-y-3">
+                        <p className="text-gray-400 text-sm">
+                            This UPI ID is shown to users for deposit payments (for &quot;Admin Collects&quot; type bookies and direct users).
+                            {currentUpi && <span className="block mt-1 text-green-400">Current: {currentUpi}</span>}
+                        </p>
+                        <form onSubmit={handleSaveUpi} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-1">UPI ID</label>
+                                <input
+                                    type="text"
+                                    value={upiId}
+                                    onChange={(e) => { setUpiId(e.target.value); setUpiMsg(''); }}
+                                    placeholder="e.g. admin@upi"
+                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">Stored encrypted in database. Not in .env file.</p>
+                            </div>
+                            {upiMsg && (
+                                <p className={`text-sm ${upiMsg.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
+                                    {upiMsg}
+                                </p>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={upiLoading}
+                                className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg disabled:opacity-50 transition-colors"
+                            >
+                                {upiLoading ? 'Saving...' : 'Save UPI ID'}
                             </button>
                         </form>
                     </div>

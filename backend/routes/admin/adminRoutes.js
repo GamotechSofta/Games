@@ -11,6 +11,8 @@ import {
     toggleBookieStatus,
     getSecretDeclarePasswordStatus,
     setSecretDeclarePassword,
+    getAdminUpi,
+    setAdminUpi,
 } from '../../controllers/adminController.js';
 import { getLogs } from '../../controllers/activityLogController.js';
 import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
@@ -19,6 +21,10 @@ const router = express.Router();
 
 router.post('/login', adminLogin);
 router.post('/create', createAdmin); // For initial admin setup
+
+// UPI ID (Super Admin)
+router.get('/me/upi', verifySuperAdmin, getAdminUpi);
+router.patch('/me/upi', verifySuperAdmin, setAdminUpi);
 
 // Secret declare password (Super Admin only)
 router.get('/me/secret-declare-password-status', verifySuperAdmin, getSecretDeclarePasswordStatus);

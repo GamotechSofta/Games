@@ -1,5 +1,6 @@
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 /**
  * Bookie login - only allows users with role 'bookie' and status 'active'
@@ -69,6 +70,8 @@ export const bookieLogin = async (req, res) => {
                 email: bookie.email,
                 phone: bookie.phone,
                 uiTheme: bookie.uiTheme || { themeId: 'default' },
+                bookieType: bookie.bookieType || 'admin_collects',
+                commissionPercentage: bookie.commissionPercentage || 0,
             },
         });
     } catch (error) {
@@ -144,6 +147,8 @@ export const getProfile = async (req, res) => {
                 phone: bookie.phone,
                 role: bookie.role,
                 uiTheme: bookie.uiTheme || { themeId: 'default' },
+                bookieType: bookie.bookieType || 'admin_collects',
+                commissionPercentage: bookie.commissionPercentage || 0,
             },
         });
     } catch (error) {
@@ -173,6 +178,56 @@ export const updateTheme = async (req, res) => {
             message: 'Theme updated',
             data: { uiTheme: bookie.uiTheme },
         });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /bookie/upi - Get bookie's UPI ID (decrypted)
+ */
+export const getBookieUpi = async (req, res) => {
+    try {
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId bookieType').lean();
+        if (!bookie) {
+            return res.status(403).json({ success: false, message: 'Bookie access required' });
+        }
+        const upiId = bookie.upiId ? decrypt(bookie.upiId) : '';
+        res.status(200).json({ success: true, data: { upiId, bookieType: bookie.bookieType || 'admin_collects' } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * PATCH /bookie/upi - Set/update bookie's UPI ID (only for bookie_collects type)
+ * Body: { upiId: string }
+ */
+export const setBookieUpi = async (req, res) => {
+    try {
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' });
+        if (!bookie) {
+            return res.status(403).json({ success: false, message: 'Bookie access required' });
+        }
+        if (bookie.bookieType !== 'bookie_collects') {
+            return res.status(400).json({ success: false, message: 'UPI management is only available for "Bookie Collects" type accounts' });
+        }
+        const { upiId } = req.body;
+        const trimmed = (upiId || '').trim();
+        bookie.upiId = trimmed ? encrypt(trimmed) : '';
+        await bookie.save({ validateBeforeSave: false });
+
+        await logActivity({
+            action: 'bookie_update_upi',
+            performedBy: bookie.username,
+            performedByType: 'bookie',
+            targetType: 'admin',
+            targetId: bookie._id.toString(),
+            details: `Bookie "${bookie.username}" updated their UPI ID`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({ success: true, message: 'UPI ID updated successfully', data: { upiId: trimmed } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
