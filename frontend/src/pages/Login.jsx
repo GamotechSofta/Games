@@ -145,8 +145,8 @@ const Login = () => {
         localStorage.setItem('user', JSON.stringify(userPayload));
         // Dispatch custom event to update navbar
         window.dispatchEvent(new Event('userLogin'));
-        // Redirect to profile after signup, home after login
-        navigate(isLogin ? '/' : '/profile');
+        // Redirect to home after login/signup
+        navigate('/');
       } else {
         setError(data.message || 'Something went wrong');
       }
