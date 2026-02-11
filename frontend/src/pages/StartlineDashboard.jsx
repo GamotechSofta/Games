@@ -121,7 +121,7 @@ const StartlineDashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <div className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide truncate">
+            <div className="text-base min-[360px]:text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold tracking-wide truncate">
               STARLINE DASHBOARD
             </div>
           </div>
@@ -148,7 +148,7 @@ const StartlineDashboard = () => {
         <div className="mt-4 md:mt-6 h-px bg-white/10 md:bg-white/5" />
 
         {/* Dynamic Starline markets from API (same as admin tabs) */}
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
+        <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
           {loadingGroups ? (
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-transparent animate-pulse" />
@@ -163,10 +163,10 @@ const StartlineDashboard = () => {
                 <button
                   type="button"
                   onClick={() => openStarlineMarket(m.key, m.label)}
-                  className="group w-full min-h-[125px] md:min-h-[150px] rounded-2xl md:rounded-3xl bg-transparent px-2 py-2.5 md:px-3 md:py-4 active:scale-[0.98] md:hover:-translate-y-1 transition-all"
+                  className="group w-full min-h-[120px] min-[420px]:min-h-[130px] md:min-h-[150px] rounded-2xl md:rounded-3xl bg-transparent px-1.5 py-2 md:px-2.5 md:py-3 flex flex-col items-center active:scale-[0.98] md:hover:-translate-y-1 transition-all"
                   aria-label={m.label}
                 >
-                  <div className="relative mx-auto w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
+                  <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
                     <img
                       src={STARLINE_DASHBOARD_MARKET_IMAGE_URL}
                       alt={m.label || 'Starline Market'}
@@ -176,8 +176,13 @@ const StartlineDashboard = () => {
                     />
                   </div>
                   <div
-                    className="mt-2 text-sm min-[375px]:text-[15px] md:text-base font-semibold text-[#d4af37] leading-tight truncate px-1"
+                    className="mt-1.5 w-full text-[11px] min-[360px]:text-[12px] min-[420px]:text-[13px] sm:text-sm md:text-[15px] lg:text-base font-semibold text-[#d4af37] leading-snug px-1 overflow-hidden"
                     title={m.label}
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}
                   >
                     {m.label}
                   </div>
