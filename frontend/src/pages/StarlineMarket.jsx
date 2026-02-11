@@ -239,9 +239,12 @@ const StarlineMarket = () => {
             items.map((m, idx) => {
               const timeLabel = formatTime12(m.startingTime) || '-';
               const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
-              const statusText = slotClosed ? 'Close For Today' : 'Open';
-              const pill = `${m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
-              const canOpen = !slotClosed;
+              const hasDeclaredOpen =
+                m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
+              const isClosedForToday = slotClosed || hasDeclaredOpen;
+              const statusText = isClosedForToday ? 'Close For Today' : 'Open';
+              const pill = `${hasDeclaredOpen ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
+              const canOpen = !isClosedForToday;
               const countdown = formatCountdown(msUntilNextIST(m.startingTime, tick));
               const imageUrl = STARLINE_MARKET_IMAGE_OVERRIDES[idx % STARLINE_MARKET_IMAGE_OVERRIDES.length] || STARLINE_MARKET_IMAGE_URL;
               const isFourteenthImage = imageUrl === STARLINE_MARKET_FOURTEENTH_IMAGE_URL;
