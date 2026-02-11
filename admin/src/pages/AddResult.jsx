@@ -435,100 +435,6 @@ const AddResult = () => {
                                 </div>
                             )}
                         </div>
-                        {selectedMarket?.marketType === 'startline' && (
-                            <div className={`w-full bg-gray-800 rounded-xl border border-gray-700 shadow-xl p-4 sm:p-5 md:p-6 ${isDirectEditMode ? 'max-w-lg mx-auto' : 'xl:w-[380px] xl:max-w-[400px] xl:shrink-0'}`}>
-                                <h2 className="text-lg sm:text-xl font-bold text-yellow-500 mb-1 border-b border-gray-700 pb-2 truncate" title={selectedMarket.marketName}>{selectedMarket.marketName}</h2>
-                                {getMarketId() && (
-                                    <p className="text-[11px] text-gray-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1" title="Compare with Market Detail: open same ID in URL">
-                                        <span className="font-mono text-gray-400">ID: {getMarketId()}</span>
-                                        <Link to={`/markets/${getMarketId()}`} className="text-amber-400 hover:underline shrink-0">View details</Link>
-                                    </p>
-                                )}
-
-                                {/* Open Result section - same as Regular */}
-                                <div className="mb-4 sm:mb-6">
-                                    <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Open Result</h3>
-                                    <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
-                                    <div className="mb-2 sm:mb-3">
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={openPatti}
-                                            onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                                            placeholder="e.g. 156"
-                                            className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
-                                            maxLength={3}
-                                        />
-                                    </div>
-                                    <div className="flex gap-2 mb-2 sm:mb-3">
-                                        <button
-                                            type="button"
-                                            onClick={handleCheckOpen}
-                                            disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3}
-                                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                            title={openPatti.replace(/\D/g, '').length !== 3 ? 'Enter 3-digit Open Patti to check' : 'Preview impact before declaring'}
-                                        >
-                                            {checkLoading ? 'Checking...' : 'Check'}
-                                        </button>
-                                    </div>
-                                    {(preview != null) && (
-                                        <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span>
-                                                <span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span>
-                                            </div>
-                                        </div>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={handleDeclareOpen}
-                                        disabled={declareLoading || openPatti.replace(/\D/g, '').length !== 3}
-                                        className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base"
-                                    >
-                                        {declareLoading ? 'Declaring...' : 'Declare Open'}
-                                    </button>
-                                </div>
-
-                                {(selectedMarket.openingNumber && /^\d{3}$/.test(String(selectedMarket.openingNumber))) && (
-                                    <button
-                                        type="button"
-                                        onClick={handleClearResult}
-                                        disabled={clearLoading}
-                                        className="mb-3 sm:mb-4 w-full px-4 py-2.5 sm:py-3 bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold rounded-lg border border-red-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                    >
-                                        {clearLoading ? 'Clearing...' : 'Clear Result'}
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={closePanel}
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -543,9 +449,7 @@ const AddResult = () => {
                 )}
 
                 {activeTab === 'regular' && (
-                <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
-                    {/* Left: Market list - hidden in direct edit mode */}
-                    {!isDirectEditMode && (
+                <div className="flex flex-col gap-4 sm:gap-6">
                     <div className="flex-1 min-w-0 w-full">
                         {loading ? (
                             <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm md:text-base rounded-xl border border-gray-700 bg-gray-800/50">Loading markets...</div>
@@ -616,101 +520,56 @@ const AddResult = () => {
                             </div>
                         )}
                     </div>
-                    )}
 
-                    {/* Right: Edit Result panel - only for regular markets on Regular tab */}
-                    {selectedMarket && selectedMarket.marketType !== 'startline' && (
-                        <div className={`bg-gray-800 rounded-xl border border-gray-700 shadow-xl p-4 sm:p-5 md:p-6 ${isDirectEditMode ? 'w-full max-w-lg mx-auto' : 'w-full xl:w-[380px] xl:max-w-[400px] xl:shrink-0'}`}>
-                            <h2 className="text-lg sm:text-xl font-bold text-yellow-500 mb-1 border-b border-gray-700 pb-2 truncate" title={selectedMarket.marketName}>
-                                {selectedMarket.marketName}
-                            </h2>
-                            {getMarketId() && (
-                                <p className="text-[11px] text-gray-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1" title="Compare with Market Detail: open same ID in URL">
-                                    <span className="font-mono text-gray-400">ID: {getMarketId()}</span>
-                                    <Link to={`/markets/${getMarketId()}`} className="text-amber-400 hover:underline shrink-0">View details</Link>
-                                </p>
-                            )}
+                </div>
+                )}
 
-                            {/* Open Result section */}
-                            <div className="mb-4 sm:mb-6">
-                                <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">
-                                    Open Result
-                                </h3>
-                                <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
-                                <div className="mb-2 sm:mb-3">
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={openPatti}
-                                        onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                                        placeholder="e.g. 156"
-                                        className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
-                                        maxLength={3}
-                                    />
-                                </div>
-                                <div className="flex gap-2 mb-2 sm:mb-3">
-                                    <button
-                                        type="button"
-                                        onClick={handleCheckOpen}
-                                        disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3}
-                                        className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                        title={openPatti.replace(/\D/g, '').length !== 3 ? 'Enter 3-digit Open Patti to check' : 'Preview impact before declaring'}
-                                    >
-                                        {checkLoading ? 'Checking...' : 'Check'}
-                                    </button>
-                                </div>
-                                {(preview != null) && (
-                                    <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span>
-                                            <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span>
-                                            <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span>
-                                            <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span>
-                                            <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span>
-                                            <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2">
-                                            <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span>
-                                            <span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span>
-                                        </div>
-                                    </div>
-                                )}
+                {/* Add Result modal – opens above screen for small & large devices */}
+                {selectedMarket && (
+                    <div
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/70 overflow-y-auto"
+                        onClick={closePanel}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="add-result-modal-title"
+                    >
+                        <div
+                            className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col my-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 border-b border-gray-700 bg-gray-800 shrink-0">
+                                <h2 id="add-result-modal-title" className="text-base sm:text-lg font-bold text-yellow-500 truncate pr-2" title={selectedMarket.marketName}>
+                                    {selectedMarket.marketName}
+                                </h2>
                                 <button
                                     type="button"
-                                    onClick={handleDeclareOpen}
-                                    disabled={declareLoading || openPatti.replace(/\D/g, '').length !== 3}
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base"
+                                    onClick={closePanel}
+                                    className="shrink-0 p-2 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-white transition-colors touch-manipulation"
+                                    aria-label="Close"
                                 >
-                                    {declareLoading ? 'Declaring...' : 'Declare Open'}
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
+                            <div className="p-4 sm:p-5 md:p-6 overflow-y-auto">
+                                {getMarketId() && (
+                                    <p className="text-[11px] text-gray-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                        <span className="font-mono text-gray-400">ID: {getMarketId()}</span>
+                                        <Link to={`/markets/${getMarketId()}`} className="text-amber-400 hover:underline shrink-0" onClick={(e) => e.stopPropagation()}>View details</Link>
+                                    </p>
+                                )}
 
-                            {/* Close Result section */}
-                            {selectedMarket.marketType !== 'startline' && selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber) && (
+                                {/* Open Result */}
                                 <div className="mb-4 sm:mb-6">
-                                    <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Close Result</h3>
-                                    <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Close</p>
+                                    <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Open Result</h3>
+                                    <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
                                     <div className="mb-2 sm:mb-3">
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Close Patti (3 digits)</label>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            value={closePatti}
-                                            onChange={(e) => setClosePatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                                            placeholder="e.g. 456"
+                                            value={openPatti}
+                                            onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                            placeholder="e.g. 156"
                                             className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
                                             maxLength={3}
                                         />
@@ -718,84 +577,74 @@ const AddResult = () => {
                                     <div className="flex gap-2 mb-2 sm:mb-3">
                                         <button
                                             type="button"
-                                            onClick={handleCheckClose}
-                                            disabled={checkCloseLoading || closePatti.replace(/\D/g, '').length !== 3}
+                                            onClick={handleCheckOpen}
+                                            disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3}
                                             className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                            title={closePatti.replace(/\D/g, '').length !== 3 ? 'Enter 3-digit Close Patti to check' : 'Preview impact before declaring'}
                                         >
-                                            {checkCloseLoading ? 'Checking...' : 'Check'}
+                                            {checkLoading ? 'Checking...' : 'Check'}
                                         </button>
                                     </div>
-                                    {(previewClose != null) && (
+                                    {preview != null && (
                                         <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmount)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmountOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalWinAmountOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.noOfPlayers)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span>
-                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.totalPlayersBetOnPatti)}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center gap-2">
-                                                <span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span>
-                                                <span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.profit)}</span>
-                                            </div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span></div>
                                         </div>
                                     )}
                                     <button
                                         type="button"
-                                        onClick={handleDeclareClose}
-                                        disabled={declareLoading || closePatti.replace(/\D/g, '').length !== 3}
+                                        onClick={handleDeclareOpen}
+                                        disabled={declareLoading || openPatti.replace(/\D/g, '').length !== 3}
                                         className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base"
                                     >
-                                        {declareLoading ? 'Declaring...' : 'Declare Close'}
+                                        {declareLoading ? 'Declaring...' : 'Declare Open'}
                                     </button>
                                 </div>
-                            )}
 
-                            {(selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber)) ||
-                             (selectedMarket.closingNumber && /^\d{3}$/.test(selectedMarket.closingNumber)) ? (
-                                <button
-                                    type="button"
-                                    onClick={handleClearResult}
-                                    disabled={clearLoading}
-                                    className="mt-3 sm:mt-4 w-full px-4 py-2.5 sm:py-3 bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold rounded-lg border border-red-700 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                >
-                                    {clearLoading ? 'Clearing...' : 'Clear Result'}
-                                </button>
-                            ) : null}
-                            {isDirectEditMode ? (
-                                <button
-                                    type="button"
-                                    onClick={closePanel}
-                                    className="mt-3 sm:mt-4 w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base"
-                                >
-                                    Close
-                                </button>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={closePanel}
-                                    className="mt-3 sm:mt-4 w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base"
-                                >
-                                    Close
-                                </button>
-                            )}
+                                {/* Close Result – only for regular market when open is set */}
+                                {selectedMarket.marketType !== 'startline' && selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber) && (
+                                    <div className="mb-4 sm:mb-6">
+                                        <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Close Result</h3>
+                                        <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Close</p>
+                                        <div className="mb-2 sm:mb-3">
+                                            <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Close Patti (3 digits)</label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={closePatti}
+                                                onChange={(e) => setClosePatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                                placeholder="e.g. 456"
+                                                className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                                                maxLength={3}
+                                            />
+                                        </div>
+                                        <div className="flex gap-2 mb-2 sm:mb-3">
+                                            <button type="button" onClick={handleCheckClose} disabled={checkCloseLoading || closePatti.replace(/\D/g, '').length !== 3} className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base">{checkCloseLoading ? 'Checking...' : 'Check'}</button>
+                                        </div>
+                                        {previewClose != null && (
+                                            <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmount)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmountOnPatti)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalWinAmountOnPatti)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.noOfPlayers)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.totalPlayersBetOnPatti)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.profit)}</span></div>
+                                            </div>
+                                        )}
+                                        <button type="button" onClick={handleDeclareClose} disabled={declareLoading || closePatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base">{declareLoading ? 'Declaring...' : 'Declare Close'}</button>
+                                    </div>
+                                )}
+
+                                {(selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber)) || (selectedMarket.closingNumber && /^\d{3}$/.test(selectedMarket.closingNumber)) ? (
+                                    <button type="button" onClick={handleClearResult} disabled={clearLoading} className="mt-3 sm:mt-4 w-full px-4 py-2.5 sm:py-3 bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold rounded-lg border border-red-700 disabled:opacity-50 transition-colors text-sm sm:text-base">{clearLoading ? 'Clearing...' : 'Clear Result'}</button>
+                                ) : null}
+                                <button type="button" onClick={closePanel} className="mt-3 sm:mt-4 w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base">Close</button>
+                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
                 )}
             </div>
         </AdminLayout>
