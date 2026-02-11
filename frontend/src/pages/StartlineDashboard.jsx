@@ -151,7 +151,7 @@ const StartlineDashboard = () => {
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4">
           {loadingGroups ? (
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-[#202124] border border-white/10 animate-pulse" />
+              <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-transparent animate-pulse" />
             ))
           ) : starlineGroups.length === 0 ? (
             <div className="col-span-full text-center py-8 text-white/60 text-sm">
@@ -163,7 +163,7 @@ const StartlineDashboard = () => {
                 <button
                   type="button"
                   onClick={() => openStarlineMarket(m.key, m.label)}
-                  className="group w-full min-h-[125px] md:min-h-[150px] rounded-2xl md:rounded-3xl border border-white/10 bg-[#202124] px-2 py-2.5 md:px-3 md:py-4 shadow-[0_10px_22px_rgba(0,0,0,0.35)] hover:border-[#d4af37]/40 hover:bg-[#222] active:scale-[0.98] md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.6)] transition-all"
+                  className="group w-full min-h-[125px] md:min-h-[150px] rounded-2xl md:rounded-3xl bg-transparent px-2 py-2.5 md:px-3 md:py-4 active:scale-[0.98] md:hover:-translate-y-1 transition-all"
                   aria-label={m.label}
                 >
                   <div className="relative mx-auto w-20 h-20 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
@@ -175,13 +175,13 @@ const StartlineDashboard = () => {
                       draggable="false"
                     />
                   </div>
-                  <div className="mt-1 text-[10px] min-[375px]:text-[11px] md:text-xs font-semibold text-[#d4af37]/90">
-                    Click to Play Game
+                  <div
+                    className="mt-2 text-sm min-[375px]:text-[15px] md:text-base font-semibold text-[#d4af37] leading-tight truncate px-1"
+                    title={m.label}
+                  >
+                    {m.label}
                   </div>
                 </button>
-                <div className="mt-2 text-sm min-[375px]:text-[15px] md:text-base font-semibold text-white/90 leading-tight truncate px-1" title={m.label}>
-                  {m.label}
-                </div>
               </div>
             ))
           )}
