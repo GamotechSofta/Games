@@ -14,6 +14,11 @@ import {
     FaTrophy,
     FaUsers,
     FaPrint,
+    FaArrowUp,
+    FaArrowDown,
+    FaPercent,
+    FaBuilding,
+    FaHandHoldingUsd,
 } from 'react-icons/fa';
 
 const PRESETS = [
@@ -70,7 +75,7 @@ const formatRangeLabel = (from, to) => {
 };
 
 const QUICK_LINKS = [
-    { to: '/revenue', label: 'Revenue', icon: FaMoneyBillWave, description: 'Your commission earnings & breakdown', color: 'emerald' },
+    { to: '/revenue', label: 'Revenue', icon: FaMoneyBillWave, description: 'Your earnings breakdown', color: 'emerald' },
     { to: '/bet-history', label: 'Bet History', icon: FaHistory, description: 'View all bets placed by your users' },
     { to: '/top-winners', label: 'Top Winners', icon: FaTrophy, description: 'Leaderboard of winning players' },
     { to: '/my-users', label: 'My Players', icon: FaUsers, description: 'Active players referred by you' },
@@ -117,9 +122,9 @@ const Reports = () => {
         }
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
+    const handlePrint = () => window.print();
+
+    const isBookieCollects = report?.bookieType === 'bookie_collects';
 
     return (
         <Layout title="Reports">
@@ -132,6 +137,21 @@ const Reports = () => {
                     </h1>
                     <p className="text-gray-400 text-xs sm:text-sm mt-1">Financial and betting summary for the selected period</p>
                 </div>
+
+                {/* Bookie Type Badge */}
+                {report && (
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                        isBookieCollects
+                            ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    }`}>
+                        {isBookieCollects ? <FaBuilding className="w-3.5 h-3.5" /> : <FaHandHoldingUsd className="w-3.5 h-3.5" />}
+                        {isBookieCollects ? 'Bookie Collects' : 'Admin Collects'} Account
+                        <span className="text-gray-500 font-normal ml-1">
+                            ({isBookieCollects ? 'You collect payments & pay admin platform charge' : 'Admin collects payments & pays you commission'})
+                        </span>
+                    </div>
+                )}
 
                 {/* Date filters */}
                 <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-3 sm:p-4">
@@ -181,42 +201,100 @@ const Reports = () => {
                     </div>
                 ) : report ? (
                     <>
-                        {/* Summary strip */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                            <div className="bg-gradient-to-br from-green-500/10 to-green-600/5 rounded-xl p-4 sm:p-5 border border-green-500/30">
-                                <div className="flex items-center justify-between">
-                                    <div className="min-w-0">
-                                        <p className="text-xs sm:text-sm font-medium text-gray-400">Total Revenue</p>
-                                        <p className="text-lg sm:text-2xl font-bold text-green-400 mt-1 truncate">{formatCurrency(report.totalRevenue)}</p>
+                        {/* Summary Cards */}
+                        {isBookieCollects ? (
+                            /* ===== BOOKIE COLLECTS SUMMARY ===== */
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                                <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-xl p-4 sm:p-5 border border-blue-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Bet Volume</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-blue-400 mt-1 truncate">{formatCurrency(report.totalRevenue)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">Total bets by your users</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaChartBar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                                        </div>
                                     </div>
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0 ml-2">
-                                        <FaMoneyBillWave className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+                                </div>
+                                <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-xl p-4 sm:p-5 border border-red-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Payouts</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-red-400 mt-1 truncate">{formatCurrency(report.totalPayouts)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">You handle winner payouts</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaCoins className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 rounded-xl p-4 sm:p-5 border border-purple-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Platform Charge</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-purple-400 mt-1 truncate">{formatCurrency(report.platformCharge)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">{report.commissionPercentage}% paid to admin</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaBuilding className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={`bg-gradient-to-br rounded-xl p-4 sm:p-5 border ${report.bookieNetProfit >= 0 ? 'from-emerald-500/10 to-emerald-600/5 border-emerald-500/30' : 'from-red-500/10 to-red-600/5 border-red-500/40'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Your Net Profit</p>
+                                            <p className={`text-lg sm:text-2xl font-bold mt-1 truncate ${report.bookieNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(report.bookieNetProfit)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">Volume - Platform - Payouts</p>
+                                        </div>
+                                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 ml-2 ${report.bookieNetProfit >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                                            {report.bookieNetProfit >= 0 ? <FaArrowUp className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" /> : <FaArrowDown className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-xl p-4 sm:p-5 border border-red-500/30">
-                                <div className="flex items-center justify-between">
-                                    <div className="min-w-0">
-                                        <p className="text-xs sm:text-sm font-medium text-gray-400">Total Payouts</p>
-                                        <p className="text-lg sm:text-2xl font-bold text-red-400 mt-1 truncate">{formatCurrency(report.totalPayouts)}</p>
+                        ) : (
+                            /* ===== ADMIN COLLECTS SUMMARY ===== */
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                                <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 rounded-xl p-4 sm:p-5 border border-blue-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Bet Volume</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-blue-400 mt-1 truncate">{formatCurrency(report.totalRevenue)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">Total bets by your users</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaChartBar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                                        </div>
                                     </div>
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 ml-2">
-                                        <FaCoins className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                                </div>
+                                <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-xl p-4 sm:p-5 border border-emerald-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Your Commission</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-emerald-400 mt-1 truncate">{formatCurrency(report.bookieShare)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">{report.commissionPercentage}% from bet volume</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaHandHoldingUsd className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-xl p-4 sm:p-5 border border-red-500/30">
+                                    <div className="flex items-center justify-between">
+                                        <div className="min-w-0">
+                                            <p className="text-xs sm:text-sm font-medium text-gray-400">Winner Payouts</p>
+                                            <p className="text-lg sm:text-2xl font-bold text-red-400 mt-1 truncate">{formatCurrency(report.totalPayouts)}</p>
+                                            <p className="text-[10px] text-gray-500 mt-0.5">Handled by admin</p>
+                                        </div>
+                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 ml-2">
+                                            <FaCoins className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 rounded-xl p-4 sm:p-5 border border-amber-500/30">
-                                <div className="flex items-center justify-between">
-                                    <div className="min-w-0">
-                                        <p className="text-xs sm:text-sm font-medium text-gray-400">Net Profit</p>
-                                        <p className={`text-lg sm:text-2xl font-bold mt-1 truncate ${report.netProfit >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{formatCurrency(report.netProfit)}</p>
-                                    </div>
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0 ml-2">
-                                        <FaChartBar className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        )}
 
                         {/* Betting stats */}
                         <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-4 sm:p-5">
@@ -242,7 +320,45 @@ const Reports = () => {
                                     <p className="text-lg sm:text-xl font-bold text-red-400 mt-1">{formatNumber(report.losingBets)}</p>
                                 </div>
                             </div>
-                            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-700/80 flex flex-wrap items-center gap-3">
+
+                            {/* Calculation breakdown */}
+                            <div className="mt-4 pt-4 border-t border-gray-700/80">
+                                {isBookieCollects ? (
+                                    <div className="bg-gray-900/50 rounded-lg p-3 sm:p-4 space-y-2">
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Earnings Breakdown</p>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">Bet Volume (collected by you)</span>
+                                            <span className="text-white font-semibold">{formatCurrency(report.totalRevenue)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">− Platform Charge ({report.commissionPercentage}%)</span>
+                                            <span className="text-purple-400 font-semibold">−{formatCurrency(report.platformCharge)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-400">− Winner Payouts</span>
+                                            <span className="text-red-400 font-semibold">−{formatCurrency(report.totalPayouts)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm pt-2 border-t border-gray-700/50">
+                                            <span className="text-gray-300 font-semibold">Your Net Profit</span>
+                                            <span className={`font-bold ${report.bookieNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(report.bookieNetProfit)}</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-gray-900/50 rounded-lg p-3 sm:p-4">
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Commission Calculation</p>
+                                        <div className="text-sm text-gray-400 text-center">
+                                            {formatCurrency(report.totalRevenue)}
+                                            <span className="text-gray-600 mx-1.5">&times;</span>
+                                            <span className="text-yellow-400 font-medium">{report.commissionPercentage}%</span>
+                                            <span className="text-gray-600 mx-1.5">=</span>
+                                            <span className="text-emerald-400 font-bold text-base">{formatCurrency(report.bookieShare)}</span>
+                                        </div>
+                                        <p className="text-[10px] text-gray-500 text-center mt-1">Admin collects all payments and handles payouts. You receive commission.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-3 sm:mt-4 flex flex-wrap items-center gap-3">
                                 <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-700/50 rounded-lg">
                                     <span className="text-xs sm:text-sm text-gray-400">Win Rate</span>
                                     <span className="text-base sm:text-lg font-bold text-white">{report.winRate}%</span>
@@ -311,17 +427,24 @@ const Reports = () => {
             {/* Print-only summary */}
             {report && (
                 <div className="hidden print:block mt-8 p-6 bg-white text-black rounded-lg">
-                    <h2 className="text-xl font-bold mb-4">Report Summary</h2>
+                    <h2 className="text-xl font-bold mb-2">Report Summary ({isBookieCollects ? 'Bookie Collects' : 'Admin Collects'})</h2>
                     <p className="text-sm text-gray-600 mb-4">{formatRangeLabel(dateRange.startDate, dateRange.endDate)}</p>
                     <table className="w-full text-sm">
                         <tbody>
-                            <tr><td className="py-1 font-medium">Total Revenue</td><td className="text-right">{formatCurrency(report.totalRevenue)}</td></tr>
-                            <tr><td className="py-1 font-medium">Total Payouts</td><td className="text-right">{formatCurrency(report.totalPayouts)}</td></tr>
-                            <tr><td className="py-1 font-medium">Net Profit</td><td className="text-right">{formatCurrency(report.netProfit)}</td></tr>
+                            <tr><td className="py-1 font-medium">Bet Volume</td><td className="text-right">{formatCurrency(report.totalRevenue)}</td></tr>
+                            <tr><td className="py-1 font-medium">Winner Payouts</td><td className="text-right">{formatCurrency(report.totalPayouts)}</td></tr>
+                            {isBookieCollects ? (
+                                <>
+                                    <tr><td className="py-1 font-medium">Platform Charge ({report.commissionPercentage}%)</td><td className="text-right">{formatCurrency(report.platformCharge)}</td></tr>
+                                    <tr className="font-bold border-t"><td className="py-1">Your Net Profit</td><td className="text-right">{formatCurrency(report.bookieNetProfit)}</td></tr>
+                                </>
+                            ) : (
+                                <>
+                                    <tr><td className="py-1 font-medium">Your Commission ({report.commissionPercentage}%)</td><td className="text-right">{formatCurrency(report.bookieShare)}</td></tr>
+                                </>
+                            )}
                             <tr><td className="py-1 font-medium">Total Bets</td><td className="text-right">{formatNumber(report.totalBets)}</td></tr>
                             <tr><td className="py-1 font-medium">Active Players</td><td className="text-right">{formatNumber(report.activeUsers)}</td></tr>
-                            <tr><td className="py-1 font-medium">Winning Bets</td><td className="text-right">{formatNumber(report.winningBets)}</td></tr>
-                            <tr><td className="py-1 font-medium">Losing Bets</td><td className="text-right">{formatNumber(report.losingBets)}</td></tr>
                             <tr><td className="py-1 font-medium">Win Rate</td><td className="text-right">{report.winRate}%</td></tr>
                         </tbody>
                     </table>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
-import { FaCheck, FaTimes, FaEye, FaImage, FaArrowDown, FaArrowUp, FaClock, FaFilter, FaWallet } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaEye, FaImage, FaArrowDown, FaArrowUp, FaClock, FaFilter, FaWallet, FaBuilding, FaHandHoldingUsd } from 'react-icons/fa';
 
 const Payments = () => {
     const [payments, setPayments] = useState([]);
@@ -139,6 +139,14 @@ const Payments = () => {
                         ? 'Review and process player deposit & withdrawal requests. Click on stats below to quickly filter by type.'
                         : 'Your account type is "Admin Collects" — admin handles payment approvals. You can view payment history here.'}
                 </p>
+                <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                    canManage
+                        ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                        : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                }`}>
+                    {canManage ? <FaBuilding className="w-3.5 h-3.5" /> : <FaHandHoldingUsd className="w-3.5 h-3.5" />}
+                    {canManage ? 'Bookie Collects — You manage payments' : 'Admin Collects — Admin manages payments'}
+                </div>
             </div>
 
             {/* Quick Stats – clickable for quick filter */}

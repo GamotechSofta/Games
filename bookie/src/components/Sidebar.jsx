@@ -44,7 +44,10 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
             return location.pathname === path || location.pathname.startsWith(path + '/');
         }
         if (path === '/reports') {
-            return location.pathname === '/reports' || location.pathname.startsWith('/revenue');
+            return location.pathname === '/reports';
+        }
+        if (path === '/revenue') {
+            return location.pathname === '/revenue' || location.pathname.startsWith('/revenue/');
         }
         return location.pathname === path;
     };

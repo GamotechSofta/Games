@@ -8,6 +8,11 @@ import {
     FaCalendarAlt,
     FaChevronRight,
     FaUsers,
+    FaBuilding,
+    FaHandHoldingUsd,
+    FaArrowUp,
+    FaArrowDown,
+    FaPercent,
 } from 'react-icons/fa';
 
 const PRESETS = [
@@ -92,6 +97,8 @@ const Revenue = () => {
         }
     };
 
+    const isBookieCollects = data?.bookieType === 'bookie_collects';
+
     return (
         <Layout title="Revenue">
             <div className="space-y-4 sm:space-y-5">
@@ -101,8 +108,29 @@ const Revenue = () => {
                         <FaMoneyBillWave className="w-6 h-6 text-emerald-500 shrink-0" />
                         My Revenue
                     </h1>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Your commission earnings from user bets</p>
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                        {isBookieCollects
+                            ? 'Your earnings after platform charge and payouts'
+                            : 'Your commission earnings from user bets'}
+                    </p>
                 </div>
+
+                {/* Bookie Type Badge */}
+                {data && (
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                        isBookieCollects
+                            ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    }`}>
+                        {isBookieCollects ? <FaBuilding className="w-3.5 h-3.5" /> : <FaHandHoldingUsd className="w-3.5 h-3.5" />}
+                        {isBookieCollects ? 'Bookie Collects' : 'Admin Collects'}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300 text-[11px] font-medium ml-1">
+                            <FaPercent className="w-2.5 h-2.5 mr-1" />
+                            {data.commissionPercentage}%
+                            {isBookieCollects ? ' platform charge' : ' commission'}
+                        </span>
+                    </div>
+                )}
 
                 {/* Date filters */}
                 <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-3 sm:p-4">
@@ -152,49 +180,113 @@ const Revenue = () => {
                             <table className="w-full">
                                 <tbody className="divide-y divide-gray-700/50">
                                     {/* Your Revenue - highlighted row */}
-                                    <tr className="bg-emerald-500/10">
+                                    <tr className={isBookieCollects
+                                        ? (data.bookieRevenue >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10')
+                                        : 'bg-emerald-500/10'
+                                    }>
                                         <td className="px-4 py-3.5 sm:py-4">
-                                            <span className="text-xs sm:text-sm font-semibold text-emerald-300 uppercase tracking-wider">Your Revenue</span>
+                                            <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${
+                                                isBookieCollects
+                                                    ? (data.bookieRevenue >= 0 ? 'text-emerald-300' : 'text-red-300')
+                                                    : 'text-emerald-300'
+                                            }`}>
+                                                {isBookieCollects ? 'Your Net Profit' : 'Your Commission'}
+                                            </span>
                                         </td>
                                         <td className="px-4 py-3.5 sm:py-4 text-right">
-                                            <span className="text-xl sm:text-2xl font-bold text-emerald-400">{formatCurrency(data.bookieRevenue)}</span>
+                                            <span className={`text-xl sm:text-2xl font-bold ${
+                                                isBookieCollects
+                                                    ? (data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400')
+                                                    : 'text-emerald-400'
+                                            }`}>{formatCurrency(data.bookieRevenue)}</span>
                                         </td>
                                     </tr>
 
                                     {/* Total Bet Amount */}
                                     <tr className="hover:bg-gray-700/20 transition-colors">
                                         <td className="px-4 py-3 sm:py-3.5">
-                                            <span className="text-xs sm:text-sm text-gray-300">Total Bet Amount</span>
+                                            <span className="text-xs sm:text-sm text-gray-300">Total Bet Volume</span>
                                         </td>
                                         <td className="px-4 py-3 sm:py-3.5 text-right">
                                             <span className="text-sm sm:text-base font-semibold text-white">{formatCurrency(data.totalBetAmount)}</span>
                                         </td>
                                     </tr>
 
-                                    {/* Commission Rate */}
+                                    {/* Rate */}
                                     <tr className="hover:bg-gray-700/20 transition-colors">
                                         <td className="px-4 py-3 sm:py-3.5">
-                                            <span className="text-xs sm:text-sm text-gray-300">Commission Rate</span>
+                                            <span className="text-xs sm:text-sm text-gray-300">
+                                                {isBookieCollects ? 'Platform Charge Rate' : 'Commission Rate'}
+                                            </span>
                                         </td>
                                         <td className="px-4 py-3 sm:py-3.5 text-right">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-semibold bg-yellow-500/15 text-yellow-400">
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-semibold ${
+                                                isBookieCollects
+                                                    ? 'bg-purple-500/15 text-purple-400'
+                                                    : 'bg-yellow-500/15 text-yellow-400'
+                                            }`}>
                                                 {data.commissionPercentage}%
                                             </span>
                                         </td>
                                     </tr>
 
-                                    {/* Payouts */}
-                                    <tr className="hover:bg-gray-700/20 transition-colors">
-                                        <td className="px-4 py-3 sm:py-3.5">
-                                            <div>
-                                                <span className="text-xs sm:text-sm text-gray-300">Winner Payouts</span>
-                                                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Paid to winning users by admin</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3 sm:py-3.5 text-right">
-                                            <span className="text-sm sm:text-base font-semibold text-red-400">{formatCurrency(data.totalPayouts)}</span>
-                                        </td>
-                                    </tr>
+                                    {isBookieCollects ? (
+                                        <>
+                                            {/* Platform Charge */}
+                                            <tr className="hover:bg-gray-700/20 transition-colors">
+                                                <td className="px-4 py-3 sm:py-3.5">
+                                                    <div>
+                                                        <span className="text-xs sm:text-sm text-gray-300">Platform Charge</span>
+                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Paid to admin</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 sm:py-3.5 text-right">
+                                                    <span className="text-sm sm:text-base font-semibold text-purple-400">{formatCurrency(data.platformCharge)}</span>
+                                                </td>
+                                            </tr>
+
+                                            {/* Gross (before payouts) */}
+                                            <tr className="hover:bg-gray-700/20 transition-colors">
+                                                <td className="px-4 py-3 sm:py-3.5">
+                                                    <div>
+                                                        <span className="text-xs sm:text-sm text-gray-300">Your Gross Share</span>
+                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Before payouts</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 sm:py-3.5 text-right">
+                                                    <span className="text-sm sm:text-base font-semibold text-white">{formatCurrency(data.bookieGross)}</span>
+                                                </td>
+                                            </tr>
+
+                                            {/* Payouts */}
+                                            <tr className="hover:bg-gray-700/20 transition-colors">
+                                                <td className="px-4 py-3 sm:py-3.5">
+                                                    <div>
+                                                        <span className="text-xs sm:text-sm text-gray-300">Winner Payouts</span>
+                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Paid by you to winning users</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 sm:py-3.5 text-right">
+                                                    <span className="text-sm sm:text-base font-semibold text-red-400">{formatCurrency(data.totalPayouts)}</span>
+                                                </td>
+                                            </tr>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Payouts - admin handles */}
+                                            <tr className="hover:bg-gray-700/20 transition-colors">
+                                                <td className="px-4 py-3 sm:py-3.5">
+                                                    <div>
+                                                        <span className="text-xs sm:text-sm text-gray-300">Winner Payouts</span>
+                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Handled by admin (not your expense)</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 sm:py-3.5 text-right">
+                                                    <span className="text-sm sm:text-base font-semibold text-red-400">{formatCurrency(data.totalPayouts)}</span>
+                                                </td>
+                                            </tr>
+                                        </>
+                                    )}
 
                                     {/* Total Bets Count */}
                                     <tr className="hover:bg-gray-700/20 transition-colors">
@@ -237,13 +329,27 @@ const Revenue = () => {
                                     {/* Calculation row */}
                                     <tr className="bg-gray-700/20">
                                         <td colSpan="2" className="px-4 py-3">
-                                            <div className="text-xs sm:text-sm text-gray-400 text-center">
-                                                {formatCurrency(data.totalBetAmount)}
-                                                <span className="text-gray-600 mx-1.5">&times;</span>
-                                                <span className="text-yellow-400 font-medium">{data.commissionPercentage}%</span>
-                                                <span className="text-gray-600 mx-1.5">=</span>
-                                                <span className="text-emerald-400 font-bold">{formatCurrency(data.bookieRevenue)}</span>
-                                            </div>
+                                            {isBookieCollects ? (
+                                                <div className="text-xs sm:text-sm text-gray-400 text-center space-y-1">
+                                                    <div>
+                                                        {formatCurrency(data.totalBetAmount)}
+                                                        <span className="text-gray-600 mx-1.5">−</span>
+                                                        <span className="text-purple-400 font-medium">{formatCurrency(data.platformCharge)} (platform)</span>
+                                                        <span className="text-gray-600 mx-1.5">−</span>
+                                                        <span className="text-red-400 font-medium">{formatCurrency(data.totalPayouts)} (payouts)</span>
+                                                        <span className="text-gray-600 mx-1.5">=</span>
+                                                        <span className={`font-bold ${data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(data.bookieRevenue)}</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-xs sm:text-sm text-gray-400 text-center">
+                                                    {formatCurrency(data.totalBetAmount)}
+                                                    <span className="text-gray-600 mx-1.5">&times;</span>
+                                                    <span className="text-yellow-400 font-medium">{data.commissionPercentage}%</span>
+                                                    <span className="text-gray-600 mx-1.5">=</span>
+                                                    <span className="text-emerald-400 font-bold">{formatCurrency(data.bookieRevenue)}</span>
+                                                </div>
+                                            )}
                                         </td>
                                     </tr>
                                 </tbody>
