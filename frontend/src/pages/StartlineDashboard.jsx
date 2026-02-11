@@ -163,10 +163,10 @@ const StartlineDashboard = () => {
                 <button
                   type="button"
                   onClick={() => openStarlineMarket(m.key, m.label)}
-                  className="group w-full rounded-2xl md:rounded-3xl border border-white/10 bg-[#202124] px-2.5 py-3 md:px-5 md:py-6 shadow-[0_10px_22px_rgba(0,0,0,0.35)] hover:border-[#d4af37]/40 hover:bg-[#222] active:scale-[0.98] md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.6)] transition-all"
+                  className="group w-full min-h-[150px] md:min-h-[190px] rounded-2xl md:rounded-3xl border border-white/10 bg-[#202124] px-3 py-4 md:px-6 md:py-8 shadow-[0_10px_22px_rgba(0,0,0,0.35)] hover:border-[#d4af37]/40 hover:bg-[#222] active:scale-[0.98] md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.6)] transition-all"
                   aria-label={m.label}
                 >
-                  <div className="relative mx-auto w-12 h-12 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
+                  <div className="relative mx-auto w-14 h-14 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
                     <img
                       src={STARLINE_DASHBOARD_MARKET_IMAGE_URL}
                       alt={m.label || 'Starline Market'}
