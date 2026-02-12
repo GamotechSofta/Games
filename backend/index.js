@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cron from 'node-cron';
 import connectDB from './config/db_Connection.js';
 import marketRoutes from './routes/market/marketRoutes.js';
 import adminRoutes from './routes/admin/adminRoutes.js';
@@ -16,6 +17,8 @@ import rateRoutes from './routes/rate/rateRoutes.js';
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import { getClientIp } from './utils/activityLogger.js';
+import { ensureResultsResetForNewDay } from './utils/resultReset.js';
+import Market from './models/market/market.js';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -50,6 +53,25 @@ app.get('/test-ip', (req, res) => {
     });
 });
 
+// Test endpoint: manually trigger market reset (for testing/debugging)
+app.get('/test-reset', async (req, res) => {
+    try {
+        console.log('[TEST] Manual market reset triggered at', new Date().toISOString());
+        await ensureResultsResetForNewDay(Market);
+        res.json({ 
+            success: true, 
+            message: 'Market reset executed',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[TEST] Manual reset failed:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+});
+
 app.use('/api/v1/markets', marketRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/bookie', bookieRoutes);
@@ -64,6 +86,22 @@ app.use('/api/v1/rates', rateRoutes);
 
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
+
+// Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
+// Runs every day at 00:00 IST to clear opening/closing numbers for fresh day
+cron.schedule('30 18 * * *', async () => {
+    try {
+        console.log('[CRON] Running midnight market reset at', new Date().toISOString());
+        await ensureResultsResetForNewDay(Market);
+        console.log('[CRON] Market reset completed successfully');
+    } catch (error) {
+        console.error('[CRON] Market reset failed:', error.message);
+    }
+}, {
+    timezone: 'UTC'
+});
+
+console.log('[CRON] Scheduled market reset job at 00:00 IST daily (18:30 UTC)');
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

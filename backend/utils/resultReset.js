@@ -92,23 +92,38 @@ export async function ensureResultsResetForNewDay(Market) {
     // After server restart lastResultResetDate is null – do NOT clear same-day results.
     // Only set lastResultResetDate = today so we don't clear on every request until we actually cross midnight.
     if (lastResultResetDate === null) {
+        console.log(`[resultReset] Initialized reset tracker for ${today} (no reset on server start)`);
         lastResultResetDate = today;
         return;
     }
 
     // Same day, already ran – skip
-    if (today <= lastResultResetDate) return;
+    if (today <= lastResultResetDate) {
+        console.log(`[resultReset] Already reset today (${today}), skipping`);
+        return;
+    }
 
     // New day (IST): save yesterday's results to history, then clear all markets
+    console.log(`[resultReset] ✅ New day detected! Resetting markets from ${lastResultResetDate} to ${today}`);
+    
     try {
         await saveYesterdaySnapshotsToHistory(Market);
+        console.log(`[resultReset] Saved yesterday's (${lastResultResetDate}) results to history`);
     } catch (err) {
         console.error('[resultReset] Failed to save yesterday snapshots to history:', err.message);
     }
 
-    await Market.updateMany(
+    const result = await Market.updateMany(
         {},
-        { $set: { openingNumber: null, closingNumber: null } }
+        { $set: { 
+            openingNumber: null, 
+            closingNumber: null,
+            result: null,
+            winNumber: null 
+        } }
     );
+    
+    console.log(`[resultReset] ✅ Cleared all result data (opening/closing/result/winNumber) for ${result.modifiedCount} markets`);
     lastResultResetDate = today;
+    console.log(`[resultReset] ✅ Market reset completed successfully for ${today}`);
 }
