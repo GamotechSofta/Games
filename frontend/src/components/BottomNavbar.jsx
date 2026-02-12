@@ -95,16 +95,16 @@ const BottomNavbar = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden pt-0.5"
+      className="fixed bottom-0 left-0 right-0 z-[100] md:hidden"
       style={{
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)',
+        paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
         paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
       }}
     >
       {/* Backplate to prevent white background showing behind navbar */}
       <div className="absolute inset-0 bg-black pointer-events-none" />
-      <div className="relative bg-black rounded-2xl border border-gray-700 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
+      <div className="relative bg-black rounded-2xl border border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const isCenter = item.isCenter;
@@ -123,7 +123,7 @@ const BottomNavbar = () => {
                 className="flex flex-col items-center justify-center -mt-4 relative z-10 active:scale-90 transition-transform duration-150 touch-manipulation"
               >
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-all duration-200 ${
                     active
                       ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-black scale-105'
                       : 'bg-gray-800 border border-gray-700'
@@ -159,12 +159,12 @@ const BottomNavbar = () => {
                 }
                 navigate(item.path);
               }}
-              className="relative flex flex-col items-center justify-center gap-0 px-1.5 py-1 rounded-xl min-w-[48px] active:scale-95 transition-all duration-150 touch-manipulation"
+              className="relative flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg min-w-[48px] active:scale-95 transition-all duration-150 touch-manipulation"
             >
               {/* Icon: white when inactive, golden when active - same as text */}
               <div
                 className={`transition-all duration-200 ${
-                  active ? 'scale-110 [filter:brightness(0)_invert(0.88)_sepia(0.25)_saturate(8)_hue-rotate(5deg)]' : 'scale-100 [filter:brightness(0)_invert(1)]'
+                  active ? 'scale-105 [filter:brightness(0)_invert(0.88)_sepia(0.25)_saturate(8)_hue-rotate(5deg)]' : 'scale-100 [filter:brightness(0)_invert(1)]'
                 }`}
               >
                 {item.icon}
@@ -172,7 +172,7 @@ const BottomNavbar = () => {
               {/* Active indicator dot below icon */}
               <div className="h-1 w-full flex items-center justify-center">
                 {active && (
-                  <div className="w-1 h-1 rounded-full bg-[#f3b61b] shadow-[0_0_8px_rgba(0,0,0,0.4)] mx-auto" />
+                  <div className="w-1 h-1 rounded-full bg-[#f3b61b] shadow-[0_0_6px_rgba(0,0,0,0.4)] mx-auto" />
                 )}
               </div>
               <span
