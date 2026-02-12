@@ -15,6 +15,8 @@ import {
     FaClipboardList,
     FaArrowRight,
     FaExclamationTriangle,
+    FaLink,
+    FaHistory,
 } from 'react-icons/fa';
 
 const PRESETS = [
@@ -276,8 +278,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Date Filter */}
-                <div className="glass-panel p-2 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-1.5 p-1">
+                <div className="glass-panel p-2 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-4 relative z-[60]">
+                    <div className="flex flex-wrap items-center gap-1.5 p-1 w-full lg:w-auto">
                         {PRESETS.map((p) => {
                             const isActive = !customMode && datePreset === p.id;
                             return (
@@ -285,7 +287,7 @@ const Dashboard = () => {
                                     key={p.id}
                                     type="button"
                                     onClick={() => handlePresetSelect(p.id)}
-                                    className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${isActive ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${isActive ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-400 bg-white/5 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'}`}
                                 >
                                     {p.label}
                                 </button>
@@ -295,32 +297,59 @@ const Dashboard = () => {
                             <button
                                 type="button"
                                 onClick={handleCustomToggle}
-                                className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 ${customMode ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${customMode ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-400 bg-white/5 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'}`}
                             >
                                 Custom
                             </button>
                             {customOpen && (
-                                <div className="absolute top-full left-0 mt-3 p-4 rounded-xl glass-panel border border-white/10 z-50 min-w-[300px] shadow-2xl backdrop-blur-2xl">
-                                    <h4 className="text-white font-bold mb-3 text-sm">Select Range</h4>
-                                    <div className="grid grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                            <label className="block text-xs text-slate-400 mb-1.5 font-medium">From</label>
-                                            <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 outline-none transition-colors" />
+                                <div className="absolute top-full left-0 mt-3 p-5 rounded-2xl bg-[#1e293b] border border-white/10 z-[100] min-w-[320px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <h4 className="text-white font-black text-xs uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                                        Select Custom Range
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4 mb-5">
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">From Date</label>
+                                            <input
+                                                type="date"
+                                                value={customFrom}
+                                                onChange={(e) => setCustomFrom(e.target.value)}
+                                                className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all [color-scheme:dark] cursor-pointer hover:bg-black/70"
+                                            />
                                         </div>
-                                        <div>
-                                            <label className="block text-xs text-slate-400 mb-1.5 font-medium">To</label>
-                                            <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 outline-none transition-colors" />
+                                        <div className="space-y-1.5">
+                                            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">To Date</label>
+                                            <input
+                                                type="date"
+                                                value={customTo}
+                                                onChange={(e) => setCustomTo(e.target.value)}
+                                                className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all [color-scheme:dark] cursor-pointer hover:bg-black/70"
+                                            />
                                         </div>
                                     </div>
-                                    <button type="button" onClick={handleCustomApply} className="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-colors shadow-lg shadow-amber-500/20">
-                                        Apply Range
-                                    </button>
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomOpen(false)}
+                                            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-bold text-xs transition-all border border-white/5 active:scale-95"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCustomApply}
+                                            className="flex-[2] py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+                                        >
+                                            Apply Range
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/5 mx-2 hidden sm:block">
-                        <p className="text-xs text-slate-400">Viewing Data: <span className="text-amber-400 font-bold ml-1">{displayLabel}</span></p>
+                    <div className="px-5 py-2 bg-amber-500/5 rounded-xl border border-amber-500/10 hidden lg:flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Viewing: <span className="text-amber-500 ml-1">{displayLabel}</span></p>
                     </div>
                 </div>
             </div>
@@ -421,7 +450,7 @@ const Dashboard = () => {
             </div>
 
             {/* Detailed Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">
                 {/* Revenue Details */}
                 <SectionCard title="Revenue & Payouts" description="Financial breakdown" icon={FaMoneyBillWave} linkTo="/reports" linkLabel="Full Report">
                     <StatRow label="Total Revenue" value={formatCurrency(stats?.revenue?.total)} colorClass="text-emerald-400" />
@@ -468,21 +497,27 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="glass-panel rounded-2xl p-8">
-                <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
-                    <FaClipboardList className="w-5 h-5 text-amber-500" />
+            <div className="glass-panel rounded-3xl p-8 border border-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-500"></div>
+                <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                        <FaClipboardList className="w-4 h-4 text-amber-500" />
+                    </div>
                     Quick Navigation
                 </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 relative z-10">
                     {[
-                        { to: "/my-users", label: "My Players", color: "hover:bg-blue-500/20 hover:text-blue-400 hover:border-blue-500/30" },
-                        { to: "/add-user", label: "Add Player", color: "hover:bg-emerald-500/20 hover:text-emerald-400 hover:border-emerald-500/30" },
-                        { to: "/referral-link", label: "Referral Link", color: "hover:bg-purple-500/20 hover:text-purple-400 hover:border-purple-500/30" },
-                        { to: "/bet-history", label: "Bet History", color: "hover:bg-amber-500/20 hover:text-amber-400 hover:border-amber-500/30" },
-                        { to: "/reports", label: "Reports", color: "hover:bg-pink-500/20 hover:text-pink-400 hover:border-pink-500/30" },
+                        { to: "/my-users", label: "My Players", icon: FaUserFriends, color: "hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/20" },
+                        { to: "/add-user", label: "Add Player", icon: FaSyncAlt, color: "hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20" },
+                        { to: "/my-referral-link", label: "Referral Link", icon: FaLink, color: "hover:bg-purple-500/10 hover:text-purple-400 hover:border-purple-500/20" },
+                        { to: "/bet-history", label: "Bet History", icon: FaHistory, color: "hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20" },
+                        { to: "/reports", label: "Analytics", icon: FaChartLine, color: "hover:bg-pink-500/10 hover:text-pink-400 hover:border-pink-500/20" },
                     ].map((link, idx) => (
-                        <Link key={idx} to={link.to} className={`px-4 py-4 rounded-xl bg-white/5 border border-white/5 text-slate-300 text-sm font-semibold transition-all hover:-translate-y-1 hover:shadow-lg ${link.color} text-center flex flex-col items-center justify-center gap-2 group`}>
-                            <span className="opacity-80 group-hover:opacity-100">{link.label}</span>
+                        <Link key={idx} to={link.to} className={`px-4 py-5 rounded-2xl bg-[#0F172A]/50 border border-white/5 text-slate-300 text-sm font-bold transition-all hover:-translate-y-1 hover:shadow-xl ${link.color} text-center flex flex-col items-center justify-center gap-3 group active:scale-95`}>
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-amber-500/10 group-hover:text-inherit transition-all">
+                                <link.icon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
+                            </div>
+                            <span className="group-hover:translate-y-[-2px] transition-transform">{link.label}</span>
                         </Link>
                     ))}
                 </div>
