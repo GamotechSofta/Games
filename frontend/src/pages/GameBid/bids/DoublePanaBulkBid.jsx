@@ -56,32 +56,6 @@ const DoublePanaBulkBid = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    });
-    
-    // Save to localStorage when date changes
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
     const [reviewRows, setReviewRows] = useState([]);
 
     const showWarning = (msg) => {
@@ -115,6 +89,9 @@ const DoublePanaBulkBid = ({ market, title }) => {
 
     const marketTitle = market?.gameName || market?.marketName || title;
     const dateText = new Date().toLocaleDateString('en-GB');
+    const todayDate = new Date()
+        .toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        .replace(/\//g, '-');
 
     const doublePanas = useMemo(() => buildDoublePanas(), []);
     const [specialInputs, setSpecialInputs] = useState(() =>
@@ -152,14 +129,6 @@ const DoublePanaBulkBid = ({ market, title }) => {
         setReviewRows([]);
         setSpecialInputs(Object.fromEntries(doublePanas.map((n) => [n, ''])));
         setGroupBulk(Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), ''])));
-        // Reset scheduled date to today after bet is placed
-        const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
-        try {
-            localStorage.removeItem('betSelectedDate');
-        } catch (e) {
-            // Ignore errors
-        }
     };
 
     const handleCancel = () => clearAll();
@@ -172,15 +141,7 @@ const DoublePanaBulkBid = ({ market, title }) => {
             amount: Number(r.points) || 0,
             betOn: String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        
-        // Check if date is in the future (scheduled bet)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selectedDateObj = new Date(selectedDate);
-        selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -216,6 +177,74 @@ const DoublePanaBulkBid = ({ market, title }) => {
             ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg transition-all active:scale-[0.98]'
             : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg opacity-50 cursor-not-allowed';
 
+    const headerControlsRow = (
+        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] md:items-stretch">
+            {/* Date pill (read-only today) */}
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    value={todayDate}
+                    readOnly
+                    className="w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default"
+                />
+            </div>
+
+            {/* Session select (OPEN/CLOSE) */}
+            <div className="relative">
+                <select
+                    value={session}
+                    onChange={(e) => setSession(e.target.value)}
+                    disabled={isRunning}
+                    className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-xs sm:text-sm py-2.5 min-h-[44px] h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${
+                        isRunning ? 'opacity-80 cursor-not-allowed' : ''
+                    }`}
+                >
+                    {isRunning ? (
+                        <option value="CLOSE">CLOSE</option>
+                    ) : (
+                        <>
+                            <option value="OPEN">OPEN</option>
+                            <option value="CLOSE">CLOSE</option>
+                        </>
+                    )}
+                </select>
+                {!isRunning && (
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                )}
+            </div>
+
+            {/* Submit Bet button (opens review) */}
+            <div className="md:ml-1">
+                <button
+                    type="button"
+                    onClick={openReview}
+                    disabled={!canSubmit}
+                    className={`w-full min-h-[44px] px-4 md:px-6 rounded-full font-bold text-xs sm:text-sm shadow-lg transition-all ${
+                        canSubmit
+                            ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
+                            : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
+                    }`}
+                >
+                    Submit Bet
+                </button>
+            </div>
+        </div>
+    );
+
     return (
         <BidLayout
             market={market}
@@ -224,28 +253,14 @@ const DoublePanaBulkBid = ({ market, title }) => {
             totalPoints={totalPoints}
             session={session}
             setSession={setSession}
-            selectedDate={selectedDate}
-            setSelectedDate={handleDateChange}
-            sessionRightSlot={
-                <button
-                    type="button"
-                    onClick={openReview}
-                    disabled={!canSubmit}
-                    className={`hidden md:inline-flex items-center justify-center font-bold min-h-[44px] min-w-[220px] px-6 rounded-full shadow-lg transition-all whitespace-nowrap ${
-                        canSubmit
-                            ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
-                            : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
-                    }`}
-                >
-                    Submit Bet
-                </button>
-            }
+            showDateSession={false}
             walletBalance={walletBefore}
             extraHeader={null}
             hideFooter
             contentPaddingClass="pb-28 md:pb-8"
         >
             <div className="px-3 sm:px-6 py-3">
+                {headerControlsRow}
                 {warning && (
                     <div className="mb-3 bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
                         {warning}

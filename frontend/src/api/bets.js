@@ -35,10 +35,9 @@ export function updateUserBalance(newBalance) {
  * Place bets for the current user.
  * @param {string} marketId - Market _id
  * @param {Array<{ betType: string, betNumber: string, amount: number }>} bets
- * @param {string|null} scheduledDate - Optional scheduled date (ISO string format)
  * @returns {Promise<{ success: boolean, data?: { newBalance: number }, message?: string }>}
  */
-export async function placeBet(marketId, bets, scheduledDate = null) {
+export async function placeBet(marketId, bets) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const rawUserId = user?.id || user?._id;
   if (!rawUserId) {
@@ -78,10 +77,6 @@ export async function placeBet(marketId, bets, scheduledDate = null) {
       betOn: normalizeBetOn(b.betOn) || normalizeBetOn(b.session) || normalizeBetOn(b.type),
     })),
   };
-
-  if (scheduledDate) {
-    payload.scheduledDate = scheduledDate;
-  }
 
   const response = await fetch(`${API_BASE_URL}/bets/place`, {
     method: 'POST',

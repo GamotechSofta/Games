@@ -19,32 +19,6 @@ const SingleDigitBid = ({ market, title }) => {
     const pointsInputRef = useRef(null);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    });
-    
-    // Save to localStorage when date changes
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
     const showWarning = (msg) => {
         setWarning(msg);
         window.clearTimeout(showWarning._t);
@@ -62,14 +36,6 @@ const SingleDigitBid = ({ market, title }) => {
         setInputNumber('');
         setInputPoints('');
         resetSpecialInputs();
-        // Reset scheduled date to today after bet is placed
-        const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
-        try {
-            localStorage.removeItem('betSelectedDate');
-        } catch (e) {
-            // Ignore errors
-        }
     };
 
     const handleAddBid = () => {
@@ -267,15 +233,7 @@ const SingleDigitBid = ({ market, title }) => {
             amount: Number(b.points) || 0,
             betOn: String(b?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        
-        // Check if date is in the future (scheduled bet)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selectedDateObj = new Date(selectedDate);
-        selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
-        const result = await placeBet(marketId, bets, scheduledDate);
+        const result = await placeBet(marketId, bets);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -293,7 +251,7 @@ const SingleDigitBid = ({ market, title }) => {
             title={title}
             bidsCount={bids.length}
             totalPoints={totalPoints}
-            showDateSession={true}
+            showDateSession={false}
             extraHeader={null}
             session={session}
             setSession={setSession}
@@ -302,8 +260,6 @@ const SingleDigitBid = ({ market, title }) => {
             hideSessionSelectCaret={!!effectiveSessionPreset}
             hideFooter
             walletBalance={walletBefore}
-            selectedDate={selectedDate}
-            setSelectedDate={handleDateChange}
         >
             <div className="px-3 sm:px-4 py-4 sm:py-2 md:max-w-3xl md:mx-auto md:items-start">
                 {leftColumn}
