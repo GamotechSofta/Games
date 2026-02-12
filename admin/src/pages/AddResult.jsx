@@ -48,18 +48,28 @@ const AddResult = () => {
     const [isDirectEditMode, setIsDirectEditMode] = useState(() => !!(preselectedFromNav?._id));
     const [activeTab, setActiveTab] = useState('regular');
     const [starlineMarkets, setStarlineMarkets] = useState([]);
+    const [kingBazaarMarkets, setKingBazaarMarkets] = useState([]);
+    const [kingBazaarJodi, setKingBazaarJodi] = useState('');
     const navigate = useNavigate();
 
     const mainPendingList = useMemo(
-        () => (marketsPendingResultList || []).filter((m) => (m.marketType || '').toString().toLowerCase() !== 'startline'),
+        () => (marketsPendingResultList || []).filter((m) => {
+            const type = (m.marketType || '').toString().toLowerCase();
+            return type !== 'startline' && type !== 'king';
+        }),
         [marketsPendingResultList]
     );
     const starlinePendingList = useMemo(
         () => (marketsPendingResultList || []).filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline'),
         [marketsPendingResultList]
     );
+    const kingBazaarPendingList = useMemo(
+        () => (marketsPendingResultList || []).filter((m) => (m.marketType || '').toString().toLowerCase() === 'king'),
+        [marketsPendingResultList]
+    );
     const mainPendingCount = mainPendingList.length;
     const starlinePendingCount = starlinePendingList.length;
+    const kingBazaarPendingCount = kingBazaarPendingList.length;
 
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin') || '{}');
@@ -96,8 +106,9 @@ const AddResult = () => {
             const data = await response.json();
             if (data.success) {
                 const all = data.data || [];
-                setMarkets(all.filter((m) => m.marketType !== 'startline'));
+                setMarkets(all.filter((m) => m.marketType !== 'startline' && m.marketType !== 'king'));
                 setStarlineMarkets(all.filter((m) => m.marketType === 'startline'));
+                setKingBazaarMarkets(all.filter((m) => m.marketType === 'king'));
             } else {
                 setError('Failed to fetch markets');
             }
@@ -140,8 +151,22 @@ const AddResult = () => {
 
     const openPanelForEdit = (market) => {
         setSelectedMarket(market);
-        setOpenPatti(market.openingNumber || '');
-        setClosePatti(market.closingNumber || '');
+        const isKing = market.marketType === 'king';
+        if (isKing) {
+            // For King Bazaar: extract jodi from the display result or construct from opening/closing numbers
+            if (market.displayResult && /^\d{2}$/.test(market.displayResult)) {
+                setKingBazaarJodi(market.displayResult);
+            } else if (market.openingNumber != null && market.closingNumber != null) {
+                const first = String(market.openingNumber)[0] || '0';
+                const second = String(market.closingNumber)[0] || '0';
+                setKingBazaarJodi(first + second);
+            } else {
+                setKingBazaarJodi('');
+            }
+        } else {
+            setOpenPatti(market.openingNumber || '');
+            setClosePatti(market.closingNumber || '');
+        }
         setPreview(null);
         setPreviewClose(null);
     };
@@ -151,6 +176,7 @@ const AddResult = () => {
         setSelectedMarket(null);
         setOpenPatti('');
         setClosePatti('');
+        setKingBazaarJodi('');
         setPreview(null);
         setPreviewClose(null);
     };
@@ -274,6 +300,65 @@ const AddResult = () => {
             return;
         }
         navigate('/declare-confirm', { state: { market: selectedMarket, declareType: 'close', number: val } });
+    };
+
+    const handleCheckKingBazaar = async () => {
+        if (!selectedMarket) return;
+        const marketId = getMarketId();
+        if (!marketId) return;
+        const val = kingBazaarJodi.replace(/\D/g, '').slice(0, 2);
+        if (val.length !== 2) {
+            setPreview(null);
+            return;
+        }
+        const firstDigit = val[0];
+        const secondDigit = val[1];
+        setCheckLoading(true);
+        setPreview(null);
+        const headers = getAuthHeaders();
+        try {
+            const previewRes = await fetch(`${API_BASE_URL}/markets/preview-declare-king-bazaar/${encodeURIComponent(marketId)}?firstDigit=${encodeURIComponent(firstDigit)}&secondDigit=${encodeURIComponent(secondDigit)}`, { headers });
+            const previewData = await previewRes.json();
+            if (previewData.success && previewData.data != null) {
+                const totalBetAmount = safeNum(previewData.data.totalBetAmount);
+                const totalBetAmountOnPatti = safeNum(previewData.data.totalBetAmountOnPatti);
+                const totalWinAmountOnPatti = safeNum(previewData.data.totalWinAmountOnPatti);
+                const totalPlayersBetOnPatti = safeNum(previewData.data.totalPlayersBetOnPatti);
+                setPreview({
+                    totalBetAmount,
+                    totalBetAmountOnPatti,
+                    totalWinAmountOnPatti,
+                    noOfPlayers: safeNum(previewData.data.noOfPlayers),
+                    totalPlayersBetOnPatti,
+                    profit: totalBetAmount - totalWinAmountOnPatti,
+                });
+            } else {
+                setPreview({
+                    totalBetAmount: 0,
+                    totalBetAmountOnPatti: 0,
+                    totalWinAmountOnPatti: 0,
+                    noOfPlayers: 0,
+                    totalPlayersBetOnPatti: 0,
+                    profit: 0,
+                });
+            }
+        } catch (err) {
+            setPreview(null);
+        } finally {
+            setCheckLoading(false);
+        }
+    };
+
+    const handleDeclareKingBazaar = () => {
+        if (!selectedMarket) return;
+        const val = kingBazaarJodi.replace(/\D/g, '').slice(0, 2);
+        if (val.length !== 2) {
+            alert('Please enter a 2-digit Jodi (00-99).');
+            return;
+        }
+        const firstDigit = val[0];
+        const secondDigit = val[1];
+        navigate('/declare-confirm', { state: { market: selectedMarket, declareType: 'king', firstDigit, secondDigit } });
     };
 
     const handleClearResult = async () => {
@@ -438,13 +523,77 @@ const AddResult = () => {
                     </div>
                 )}
 
+                {activeTab === 'king' && kingBazaarPendingCount > 0 && !isDirectEditMode && (
+                    <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-amber-500/10 border border-amber-500/40 rounded-lg overflow-hidden">
+                        <h3 className="text-xs sm:text-sm font-semibold text-amber-400 flex items-center gap-2 mb-2 flex-wrap">
+                            <FaExclamationTriangle className="w-4 h-4 shrink-0" />
+                            King Bazaar slot result declaration pending
+                        </h3>
+                        <p className="text-amber-200/90 text-xs sm:text-sm break-words">
+                            {kingBazaarPendingCount} slot{kingBazaarPendingCount !== 1 ? 's' : ''} need{kingBazaarPendingCount === 1 ? 's' : ''} result declaration: {kingBazaarPendingList.map((m) => m.marketName).join(', ')}
+                        </p>
+                        <p className="text-amber-200/70 text-[11px] sm:text-xs mt-2">
+                            Declare First Digit and Second Digit for these slots below.
+                        </p>
+                    </div>
+                )}
+
                 {activeTab === 'king' && (
-                    <div className="rounded-2xl border border-gray-700 bg-gray-800/50 p-6 sm:p-8 text-center">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                            <FaCrown className="w-8 h-8 text-amber-400" />
+                    <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
+                        <div className="flex-1 min-w-0 w-full">
+                            {loading ? (
+                                <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading King Bazaar slots...</div>
+                            ) : kingBazaarMarkets.length === 0 ? (
+                                <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
+                                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
+                                        <FaCrown className="w-8 h-8 text-amber-400" />
+                                    </div>
+                                    <p className="text-gray-400 text-sm mb-4">No King Bazaar slots yet. Add markets and slots from Markets → King Bazaar Market.</p>
+                                    <Link to="/markets" state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
+                                        <FaCrown className="w-4 h-4" /> Go to King Bazaar Market
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto rounded-lg sm:rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg">
+                                    <table className="w-full border-collapse text-[11px] sm:text-xs md:text-sm min-w-[320px]">
+                                        <thead>
+                                            <tr className="border-b border-gray-700">
+                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800">Slot</th>
+                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Closes</th>
+                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Result</th>
+                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {kingBazaarMarkets.map((m) => {
+                                                const hasResult = m.openingNumber != null && m.closingNumber != null;
+                                                const resultDisplay = m.displayResult || '**';
+                                                const isPending = kingBazaarPendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
+                                                return (
+                                                    <tr key={m._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPending ? 'bg-amber-500/5' : ''}`}>
+                                                        <td className="py-2 sm:py-3 px-3 font-medium text-white truncate max-w-[180px]">
+                                                            {isPending && <FaExclamationTriangle className="inline w-3.5 h-3.5 text-amber-400 mr-1.5 align-middle" />}
+                                                            {m.marketName}
+                                                        </td>
+                                                        <td className="py-2 sm:py-3 px-3 text-gray-300 border-l border-gray-700 whitespace-nowrap">{formatTime(m.closingTime)}</td>
+                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400">{resultDisplay}</td>
+                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openPanelForEdit(m)}
+                                                                className="px-2 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-lg text-xs sm:text-sm"
+                                                            >
+                                                                {hasResult ? 'Edit result' : 'Add result'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
-                        <h2 className="text-lg font-bold text-white mb-2">King Bazaar Result</h2>
-                        <p className="text-gray-500 text-sm max-w-md mx-auto">Declare King Bazaar results here. Configure as needed.</p>
                     </div>
                 )}
 
@@ -558,6 +707,54 @@ const AddResult = () => {
                                     </p>
                                 )}
 
+                                {/* King Bazaar Result */}
+                                {selectedMarket.marketType === 'king' ? (
+                                <div className="mb-4 sm:mb-6">
+                                    <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">King Bazaar Result</h3>
+                                    <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 2-digit Jodi (00-99) → Check (preview) → Declare Result</p>
+                                    <div className="mb-2 sm:mb-3">
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Jodi (2 digits)</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            value={kingBazaarJodi}
+                                            onChange={(e) => setKingBazaarJodi(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                                            placeholder="e.g. 56"
+                                            className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                                            maxLength={2}
+                                        />
+                                    </div>
+                                    <div className="flex gap-2 mb-2 sm:mb-3">
+                                        <button
+                                            type="button"
+                                            onClick={handleCheckKingBazaar}
+                                            disabled={checkLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2}
+                                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base"
+                                        >
+                                            {checkLoading ? 'Checking...' : 'Check'}
+                                        </button>
+                                    </div>
+                                    {preview != null && (
+                                        <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Players Bet on Patti</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span></div>
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={handleDeclareKingBazaar}
+                                        disabled={declareLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2}
+                                        className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base"
+                                    >
+                                        {declareLoading ? 'Declaring...' : 'Declare Result'}
+                                    </button>
+                                </div>
+                                ) : (
+                                <>
                                 {/* Open Result */}
                                 <div className="mb-4 sm:mb-6">
                                     <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Open Result</h3>
@@ -636,6 +833,8 @@ const AddResult = () => {
                                         )}
                                         <button type="button" onClick={handleDeclareClose} disabled={declareLoading || closePatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg shadow-lg disabled:opacity-50 transition-all text-sm sm:text-base">{declareLoading ? 'Declaring...' : 'Declare Close'}</button>
                                     </div>
+                                )}
+                                </>
                                 )}
 
                                 {(selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber)) || (selectedMarket.closingNumber && /^\d{3}$/.test(selectedMarket.closingNumber)) ? (

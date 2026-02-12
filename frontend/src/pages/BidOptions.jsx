@@ -182,14 +182,14 @@ const BidOptions = () => {
         {
           id: 'king-single-open',
           title: 'Single Digit',
-          displayTitle: 'Single Digit (OPEN)',
+          displayTitle: 'First Digit',
           sessionPreset: 'OPEN',
           icon: options.find((o) => o.title === 'Single Digit')?.icon,
         },
         {
           id: 'king-single-close',
           title: 'Single Digit',
-          displayTitle: 'Single Digit (CLOSE)',
+          displayTitle: 'Second Digit',
           sessionPreset: 'CLOSE',
           icon: options.find((o) => o.title === 'Single Digit')?.icon,
         },
@@ -272,9 +272,9 @@ const BidOptions = () => {
             onClick={() => navigate('/game-bid', {
               state: {
                 market,
-                betType: option.title,
+                betType: option.displayTitle || option.title,
                 sessionPreset: option.sessionPreset,
-                gameMode: option.title.toLowerCase().includes('bulk') ? 'bulk' : 'easy'
+                gameMode: (option.displayTitle || option.title).toLowerCase().includes('bulk') ? 'bulk' : 'easy'
               }
             })}
             className="relative rounded-2xl bg-gradient-to-br from-[#1b1d22] via-[#15171b] to-[#0f1013] border border-white/10 p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 hover:from-[#23262d] hover:via-[#1a1d22] hover:to-[#121418] active:scale-[0.98] transition-all cursor-pointer shadow-[0_12px_30px_rgba(0,0,0,0.38)] group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px]"

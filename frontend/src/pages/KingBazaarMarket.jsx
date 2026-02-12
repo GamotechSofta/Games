@@ -50,11 +50,17 @@ const formatTime12 = (time24) => {
   return `${h12}:${min} ${ampm}`;
 };
 
-const jodiFromDisplayResult = (displayResultRaw) => {
-  const s = (displayResultRaw || '').toString().trim();
-  const m = s.match(/^[0-9*]{3}-([0-9*]{2})-[0-9*]{3}$/);
-  const j = m?.[1] || '**';
-  return j.split('').join(' '); // '**' -> '* *', '45' -> '4 5'
+// King Bazaar: Format jodi result "65" to "6 5" for display
+const formatKingBazaarJodi = (jodi) => {
+  const s = (jodi || '').toString().trim();
+  if (s.length === 2 && /^\d{2}$/.test(s)) {
+    return s.split('').join(' '); // "65" -> "6 5"
+  }
+  if (s.includes('-')) {
+    // Handle partial result like "*-5" or "6-*"
+    return s.split('').join(' ').replace(/-/g, ' ');
+  }
+  return '* *'; // Default when no result
 };
 
 const getTodayIST = (now = new Date()) =>
@@ -106,15 +112,6 @@ const formatCountdown = (ms) => {
   return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
 };
 
-const isKingBazaarMarket = (market) => {
-  const t = (market?.marketType || '').toString().trim().toLowerCase();
-  if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
-  const name = (market?.marketName || market?.gameName || '').toString().trim().toLowerCase();
-  return name.includes('king bazaar') || name.includes('king-bazaar') || name.includes('kingbazaar');
-};
-
-const normName = (s) => (s || '').toString().toLowerCase().replace(/[\s_-]+/g, '');
-
 const DEMO_SLOTS = [
   '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
   '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
@@ -123,8 +120,8 @@ const DEMO_SLOTS = [
 const KingBazaarMarket = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'King Bazaar').toString();
-  const marketNameFilter = (location.state?.marketName || '').toString().trim().toLowerCase();
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
@@ -144,11 +141,15 @@ const KingBazaarMarket = () => {
         const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : [];
-        const filtered = list.filter(isKingBazaarMarket).filter((m) => {
-          if (!marketNameFilter) return true;
-          const name = (m?.marketName || m?.gameName || '').toString().trim().toLowerCase();
-          // Support minor naming variations (spaces/dashes/underscores/case)
-          return normName(name) === normName(marketNameFilter) || normName(name).includes(normName(marketNameFilter));
+        const keyNorm = (marketKey || '').toString().trim().toLowerCase();
+
+        const filtered = list.filter((m) => {
+          const name = (m?.marketName || m?.gameName || '').toString().toLowerCase();
+          const isKing = m?.marketType === 'king' || name.includes('king bazaar') || name.includes('king-bazaar');
+          if (!isKing) return false;
+          const group = (m?.kingBazaarGroup || '').toString().trim().toLowerCase();
+          if (!keyNorm) return true;
+          return group === keyNorm;
         });
 
         const mapped = filtered
@@ -215,7 +216,7 @@ const KingBazaarMarket = () => {
     };
     run();
     return () => { cancelled = true; };
-  }, [marketLabel, marketNameFilter]);
+  }, [marketKey, marketLabel]);
 
   const title = marketLabel || 'King Bazaar';
 
@@ -264,9 +265,12 @@ const KingBazaarMarket = () => {
               const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
               const hasDeclaredOpen =
                 m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
-              const isClosedForToday = slotClosed || hasDeclaredOpen;
+              const hasDeclaredClose =
+                m.closingNumber != null && /^\d{3}$/.test(String(m.closingNumber));
+              const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
               const statusText = isClosedForToday ? 'Close For Today' : 'Open';
-              const pill = jodiFromDisplayResult(m.displayResult || m._raw?.displayResult);
+              // King Bazaar: Display jodi result (e.g., "65" as "6 5")
+              const pill = formatKingBazaarJodi(m.displayResult || m._raw?.displayResult);
               const countdown = formatCountdown(msUntilNextIST(m.startingTime, tick));
               const imageUrl = KING_BAZAAR_MARKET_IMAGE_OVERRIDES[idx % KING_BAZAAR_MARKET_IMAGE_OVERRIDES.length] || KING_BAZAAR_MARKET_IMAGE_URL;
 

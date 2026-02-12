@@ -75,12 +75,13 @@ const upsertMarketResultSnapshot = async (marketDoc, dateKey) => {
 
 /**
  * Create a new market.
- * Body: { marketName, startingTime, closingTime, betClosureTime?, marketType?, starlineGroup? }
+ * Body: { marketName, startingTime, closingTime, betClosureTime?, marketType?, starlineGroup?, kingBazaarGroup? }
  * starlineGroup: for marketType 'startline', e.g. 'kalyan', 'milan', 'radha'.
+ * kingBazaarGroup: for marketType 'king', e.g. 'king-morning', 'king-evening', 'king-night'.
  */
 export const createMarket = async (req, res) => {
     try {
-        const { marketName, startingTime, closingTime, betClosureTime, marketType, starlineGroup } = req.body;
+        const { marketName, startingTime, closingTime, betClosureTime, marketType, starlineGroup, kingBazaarGroup } = req.body;
         if (!marketName || !startingTime || !closingTime) {
             return res.status(400).json({
                 success: false,
@@ -88,10 +89,13 @@ export const createMarket = async (req, res) => {
             });
         }
         const betClosureSec = betClosureTime != null && betClosureTime !== '' ? Number(betClosureTime) : null;
-        const type = marketType === 'startline' ? 'startline' : 'main';
+        const type = marketType === 'startline' ? 'startline' : marketType === 'king' ? 'king' : 'main';
         const payload = { marketName, startingTime, closingTime, betClosureTime: betClosureSec, marketType: type };
         if (type === 'startline' && starlineGroup != null && String(starlineGroup).trim() !== '') {
             payload.starlineGroup = String(starlineGroup).trim().toLowerCase();
+        }
+        if (type === 'king' && kingBazaarGroup != null && String(kingBazaarGroup).trim() !== '') {
+            payload.kingBazaarGroup = String(kingBazaarGroup).trim().toLowerCase();
         }
         const market = new Market(payload);
         await market.save();
@@ -721,6 +725,198 @@ export const clearResult = async (req, res) => {
         const response = updated.toObject();
         response.displayResult = updated.getDisplayResult();
         res.status(200).json({ success: true, message: 'Result cleared', data: response });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * King Bazaar: Preview declare result with first + second digit.
+ * Query: ?firstDigit=6&secondDigit=5 returns preview stats.
+ */
+export const previewDeclareKingBazaar = async (req, res) => {
+    try {
+        const { id: marketIdParam } = req.params;
+        const firstDigit = (req.query.firstDigit || req.body?.firstDigit || '').toString().trim();
+        const secondDigit = (req.query.secondDigit || req.body?.secondDigit || '').toString().trim();
+        
+        if (!/^[0-9]$/.test(firstDigit) || !/^[0-9]$/.test(secondDigit)) {
+            return res.status(400).json({ success: false, message: 'Both firstDigit and secondDigit must be single digits (0-9)' });
+        }
+
+        const market = await Market.findById(marketIdParam);
+        if (!market) {
+            return res.status(404).json({ success: false, message: 'Market not found' });
+        }
+
+        if (market.marketType !== 'king') {
+            return res.status(400).json({ success: false, message: 'This endpoint is only for King Bazaar markets' });
+        }
+
+        const marketId = market._id.toString();
+        const bookieUserIds = await getBookieUserIds(req.admin);
+
+        // For King Bazaar, query ALL bets for this market and calculate
+        const Bet = (await import('../models/bet/bet.js')).default;
+        const { getRatesMap } = await import('../models/rate/rate.js');
+        
+        // Get rates from the rates collection (same as settlement logic)
+        const rates = await getRatesMap();
+        const getRateForKey = (ratesMap, key) => {
+            if (!key) return 0;
+            const val = ratesMap[key];
+            if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
+            return 0;
+        };
+        
+        const singleDigitRate = getRateForKey(rates, 'single');
+        const jodiRate = getRateForKey(rates, 'jodi');
+
+        // Build base query for all bets
+        const baseQuery = { marketId: market._id };
+        if (bookieUserIds && bookieUserIds.length > 0) {
+            baseQuery.bookieUserId = { $in: bookieUserIds };
+        }
+
+        // Get ALL bets for this market
+        const allBets = await Bet.find(baseQuery);
+
+        // Calculate stats
+        const jodi = `${firstDigit}${secondDigit}`;
+        let totalBetAmount = 0;
+        let firstDigitBetAmount = 0;
+        let firstDigitWinAmount = 0;
+        let secondDigitBetAmount = 0;
+        let secondDigitWinAmount = 0;
+        let jodiBetAmount = 0;
+        let jodiWinAmount = 0;
+        
+        const allPlayers = new Set();
+        const firstDigitPlayers = new Set();
+        const secondDigitPlayers = new Set();
+        const jodiPlayers = new Set();
+
+        for (const bet of allBets) {
+            const amount = Number(bet.amount) || 0;
+            const betType = (bet.betType || '').toString().toLowerCase().trim();
+            const betNumber = (bet.betNumber || '').toString().trim();
+            const betOn = (bet.betOn || '').toString().toLowerCase().trim();
+            
+            totalBetAmount += amount;
+            if (bet.userId) allPlayers.add(bet.userId.toString());
+
+            // Check if this bet wins with the declared result
+            if (betType === 'single') {
+                // First Digit: single digit bet on 'open' session
+                if (betNumber === firstDigit && betOn === 'open') {
+                    firstDigitBetAmount += amount;
+                    firstDigitWinAmount += amount * singleDigitRate;
+                    if (bet.userId) firstDigitPlayers.add(bet.userId.toString());
+                }
+                // Second Digit: single digit bet on 'close' session
+                else if (betNumber === secondDigit && betOn === 'close') {
+                    secondDigitBetAmount += amount;
+                    secondDigitWinAmount += amount * singleDigitRate;
+                    if (bet.userId) secondDigitPlayers.add(bet.userId.toString());
+                }
+            }
+            // Jodi bet
+            else if (betType === 'jodi' && betNumber === jodi) {
+                jodiBetAmount += amount;
+                jodiWinAmount += amount * jodiRate;
+                if (bet.userId) jodiPlayers.add(bet.userId.toString());
+            }
+        }
+
+        // Combine winning bet stats
+        const totalBetAmountOnPatti = firstDigitBetAmount + secondDigitBetAmount + jodiBetAmount;
+        const totalWinAmountOnPatti = firstDigitWinAmount + secondDigitWinAmount + jodiWinAmount;
+        const winningPlayers = new Set([...firstDigitPlayers, ...secondDigitPlayers, ...jodiPlayers]);
+        const totalPlayersBetOnPatti = winningPlayers.size;
+        
+        const profit = totalBetAmount - totalWinAmountOnPatti;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalBetAmount,
+                totalBetAmountOnPatti,
+                totalWinAmountOnPatti,
+                noOfPlayers: allPlayers.size,
+                totalPlayersBetOnPatti,
+                profit,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * King Bazaar: Declare result with first + second digit.
+ * Body: { firstDigit: "6", secondDigit: "5", secretDeclarePassword?: string }
+ */
+export const declareKingBazaar = async (req, res) => {
+    try {
+        const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+        if (adminWithSecret?.secretDeclarePassword) {
+            const provided = (req.body.secretDeclarePassword ?? '').toString().trim();
+            const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
+            if (!isValid) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Invalid secret declare password. Please enter the correct password to declare.',
+                    code: 'INVALID_SECRET_DECLARE_PASSWORD',
+                });
+            }
+        }
+
+        const { id: marketId } = req.params;
+        const { firstDigit, secondDigit } = req.body;
+        const first = (firstDigit ?? '').toString().trim();
+        const second = (secondDigit ?? '').toString().trim();
+
+        if (!/^[0-9]$/.test(first) || !/^[0-9]$/.test(second)) {
+            return res.status(400).json({ success: false, message: 'Both firstDigit and secondDigit must be single digits (0-9)' });
+        }
+
+        const market = await Market.findById(marketId);
+        if (!market) {
+            return res.status(404).json({ success: false, message: 'Market not found' });
+        }
+
+        if (market.marketType !== 'king') {
+            return res.status(400).json({ success: false, message: 'This endpoint is only for King Bazaar markets' });
+        }
+
+        // Generate opening and closing numbers that produce the desired digits
+        const openingNumber = `${first}00`;
+        const closingNumber = `${second}00`;
+
+        // Settle both open and close
+        await settleOpening(market._id.toString(), openingNumber);
+        await settleClosing(market._id.toString(), closingNumber);
+
+        if (req.admin) {
+            await logActivity({
+                action: 'declare_king_bazaar_result',
+                performedBy: req.admin.username,
+                performedByType: req.admin.role || 'super_admin',
+                targetType: 'market',
+                targetId: marketId,
+                details: `King Bazaar "${market.marketName}" – result declared: ${first}${second}`,
+                ip: getClientIp(req),
+            });
+        }
+
+        const updated = await Market.findById(marketId);
+        const response = updated.toObject();
+        response.displayResult = updated.getDisplayResult();
+
+        // Upsert today's result snapshot for history (IST date)
+        try { await upsertMarketResultSnapshot(updated, toDateKeyIST(new Date())); } catch (_) {}
+
+        res.status(200).json({ success: true, message: 'King Bazaar result declared', data: response });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

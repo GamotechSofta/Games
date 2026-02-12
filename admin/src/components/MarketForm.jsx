@@ -50,8 +50,9 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
     useEffect(() => {
         if (market) {
             const isStartline = market.marketType === 'startline';
-            // For startline edit: prefer time+AM/PM from market name (e.g. "Kalyan Starline 10:00 PM") so PM shows as PM, not AM
-            const closeFromName = isStartline ? parseTimeFromStartlineName(market.marketName) : null;
+            const isKing = market.marketType === 'king';
+            // For startline/king edit: prefer time+AM/PM from market name (e.g. "Kalyan Starline 10:00 PM") so PM shows as PM, not AM
+            const closeFromName = (isStartline || isKing) ? parseTimeFromStartlineName(market.marketName) : null;
             const close12Initial = closeFromName || from24Hour(market.closingTime);
             const closing24 = closeFromName
                 ? to24Hour(closeFromName.hour12, closeFromName.minute, closeFromName.ampm)
@@ -63,7 +64,7 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                 startingTime: market.startingTime || '',
                 closingTime: closing24 || market.closingTime || '',
                 betClosureTime: market.betClosureTime ?? '',
-                marketType: isStartline ? 'startline' : 'main',
+                marketType: isStartline ? 'startline' : isKing ? 'king' : 'main',
             }));
             setStart12(from24Hour(market.startingTime));
             setClose12(close12Initial);
@@ -90,7 +91,7 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
         const newClosing = to24Hour(next.hour12, next.minute, next.ampm);
         setFormData((prev) => {
             const updated = { ...prev, closingTime: newClosing };
-            if (prev.marketType === 'startline' && !market) updated.startingTime = newClosing;
+            if ((prev.marketType === 'startline' || prev.marketType === 'king') && !market) updated.startingTime = newClosing;
             return updated;
         });
     };
@@ -107,16 +108,17 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                 : `${apiBaseUrl}/markets/create-market`;
 
             const isStartlineEdit = market && market.marketType === 'startline';
-            const startlineClosingTime = (formData.closingTime && String(formData.closingTime).trim()) || (market && market.closingTime) || '12:00';
-            const payload = isStartlineEdit
+            const isKingEdit = market && market.marketType === 'king';
+            const slotClosingTime = (formData.closingTime && String(formData.closingTime).trim()) || (market && market.closingTime) || '12:00';
+            const payload = (isStartlineEdit || isKingEdit)
                 ? {
-                    closingTime: startlineClosingTime,
+                    closingTime: slotClosingTime,
                     betClosureTime: formData.betClosureTime !== '' && formData.betClosureTime != null ? Number(formData.betClosureTime) : null,
                 }
                 : {
                     ...formData,
                     betClosureTime: formData.betClosureTime ? Number(formData.betClosureTime) : null,
-                    marketType: formData.marketType === 'startline' ? 'startline' : 'main',
+                    marketType: formData.marketType === 'startline' ? 'startline' : formData.marketType === 'king' ? 'king' : 'main',
                 };
 
             const response = await fetch(url, {

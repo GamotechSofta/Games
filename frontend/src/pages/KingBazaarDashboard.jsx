@@ -16,21 +16,12 @@ const getMarketStatus = (market) => {
   return 'open';
 };
 
-const isKingBazaarMarket = (market) => {
-  const t = (market?.marketType || '').toString().trim().toLowerCase();
-  if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
-  const name = (market?.marketName || market?.gameName || '').toString().trim().toLowerCase();
-  return (
-    name.includes('king bazaar') ||
-    name.includes('king-bazaar') ||
-    name.includes('kingbazaar')
-  );
-};
-
 const KingBazaarDashboard = () => {
   const navigate = useNavigate();
   const [markets, setMarkets] = useState([]);
+  const [kingBazaarGroups, setKingBazaarGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
   const balanceText = useMemo(() => {
     try {
@@ -48,24 +39,23 @@ const KingBazaarDashboard = () => {
       const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
       const data = await res.json();
       if (data?.success && Array.isArray(data?.data)) {
-        const onlyKing = data.data
-          .filter(isKingBazaarMarket)
+        const onlyKing = data.data.filter((m) => m.marketType === 'king');
+        const mapped = onlyKing
           .map((m) => {
             const status = getMarketStatus(m);
             return {
               id: m._id,
-              marketName: m.marketName || m.gameName || 'King Bazaar',
+              marketName: m.marketName,
               startingTime: m.startingTime,
               closingTime: m.closingTime,
               openingNumber: m.openingNumber || null,
               closingNumber: m.closingNumber || null,
               displayResult: m.displayResult || null,
               status,
-              _raw: m,
             };
           })
           .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-        setMarkets(onlyKing);
+        setMarkets(mapped);
       } else {
         setMarkets([]);
       }
@@ -76,11 +66,38 @@ const KingBazaarDashboard = () => {
     }
   };
 
+  const fetchKingBazaarGroups = async () => {
+    try {
+      setLoadingGroups(true);
+      const res = await fetch(`${API_BASE_URL}/markets/king-bazaar-groups`);
+      const data = await res.json();
+      if (data?.success && Array.isArray(data?.data)) {
+        setKingBazaarGroups(data.data);
+      } else {
+        setKingBazaarGroups([]);
+      }
+    } catch {
+      setKingBazaarGroups([]);
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
   useEffect(() => {
     fetchMarkets();
+    fetchKingBazaarGroups();
   }, []);
 
   useRefreshOnMarketReset(fetchMarkets);
+
+  const openKingBazaarMarket = (key, label) => {
+    navigate('/king-bazaar-market', {
+      state: {
+        marketKey: key,
+        marketLabel: label || 'King Bazaar',
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-black text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -126,74 +143,47 @@ const KingBazaarDashboard = () => {
 
         {/* King Bazaar markets */}
         <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
-          {loading ? (
+          {loadingGroups ? (
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-transparent animate-pulse" />
             ))
+          ) : kingBazaarGroups.length === 0 ? (
+            <div className="col-span-full text-center py-8">
+              <p className="text-white/60">No King Bazaar markets available</p>
+            </div>
           ) : (
-            (markets.length > 0
-              ? markets
-              : [
-                  {
-                    id: 'king-demo-market',
-                    marketName: 'KING BAZAAR',
-                    status: 'closed',
-                    _raw: {
-                      _id: 'king-demo-market',
-                      marketName: 'KING BAZAAR',
-                      gameName: 'KING BAZAAR',
-                      marketType: 'king',
-                      status: 'closed',
-                    },
-                  },
-                ]
-            ).map((m) => {
-              const isDemo = m.id === 'king-demo-market';
-              const marketLabel = isDemo ? `${m.marketName} (Demo)` : m.marketName;
-              return (
-                <div key={m.id} className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigate('/king-bazaar-market', {
-                        state: {
-                          marketLabel: m.marketName || 'King Bazaar',
-                          marketName: m.marketName || 'King Bazaar',
-                        },
-                      });
+            kingBazaarGroups.map((g) => (
+              <div key={g.key} className="text-center">
+                <button
+                  type="button"
+                  onClick={() => openKingBazaarMarket(g.key, g.label)}
+                  className="group w-full min-h-[120px] min-[420px]:min-h-[130px] md:min-h-[150px] rounded-2xl md:rounded-3xl bg-transparent px-1.5 py-2 md:px-2.5 md:py-3 flex flex-col items-center transition-all active:scale-[0.98] md:hover:-translate-y-1"
+                  aria-label={g.label}
+                  title={g.label}
+                >
+                  <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
+                    <img
+                      src={KING_BAZAAR_DASHBOARD_MARKET_IMAGE_URL}
+                      alt={g.label}
+                      className="absolute inset-0 w-full h-full object-contain p-0 scale-125"
+                      loading="lazy"
+                      draggable="false"
+                    />
+                  </div>
+                  <div
+                    className="mt-1.5 w-full text-[11px] min-[360px]:text-[12px] min-[420px]:text-[13px] sm:text-sm md:text-[15px] lg:text-base font-semibold text-[#d4af37] leading-snug px-1 overflow-hidden"
+                    title={g.label}
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
                     }}
-                    className={`group w-full min-h-[120px] min-[420px]:min-h-[130px] md:min-h-[150px] rounded-2xl md:rounded-3xl bg-transparent px-1.5 py-2 md:px-2.5 md:py-3 flex flex-col items-center transition-all ${
-                      isDemo
-                        ? 'opacity-70'
-                        : 'active:scale-[0.98] md:hover:-translate-y-1'
-                    }`}
-                    aria-label={marketLabel}
-                    title={isDemo ? 'Demo market (frontend only)' : m.marketName}
                   >
-                    <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
-                      <img
-                        src={KING_BAZAAR_DASHBOARD_MARKET_IMAGE_URL}
-                        alt={marketLabel}
-                        className="absolute inset-0 w-full h-full object-contain p-0 scale-125"
-                        loading="lazy"
-                        draggable="false"
-                      />
-                    </div>
-                    <div
-                      className="mt-1.5 w-full text-[11px] min-[360px]:text-[12px] min-[420px]:text-[13px] sm:text-sm md:text-[15px] lg:text-base font-semibold text-[#d4af37] leading-snug px-1 overflow-hidden"
-                      title={marketLabel}
-                      style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                      }}
-                    >
-                      {marketLabel}
-                    </div>
-                  </button>
-                </div>
-              );
-            })
+                    {g.label}
+                  </div>
+                </button>
+              </div>
+            ))
           )}
         </div>
       </div>

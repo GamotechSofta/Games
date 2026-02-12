@@ -24,14 +24,19 @@ function lastDigitOfSum(threeDigitStr) {
 }
 
 const marketSchema = new mongoose.Schema({
-    /** 'main' = daily/main market (home MARKETS list). 'startline' = startline dashboard only. */
+    /** 'main' = daily/main market (home MARKETS list). 'startline' = startline dashboard only. 'king' = king bazaar dashboard only. */
     marketType: {
         type: String,
-        enum: ['main', 'startline'],
+        enum: ['main', 'startline', 'king'],
         default: 'main',
     },
     /** For startline: which starline market this slot belongs to (e.g. 'kalyan', 'milan', 'radha'). Enables per-market tabs. */
     starlineGroup: {
+        type: String,
+        default: null,
+    },
+    /** For king: which king bazaar market this slot belongs to (e.g. 'king-morning', 'king-evening', 'king-night'). Enables per-market tabs. */
+    kingBazaarGroup: {
         type: String,
         default: null,
     },
@@ -112,6 +117,7 @@ marketSchema.statics.computeResult = function (openingNumber, closingNumber) {
 
 /**
  * Get display string for current state:
+ * - King: jodi only → "65" (first digit + second digit) or "**"
  * - Startline: single result only → "123 - 6" (open patti - open digit) or "*** - *"
  * - Main: ***-**-*** | 123-6*-*** | 123-65-456
  */
@@ -119,6 +125,16 @@ marketSchema.methods.getDisplayResult = function () {
     const opening = this.openingNumber;
     const closing = this.closingNumber;
     const isStartline = this.marketType === 'startline';
+    const isKing = this.marketType === 'king';
+
+    if (isKing) {
+        // King Bazaar: Show only JODI (2 digits from opening + closing)
+        if (!opening || !THREE_DIGITS.test(opening)) return '**';
+        if (!closing || !THREE_DIGITS.test(closing)) return '*-*';
+        const first = sumDigits(opening) % 10;
+        const second = sumDigits(closing) % 10;
+        return `${first}${second}`;
+    }
 
     if (isStartline) {
         const openingDisplay = opening && THREE_DIGITS.test(opening) ? opening : '***';

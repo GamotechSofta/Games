@@ -4,6 +4,7 @@ import AdminLayout from '../components/AdminLayout';
 import MarketList from '../components/MarketList';
 import MarketForm from '../components/MarketForm';
 import StarlineManagement from './StarlineManagement';
+import KingBazaarManagement from './KingBazaarManagement';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
 import { clearAdminAuth } from '../utils/api';
@@ -32,6 +33,7 @@ const Markets = () => {
     useEffect(() => {
         const type = (location.state?.marketType || '').toString().toLowerCase();
         if (type === 'starline') setActiveTab('starline');
+        if (type === 'king') setActiveTab('king');
     }, [location.state?.marketType]);
 
     const fetchMarkets = async () => {
@@ -144,13 +146,7 @@ const Markets = () => {
                 )}
 
                 {activeTab === 'king' && (
-                    <section className="rounded-2xl border border-gray-700 bg-gray-800/50 p-8 text-center">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                            <FaCrown className="w-8 h-8 text-amber-400" />
-                        </div>
-                        <h2 className="text-lg font-bold text-white mb-2">King Bazaar Market</h2>
-                        <p className="text-gray-500 text-sm max-w-md mx-auto">King Bazaar market management. Configure and manage King Bazaar markets here.</p>
-                    </section>
+                    <KingBazaarManagement embedded />
                 )}
 
                 {activeTab === 'regular' && (

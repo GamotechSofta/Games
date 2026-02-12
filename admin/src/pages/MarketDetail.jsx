@@ -588,6 +588,7 @@ const MarketDetail = () => {
     const statsOpen = data?.bySession?.open || data;
     const statsClose = data?.bySession?.close || data;
     const isStartlineMarket = data?.market?.marketType === 'startline';
+    const isKingBazaarMarket = data?.market?.marketType === 'king';
     const viewStats = (isStartlineMarket ? 'open' : statusView) === 'open' ? statsOpen : statsClose;
 
     const viewSinglePattiItems = viewStats?.singlePatti?.items || {};
@@ -654,6 +655,7 @@ const MarketDetail = () => {
     const hasClose = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
     const isClosed = hasOpen && hasClose;
     const isStartline = isStartlineMarket;
+    const isKingBazaar = isKingBazaarMarket;
     const timeline = `${formatTime(market.startingTime)} – ${formatTime(market.closingTime)}`;
     const resultDisplay = market.displayResult || '***-**-***';
 
@@ -712,10 +714,12 @@ const MarketDetail = () => {
         (doublePattiTotalsForView?.totalBets ?? 0) +
         (triplePattiDisplay?.totalBets ?? 0) +
         (fullSangamDisplay?.totalBets ?? 0);
-    // Starline: only open bets; ignore statusView for display
+    // Starline: only open bets; King Bazaar: show combined total (First Digit + Second Digit + Jodi)
     const effectiveView = isStartline ? 'open' : statusView;
-    const displayAmount = effectiveView === 'open' ? openTotalAmount : closedTotalAmount;
-    const displayBets = effectiveView === 'open' ? openTotalBets : closedTotalBets;
+    const kingBazaarTotalAmount = (statsOpen?.singleDigit?.totalAmount ?? 0) + (statsClose?.singleDigit?.totalAmount ?? 0) + (jodiDisplay?.totalAmount ?? 0);
+    const kingBazaarTotalBets = (statsOpen?.singleDigit?.totalBets ?? 0) + (statsClose?.singleDigit?.totalBets ?? 0) + (jodiDisplay?.totalBets ?? 0);
+    const displayAmount = isKingBazaar ? kingBazaarTotalAmount : (effectiveView === 'open' ? openTotalAmount : closedTotalAmount);
+    const displayBets = isKingBazaar ? kingBazaarTotalBets : (effectiveView === 'open' ? openTotalBets : closedTotalBets);
 
     const handleStatusViewChange = (e) => {
         if (isStartline) return;
@@ -817,10 +821,10 @@ const MarketDetail = () => {
                                 <p className="text-xs text-gray-400 uppercase tracking-wider">Total Bet Amount</p>
                                 <p className="font-mono text-lg font-semibold text-white">₹{formatNum(displayAmount)}</p>
                                 <p className="text-xs text-gray-500">{formatNum(displayBets)} bets</p>
-                                <p className="text-[10px] text-gray-500">({effectiveView === 'open' ? 'Open bets only' : 'Closed bets only'})</p>
+                                <p className="text-[10px] text-gray-500">({isKingBazaar ? 'All bets' : (effectiveView === 'open' ? 'Open bets only' : 'Closed bets only')})</p>
                             </div>
                         </div>
-                        {!isStartline && (
+                        {!isStartline && !isKingBazaar && (
                         <div className="flex items-center gap-3">
                             <div className="shrink-0 w-full sm:w-auto">
                                 <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">View</p>
@@ -841,16 +845,41 @@ const MarketDetail = () => {
 
                 {/* All games shown in both views; section data updates by Open/Closed (other view = blank). */}
                 <div key={`sections-${statusView}`} className="space-y-6">
-                    <StatTable
-                        title="Single Digit"
-                        rowLabel1="Digit"
-                        rowLabel2="Amount (₹)"
-                        columns={DIGITS}
-                        getAmount={(d) => formatNum(singleDigitDisplay.digits?.[d]?.amount)}
-                        getCount={(d) => singleDigitDisplay.digits?.[d]?.count ?? 0}
-                        totalAmount={singleDigitDisplay.totalAmount}
-                        totalBets={singleDigitDisplay.totalBets}
-                    />
+                    {isKingBazaar ? (
+                        <>
+                            <StatTable
+                                title="First Digit"
+                                rowLabel1="Digit"
+                                rowLabel2="Amount (₹)"
+                                columns={DIGITS}
+                                getAmount={(d) => formatNum(statsOpen?.singleDigit?.digits?.[d]?.amount)}
+                                getCount={(d) => statsOpen?.singleDigit?.digits?.[d]?.count ?? 0}
+                                totalAmount={statsOpen?.singleDigit?.totalAmount ?? 0}
+                                totalBets={statsOpen?.singleDigit?.totalBets ?? 0}
+                            />
+                            <StatTable
+                                title="Second Digit"
+                                rowLabel1="Digit"
+                                rowLabel2="Amount (₹)"
+                                columns={DIGITS}
+                                getAmount={(d) => formatNum(statsClose?.singleDigit?.digits?.[d]?.amount)}
+                                getCount={(d) => statsClose?.singleDigit?.digits?.[d]?.count ?? 0}
+                                totalAmount={statsClose?.singleDigit?.totalAmount ?? 0}
+                                totalBets={statsClose?.singleDigit?.totalBets ?? 0}
+                            />
+                        </>
+                    ) : (
+                        <StatTable
+                            title="Single Digit"
+                            rowLabel1="Digit"
+                            rowLabel2="Amount (₹)"
+                            columns={DIGITS}
+                            getAmount={(d) => formatNum(singleDigitDisplay.digits?.[d]?.amount)}
+                            getCount={(d) => singleDigitDisplay.digits?.[d]?.count ?? 0}
+                            totalAmount={singleDigitDisplay.totalAmount}
+                            totalBets={singleDigitDisplay.totalBets}
+                        />
+                    )}
 
                     {!isStartline && (
                     <SectionCard title="Jodi">
@@ -946,6 +975,7 @@ const MarketDetail = () => {
                     </SectionCard>
                     )}
 
+                    {!isKingBazaar && (
                     <SectionCard title="Single Patti">
                         <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600 space-y-2">
                             <p className="text-sm font-semibold text-yellow-500">Same as user app</p>
@@ -1024,7 +1054,9 @@ const MarketDetail = () => {
                             Total Single Patti: ₹{formatNum(singlePattiTotalsForView.totalAmount)} · {formatNum(singlePattiTotalsForView.totalBets)} bets
                         </p>
                     </SectionCard>
+                    )}
 
+                    {!isKingBazaar && (
                     <SectionCard title="Double Patti">
                         <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600 space-y-2">
                             <p className="text-sm font-semibold text-yellow-500">Same as user app</p>
@@ -1101,7 +1133,9 @@ const MarketDetail = () => {
                             Total Double Patti: ₹{formatNum(doublePattiTotalsForView.totalAmount)} · {formatNum(doublePattiTotalsForView.totalBets)} bets
                         </p>
                     </SectionCard>
+                    )}
 
+                    {!isKingBazaar && (
                     <StatTable
                         title="Triple Patti"
                         rowLabel1="Patti"
@@ -1112,15 +1146,16 @@ const MarketDetail = () => {
                         totalAmount={triplePattiDisplay.totalAmount}
                         totalBets={triplePattiDisplay.totalBets}
                     />
+                    )}
 
-                    {effectiveView === 'open' && (
+                    {effectiveView === 'open' && !isKingBazaar && (
                     <HalfSangamSection
                         items={halfSangamDisplay.items}
                         totalAmount={halfSangamDisplay.totalAmount}
                         totalBets={halfSangamDisplay.totalBets}
                     />
                     )}
-                    {!isStartline && (
+                    {!isStartline && !isKingBazaar && (
                     <FullSangamSection
                         items={fullSangamDisplay.items}
                         totalAmount={fullSangamDisplay.totalAmount}
@@ -1132,7 +1167,13 @@ const MarketDetail = () => {
                 <div className="mt-8 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-3">
                     <Link
                         to="/markets"
-                        state={market.marketType === 'startline' ? { marketType: 'starline', starlineMarketKey: (market.starlineGroup || '').toString().trim().toLowerCase() } : undefined}
+                        state={
+                            market.marketType === 'startline' 
+                                ? { marketType: 'starline', starlineMarketKey: (market.starlineGroup || '').toString().trim().toLowerCase() } 
+                                : market.marketType === 'king'
+                                ? { marketType: 'king', kingBazaarMarketKey: (market.kingBazaarGroup || '').toString().trim().toLowerCase() }
+                                : undefined
+                        }
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold border border-gray-600 transition-colors"
                     >
                         <FaArrowLeft /> Back to Markets
