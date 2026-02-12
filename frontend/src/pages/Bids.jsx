@@ -287,6 +287,10 @@ const Bids = () => {
       navigate('/starline-bet-history');
       return;
     }
+    if (item?.title === 'King Bazaar Bet History') {
+      navigate('/king-bazaar-bet-history');
+      return;
+    }
     if (item?.title === 'Game Results') {
       navigate('/market-result-history');
       return;

@@ -149,17 +149,23 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const [localVersion, setLocalVersion] = useState(0);
 
   // Scope behavior:
-  // - default (null/empty): MAIN markets only (exclude starline/startline)
+  // - default (null/empty): MAIN markets only (exclude starline/king)
   // - "starline"/"startline": only starline/startline markets
+  // - "king": only king bazaar markets
   const scopeRaw = (marketScope || '').toString().trim().toLowerCase();
   const scope = scopeRaw || 'main';
   const isStarlineMarketName = (marketTitle) => {
     const k = normalizeMarketName(marketTitle);
     return k.includes('starline') || k.includes('startline') || k.includes('star line') || k.includes('start line');
   };
+  const isKingBazaarMarketName = (marketTitle) => {
+    const k = normalizeMarketName(marketTitle);
+    return k.includes('king') || k.includes('bazaar') || k.includes('bazar');
+  };
   const inScope = (marketTitle) => {
     if (scope === 'starline' || scope === 'startline') return isStarlineMarketName(marketTitle);
-    if (scope === 'main') return !isStarlineMarketName(marketTitle);
+    if (scope === 'king') return isKingBazaarMarketName(marketTitle);
+    if (scope === 'main') return !isStarlineMarketName(marketTitle) && !isKingBazaarMarketName(marketTitle);
     return true;
   };
 
@@ -224,22 +230,48 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const marketByName = useMemo(() => {
     const map = new Map();
     for (const m of markets || []) {
-      map.set(normalizeMarketName(m?.marketName), m);
+      const key = normalizeMarketName(m?.marketName);
+      map.set(key, m);
     }
     return map;
   }, [markets]);
 
   const marketOptions = useMemo(() => {
-    const fromApi = (markets || [])
-      .map((m) => (m?.marketName || '').toString().trim())
-      .filter(Boolean);
+    // Get markets from API with their marketType
+    const fromApi = (markets || []).map((m) => ({
+      name: (m?.marketName || '').toString().trim(),
+      type: m?.marketType || null,
+    })).filter((x) => x.name);
+    
+    // Get markets from history (name only, no type)
     const fromHistory = (bets || [])
-      .map((x) => (x?.marketTitle || '').toString().trim())
-      .filter(Boolean);
-    const uniq = Array.from(new Set([...fromApi, ...fromHistory])).filter((name) => inScope(name));
-    uniq.sort((a, b) => a.localeCompare(b));
-    return uniq.map((label) => ({ label, key: normalizeMarketName(label) }));
-  }, [markets, bets]);
+      .map((x) => ({ name: (x?.marketTitle || '').toString().trim(), type: null }))
+      .filter((x) => x.name);
+    
+    // Merge and deduplicate
+    const merged = [...fromApi, ...fromHistory];
+    const uniqueMap = new Map();
+    for (const item of merged) {
+      const key = normalizeMarketName(item.name);
+      if (!uniqueMap.has(key) || (item.type && !uniqueMap.get(key).type)) {
+        uniqueMap.set(key, item);
+      }
+    }
+    
+    // Filter by scope using marketType when available
+    const filtered = Array.from(uniqueMap.values()).filter((item) => {
+      const isStar = item.type === 'startline' || (item.type == null && isStarlineMarketName(item.name));
+      const isKing = item.type === 'king' || (item.type == null && isKingBazaarMarketName(item.name));
+      
+      if (scope === 'starline' || scope === 'startline') return isStar;
+      if (scope === 'king') return isKing;
+      if (scope === 'main') return !isStar && !isKing;
+      return true;
+    });
+    
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    return filtered.map((item) => ({ label: item.name, key: normalizeMarketName(item.name) }));
+  }, [markets, bets, scope]);
 
   const enriched = useMemo(() => {
     return flat.map(({ x, r, idx }) => {

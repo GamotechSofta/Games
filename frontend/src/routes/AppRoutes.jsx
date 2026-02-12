@@ -17,6 +17,7 @@ import Bids from '../pages/Bids';
 import Profile from '../pages/Profile';
 import BetHistory from '../pages/BetHistory';
 import StarlineBetHistory from '../pages/StarlineBetHistory';
+import KingBazaarBetHistory from '../pages/KingBazaarBetHistory';
 import MarketResultHistory from '../pages/MarketResultHistory';
 import StartlineDashboard from '../pages/StartlineDashboard';
 import TopWinners from '../pages/TopWinners';
@@ -171,6 +172,7 @@ const AppRoutes = () => {
           <Route path="/bids" element={<Bids />} />
           <Route path="/bet-history" element={<BetHistory />} />
           <Route path="/starline-bet-history" element={<StarlineBetHistory />} />
+          <Route path="/king-bazaar-bet-history" element={<KingBazaarBetHistory />} />
           <Route path="/market-result-history" element={<MarketResultHistory />} />
           <Route path="/startline-dashboard" element={<StartlineDashboard />} />
           <Route path="/starline-market" element={<StarlineMarket />} />
