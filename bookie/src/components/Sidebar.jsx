@@ -30,7 +30,7 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
                 { path: '/my-users', label: 'My Players', icon: FaUsers },
                 { path: '/markets', label: 'Markets', icon: FaChartBar },
                 { path: '/add-user', label: 'Add Player', icon: FaUserPlus },
-                { path: '/my-referral-link', label: 'Referral Link', icon: FaLink },
+                { path: '/referral-link', label: 'Referral Link', icon: FaLink },
             ]
         },
         {

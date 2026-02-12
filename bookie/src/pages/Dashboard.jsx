@@ -509,7 +509,7 @@ const Dashboard = () => {
                     {[
                         { to: "/my-users", label: "My Players", icon: FaUserFriends, color: "hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/20" },
                         { to: "/add-user", label: "Add Player", icon: FaSyncAlt, color: "hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20" },
-                        { to: "/my-referral-link", label: "Referral Link", icon: FaLink, color: "hover:bg-purple-500/10 hover:text-purple-400 hover:border-purple-500/20" },
+                        { to: "/referral-link", label: "Referral Link", icon: FaLink, color: "hover:bg-purple-500/10 hover:text-purple-400 hover:border-purple-500/20" },
                         { to: "/bet-history", label: "Bet History", icon: FaHistory, color: "hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20" },
                         { to: "/reports", label: "Analytics", icon: FaChartLine, color: "hover:bg-pink-500/10 hover:text-pink-400 hover:border-pink-500/20" },
                     ].map((link, idx) => (
