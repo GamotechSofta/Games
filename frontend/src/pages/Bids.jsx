@@ -45,6 +45,10 @@ const isStarlineMarketName = (s) => {
   const k = normalizeMarketName(s);
   return k.includes('starline') || k.includes('startline') || k.includes('star line') || k.includes('start line');
 };
+const isKingBazaarMarketName = (s) => {
+  const k = normalizeMarketName(s);
+  return k.includes('king') || k.includes('bazaar') || k.includes('bazar');
+};
 
 const inferBetKind = (betNumberRaw) => {
   const s = (betNumberRaw ?? '').toString().trim();
@@ -227,13 +231,13 @@ const Bids = () => {
     'bet-history': 'Bet History',
     'game-results': 'Game Results',
     'starline-bet-history': 'Starline Bet History',
-    'starline-result-history': 'King Bazaar Bet History',
+    'king-bazaar-bet-history': 'King Bazaar Bet History',
   }), []);
   const TITLE_TO_TAB = useMemo(() => ({
     'Bet History': 'bet-history',
     'Game Results': 'game-results',
     'Starline Bet History': 'starline-bet-history',
-    'King Bazaar Bet History': 'starline-result-history',
+    'King Bazaar Bet History': 'king-bazaar-bet-history',
   }), []);
 
   const tabParam = (searchParams.get('tab') || '').toString();
@@ -242,10 +246,11 @@ const Bids = () => {
   const activeItem = items.find((i) => i.title === activeTitle) || items[0];
   const isBetHistoryPanel = activeTitle === 'Bet History';
   const isStarlineBetHistoryPanel = activeTitle === 'Starline Bet History';
+  const isKingBazaarBetHistoryPanel = activeTitle === 'King Bazaar Bet History';
   const isGameResultsPanel = activeTitle === 'Game Results';
   const rightPanelTitle = activeTitle === 'Game Results' ? 'Market Result History' : activeTitle;
-  const historyScope = isStarlineBetHistoryPanel ? 'starline' : 'main';
-  const isAnyHistoryPanel = isBetHistoryPanel || isStarlineBetHistoryPanel;
+  const historyScope = isStarlineBetHistoryPanel ? 'starline' : isKingBazaarBetHistoryPanel ? 'king' : 'main';
+  const isAnyHistoryPanel = isBetHistoryPanel || isStarlineBetHistoryPanel || isKingBazaarBetHistoryPanel;
 
   // Desktop Bet History filters (desktop panel inside My Bets)
   const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
@@ -441,39 +446,63 @@ const Bids = () => {
         ratesMap,
       });
       const statusLabel = verdict.state === 'won' ? 'Win' : verdict.state === 'lost' ? 'Loose' : 'Pending';
-      return { x, r, idx, betValue, gameType, points, session, market, marketKey, verdict, statusLabel };
+      const marketType = m?.marketType || null;
+      return { x, r, idx, betValue, gameType, points, session, market, marketKey, verdict, statusLabel, marketType };
     });
   }, [desktopBetHistoryFlat, marketByName, ratesMap]);
 
   const marketOptions = useMemo(() => {
-    const fromApi = (markets || [])
-      .map((m) => (m?.marketName || '').toString().trim())
-      .filter(Boolean);
+    // Get markets from API with their marketType
+    const fromApi = (markets || []).map((m) => ({
+      name: (m?.marketName || '').toString().trim(),
+      type: m?.marketType || null,
+    })).filter((x) => x.name);
+    
+    // Get markets from history (name only, no type)
     const fromHistory = (desktopBetHistory.items || [])
-      .map((x) => (x?.marketTitle || '').toString().trim())
-      .filter(Boolean);
-    const uniqAll = Array.from(new Set([...fromApi, ...fromHistory]));
-    const uniq =
-      isAnyHistoryPanel
-        ? (historyScope === 'starline'
-            ? uniqAll.filter((name) => isStarlineMarketName(name))
-            : uniqAll.filter((name) => !isStarlineMarketName(name)))
-        : uniqAll;
-    uniq.sort((a, b) => a.localeCompare(b));
-    return uniq.map((label) => ({ label, key: normalizeMarketName(label) }));
+      .map((x) => ({ name: (x?.marketTitle || '').toString().trim(), type: null }))
+      .filter((x) => x.name);
+    
+    // Merge and deduplicate
+    const merged = [...fromApi, ...fromHistory];
+    const uniqueMap = new Map();
+    for (const item of merged) {
+      const key = normalizeMarketName(item.name);
+      if (!uniqueMap.has(key) || (item.type && !uniqueMap.get(key).type)) {
+        uniqueMap.set(key, item);
+      }
+    }
+    
+    // Filter by history scope
+    const filtered = Array.from(uniqueMap.values()).filter((item) => {
+      if (!isAnyHistoryPanel) return true;
+      const isStar = item.type === 'startline' || (item.type == null && isStarlineMarketName(item.name));
+      const isKing = item.type === 'king' || (item.type == null && isKingBazaarMarketName(item.name));
+      if (historyScope === 'starline') return isStar;
+      if (historyScope === 'king') return isKing;
+      return !isStar && !isKing;
+    });
+    
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+    return filtered.map((item) => ({ label: item.name, key: normalizeMarketName(item.name) }));
   }, [markets, desktopBetHistory.items, isAnyHistoryPanel, historyScope]);
 
   const filteredDesktopRows = useMemo(() => {
     const effectiveSelectedMarkets = isAnyHistoryPanel
       ? (historyScope === 'starline'
           ? (selectedMarkets || []).filter((k) => isStarlineMarketName(k))
-          : (selectedMarkets || []).filter((k) => !isStarlineMarketName(k)))
+          : historyScope === 'king'
+            ? (selectedMarkets || []).filter((k) => isKingBazaarMarketName(k))
+            : (selectedMarkets || []).filter((k) => !isStarlineMarketName(k) && !isKingBazaarMarketName(k)))
       : selectedMarkets;
     return (desktopRows || []).filter((row) => {
       if (isAnyHistoryPanel) {
-        const isStar = isStarlineMarketName(row.market);
+        // Use marketType if available, fallback to name-based check
+        const isStar = row.marketType === 'startline' || (row.marketType == null && isStarlineMarketName(row.market));
+        const isKing = row.marketType === 'king' || (row.marketType == null && isKingBazaarMarketName(row.market));
         if (historyScope === 'starline' && !isStar) return false;
-        if (historyScope !== 'starline' && isStar) return false;
+        if (historyScope === 'king' && !isKing) return false;
+        if (historyScope === 'main' && (isStar || isKing)) return false;
       }
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
       if (effectiveSelectedMarkets.length > 0 && !effectiveSelectedMarkets.includes(row.marketKey)) return false;

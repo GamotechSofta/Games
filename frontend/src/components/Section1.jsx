@@ -46,7 +46,7 @@ const Section1 = () => {
   const fetchMarkets = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/markets/get-markets`);
+      const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
       const data = await response.json();
 
       if (data.success) {

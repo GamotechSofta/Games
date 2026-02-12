@@ -19,7 +19,7 @@ const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleSt
 const DeclareConfirm = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { market, declareType, number } = location.state || {};
+    const { market, declareType, number, firstDigit, secondDigit } = location.state || {};
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [data, setData] = useState(null);
@@ -39,7 +39,15 @@ const DeclareConfirm = () => {
     }, []);
 
     useEffect(() => {
-        if (!market || !declareType || !number) {
+        if (!market || !declareType) {
+            navigate('/add-result', { replace: true });
+            return;
+        }
+        if (declareType === 'king' && (!firstDigit || !secondDigit)) {
+            navigate('/add-result', { replace: true });
+            return;
+        }
+        if ((declareType === 'open' || declareType === 'close') && !number) {
             navigate('/add-result', { replace: true });
             return;
         }
@@ -49,8 +57,14 @@ const DeclareConfirm = () => {
             return;
         }
         const marketIdStr = String(marketId);
-        const query = declareType === 'open' ? `openingNumber=${encodeURIComponent(number)}` : `closingNumber=${encodeURIComponent(number)}`;
-        const url = `${API_BASE_URL}/markets/winning-bets-preview/${encodeURIComponent(marketIdStr)}?${query}`;
+        let url;
+        if (declareType === 'king') {
+            const query = `firstDigit=${encodeURIComponent(firstDigit)}&secondDigit=${encodeURIComponent(secondDigit)}`;
+            url = `${API_BASE_URL}/markets/winning-bets-preview-king-bazaar/${encodeURIComponent(marketIdStr)}?${query}`;
+        } else {
+            const query = declareType === 'open' ? `openingNumber=${encodeURIComponent(number)}` : `closingNumber=${encodeURIComponent(number)}`;
+            url = `${API_BASE_URL}/markets/winning-bets-preview/${encodeURIComponent(marketIdStr)}?${query}`;
+        }
         setLoading(true);
         setError('');
         fetch(url, { headers: getAuthHeaders() })
@@ -70,8 +84,17 @@ const DeclareConfirm = () => {
         setDeclaring(true);
         setPasswordError('');
         try {
-            const endpoint = declareType === 'open' ? 'declare-open' : 'declare-close';
-            const body = declareType === 'open' ? { openingNumber: number } : { closingNumber: number };
+            let endpoint, body;
+            if (declareType === 'king') {
+                endpoint = 'declare-king-bazaar';
+                body = { firstDigit, secondDigit };
+            } else if (declareType === 'open') {
+                endpoint = 'declare-open';
+                body = { openingNumber: number };
+            } else {
+                endpoint = 'declare-close';
+                body = { closingNumber: number };
+            }
             if (secretDeclarePasswordValue) body.secretDeclarePassword = secretDeclarePasswordValue;
             const res = await fetch(`${API_BASE_URL}/markets/${endpoint}/${marketIdStr}`, {
                 method: 'POST',
@@ -87,7 +110,7 @@ const DeclareConfirm = () => {
                     state: {
                         marketName: market.marketName || data?.marketName,
                         declareType,
-                        number,
+                        number: declareType === 'king' ? `${firstDigit}${secondDigit}` : number,
                     },
                 });
             } else {
@@ -133,9 +156,12 @@ const DeclareConfirm = () => {
         navigate('/');
     };
 
-    if (!market || !declareType || !number) return null;
+    const displayNumber = declareType === 'king' ? `${firstDigit}${secondDigit}` : number;
+    if (!market || !declareType || !displayNumber) return null;
 
-    const title = declareType === 'open' ? `Declare Open: ${number}` : `Declare Close: ${number}`;
+    const title = declareType === 'king' ? `Declare Jodi: ${displayNumber}` : 
+                  declareType === 'open' ? `Declare Open: ${displayNumber}` : 
+                  `Declare Close: ${displayNumber}`;
     const marketName = data?.marketName || market.marketName || 'Market';
 
     return (

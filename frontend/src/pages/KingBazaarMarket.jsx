@@ -138,15 +138,13 @@ const KingBazaarMarket = () => {
     const run = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
+        const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
         const data = await res.json();
         const list = Array.isArray(data?.data) ? data.data : [];
         const keyNorm = (marketKey || '').toString().trim().toLowerCase();
 
+        // Server already filters by marketType=king, only filter by group
         const filtered = list.filter((m) => {
-          const name = (m?.marketName || m?.gameName || '').toString().toLowerCase();
-          const isKing = m?.marketType === 'king' || name.includes('king bazaar') || name.includes('king-bazaar');
-          if (!isKing) return false;
           const group = (m?.kingBazaarGroup || '').toString().trim().toLowerCase();
           if (!keyNorm) return true;
           return group === keyNorm;
@@ -216,6 +214,46 @@ const KingBazaarMarket = () => {
     };
     run();
     return () => { cancelled = true; };
+  }, [marketKey, marketLabel]);
+
+  // Refresh every 5 seconds to show new results
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const run = async () => {
+        try {
+          const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
+          const data = await res.json();
+          const list = Array.isArray(data?.data) ? data.data : [];
+          const keyNorm = (marketKey || '').toString().trim().toLowerCase();
+          const filtered = list.filter((m) => {
+            const group = (m?.kingBazaarGroup || '').toString().trim().toLowerCase();
+            if (!keyNorm) return true;
+            return group === keyNorm;
+          });
+          const mapped = filtered.map((m) => {
+            const st = (m.startingTime || '').toString().trim().slice(0, 5);
+            const status = isPastClosingTime(m) ? 'closed' : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
+            return {
+              id: m._id,
+              marketName: m.marketName || m.gameName || marketLabel,
+              startingTime: st || null,
+              closingTime: m.closingTime || m.startingTime || null,
+              openingNumber: m.openingNumber || null,
+              closingNumber: m.closingNumber || null,
+              displayResult: m.displayResult || '***-**-***',
+              status,
+              _raw: m,
+              _isDemo: false,
+            };
+          }).sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
+          if (mapped.length > 0) setItems(mapped);
+        } catch (err) {
+          console.error('Error refreshing King Bazaar markets:', err);
+        }
+      };
+      run();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [marketKey, marketLabel]);
 
   const title = marketLabel || 'King Bazaar';

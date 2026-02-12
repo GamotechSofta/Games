@@ -27,7 +27,7 @@ const DeclareSuccess = () => {
         navigate('/dashboard', { replace: true });
     };
 
-    const label = declareType === 'open' ? 'Open' : 'Close';
+    const label = declareType === 'king' ? 'Jodi' : (declareType === 'open' ? 'Open' : 'Close');
     const displayText = number ? `${label}: ${number}` : label;
 
     return (

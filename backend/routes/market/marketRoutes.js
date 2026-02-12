@@ -18,6 +18,7 @@ import {
     declareCloseResult,
     clearResult,
     getWinningBetsPreview,
+    getWinningBetsPreviewKingBazaar,
     previewDeclareKingBazaar,
     declareKingBazaar,
 } from '../../controllers/marketController.js';
@@ -42,6 +43,7 @@ router.get('/get-single-patti-summary/:id', verifyAdmin, getSinglePattiSummary);
 router.get('/preview-declare-open/:id', verifySuperAdmin, previewDeclareOpenResult);
 router.get('/preview-declare-close/:id', verifySuperAdmin, previewDeclareCloseResult);
 router.get('/winning-bets-preview/:id', verifySuperAdmin, getWinningBetsPreview);
+router.get('/winning-bets-preview-king-bazaar/:id', verifySuperAdmin, getWinningBetsPreviewKingBazaar);
 router.post('/declare-open/:id', verifySuperAdmin, declareOpenResult);
 router.post('/declare-close/:id', verifySuperAdmin, declareCloseResult);
 router.post('/clear-result/:id', verifySuperAdmin, clearResult);

@@ -36,11 +36,11 @@ const KingBazaarDashboard = () => {
   const fetchMarkets = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
+      const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
       const data = await res.json();
       if (data?.success && Array.isArray(data?.data)) {
-        const onlyKing = data.data.filter((m) => m.marketType === 'king');
-        const mapped = onlyKing
+        // Server already filters by marketType=king
+        const mapped = data.data
           .map((m) => {
             const status = getMarketStatus(m);
             return {

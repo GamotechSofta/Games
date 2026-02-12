@@ -206,9 +206,17 @@ export const getMarkets = async (req, res) => {
         });
         const marketTypeFilter = (req.query.marketType || '').toString().toLowerCase();
         if (marketTypeFilter === 'main') {
-            data = data.filter((m) => (m.marketType || '').toString().toLowerCase() !== 'startline');
-        } else if (marketTypeFilter === 'startline') {
+            // Only show main/regular markets
+            data = data.filter((m) => {
+                const type = (m.marketType || 'main').toString().toLowerCase();
+                return type === 'main' || type === '';
+            });
+        } else if (marketTypeFilter === 'startline' || marketTypeFilter === 'starline') {
+            // Only show starline markets
             data = data.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline');
+        } else if (marketTypeFilter === 'king') {
+            // Only show king bazaar markets
+            data = data.filter((m) => (m.marketType || '').toString().toLowerCase() === 'king');
         }
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -634,6 +642,111 @@ export const getWinningBetsPreview = async (req, res) => {
                 totalWinAmount,
                 declareType,
                 number,
+                marketName: market.marketName,
+            },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET winning bets preview for King Bazaar declare confirmation screen.
+ * Query: ?firstDigit=6&secondDigit=5
+ * Returns { winningBets: [{ userId, username, betType, betNumber, amount, payout }, ...], totalWinAmount, declareType, number }.
+ */
+export const getWinningBetsPreviewKingBazaar = async (req, res) => {
+    try {
+        const { id: marketIdParam } = req.params;
+        const firstDigit = (req.query.firstDigit || '').toString().trim();
+        const secondDigit = (req.query.secondDigit || '').toString().trim();
+        
+        if (!/^[0-9]$/.test(firstDigit) || !/^[0-9]$/.test(secondDigit)) {
+            return res.status(400).json({ success: false, message: 'Both firstDigit and secondDigit must be single digits (0-9)' });
+        }
+
+        const market = await Market.findById(marketIdParam);
+        if (!market) {
+            return res.status(404).json({ success: false, message: 'Market not found' });
+        }
+
+        if (market.marketType !== 'king') {
+            return res.status(400).json({ success: false, message: 'This endpoint is only for King Bazaar markets' });
+        }
+
+        const marketId = market._id.toString();
+        const bookieUserIds = await getBookieUserIds(req.admin);
+        const { getRatesMap } = await import('../models/rate/rate.js');
+        const rates = await getRatesMap();
+        
+        const getRateForKey = (ratesMap, key) => {
+            if (!key) return 0;
+            const val = ratesMap[key];
+            if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
+            return 0;
+        };
+        
+        const singleDigitRate = getRateForKey(rates, 'single');
+        const jodiRate = getRateForKey(rates, 'jodi');
+        const jodi = `${firstDigit}${secondDigit}`;
+
+        // Query all pending bets for this market
+        const Bet = (await import('../models/bet/bet.js')).default;
+        const baseQuery = { marketId: market._id, status: 'pending' };
+        if (bookieUserIds && bookieUserIds.length > 0) {
+            baseQuery.bookieUserId = { $in: bookieUserIds };
+        }
+        
+        const allBets = await Bet.find(baseQuery).lean();
+        const winningBets = [];
+        let totalWinAmount = 0;
+
+        for (const bet of allBets) {
+            const betType = (bet.betType || '').toString().toLowerCase().trim();
+            const betNumber = (bet.betNumber || '').toString().trim();
+            const betOn = (bet.betOn || '').toString().toLowerCase().trim();
+            const amount = Number(bet.amount) || 0;
+            let payout = 0;
+
+            // Check if this bet wins
+            if (betType === 'single') {
+                if (betNumber === firstDigit && betOn === 'open') {
+                    payout = amount * singleDigitRate;
+                } else if (betNumber === secondDigit && betOn === 'close') {
+                    payout = amount * singleDigitRate;
+                }
+            } else if (betType === 'jodi' && betNumber === jodi) {
+                payout = amount * jodiRate;
+            }
+
+            if (payout > 0) {
+                winningBets.push({ bet, payout });
+                totalWinAmount += payout;
+            }
+        }
+
+        // Get user names
+        const User = (await import('../models/user/user.js')).default;
+        const userIds = [...new Set(winningBets.map((w) => w.bet.userId.toString()))];
+        const users = await User.find({ _id: { $in: userIds } }).select('username').lean();
+        const userMap = new Map(users.map((u) => [u._id.toString(), u.username]));
+
+        const list = winningBets.map((w) => ({
+            userId: w.bet.userId,
+            username: userMap.get(w.bet.userId.toString()) || '—',
+            betType: w.bet.betType,
+            betNumber: w.bet.betNumber,
+            amount: w.bet.amount,
+            payout: w.payout,
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                winningBets: list,
+                totalWinAmount,
+                declareType: 'king',
+                number: jodi,
                 marketName: market.marketName,
             },
         });

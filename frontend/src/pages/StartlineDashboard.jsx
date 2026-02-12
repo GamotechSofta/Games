@@ -38,15 +38,11 @@ const StartlineDashboard = () => {
   const fetchMarkets = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
+      const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=startline`);
       const data = await res.json();
       if (data?.success && Array.isArray(data?.data)) {
-        const onlyStarline = data.data.filter((m) => {
-          if (m.marketType === 'startline') return true;
-          const name = (m?.marketName || '').toString().toLowerCase();
-          return name.includes('starline') || name.includes('startline') || name.includes('star line') || name.includes('start line');
-        });
-        const mapped = onlyStarline
+        // Server already filters by marketType=startline
+        const mapped = data.data
           .map((m) => {
             const status = getMarketStatus(m);
             return {
