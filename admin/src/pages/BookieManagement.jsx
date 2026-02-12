@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, FaTimes, FaEye, FaEyeSlash, FaCopy } from 'react-icons/fa';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -45,7 +46,7 @@ const BookieManagement = () => {
     // Get auth headers
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = sessionStorage.getItem('adminPassword') || '';
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
         return {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
@@ -336,8 +337,7 @@ const BookieManagement = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

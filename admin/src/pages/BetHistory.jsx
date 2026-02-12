@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -24,7 +25,7 @@ const BetHistory = () => {
         try {
             setLoading(true);
             const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = sessionStorage.getItem('adminPassword') || '';
+            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const queryParams = new URLSearchParams();
             if (filters.userId) queryParams.append('userId', filters.userId);
             if (filters.marketId) queryParams.append('marketId', filters.marketId);
@@ -49,8 +50,7 @@ const BetHistory = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

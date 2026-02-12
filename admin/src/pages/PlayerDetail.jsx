@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet, FaBuilding, FaLock } from 'react-icons/fa';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -14,7 +15,7 @@ const TABS = [
 
 const getAuthHeaders = () => {
     const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = sessionStorage.getItem('adminPassword') || '';
+    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
     return {
         'Content-Type': 'application/json',
         Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
@@ -255,8 +256,7 @@ const PlayerDetail = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

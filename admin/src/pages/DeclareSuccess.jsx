@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
+import { clearAdminAuth } from '../utils/api';
 
 const DeclareSuccess = () => {
     const navigate = useNavigate();
@@ -14,8 +15,7 @@ const DeclareSuccess = () => {
     }, [marketName, declareType, navigate]);
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

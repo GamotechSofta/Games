@@ -34,8 +34,7 @@ const Login = () => {
 
             if (data.success) {
                 localStorage.setItem('admin', JSON.stringify(data.data));
-                // Store password temporarily for API calls (in production, use JWT)
-                sessionStorage.setItem('adminPassword', password);
+                localStorage.setItem('adminPassword', password);
                 navigate('/dashboard');
             } else {
                 setError(data.message || 'Login failed');

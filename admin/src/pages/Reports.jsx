@@ -15,6 +15,7 @@ import {
     FaWallet,
     FaPrint,
 } from 'react-icons/fa';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -121,7 +122,7 @@ const Reports = () => {
         try {
             setLoading(true);
             const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = sessionStorage.getItem('adminPassword') || '';
+            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const response = await fetch(
                 `${API_BASE_URL}/reports?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`,
                 {
@@ -154,8 +155,7 @@ const Reports = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

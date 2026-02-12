@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
 import {
     FaChartLine,
@@ -121,6 +122,8 @@ const SkeletonCard = () => (
 );
 
 const Dashboard = () => {
+    const navigate = useNavigate();
+    const { logout } = useAuth();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -159,7 +162,10 @@ const Dashboard = () => {
             });
             const data = await response.json();
             if (data.success) setStats(data.data);
-            else setError(data.message || 'Failed to fetch dashboard stats');
+            else if (response.status === 401) {
+                logout();
+                navigate('/');
+            } else setError(data.message || 'Failed to fetch dashboard stats');
         } catch (err) {
             setError('Network error. Please check if the server is running.');
         } finally {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import MarketForm from '../components/MarketForm';
 import { useNavigate } from 'react-router-dom';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -10,14 +11,13 @@ const AddMarket = () => {
     const [showForm, setShowForm] = useState(true);
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = sessionStorage.getItem('adminPassword') || '';
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
         return {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,

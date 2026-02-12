@@ -49,7 +49,7 @@ const Login = () => {
 
             if (data.success) {
                 login(data.data);
-                sessionStorage.setItem('bookiePassword', password);
+                localStorage.setItem('bookiePassword', password);
                 navigate('/dashboard');
             } else {
                 setError(data.message || 'Login failed');

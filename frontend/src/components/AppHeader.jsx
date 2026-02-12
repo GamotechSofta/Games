@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getBalance, updateUserBalance } from '../api/bets';
+import { clearUserAuth } from '../utils/auth';
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -83,10 +84,7 @@ const AppHeader = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    window.dispatchEvent(new Event('userLogout'));
-    navigate('/login');
+    clearUserAuth();
   };
 
   const displayName = user?.username || 'Sign In';

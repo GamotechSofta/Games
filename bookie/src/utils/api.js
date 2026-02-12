@@ -3,7 +3,7 @@ const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173
 
 export const getBookieAuthHeaders = () => {
     const bookie = JSON.parse(localStorage.getItem('bookie') || '{}');
-    const password = sessionStorage.getItem('bookiePassword') || '';
+    const password = localStorage.getItem('bookiePassword') || sessionStorage.getItem('bookiePassword') || '';
     return {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${btoa(`${bookie.username}:${password}`)}`,

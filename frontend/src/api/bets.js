@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/api';
+import { redirectToLoginIf401 } from '../utils/auth';
 
 /** MongoDB ObjectId is 24 hex characters */
 const VALID_OBJECTID = /^[a-fA-F0-9]{24}$/;
@@ -88,6 +89,8 @@ export async function placeBet(marketId, bets, scheduledDate = null) {
     body: JSON.stringify(payload),
   });
 
+  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
   const data = await response.json();
   if (!response.ok) {
     return { success: false, message: data.message || 'Failed to place bet' };
@@ -120,6 +123,8 @@ export async function getBalance() {
     return { success: false, message: 'Please log in' };
   }
   const response = await fetch(`${API_BASE_URL}/wallet/balance?userId=${encodeURIComponent(userId)}`);
+  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
   const data = await response.json();
   if (!response.ok) {
     return { success: false, message: data.message || 'Failed to fetch balance' };
@@ -139,6 +144,8 @@ export async function getMyWalletTransactions(limit = 200) {
   }
   const url = `${API_BASE_URL}/wallet/my-transactions?userId=${encodeURIComponent(userId)}&limit=${encodeURIComponent(limit)}&includeBet=1`;
   const response = await fetch(url);
+  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
   const data = await response.json();
   if (!response.ok) {
     return { success: false, message: data.message || 'Failed to fetch transactions' };

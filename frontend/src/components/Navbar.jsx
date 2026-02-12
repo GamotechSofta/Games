@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { clearUserAuth } from '../utils/auth';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -37,10 +38,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    window.dispatchEvent(new Event('userLogout'));
-    navigate('/login');
+    clearUserAuth();
   };
 
   return (

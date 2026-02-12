@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clearUserAuth } from '../utils/auth';
 
 const readUserFromStorage = () => {
   try {
@@ -179,9 +180,7 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    window.dispatchEvent(new Event('userLogout'));
-    navigate('/login');
+    clearUserAuth();
   };
 
   if (!user) return null;

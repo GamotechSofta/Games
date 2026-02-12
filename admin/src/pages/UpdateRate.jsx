@@ -48,7 +48,7 @@ const UpdateRate = () => {
 
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = sessionStorage.getItem('adminPassword') || '';
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
         return {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
@@ -71,8 +71,7 @@ const UpdateRate = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

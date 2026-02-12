@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import MarketForm from '../components/MarketForm';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -103,7 +104,7 @@ const StarlineManagement = ({ embedded = false }) => {
 
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = sessionStorage.getItem('adminPassword') || '';
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
         return {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
@@ -266,8 +267,7 @@ const StarlineManagement = ({ embedded = false }) => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

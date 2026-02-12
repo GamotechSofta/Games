@@ -1,14 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config/api';
 import { getBalance, updateUserBalance } from '../api/bets';
+import { clearUserAuth } from '../utils/auth';
 
 const HEARTBEAT_INTERVAL_MS = 60 * 1000; // 1 minute – also used to detect suspended accounts
-
-const logoutSuspendedUser = () => {
-  localStorage.removeItem('user');
-  window.dispatchEvent(new Event('userLogout'));
-  window.location.href = '/login';
-};
 
 export const useHeartbeat = () => {
   const intervalRef = useRef(null);
@@ -27,10 +22,8 @@ export const useHeartbeat = () => {
           body: JSON.stringify({ userId }),
         });
         const data = await res.json();
-        if (!data.success && data.code === 'ACCOUNT_SUSPENDED') {
-          logoutSuspendedUser();
-        } else if (!res.ok && res.status === 403) {
-          logoutSuspendedUser();
+        if (res.status === 401 || res.status === 403 || (!data.success && data.code === 'ACCOUNT_SUSPENDED')) {
+          clearUserAuth();
         }
       } catch {
         // Silently ignore network errors

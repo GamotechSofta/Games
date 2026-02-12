@@ -17,7 +17,7 @@ import {
     FaExclamationTriangle,
 } from 'react-icons/fa';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { API_BASE_URL, getAdminAuthHeaders, clearAdminAuth } from '../utils/api';
 
 const PRESETS = [
     { id: 'today', label: 'Today', getRange: () => {
@@ -135,7 +135,9 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const admin = localStorage.getItem('admin');
-        if (!admin) {
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
+        if (!admin || !password) {
+            if (!admin) clearAdminAuth();
             navigate('/');
             return;
         }
@@ -153,20 +155,21 @@ const AdminDashboard = () => {
             else setLoading(true);
             setError('');
             const { from, to } = rangeOverride || getFromTo();
-            const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = sessionStorage.getItem('adminPassword') || '';
             const params = new URLSearchParams();
             if (from && to) { params.set('from', from); params.set('to', to); }
             if (isRefresh) params.set('_', String(Date.now()));
             const query = params.toString();
             const url = `${API_BASE_URL}/dashboard/stats${query ? `?${query}` : ''}`;
             const response = await fetch(url, {
-                headers: { 'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}` },
+                headers: getAdminAuthHeaders(),
                 cache: isRefresh ? 'no-store' : 'default',
             });
             const data = await response.json();
             if (data.success) setStats(data.data);
-            else setError('Failed to fetch dashboard stats');
+            else if (response.status === 401) {
+                clearAdminAuth();
+                navigate('/');
+            } else setError('Failed to fetch dashboard stats');
         } catch (err) {
             setError('Network error. Please check if the server is running.');
         } finally {
@@ -194,8 +197,7 @@ const AdminDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 

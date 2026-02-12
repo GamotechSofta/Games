@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { clearAdminAuth } from './utils/api';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import Markets from './pages/Markets';
@@ -42,7 +43,12 @@ const ScrollToTop = () => {
 
 const PrivateRoute = ({ children }) => {
     const admin = localStorage.getItem('admin');
-    return admin ? children : <Navigate to="/" />;
+    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
+    if (!admin || !password) {
+        if (!admin) clearAdminAuth();
+        return <Navigate to="/" />;
+    }
+    return children;
 };
 
 const App = () => {

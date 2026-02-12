@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
+import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 const UPLOAD_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1').replace(/\/api\/v1\/?$/, '') || 'http://localhost:3010';
@@ -26,7 +27,7 @@ const HelpDesk = () => {
         const fetchBookies = async () => {
             try {
                 const admin = JSON.parse(localStorage.getItem('admin'));
-                const password = sessionStorage.getItem('adminPassword') || '';
+                const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
                 const res = await fetch(`${API_BASE_URL}/admin/bookies`, {
                     headers: { 'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}` },
                 });
@@ -41,7 +42,7 @@ const HelpDesk = () => {
         try {
             setLoading(true);
             const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = sessionStorage.getItem('adminPassword') || '';
+            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const queryParams = new URLSearchParams();
             if (filters.status) queryParams.append('status', filters.status);
             if (filters.userSource) queryParams.append('userSource', filters.userSource);
@@ -66,7 +67,7 @@ const HelpDesk = () => {
     const handleStatusUpdate = async (ticketId, newStatus) => {
         try {
             const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = sessionStorage.getItem('adminPassword') || '';
+            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const response = await fetch(`${API_BASE_URL}/help-desk/tickets/${ticketId}/status`, {
                 method: 'PATCH',
                 headers: {
@@ -88,8 +89,7 @@ const HelpDesk = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('admin');
-        sessionStorage.removeItem('adminPassword');
+        clearAdminAuth();
         navigate('/');
     };
 
