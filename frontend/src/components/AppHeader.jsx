@@ -11,7 +11,6 @@ const AppHeader = () => {
 
   const menuItems = [
     { label: 'My Bets', path: '/bids' },
-    { label: 'Passbook', path: '/bank' },
     { label: 'Funds', path: '/funds' },
     { label: 'Top Winners', path: '/top-winners' },
     { label: 'Starline Winners', path: '/support' },
@@ -172,18 +171,18 @@ const AppHeader = () => {
             <span className="text-sm md:text-base lg:text-lg font-bold text-white">{formattedBalance}</span>
           </button>
 
-          {/* Profile Icon - improved mobile touch target */}
+          {/* Profile Icon - desktop only (hidden on mobile since bottom navbar has it) */}
           <button
             type="button"
             onClick={handleProfileClick}
-            className={`w-10 h-10 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border flex items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 shadow-md ${
+            className={`hidden md:flex w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 shadow-md ${
               user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
             }`}
             title={user ? `${user.username} - View Profile` : 'Sign In / Sign Up'}
             aria-label="Profile"
           >
             <svg
-              className={`w-5 h-5 sm:w-5 sm:h-5 md:w-5 md:h-5 ${user ? 'text-yellow-400' : 'text-white'}`}
+              className={`w-5 h-5 ${user ? 'text-yellow-400' : 'text-white'}`}
               fill={user ? 'currentColor' : 'none'}
               stroke={user ? 'none' : 'currentColor'}
               strokeWidth={user ? 0 : 1.5}
@@ -286,12 +285,6 @@ const AppHeader = () => {
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
                         alt="My Bets"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-                      />
-                    ) : item.label === 'Passbook' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777283/bank_il6uwi.png"
-                        alt="Passbook"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
                     ) : item.label === 'Funds' ? (

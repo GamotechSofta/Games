@@ -36,13 +36,13 @@ const BottomNavbar = () => {
       )
     },
     {
-      id: 'bank',
-      label: 'Passbook',
-      path: '/passbook',
+      id: 'funds',
+      label: 'Funds',
+      path: '/funds',
       icon: (
         <img
-          src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770813159/passbook_1_sstp7k.png"
-          alt="Passbook"
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
+          alt="Funds"
           className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
@@ -61,25 +61,25 @@ const BottomNavbar = () => {
       isCenter: true
     },
     {
-      id: 'funds',
-      label: 'Funds',
-      path: '/funds',
-      icon: (
-        <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
-          alt="Funds"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
-        />
-      )
-    },
-    {
       id: 'support',
       label: 'Support',
       path: '/support',
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777618/customer-support_du0zcj.png"
+          src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900219/customer-support_1_bibfxx.png"
           alt="Support"
+          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+        />
+      )
+    },
+    {
+      id: 'profile',
+      label: 'Profile',
+      path: '/profile',
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900013/user_bsay8i.png"
+          alt="Profile"
           className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
