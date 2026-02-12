@@ -31,7 +31,7 @@ const BottomNavbar = () => {
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
           alt="My Bets"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+          className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
@@ -43,7 +43,7 @@ const BottomNavbar = () => {
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
           alt="Funds"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+          className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
@@ -55,7 +55,7 @@ const BottomNavbar = () => {
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777716/home_pvawyw.png"
           alt="Home"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+          className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       ),
       isCenter: true
@@ -68,7 +68,7 @@ const BottomNavbar = () => {
         <img
           src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900219/customer-support_1_bibfxx.png"
           alt="Support"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+          className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
@@ -80,7 +80,7 @@ const BottomNavbar = () => {
         <img
           src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900013/user_bsay8i.png"
           alt="Profile"
-          className="w-6 h-6 object-contain [image-rendering:-webkit-optimize-contrast]"
+          className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     }
@@ -95,16 +95,16 @@ const BottomNavbar = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden pt-1"
+      className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden pt-0.5"
       style={{
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
-        paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
-        paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 4px)',
+        paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
+        paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
       }}
     >
       {/* Backplate to prevent white background showing behind navbar */}
       <div className="absolute inset-0 bg-black pointer-events-none" />
-      <div className="relative bg-black rounded-3xl border border-gray-700 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-end justify-around px-1 py-2 min-h-[64px]">
+      <div className="relative bg-black rounded-2xl border border-gray-700 shadow-[0_4px_20px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const isCenter = item.isCenter;
@@ -120,12 +120,12 @@ const BottomNavbar = () => {
                   }
                   navigate(item.path);
                 }}
-                className="flex flex-col items-center justify-center -mt-6 relative z-10 active:scale-90 transition-transform duration-150 touch-manipulation"
+                className="flex flex-col items-center justify-center -mt-4 relative z-10 active:scale-90 transition-transform duration-150 touch-manipulation"
               >
                 <div
-                  className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.35)] transition-all duration-200 ${
                     active
-                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-2 ring-offset-black scale-105'
+                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-black scale-105'
                       : 'bg-gray-800 border border-gray-700'
                   }`}
                 >
@@ -139,7 +139,7 @@ const BottomNavbar = () => {
                   </div>
                 </div>
                 <span
-                  className={`text-[10px] sm:text-xs font-bold mt-1 transition-colors duration-200 ${
+                  className={`text-[9px] font-bold mt-0.5 transition-colors duration-200 ${
                     active ? 'text-[#f3b61b]' : 'text-white'
                   }`}
                 >
@@ -159,7 +159,7 @@ const BottomNavbar = () => {
                 }
                 navigate(item.path);
               }}
-              className="relative flex flex-col items-center justify-center gap-0.5 px-2 py-2 rounded-xl min-w-[56px] active:scale-95 transition-all duration-150 touch-manipulation"
+              className="relative flex flex-col items-center justify-center gap-0 px-1.5 py-1 rounded-xl min-w-[48px] active:scale-95 transition-all duration-150 touch-manipulation"
             >
               {/* Icon: white when inactive, golden when active - same as text */}
               <div
@@ -170,13 +170,13 @@ const BottomNavbar = () => {
                 {item.icon}
               </div>
               {/* Active indicator dot below icon */}
-              <div className="h-1.5 w-full flex items-center justify-center">
+              <div className="h-1 w-full flex items-center justify-center">
                 {active && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#f3b61b] shadow-[0_0_8px_rgba(0,0,0,0.4)] mx-auto" />
+                  <div className="w-1 h-1 rounded-full bg-[#f3b61b] shadow-[0_0_8px_rgba(0,0,0,0.4)] mx-auto" />
                 )}
               </div>
               <span
-                className={`text-[10px] sm:text-xs font-bold transition-colors duration-200 ${
+                className={`text-[9px] font-bold transition-colors duration-200 ${
                   active ? 'text-[#f3b61b]' : 'text-white'
                 }`}
               >
