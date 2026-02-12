@@ -80,7 +80,7 @@ const MarketResultHistory = () => {
         <div className="flex items-center gap-3 mb-4">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition"
             aria-label="Back"
           >

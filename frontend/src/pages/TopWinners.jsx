@@ -77,7 +77,7 @@ const TopWinners = () => {
         <div className="flex items-center gap-3 pt-4 pb-3">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
             aria-label="Back"
           >

@@ -406,7 +406,7 @@ const Profile = () => {
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg md:max-w-6xl mx-auto">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
             aria-label="Back"
           >

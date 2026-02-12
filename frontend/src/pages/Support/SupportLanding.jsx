@@ -44,7 +44,7 @@ const SupportLanding = () => {
         <div className="flex items-center gap-3 pt-4 pb-3">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="min-w-[44px] min-h-[44px] rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-colors shrink-0 touch-manipulation"
             aria-label="Back"
           >

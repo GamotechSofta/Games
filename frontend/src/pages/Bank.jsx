@@ -214,7 +214,7 @@ const Bank = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/funds')}
             className="w-10 h-10 rounded-full border border-white/10 bg-[#202124] flex items-center justify-center text-white active:scale-95 transition-transform shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
             aria-label="Go back"
           >
