@@ -6,6 +6,7 @@
  */
 
 import MarketResult from '../models/marketResult/marketResult.js';
+import Settings from '../models/settings/settings.js';
 
 /** Current date in IST as YYYY-MM-DD */
 export function getTodayIST() {
@@ -78,7 +79,40 @@ async function saveYesterdaySnapshotsToHistory(Market) {
     }
 }
 
-let lastResultResetDate = null;
+/**
+ * Get the last reset date from database (persists across server restarts).
+ * @returns {Promise<string|null>} Last reset date as YYYY-MM-DD or null if never reset
+ */
+async function getLastResetDateFromDB() {
+    try {
+        const setting = await Settings.findOne({ key: 'lastMarketResetDate' }).lean();
+        return setting?.value || null;
+    } catch (err) {
+        console.error('[resultReset] Error fetching last reset date from DB:', err.message);
+        return null;
+    }
+}
+
+/**
+ * Store the last reset date in database (persists across server restarts).
+ * @param {string} dateKey - Date in YYYY-MM-DD format
+ */
+async function saveLastResetDateToDB(dateKey) {
+    try {
+        await Settings.findOneAndUpdate(
+            { key: 'lastMarketResetDate' },
+            { 
+                value: dateKey,
+                description: 'Last date when market results were reset at midnight IST',
+                updatedAt: new Date()
+            },
+            { upsert: true, new: true }
+        );
+        console.log(`[resultReset] 💾 Saved last reset date to database: ${dateKey}`);
+    } catch (err) {
+        console.error('[resultReset] Error saving last reset date to DB:', err.message);
+    }
+}
 
 /**
  * If we've crossed into a new calendar day (IST), save yesterday's results to history, then clear
@@ -88,31 +122,43 @@ let lastResultResetDate = null;
  */
 export async function ensureResultsResetForNewDay(Market) {
     const today = getTodayIST();
-
-    // After server restart lastResultResetDate is null – do NOT clear same-day results.
-    // Only set lastResultResetDate = today so we don't clear on every request until we actually cross midnight.
-    if (lastResultResetDate === null) {
-        console.log(`[resultReset] Initialized reset tracker for ${today} (no reset on server start)`);
-        lastResultResetDate = today;
-        return;
-    }
-
-    // Same day, already ran – skip
-    if (today <= lastResultResetDate) {
-        console.log(`[resultReset] Already reset today (${today}), skipping`);
-        return;
-    }
-
-    // New day (IST): save yesterday's results to history, then clear all markets
-    console.log(`[resultReset] ✅ New day detected! Resetting markets from ${lastResultResetDate} to ${today}`);
     
-    try {
-        await saveYesterdaySnapshotsToHistory(Market);
-        console.log(`[resultReset] Saved yesterday's (${lastResultResetDate}) results to history`);
-    } catch (err) {
-        console.error('[resultReset] Failed to save yesterday snapshots to history:', err.message);
+    console.log(`[resultReset] 🔍 Checking if reset needed for ${today}...`);
+
+    // Get last reset date from database (persists across server restarts)
+    const lastResetDate = await getLastResetDateFromDB();
+    
+    if (lastResetDate === null) {
+        console.log(`[resultReset] ⚠️  No previous reset date found in database (first run or database was cleared)`);
+    } else {
+        console.log(`[resultReset] 📅 Last reset was on: ${lastResetDate}`);
     }
 
+    // If we've already reset today, skip (use < instead of <= to allow same-day resets if needed)
+    if (lastResetDate !== null && today <= lastResetDate) {
+        console.log(`[resultReset] ✓ Already reset today (${today}), skipping`);
+        return;
+    }
+
+    // New day (IST) or first run: save yesterday's results to history, then clear all markets
+    if (lastResetDate === null) {
+        console.log(`[resultReset] 🚀 First-time reset - initializing for ${today}`);
+    } else {
+        console.log(`[resultReset] ✅ New day detected! Resetting markets from ${lastResetDate} to ${today}`);
+    }
+    
+    // Save yesterday's snapshots to history (only if we have a previous date)
+    if (lastResetDate !== null) {
+        try {
+            await saveYesterdaySnapshotsToHistory(Market);
+            console.log(`[resultReset] 💾 Saved yesterday's (${lastResetDate}) results to history`);
+        } catch (err) {
+            console.error('[resultReset] ❌ Failed to save yesterday snapshots to history:', err.message);
+        }
+    }
+
+    // Clear all market results (opening/closing numbers, result, winNumber)
+    console.log(`[resultReset] 🔄 Clearing all market results...`);
     const result = await Market.updateMany(
         {},
         { $set: { 
@@ -123,7 +169,11 @@ export async function ensureResultsResetForNewDay(Market) {
         } }
     );
     
-    console.log(`[resultReset] ✅ Cleared all result data (opening/closing/result/winNumber) for ${result.modifiedCount} markets`);
-    lastResultResetDate = today;
+    console.log(`[resultReset] ✅ Cleared all result data for ${result.modifiedCount} markets`);
+    
+    // Save today's date to database so we don't reset again until tomorrow
+    await saveLastResetDateToDB(today);
+    
     console.log(`[resultReset] ✅ Market reset completed successfully for ${today}`);
+    console.log(`[resultReset] 📊 Summary: ${result.modifiedCount} markets reset, history preserved`);
 }

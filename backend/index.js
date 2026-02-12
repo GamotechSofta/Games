@@ -55,16 +55,32 @@ app.get('/test-ip', (req, res) => {
 
 // Test endpoint: manually trigger market reset (for testing/debugging)
 app.get('/test-reset', async (req, res) => {
+    const now = new Date();
+    const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    
     try {
-        console.log('[TEST] Manual market reset triggered at', new Date().toISOString());
+        console.log('═══════════════════════════════════════════════════════════');
+        console.log('[TEST] 🧪 Manual Market Reset Triggered');
+        console.log('[TEST] UTC Time:', now.toISOString());
+        console.log('[TEST] IST Time:', istTime);
+        console.log('═══════════════════════════════════════════════════════════');
+        
         await ensureResultsResetForNewDay(Market);
+        
+        console.log('[TEST] ✅ Manual reset completed successfully');
+        console.log('═══════════════════════════════════════════════════════════\n');
+        
         res.json({ 
             success: true, 
-            message: 'Market reset executed',
-            timestamp: new Date().toISOString()
+            message: 'Market reset executed successfully',
+            timestamp: now.toISOString(),
+            istTime: istTime
         });
     } catch (error) {
-        console.error('[TEST] Manual reset failed:', error.message);
+        console.error('[TEST] ❌ Manual reset failed:', error.message);
+        console.error('[TEST] Error stack:', error.stack);
+        console.log('═══════════════════════════════════════════════════════════\n');
+        
         res.status(500).json({ 
             success: false, 
             message: error.message 
@@ -90,18 +106,32 @@ app.use('/api/v1/commission', commissionRoutes);
 // Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
 // Runs every day at 00:00 IST to clear opening/closing numbers for fresh day
 cron.schedule('30 18 * * *', async () => {
+    const now = new Date();
+    const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    console.log('═══════════════════════════════════════════════════════════');
+    console.log('[CRON] 🕐 Midnight Market Reset Job Started');
+    console.log('[CRON] UTC Time:', now.toISOString());
+    console.log('[CRON] IST Time:', istTime);
+    console.log('═══════════════════════════════════════════════════════════');
+    
     try {
-        console.log('[CRON] Running midnight market reset at', new Date().toISOString());
         await ensureResultsResetForNewDay(Market);
-        console.log('[CRON] Market reset completed successfully');
+        console.log('[CRON] ✅ Market reset job completed successfully');
     } catch (error) {
-        console.error('[CRON] Market reset failed:', error.message);
+        console.error('[CRON] ❌ Market reset job failed:', error.message);
+        console.error('[CRON] Error stack:', error.stack);
     }
+    
+    console.log('═══════════════════════════════════════════════════════════\n');
 }, {
     timezone: 'UTC'
 });
 
-console.log('[CRON] Scheduled market reset job at 00:00 IST daily (18:30 UTC)');
+console.log('═══════════════════════════════════════════════════════════');
+console.log('[CRON] ✓ Scheduled market reset job');
+console.log('[CRON] Schedule: Every day at 00:00 IST (18:30 UTC)');
+console.log('[CRON] Next run will reset all market results at midnight IST');
+console.log('═══════════════════════════════════════════════════════════');
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
