@@ -136,8 +136,8 @@ const Payments = () => {
                         {!canManage && <span className="text-base font-normal px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">View Only</span>}
                     </h1>
                     <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide border ${canManage
-                            ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                         }`}>
                         {canManage ? <FaBuilding className="w-3.5 h-3.5" /> : <FaHandHoldingUsd className="w-3.5 h-3.5" />}
                         {canManage ? 'Bookie Collects — You manage payments' : 'Admin Collects — Admin manages payments'}
@@ -148,8 +148,8 @@ const Payments = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                     <button
                         className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'deposit'
-                                ? 'border-amber-500/50 shadow-[0_0_30px_-10px_rgba(245,158,11,0.3)]'
-                                : 'hover:border-white/20'
+                            ? 'border-amber-500/50 shadow-[0_0_30px_-10px_rgba(245,158,11,0.3)]'
+                            : 'hover:border-white/20'
                             }`}
                         onClick={() => setFilters({ status: 'pending', type: 'deposit' })}
                     >
@@ -167,8 +167,8 @@ const Payments = () => {
 
                     <button
                         className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'withdrawal'
-                                ? 'border-purple-500/50 shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]'
-                                : 'hover:border-white/20'
+                            ? 'border-purple-500/50 shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]'
+                            : 'hover:border-white/20'
                             }`}
                         onClick={() => setFilters({ status: 'pending', type: 'withdrawal' })}
                     >
@@ -186,8 +186,8 @@ const Payments = () => {
 
                     <button
                         className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${!hasActiveFilters || (filters.status === '' && filters.type === '')
-                                ? 'border-blue-500/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]'
-                                : 'hover:border-white/20'
+                            ? 'border-blue-500/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]'
+                            : 'hover:border-white/20'
                             }`}
                         onClick={() => setFilters({ status: '', type: '' })}
                     >
@@ -207,30 +207,46 @@ const Payments = () => {
                 {/* Filters */}
                 <div className="glass-panel p-4 rounded-2xl mb-8 border border-white/5">
                     <div className="flex flex-col sm:flex-row gap-4 items-end">
-                        <div className="flex-1 w-full sm:w-auto">
+                        <div className="flex-1 w-full sm:w-auto relative">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Status</label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-colors text-sm appearance-none"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.75rem center',
+                                    backgroundSize: '1.25rem',
+                                    paddingRight: '2.5rem',
+                                    appearance: 'none'
+                                }}
                             >
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                                <option value="completed">Completed</option>
+                                <option value="" className="bg-[#1a1a1a] text-white">All Status</option>
+                                <option value="pending" className="bg-[#1a1a1a] text-white">Pending</option>
+                                <option value="approved" className="bg-[#1a1a1a] text-white">Approved</option>
+                                <option value="rejected" className="bg-[#1a1a1a] text-white">Rejected</option>
+                                <option value="completed" className="bg-[#1a1a1a] text-white">Completed</option>
                             </select>
                         </div>
-                        <div className="flex-1 w-full sm:w-auto">
+                        <div className="flex-1 w-full sm:w-auto relative">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Type</label>
                             <select
                                 value={filters.type}
                                 onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-colors text-sm appearance-none"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.75rem center',
+                                    backgroundSize: '1.25rem',
+                                    paddingRight: '2.5rem',
+                                    appearance: 'none'
+                                }}
                             >
-                                <option value="">All Types</option>
-                                <option value="deposit">Deposit</option>
-                                <option value="withdrawal">Withdrawal</option>
+                                <option value="" className="bg-[#1a1a1a] text-white">All Types</option>
+                                <option value="deposit" className="bg-[#1a1a1a] text-white">Deposit</option>
+                                <option value="withdrawal" className="bg-[#1a1a1a] text-white">Withdrawal</option>
                             </select>
                         </div>
                         <div>
@@ -253,7 +269,7 @@ const Payments = () => {
                 ) : (
                     <>
                         {/* Mobile cards */}
-                        <div className="space-y-4 lg:hidden">
+                        <div className="space-y-4 md:hidden">
                             {payments.length === 0 ? (
                                 <div className="p-12 text-center text-slate-500 glass-panel rounded-2xl">
                                     <FaWallet className="w-12 h-12 text-slate-600 mx-auto mb-4" />
@@ -356,85 +372,92 @@ const Payments = () => {
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden lg:block glass-panel rounded-2xl overflow-hidden border border-white/5">
+                        <div className="hidden md:block glass-panel rounded-2xl overflow-hidden border border-white/5">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-sm">
                                     <thead>
                                         <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
-                                            <th className="px-6 py-4 font-semibold">Ref ID</th>
-                                            <th className="px-6 py-4 font-semibold">Player</th>
-                                            <th className="px-6 py-4 font-semibold">Type</th>
-                                            <th className="px-6 py-4 font-semibold">Amount</th>
-                                            <th className="px-6 py-4 font-semibold">Details</th>
-                                            <th className="px-6 py-4 font-semibold">Status</th>
-                                            <th className="px-6 py-4 font-semibold">Date</th>
-                                            <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                                            <th className="px-3 py-3 font-semibold">Player</th>
+                                            <th className="px-3 py-3 font-semibold">Type</th>
+                                            <th className="px-3 py-3 font-semibold">Amount</th>
+                                            <th className="px-3 py-3 font-semibold">Details</th>
+                                            <th className="px-3 py-3 font-semibold">Status</th>
+                                            <th className="px-3 py-3 font-semibold">Date</th>
+                                            <th className="px-3 py-3 font-semibold text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
                                         {payments.length === 0 ? (
-                                            <tr><td colSpan="8" className="px-6 py-12 text-center text-slate-500">No payments found</td></tr>
+                                            <tr><td colSpan="7" className="px-4 py-12 text-center text-slate-500">No payments found</td></tr>
                                         ) : (
                                             payments.map((payment) => (
-                                                <tr key={payment._id} className="hover:bg-white/5 transition-colors group">
-                                                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">#{payment._id.slice(-6).toUpperCase()}</td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-semibold text-white">{payment.userId?.username || 'Unknown'}</span>
-                                                            <span className="text-xs text-slate-500">{payment.userId?.email || payment.userId?.phone}</span>
+                                                <tr key={payment._id} className="hover:bg-white/5 transition-colors">
+                                                    <td className="px-3 py-3">
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="font-semibold text-white text-sm truncate">{payment.userId?.username || 'Unknown'}</span>
+                                                            <span className="text-xs text-slate-500 font-mono truncate">#{payment._id.slice(-6).toUpperCase()}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border ${getTypeBadge(payment.type)}`}>
+                                                    <td className="px-3 py-3">
+                                                        <span className={`inline-flex px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border whitespace-nowrap ${getTypeBadge(payment.type)}`}>
                                                             {payment.type === 'deposit' ? '↓ Deposit' : '↑ Withdraw'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 font-mono font-bold text-white">
+                                                    <td className="px-3 py-3 font-mono font-bold text-sm whitespace-nowrap">
                                                         <span className={payment.type === 'deposit' ? 'text-emerald-400' : 'text-purple-400'}>
-                                                            {payment.type === 'deposit' ? '+' : '-'} ₹{payment.amount?.toLocaleString()}
+                                                            {payment.type === 'deposit' ? '+' : '-'}₹{payment.amount?.toLocaleString()}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-xs text-slate-400 max-w-[200px]">
+                                                    <td className="px-3 py-3 text-xs text-slate-400 max-w-[150px]">
                                                         {payment.type === 'deposit' ? (
-                                                            <div className="space-y-1">
-                                                                {payment.upiTransactionId && <p><span className="text-slate-500">UTR:</span> <span className="font-mono text-slate-300">{payment.upiTransactionId}</span></p>}
+                                                            <div className="truncate">
+                                                                {payment.upiTransactionId && <p className="truncate"><span className="text-slate-500">UTR:</span> <span className="font-mono text-slate-300">{payment.upiTransactionId}</span></p>}
                                                             </div>
                                                         ) : (
-                                                            <div className="space-y-1 truncate">
+                                                            <div className="truncate">
                                                                 {payment.bankDetailId ? (
-                                                                    <>
-                                                                        <p className="text-slate-300 truncate">{payment.bankDetailId.accountHolderName}</p>
-                                                                        <p className="font-mono truncate">{payment.bankDetailId.bankName} ••••{payment.bankDetailId.accountNumber?.slice(-4)}</p>
-                                                                    </>
-                                                                ) : <span className="text-slate-600">No bank details</span>}
+                                                                    <p className="font-mono truncate">{payment.bankDetailId.bankName} ••••{payment.bankDetailId.accountNumber?.slice(-4)}</p>
+                                                                ) : <span className="text-slate-600">—</span>}
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-flex px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusBadge(payment.status)}`}>
+                                                    <td className="px-3 py-3">
+                                                        <span className={`inline-flex px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border whitespace-nowrap ${getStatusBadge(payment.status)}`}>
                                                             {payment.status}
                                                         </span>
                                                     </td>
-                                                    <td className="px-6 py-4 text-slate-400 text-xs">
-                                                        {formatDate(payment.createdAt)}
+                                                    <td className="px-3 py-3 text-slate-400 text-xs whitespace-nowrap">
+                                                        {new Date(payment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                                                     </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            <button onClick={() => setDetailModal({ show: true, payment })} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors" title="View Details">
-                                                                <FaEye className="w-4 h-4" />
+                                                    <td className="px-3 py-3">
+                                                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                                            <button
+                                                                onClick={() => setDetailModal({ show: true, payment })}
+                                                                className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-bold whitespace-nowrap"
+                                                            >
+                                                                View
                                                             </button>
                                                             {payment.screenshotUrl && (
-                                                                <button onClick={() => setImageModal({ show: true, url: getScreenshotUrl(payment.screenshotUrl) })} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors" title="View Screenshot">
-                                                                    <FaImage className="w-4 h-4" />
+                                                                <button
+                                                                    onClick={() => setImageModal({ show: true, url: getScreenshotUrl(payment.screenshotUrl) })}
+                                                                    className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-bold whitespace-nowrap"
+                                                                >
+                                                                    Proof
                                                                 </button>
                                                             )}
                                                             {canManage && payment.status === 'pending' && (
                                                                 <>
-                                                                    <button onClick={() => openActionModal(payment, 'approve')} className="p-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors" title="Approve">
-                                                                        <FaCheck className="w-4 h-4" />
+                                                                    <button
+                                                                        onClick={() => openActionModal(payment, 'approve')}
+                                                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors text-xs font-bold whitespace-nowrap"
+                                                                    >
+                                                                        Approve
                                                                     </button>
-                                                                    <button onClick={() => openActionModal(payment, 'reject')} className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors" title="Reject">
-                                                                        <FaTimes className="w-4 h-4" />
+                                                                    <button
+                                                                        onClick={() => openActionModal(payment, 'reject')}
+                                                                        className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-colors text-xs font-bold whitespace-nowrap"
+                                                                    >
+                                                                        Reject
                                                                     </button>
                                                                 </>
                                                             )}
@@ -518,8 +541,8 @@ const Payments = () => {
                                 onClick={handleAction}
                                 disabled={processing || (actionModal.action === 'reject' && !adminRemarks.trim())}
                                 className={`flex-1 px-4 py-3 rounded-xl font-bold text-black transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${actionModal.action === 'approve'
-                                        ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-emerald-500/20'
-                                        : 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 shadow-red-500/20'
+                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 shadow-emerald-500/20'
+                                    : 'bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 shadow-red-500/20'
                                     }`}
                             >
                                 {processing ? 'Processing...' : (actionModal.action === 'approve' ? 'Approve Request' : 'Reject Request')}

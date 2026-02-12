@@ -50,7 +50,7 @@ const BetHistory = () => {
                                 placeholder="Search by Player"
                                 value={filters.userId}
                                 onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm"
                             />
                         </div>
                         <div className="flex-1 min-w-[150px]">
@@ -60,22 +60,30 @@ const BetHistory = () => {
                                 placeholder="Search by Market"
                                 value={filters.marketId}
                                 onChange={(e) => setFilters({ ...filters, marketId: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm"
                             />
                         </div>
 
-                        <div className="flex-1 min-w-[150px]">
+                        <div className="flex-1 min-w-[150px] relative">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Status</label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-colors text-sm appearance-none"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                                    backgroundRepeat: 'no-repeat',
+                                    backgroundPosition: 'right 0.75rem center',
+                                    backgroundSize: '1.25rem',
+                                    paddingRight: '2.5rem',
+                                    appearance: 'none'
+                                }}
                             >
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="won">Won</option>
-                                <option value="lost">Lost</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="" className="bg-[#1a1a1a] text-white">All Status</option>
+                                <option value="pending" className="bg-[#1a1a1a] text-white">Pending</option>
+                                <option value="won" className="bg-[#1a1a1a] text-white">Won</option>
+                                <option value="lost" className="bg-[#1a1a1a] text-white">Lost</option>
+                                <option value="cancelled" className="bg-[#1a1a1a] text-white">Cancelled</option>
                             </select>
                         </div>
                         <div className="flex-1 min-w-[150px]">
@@ -84,7 +92,7 @@ const BetHistory = () => {
                                 type="date"
                                 value={filters.startDate}
                                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-colors text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer [color-scheme:dark]"
                             />
                         </div>
                         <div className="flex-1 min-w-[150px]">
@@ -93,7 +101,7 @@ const BetHistory = () => {
                                 type="date"
                                 value={filters.endDate}
                                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 transition-colors text-sm"
+                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer [color-scheme:dark]"
                             />
                         </div>
                     </div>
@@ -142,9 +150,9 @@ const BetHistory = () => {
                                                 <td className="px-6 py-4 text-right font-mono font-bold text-white">₹{bet.amount}</td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold border ${bet.status === 'won' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                            bet.status === 'lost' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                                bet.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                                                                    'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                                                        bet.status === 'lost' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                            bet.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                                'bg-slate-500/10 text-slate-400 border-slate-500/20'
                                                         }`}>
                                                         {bet.status.toUpperCase()}
                                                     </span>

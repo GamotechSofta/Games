@@ -174,8 +174,8 @@ const Wallet = () => {
                         <button
                             onClick={() => setActiveTab('wallets')}
                             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'wallets'
-                                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             <FaWallet className="w-4 h-4" />
@@ -184,8 +184,8 @@ const Wallet = () => {
                         <button
                             onClick={() => setActiveTab('transactions')}
                             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'transactions'
-                                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                                : 'text-slate-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             <FaHistory className="w-4 h-4" />
@@ -255,7 +255,7 @@ const Wallet = () => {
                                         </td>
                                         {canManage && (
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                                                <div className="flex items-center justify-end gap-2 opacity-100 transition-all">
                                                     <button
                                                         onClick={() => openAdjust(w, 'credit')}
                                                         className="px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 font-bold text-xs border border-green-500/20 transition-colors flex items-center gap-1.5"
@@ -309,8 +309,8 @@ const Wallet = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${t.type === 'credit'
-                                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                    : 'bg-red-500/10 text-red-400 border-red-500/20'
+                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                                : 'bg-red-500/10 text-red-400 border-red-500/20'
                                                 }`}>
                                                 {t.type === 'credit' ? 'Credit' : 'Debit'}
                                             </span>
@@ -341,8 +341,8 @@ const Wallet = () => {
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${adjustModal.type === 'credit'
-                                        ? 'bg-emerald-500/10 text-emerald-400'
-                                        : 'bg-red-500/10 text-red-400'
+                                    ? 'bg-emerald-500/10 text-emerald-400'
+                                    : 'bg-red-500/10 text-red-400'
                                     }`}>
                                     {adjustModal.type === 'credit' ? <FaPlus className="w-5 h-5" /> : <FaMinus className="w-5 h-5" />}
                                 </div>
@@ -406,8 +406,8 @@ const Wallet = () => {
                                     onClick={handleAdjust}
                                     disabled={adjusting || !adjustAmount || Number(adjustAmount) <= 0}
                                     className={`flex-1 px-4 py-3.5 rounded-xl text-black font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${adjustModal.type === 'credit'
-                                            ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20'
-                                            : 'bg-red-500 hover:bg-red-400 shadow-red-500/20'
+                                        ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20'
+                                        : 'bg-red-500 hover:bg-red-400 shadow-red-500/20'
                                         }`}
                                 >
                                     {adjusting ? 'Processing...' : 'Confirm Update'}
