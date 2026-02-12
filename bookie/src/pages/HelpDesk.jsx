@@ -49,113 +49,180 @@ const HelpDesk = () => {
 
     return (
         <Layout title="Help Desk">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Help Desk</h1>
-            <div className="bg-gray-800 rounded-lg p-4 mb-4 sm:mb-6 flex flex-wrap gap-3 items-center">
-                <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })} className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
-                    <option value="">All Status</option>
-                    <option value="open">Open</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                </select>
-                <button
-                    type="button"
-                    onClick={() => setFilters({ status: '' })}
-                    className="px-4 py-2 bg-gray-600 hover:bg-gray-500 border border-gray-500 rounded-lg text-white text-sm font-medium"
-                >
-                    Clear filter
-                </button>
-            </div>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                <div className="bg-gray-800 rounded-lg overflow-hidden">
-                    <div className="p-4 border-b border-gray-700"><h2 className="text-xl font-semibold">Tickets</h2></div>
-                    {loading ? <div className="p-12 text-center text-gray-400">Loading...</div> : tickets.length === 0 ? <div className="p-12 text-center text-gray-400">No tickets found</div> : (
-                        <div className="divide-y divide-gray-700">
-                            {tickets.map((ticket) => (
-                                <div key={ticket._id} onClick={() => setSelectedTicket(ticket)} className={`p-4 cursor-pointer hover:bg-gray-700 ${selectedTicket?._id === ticket._id ? 'bg-gray-700' : ''}`}>
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="font-semibold">{ticket.subject}</h3>
-                                        <span className={`px-2 py-1 rounded text-xs ${ticket.status === 'resolved' ? 'bg-green-600' : ticket.status === 'in-progress' ? 'bg-yellow-600' : ticket.status === 'closed' ? 'bg-gray-600' : 'bg-blue-600'}`}>{ticket.status}</span>
-                                    </div>
-                                    <p className="text-sm text-gray-400 truncate">{ticket.description}</p>
-                                    <p className="text-xs text-gray-500 mt-2">
-                                        {ticket.userId?.username || 'Unknown'}
-                                        {ticket.userId?.source === 'bookie'
-                                            ? ` — bookie user${ticket.userId?.referredBy?.username ? ` (${ticket.userId.referredBy.username})` : ''}`
-                                            : ' — admin user'}
-                                        {' • '}{new Date(ticket.createdAt).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+            <div className="max-w-[1600px] mx-auto min-w-0 h-[calc(100vh-140px)] flex flex-col">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 shrink-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        Help Desk
+                        <span className="text-sm font-normal px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Support</span>
+                    </h1>
+                    <div className="flex items-center gap-3">
+                        <select
+                            value={filters.status}
+                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                            className="px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm"
+                        >
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <button
+                            type="button"
+                            onClick={() => setFilters({ status: '' })}
+                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-colors"
+                        >
+                            Clear
+                        </button>
+                    </div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-6">
-                    {selectedTicket ? (
-                        <div>
-                            <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-2xl font-bold">{selectedTicket.subject}</h2>
-                                <span className={`px-3 py-1 rounded text-sm ${selectedTicket.status === 'resolved' ? 'bg-green-600' : selectedTicket.status === 'in-progress' ? 'bg-yellow-600' : selectedTicket.status === 'closed' ? 'bg-gray-600' : 'bg-blue-600'}`}>{selectedTicket.status}</span>
-                            </div>
-                            <div className="mb-4"><p className="text-gray-400 text-sm mb-1">Player</p><p className="font-semibold">{selectedTicket.userId?.username || selectedTicket.userId}{selectedTicket.userId?.source === 'bookie' ? ` — bookie user${selectedTicket.userId?.referredBy?.username ? ` (${selectedTicket.userId.referredBy.username})` : ''}` : ' — admin user'}</p></div>
-                            <div className="mb-4"><p className="text-gray-400 text-sm mb-1">Description</p><p className="whitespace-pre-wrap">{selectedTicket.description}</p></div>
-                            {selectedTicket.screenshots?.length > 0 && (
-                                <div className="mb-4">
-                                    <p className="text-gray-400 text-sm mb-2">Screenshots (click to open full)</p>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {selectedTicket.screenshots.map((s, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                onClick={() => setFullScreenImage(s.startsWith('http') ? s : `${BASE_URL}${s}`)}
-                                                className="w-full h-32 rounded border border-gray-700 overflow-hidden focus:ring-2 focus:ring-yellow-500 focus:outline-none"
-                                            >
-                                                <img src={s.startsWith('http') ? s : `${BASE_URL}${s}`} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover cursor-pointer" />
-                                            </button>
-                                        ))}
-                                    </div>
+
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-0 flex-1">
+                    {/* Ticket List */}
+                    <div className="glass-panel rounded-2xl overflow-hidden flex flex-col border border-white/5">
+                        <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center shrink-0">
+                            <h2 className="font-bold text-white">Tickets</h2>
+                            <span className="text-xs text-slate-400">{tickets.length} tickets</span>
+                        </div>
+                        <div className="overflow-y-auto flex-1 custom-scrollbar">
+                            {loading ? (
+                                <div className="p-12 text-center text-slate-400">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />
+                                    Loading tickets...
+                                </div>
+                            ) : tickets.length === 0 ? (
+                                <div className="p-12 text-center text-slate-500">No tickets found</div>
+                            ) : (
+                                <div className="divide-y divide-white/5">
+                                    {tickets.map((ticket) => (
+                                        <div
+                                            key={ticket._id}
+                                            onClick={() => setSelectedTicket(ticket)}
+                                            className={`p-4 cursor-pointer hover:bg-white/5 transition-colors border-l-4 ${selectedTicket?._id === ticket._id ? 'bg-white/5 border-l-amber-500' : 'border-l-transparent'}`}
+                                        >
+                                            <div className="flex justify-between items-center mb-2">
+                                                <h3 className={`font-semibold text-sm ${selectedTicket?._id === ticket._id ? 'text-white' : 'text-slate-300'}`}>{ticket.subject}</h3>
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                        ticket.status === 'in-progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                            ticket.status === 'closed' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
+                                                                'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                    }`}>
+                                                    {ticket.status}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-400 line-clamp-2 mb-2">{ticket.description}</p>
+                                            <div className="flex items-center justify-between text-[10px] text-slate-500">
+                                                <span>
+                                                    {ticket.userId?.username || 'Unknown'}
+                                                </span>
+                                                <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-                            <div className="mb-4"><p className="text-gray-400 text-sm mb-1">Created</p><p>{new Date(selectedTicket.createdAt).toLocaleString()}</p></div>
-                            <div className="flex gap-2 mt-6">
-                                {selectedTicket.status === 'open' && (
-                                    <>
-                                        <button onClick={() => handleStatusUpdate(selectedTicket._id, 'in-progress')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded">Mark In Progress</button>
-                                        <button onClick={() => handleStatusUpdate(selectedTicket._id, 'resolved')} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded">Mark Resolved</button>
-                                    </>
-                                )}
-                                {selectedTicket.status === 'in-progress' && <button onClick={() => handleStatusUpdate(selectedTicket._id, 'resolved')} className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded">Mark Resolved</button>}
-                                <button onClick={() => handleStatusUpdate(selectedTicket._id, 'closed')} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded">Close Ticket</button>
-                            </div>
                         </div>
-                    ) : (
-                        <div className="text-center py-12 text-gray-400">Select a ticket to view details</div>
-                    )}
+                    </div>
+
+                    {/* Ticket Details */}
+                    <div className="glass-panel rounded-2xl overflow-hidden flex flex-col border border-white/5">
+                        {selectedTicket ? (
+                            <div className="flex flex-col h-full">
+                                <div className="p-6 border-b border-white/5 shrink-0 flex justify-between items-start gap-4">
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white mb-2">{selectedTicket.subject}</h2>
+                                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                                            <span className="flex items-center gap-1.5">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+                                                {selectedTicket.userId?.username || selectedTicket.userId}
+                                            </span>
+                                            <span>•</span>
+                                            <span>{new Date(selectedTicket.createdAt).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border whitespace-nowrap ${selectedTicket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                            selectedTicket.status === 'in-progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                selectedTicket.status === 'closed' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
+                                                    'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                        }`}>{selectedTicket.status}</span>
+                                </div>
+
+                                <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                                    <div className="mb-8">
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</p>
+                                        <div className="bg-black/20 rounded-xl p-4 border border-white/5 text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
+                                            {selectedTicket.description}
+                                        </div>
+                                    </div>
+
+                                    {selectedTicket.screenshots?.length > 0 && (
+                                        <div className="mb-6">
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Attached Screenshots</p>
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                                {selectedTicket.screenshots.map((s, i) => (
+                                                    <button
+                                                        key={i}
+                                                        type="button"
+                                                        onClick={() => setFullScreenImage(s.startsWith('http') ? s : `${BASE_URL}${s}`)}
+                                                        className="aspect-video rounded-lg border border-white/10 overflow-hidden hover:border-amber-500/50 transition-colors group relative"
+                                                    >
+                                                        <img src={s.startsWith('http') ? s : `${BASE_URL}${s}`} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <span className="text-xs text-white font-medium">View Full</span>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-6 border-t border-white/5 bg-black/20 shrink-0">
+                                    <div className="flex flex-wrap gap-3 justify-end">
+                                        {selectedTicket.status === 'open' && (
+                                            <>
+                                                <button onClick={() => handleStatusUpdate(selectedTicket._id, 'in-progress')} className="px-4 py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-bold transition-colors">Mark In Progress</button>
+                                                <button onClick={() => handleStatusUpdate(selectedTicket._id, 'resolved')} className="px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-sm font-bold transition-colors">Mark Resolved</button>
+                                            </>
+                                        )}
+                                        {selectedTicket.status === 'in-progress' && (
+                                            <button onClick={() => handleStatusUpdate(selectedTicket._id, 'resolved')} className="px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-sm font-bold transition-colors">Mark Resolved</button>
+                                        )}
+                                        <button onClick={() => handleStatusUpdate(selectedTicket._id, 'closed')} className="px-4 py-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 border border-slate-600/50 text-slate-300 text-sm font-bold transition-colors">Close Ticket</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                                <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                </div>
+                                <p>Select a ticket to view details</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Full-screen screenshot lightbox */}
             {fullScreenImage && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
                     onClick={() => setFullScreenImage(null)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === 'Escape' && setFullScreenImage(null)}
-                    aria-label="Close"
                 >
                     <button
                         type="button"
                         onClick={() => setFullScreenImage(null)}
-                        className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-gray-700 hover:bg-gray-600 text-white text-2xl leading-none flex items-center justify-center"
-                        aria-label="Close"
+                        className="absolute top-6 right-6 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-2xl flex items-center justify-center transition-colors"
                     >
                         ×
                     </button>
                     <img
                         src={fullScreenImage}
                         alt="Screenshot full size"
-                        className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded"
+                        className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
                         onClick={(e) => e.stopPropagation()}
                     />
                 </div>

@@ -59,56 +59,67 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-screen w-64 sm:w-72 bg-gray-800/95 backdrop-blur-sm border-r border-gray-700/50 flex flex-col z-50 overflow-y-auto shadow-2xl
-                transform transition-transform duration-200 ease-in-out
+            className={`fixed left-0 top-0 h-screen w-64 sm:w-72 bg-[#0B1120]/90 backdrop-blur-xl border-r border-white/5 flex flex-col z-50 overflow-y-auto shadow-2xl
+                transform transition-transform duration-300 cubic-bezier(0.4, 0, 0.2, 1)
                 lg:translate-x-0
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}
         >
             {/* Logo + Close (mobile) */}
-            <div className="p-4 sm:p-6 border-b border-gray-700 shrink-0 flex items-center justify-between">
+            <div className="px-6 py-8 shrink-0 flex items-center justify-between">
                 <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-yellow-500">Bookie Panel</h2>
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent tracking-tight">
+                        Bookie<span className="font-light text-white/50">Panel</span>
+                    </h2>
                     {user?.username && (
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{user.username}</p>
+                        <div className="flex items-center gap-2 mt-2 px-3 py-1 bg-white/5 rounded-full w-fit">
+                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                            <p className="text-xs text-gray-400 font-medium tracking-wide uppercase">{user.username}</p>
+                        </div>
                     )}
                 </div>
                 <button
                     type="button"
                     onClick={onClose}
-                    className="lg:hidden p-2 rounded-lg hover:bg-gray-700 text-gray-400"
-                    aria-label="Close menu"
+                    className="lg:hidden p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                 >
                     <FaTimes className="w-5 h-5" />
                 </button>
             </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto">
-                {menuItems.map((item) => (
-                    <button
-                        key={item.path}
-                        onClick={() => handleNav(item.path)}
-                        className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base ${
-                            isActive(item.path)
-                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold shadow-lg shadow-yellow-500/20'
-                                : 'text-gray-300 hover:bg-gray-700/50 hover:text-white hover:-translate-y-0.5'
-                        }`}
-                    >
-                        <item.icon className="w-5 h-5 sm:text-xl shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                    </button>
-                ))}
+            <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto scrollbar-hide py-2">
+                {menuItems.map((item) => {
+                    const active = isActive(item.path);
+                    return (
+                        <button
+                            key={item.path}
+                            onClick={() => handleNav(item.path)}
+                            className={`group relative w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium tracking-wide
+                                ${active
+                                    ? 'bg-amber-500/10 text-amber-400 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)] border border-amber-500/20'
+                                    : 'text-slate-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                }
+                            `}
+                        >
+                            {active && (
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-amber-500 rounded-r-lg shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                            )}
+                            <item.icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-amber-400' : 'text-slate-500 group-hover:text-amber-200'}`} />
+                            <span className="truncate">{item.label}</span>
+                        </button>
+                    );
+                })}
             </nav>
 
             {/* Logout */}
-            <div className="p-3 sm:p-4 border-t border-gray-700/50 shrink-0">
+            <div className="p-4 border-t border-white/5 shrink-0 bg-black/20">
                 <button
                     onClick={onLogout}
-                    className="w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold transition-all duration-200 text-sm sm:text-base glow-red hover:-translate-y-0.5"
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 border border-red-500/20 text-red-400 hover:text-red-300 font-semibold transition-all duration-200 group"
                 >
-                    <FaSignOutAlt className="w-5 h-5 sm:text-xl shrink-0" />
-                    <span>Logout</span>
+                    <FaSignOutAlt className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span>Logout Session</span>
                 </button>
             </div>
         </aside>

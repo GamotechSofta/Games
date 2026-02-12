@@ -16,33 +16,43 @@ import {
 } from 'react-icons/fa';
 
 const PRESETS = [
-    { id: 'today', label: 'Today', getRange: () => {
-        const d = new Date();
-        const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return { from, to: from };
-    }},
-    { id: 'yesterday', label: 'Yesterday', getRange: () => {
-        const d = new Date(); d.setDate(d.getDate() - 1);
-        const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return { from, to: from };
-    }},
-    { id: 'this_week', label: 'This Week', getRange: () => {
-        const d = new Date(); const day = d.getDay();
-        const sun = new Date(d); sun.setDate(d.getDate() - day);
-        const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
-        const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
-        return { from: fmt(sun), to: fmt(sat) };
-    }},
-    { id: 'this_month', label: 'This Month', getRange: () => {
-        const d = new Date(); const y = d.getFullYear(), m = d.getMonth();
-        const last = new Date(y, m + 1, 0);
-        return { from: `${y}-${String(m + 1).padStart(2, '0')}-01`, to: `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}` };
-    }},
-    { id: 'last_month', label: 'Last Month', getRange: () => {
-        const d = new Date(); const y = d.getFullYear(), m = d.getMonth() - 1;
-        const last = new Date(y, m + 1, 0);
-        return { from: `${y}-${String(m + 1).padStart(2, '0')}-01`, to: `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}` };
-    }},
+    {
+        id: 'today', label: 'Today', getRange: () => {
+            const d = new Date();
+            const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return { from, to: from };
+        }
+    },
+    {
+        id: 'yesterday', label: 'Yesterday', getRange: () => {
+            const d = new Date(); d.setDate(d.getDate() - 1);
+            const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return { from, to: from };
+        }
+    },
+    {
+        id: 'this_week', label: 'This Week', getRange: () => {
+            const d = new Date(); const day = d.getDay();
+            const sun = new Date(d); sun.setDate(d.getDate() - day);
+            const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+            const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+            return { from: fmt(sun), to: fmt(sat) };
+        }
+    },
+    {
+        id: 'this_month', label: 'This Month', getRange: () => {
+            const d = new Date(); const y = d.getFullYear(), m = d.getMonth();
+            const last = new Date(y, m + 1, 0);
+            return { from: `${y}-${String(m + 1).padStart(2, '0')}-01`, to: `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}` };
+        }
+    },
+    {
+        id: 'last_month', label: 'Last Month', getRange: () => {
+            const d = new Date(); const y = d.getFullYear(), m = d.getMonth() - 1;
+            const last = new Date(y, m + 1, 0);
+            return { from: `${y}-${String(m + 1).padStart(2, '0')}-01`, to: `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}` };
+        }
+    },
 ];
 
 const formatCurrency = (n) => {
@@ -101,130 +111,155 @@ const Revenue = () => {
 
     return (
         <Layout title="Revenue">
-            <div className="space-y-4 sm:space-y-5">
+            <div className="max-w-[1600px] mx-auto space-y-8">
                 {/* Header */}
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-                        <FaMoneyBillWave className="w-6 h-6 text-emerald-500 shrink-0" />
-                        My Revenue
-                    </h1>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">
-                        {isBookieCollects
-                            ? 'Your earnings after platform charge and payouts'
-                            : 'Your commission earnings from user bets'}
-                    </p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                            <FaMoneyBillWave className="text-emerald-500" />
+                            Revenue Analysis
+                        </h1>
+                        <p className="text-slate-400 text-sm mt-1">
+                            {isBookieCollects
+                                ? 'Track your earnings after deductions'
+                                : 'Track your commission earnings'}
+                        </p>
+                    </div>
+
+                    {data && (
+                        <div className={`glass-panel px-5 py-3 rounded-xl flex items-center gap-3 border ${isBookieCollects ? 'border-purple-500/20' : 'border-emerald-500/20'
+                            }`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'
+                                }`}>
+                                {isBookieCollects ? <FaBuilding className="w-5 h-5 text-purple-400" /> : <FaHandHoldingUsd className="w-5 h-5 text-emerald-400" />}
+                            </div>
+                            <div>
+                                <p className={`text-xs font-bold uppercase tracking-wider ${isBookieCollects ? 'text-purple-400' : 'text-emerald-400'
+                                    }`}>
+                                    {isBookieCollects ? 'Bookie Collects' : 'Admin Collects'}
+                                </p>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    <FaPercent className="w-2.5 h-2.5 text-slate-500" />
+                                    <span className="text-white text-sm font-bold">{data.commissionPercentage}%</span>
+                                    <span className="text-slate-500 text-xs font-medium">
+                                        {isBookieCollects ? 'platform fee' : 'commission'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Bookie Type Badge */}
-                {data && (
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        isBookieCollects
-                            ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                    }`}>
-                        {isBookieCollects ? <FaBuilding className="w-3.5 h-3.5" /> : <FaHandHoldingUsd className="w-3.5 h-3.5" />}
-                        {isBookieCollects ? 'Bookie Collects' : 'Admin Collects'}
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300 text-[11px] font-medium ml-1">
-                            <FaPercent className="w-2.5 h-2.5 mr-1" />
-                            {data.commissionPercentage}%
-                            {isBookieCollects ? ' platform charge' : ' commission'}
-                        </span>
-                    </div>
-                )}
-
                 {/* Date filters */}
-                <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-3 sm:p-4">
-                    <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                        <FaCalendarAlt className="w-4 h-4 text-yellow-500 shrink-0" />
-                        <span className="text-sm font-medium text-gray-300">Period</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
-                        {PRESETS.map((p) => (
-                            <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => applyPreset(p.id)}
-                                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                                    activePreset === p.id ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
+                <div className="glass-panel p-4 rounded-2xl border border-white/5">
+                    <div className="flex flex-col lg:flex-row items-center gap-6">
+                        <div className="flex items-center gap-3 w-full lg:w-auto">
+                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
+                                <FaCalendarAlt className="w-5 h-5 text-amber-500" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Time Period</p>
+                                <p className="text-white font-medium text-sm">Filter revenue data</p>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar">
+                            <div className="flex items-center gap-2">
+                                {PRESETS.map((p) => (
+                                    <button
+                                        key={p.id}
+                                        type="button"
+                                        onClick={() => applyPreset(p.id)}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activePreset === p.id
+                                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
+                                                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5'
+                                            }`}
+                                    >
+                                        {p.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 lg:border-l border-white/5 pt-4 lg:pt-0 lg:pl-6">
+                            <div className="flex items-center gap-2 bg-black/40 rounded-xl p-1 border border-white/10">
+                                <input type="date" value={dateRange.startDate}
+                                    onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
+                                    className="bg-transparent text-white text-xs font-medium px-3 py-1.5 focus:outline-none appearance-none [&::-webkit-calendar-picker-indicator]:invert"
+                                />
+                                <span className="text-slate-500 text-xs">to</span>
+                                <input type="date" value={dateRange.endDate}
+                                    onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
+                                    className="bg-transparent text-white text-xs font-medium px-3 py-1.5 focus:outline-none appearance-none [&::-webkit-calendar-picker-indicator]:invert"
+                                />
+                            </div>
+                            <button type="button" onClick={fetchRevenue} disabled={loading}
+                                className="p-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl border border-amber-500/20 transition-colors disabled:opacity-50"
+                                title="Refresh Data"
                             >
-                                {p.label}
+                                <FaSyncAlt className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                             </button>
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <input type="date" value={dateRange.startDate}
-                            onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 sm:px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-xs sm:text-sm w-[130px] sm:w-auto"
-                        />
-                        <span className="text-gray-500 text-sm">to</span>
-                        <input type="date" value={dateRange.endDate}
-                            onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 sm:px-3 py-1.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-xs sm:text-sm w-[130px] sm:w-auto"
-                        />
-                        <button type="button" onClick={fetchRevenue} disabled={loading}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 text-xs sm:text-sm"
-                        >
-                            <FaSyncAlt className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                            Refresh
-                        </button>
+                        </div>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div className="bg-gray-800/60 rounded-xl h-64 animate-pulse border border-gray-700/50" />
+                    <div className="glass-panel h-96 rounded-2xl animate-pulse" />
                 ) : data ? (
                     <>
-                        {/* Revenue Table */}
-                        <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
+                        <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
                             <table className="w-full">
-                                <tbody className="divide-y divide-gray-700/50">
+                                <tbody className="divide-y divide-white/5">
                                     {/* Your Revenue - highlighted row */}
-                                    <tr className={isBookieCollects
+                                    <tr className={`relative ${isBookieCollects
                                         ? (data.bookieRevenue >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10')
                                         : 'bg-emerald-500/10'
-                                    }>
-                                        <td className="px-4 py-3.5 sm:py-4">
-                                            <span className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${
-                                                isBookieCollects
-                                                    ? (data.bookieRevenue >= 0 ? 'text-emerald-300' : 'text-red-300')
-                                                    : 'text-emerald-300'
-                                            }`}>
-                                                {isBookieCollects ? 'Your Net Profit' : 'Your Commission'}
-                                            </span>
+                                        }`}>
+                                        <td className="px-6 py-6 sm:py-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${isBookieCollects
+                                                        ? (data.bookieRevenue >= 0 ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white')
+                                                        : 'bg-emerald-500 text-black'
+                                                    }`}>
+                                                    <FaMoneyBillWave className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <span className={`text-sm font-bold uppercase tracking-wider block mb-1 ${isBookieCollects
+                                                            ? (data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400')
+                                                            : 'text-emerald-400'
+                                                        }`}>
+                                                        {isBookieCollects ? 'Your Net Profit' : 'Your Commission'}
+                                                    </span>
+                                                    <p className="text-slate-400 text-xs">Total earnings for this period</p>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="px-4 py-3.5 sm:py-4 text-right">
-                                            <span className={`text-xl sm:text-2xl font-bold ${
-                                                isBookieCollects
+                                        <td className="px-6 py-6 sm:py-8 text-right">
+                                            <span className={`text-3xl sm:text-4xl font-bold tracking-tight font-mono ${isBookieCollects
                                                     ? (data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400')
                                                     : 'text-emerald-400'
-                                            }`}>{formatCurrency(data.bookieRevenue)}</span>
+                                                }`}>{formatCurrency(data.bookieRevenue)}</span>
                                         </td>
                                     </tr>
 
                                     {/* Total Bet Amount */}
-                                    <tr className="hover:bg-gray-700/20 transition-colors">
-                                        <td className="px-4 py-3 sm:py-3.5">
-                                            <span className="text-xs sm:text-sm text-gray-300">Total Bet Volume</span>
-                                        </td>
-                                        <td className="px-4 py-3 sm:py-3.5 text-right">
-                                            <span className="text-sm sm:text-base font-semibold text-white">{formatCurrency(data.totalBetAmount)}</span>
+                                    <tr className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 text-slate-300 font-medium">Total Bet Volume</td>
+                                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-lg">
+                                            {formatCurrency(data.totalBetAmount)}
                                         </td>
                                     </tr>
 
                                     {/* Rate */}
-                                    <tr className="hover:bg-gray-700/20 transition-colors">
-                                        <td className="px-4 py-3 sm:py-3.5">
-                                            <span className="text-xs sm:text-sm text-gray-300">
-                                                {isBookieCollects ? 'Platform Charge Rate' : 'Commission Rate'}
-                                            </span>
+                                    <tr className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 text-slate-300 font-medium">
+                                            {isBookieCollects ? 'Platform Charge Rate' : 'Commission Rate'}
                                         </td>
-                                        <td className="px-4 py-3 sm:py-3.5 text-right">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-semibold ${
-                                                isBookieCollects
-                                                    ? 'bg-purple-500/15 text-purple-400'
-                                                    : 'bg-yellow-500/15 text-yellow-400'
-                                            }`}>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${isBookieCollects
+                                                    ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                }`}>
                                                 {data.commissionPercentage}%
                                             </span>
                                         </td>
@@ -233,75 +268,73 @@ const Revenue = () => {
                                     {isBookieCollects ? (
                                         <>
                                             {/* Platform Charge */}
-                                            <tr className="hover:bg-gray-700/20 transition-colors">
-                                                <td className="px-4 py-3 sm:py-3.5">
+                                            <tr className="hover:bg-white/5 transition-colors">
+                                                <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-xs sm:text-sm text-gray-300">Platform Charge</span>
-                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Paid to admin</p>
+                                                        <span className="text-slate-300 font-medium block">Platform Charge</span>
+                                                        <span className="text-xs text-slate-500">Paid to admin</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 sm:py-3.5 text-right">
-                                                    <span className="text-sm sm:text-base font-semibold text-purple-400">{formatCurrency(data.platformCharge)}</span>
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-purple-400 text-lg">
+                                                    {formatCurrency(data.platformCharge)}
                                                 </td>
                                             </tr>
 
                                             {/* Gross (before payouts) */}
-                                            <tr className="hover:bg-gray-700/20 transition-colors">
-                                                <td className="px-4 py-3 sm:py-3.5">
+                                            <tr className="hover:bg-white/5 transition-colors bg-black/20">
+                                                <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-xs sm:text-sm text-gray-300">Your Gross Share</span>
-                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Before payouts</p>
+                                                        <span className="text-slate-200 font-bold block">Your Gross Share</span>
+                                                        <span className="text-xs text-slate-500">Before payouts</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 sm:py-3.5 text-right">
-                                                    <span className="text-sm sm:text-base font-semibold text-white">{formatCurrency(data.bookieGross)}</span>
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-white text-lg">
+                                                    {formatCurrency(data.bookieGross)}
                                                 </td>
                                             </tr>
 
                                             {/* Payouts */}
-                                            <tr className="hover:bg-gray-700/20 transition-colors">
-                                                <td className="px-4 py-3 sm:py-3.5">
+                                            <tr className="hover:bg-white/5 transition-colors">
+                                                <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-xs sm:text-sm text-gray-300">Winner Payouts</span>
-                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Paid by you to winning users</p>
+                                                        <span className="text-slate-300 font-medium block">Winner Payouts</span>
+                                                        <span className="text-xs text-slate-500">Paid by you to winners</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 sm:py-3.5 text-right">
-                                                    <span className="text-sm sm:text-base font-semibold text-red-400">{formatCurrency(data.totalPayouts)}</span>
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-red-400 text-lg">
+                                                    {formatCurrency(data.totalPayouts)}
                                                 </td>
                                             </tr>
                                         </>
                                     ) : (
                                         <>
                                             {/* Payouts - admin handles */}
-                                            <tr className="hover:bg-gray-700/20 transition-colors">
-                                                <td className="px-4 py-3 sm:py-3.5">
+                                            <tr className="hover:bg-white/5 transition-colors opacity-50">
+                                                <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-xs sm:text-sm text-gray-300">Winner Payouts</span>
-                                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Handled by admin (not your expense)</p>
+                                                        <span className="text-slate-400 font-medium block">Winner Payouts</span>
+                                                        <span className="text-xs text-slate-500">Handled by admin (not your expense)</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 sm:py-3.5 text-right">
-                                                    <span className="text-sm sm:text-base font-semibold text-red-400">{formatCurrency(data.totalPayouts)}</span>
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-400 text-lg">
+                                                    {formatCurrency(data.totalPayouts)}
                                                 </td>
                                             </tr>
                                         </>
                                     )}
 
                                     {/* Total Bets Count */}
-                                    <tr className="hover:bg-gray-700/20 transition-colors">
-                                        <td className="px-4 py-3 sm:py-3.5">
-                                            <span className="text-xs sm:text-sm text-gray-300">Total Bets</span>
-                                        </td>
-                                        <td className="px-4 py-3 sm:py-3.5 text-right">
-                                            <div className="flex items-center justify-end gap-2 flex-wrap">
-                                                <span className="text-sm sm:text-base font-semibold text-white">{formatNumber(data.totalBets)} bets</span>
+                                    <tr className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 text-slate-300 font-medium">Total Activity</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-3">
+                                                <span className="text-white font-bold">{formatNumber(data.totalBets)} bets</span>
                                                 {data.totalBets > 0 && (
-                                                    <span className="text-[10px] sm:text-xs text-gray-400">
-                                                        (<span className="text-emerald-400">{formatNumber(data.winningBets || 0)} W</span>
-                                                        {' / '}
-                                                        <span className="text-red-400">{formatNumber(data.losingBets || 0)} L</span>)
-                                                    </span>
+                                                    <div className="text-xs flex items-center gap-2 bg-black/30 rounded-lg px-2 py-1">
+                                                        <span className="text-emerald-400 font-bold">{formatNumber(data.winningBets || 0)} W</span>
+                                                        <span className="text-slate-600">|</span>
+                                                        <span className="text-red-400 font-bold">{formatNumber(data.losingBets || 0)} L</span>
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
@@ -310,57 +343,60 @@ const Revenue = () => {
                                     {/* My Users - clickable */}
                                     <tr
                                         onClick={() => navigate('/my-users')}
-                                        className="hover:bg-cyan-500/10 transition-colors cursor-pointer group"
+                                        className="hover:bg-blue-500/10 transition-colors cursor-pointer group"
                                     >
-                                        <td className="px-4 py-3 sm:py-3.5">
-                                            <div className="flex items-center gap-2">
-                                                <FaUsers className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                                                <span className="text-xs sm:text-sm text-cyan-300 font-medium group-hover:text-cyan-200">My Users</span>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                                    <FaUsers className="w-4 h-4 text-blue-400" />
+                                                </div>
+                                                <span className="text-blue-300 font-bold text-sm group-hover:text-blue-200 transition-colors">View Player Details</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 sm:py-3.5 text-right">
+                                        <td className="px-6 py-4 text-right">
                                             <div className="inline-flex items-center gap-2">
-                                                <span className="text-sm sm:text-base font-semibold text-white">{formatNumber(data.totalUsers)} players</span>
-                                                <FaChevronRight className="w-3 h-3 text-gray-600 group-hover:text-cyan-400 transition-colors" />
+                                                <span className="font-bold text-white">{formatNumber(data.totalUsers)} players</span>
+                                                <FaChevronRight className="w-3 h-3 text-slate-600 group-hover:text-blue-400 transition-colors group-hover:translate-x-1" />
                                             </div>
-                                        </td>
-                                    </tr>
-
-                                    {/* Calculation row */}
-                                    <tr className="bg-gray-700/20">
-                                        <td colSpan="2" className="px-4 py-3">
-                                            {isBookieCollects ? (
-                                                <div className="text-xs sm:text-sm text-gray-400 text-center space-y-1">
-                                                    <div>
-                                                        {formatCurrency(data.totalBetAmount)}
-                                                        <span className="text-gray-600 mx-1.5">−</span>
-                                                        <span className="text-purple-400 font-medium">{formatCurrency(data.platformCharge)} (platform)</span>
-                                                        <span className="text-gray-600 mx-1.5">−</span>
-                                                        <span className="text-red-400 font-medium">{formatCurrency(data.totalPayouts)} (payouts)</span>
-                                                        <span className="text-gray-600 mx-1.5">=</span>
-                                                        <span className={`font-bold ${data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(data.bookieRevenue)}</span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-xs sm:text-sm text-gray-400 text-center">
-                                                    {formatCurrency(data.totalBetAmount)}
-                                                    <span className="text-gray-600 mx-1.5">&times;</span>
-                                                    <span className="text-yellow-400 font-medium">{data.commissionPercentage}%</span>
-                                                    <span className="text-gray-600 mx-1.5">=</span>
-                                                    <span className="text-emerald-400 font-bold">{formatCurrency(data.bookieRevenue)}</span>
-                                                </div>
-                                            )}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+
+                            {/* Calculation Formula Display */}
+                            <div className="px-6 py-4 bg-black/40 border-t border-white/5">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Calculation</p>
+                                {isBookieCollects ? (
+                                    <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-mono text-slate-400">
+                                        <span className="text-white">{formatCurrency(data.totalBetAmount)}</span>
+                                        <span className="text-slate-600">–</span>
+                                        <span className="text-purple-400">{formatCurrency(data.platformCharge)}</span>
+                                        <span className="text-slate-600">–</span>
+                                        <span className="text-red-400">{formatCurrency(data.totalPayouts)}</span>
+                                        <span className="text-slate-600">=</span>
+                                        <span className={`${data.bookieRevenue >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold`}>{formatCurrency(data.bookieRevenue)}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-mono text-slate-400">
+                                        <span className="text-white">{formatCurrency(data.totalBetAmount)}</span>
+                                        <span className="text-slate-600">&times;</span>
+                                        <span className="text-amber-400">{data.commissionPercentage}%</span>
+                                        <span className="text-slate-600">=</span>
+                                        <span className="text-emerald-400 font-bold">{formatCurrency(data.bookieRevenue)}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </>
                 ) : (
-                    <div className="bg-gray-800/60 rounded-xl border border-gray-700/80 p-8 sm:p-12 text-center">
-                        <FaMoneyBillWave className="w-12 h-12 sm:w-16 sm:h-16 text-gray-600 mx-auto mb-4" />
-                        <p className="text-gray-400 text-sm sm:text-lg">No revenue data available</p>
-                        <p className="text-gray-500 text-xs sm:text-sm mt-2">Try a different date range or refresh</p>
+                    <div className="glass-panel p-16 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                            <FaMoneyBillWave className="w-8 h-8 text-slate-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">No Revenue Data</h3>
+                        <p className="text-slate-400 max-w-sm mx-auto mb-6">
+                            We couldn't find any revenue information for this period.
+                        </p>
                     </div>
                 )}
             </div>

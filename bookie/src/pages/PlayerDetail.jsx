@@ -19,53 +19,65 @@ const formatDateRange = (from, to) => {
 };
 
 const STATEMENT_PRESETS = [
-    { id: 'today', label: '1 Day (Today)', getRange: () => {
-        const d = new Date();
-        const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return { from, to: from };
-    }},
-    { id: 'tomorrow', label: 'Tomorrow', getRange: () => {
-        const d = new Date();
-        d.setDate(d.getDate() + 1);
-        const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        return { from, to: from };
-    }},
-    { id: 'this_week', label: 'This Week', getRange: () => {
-        const d = new Date();
-        const day = d.getDay();
-        const sun = new Date(d);
-        sun.setDate(d.getDate() - day);
-        const sat = new Date(sun);
-        sat.setDate(sun.getDate() + 6);
-        const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
-        return { from: fmt(sun), to: fmt(sat) };
-    }},
-    { id: 'last_week', label: 'Last Week', getRange: () => {
-        const d = new Date();
-        const day = d.getDay();
-        const sun = new Date(d);
-        sun.setDate(d.getDate() - day - 7);
-        const sat = new Date(sun);
-        sat.setDate(sun.getDate() + 6);
-        const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
-        return { from: fmt(sun), to: fmt(sat) };
-    }},
-    { id: 'this_month', label: 'This Month', getRange: () => {
-        const d = new Date();
-        const y = d.getFullYear(), m = d.getMonth();
-        const last = new Date(y, m + 1, 0);
-        const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-        const to = `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
-        return { from, to };
-    }},
-    { id: 'last_month', label: 'Last Month', getRange: () => {
-        const d = new Date();
-        const y = d.getFullYear(), m = d.getMonth() - 1;
-        const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-        const last = new Date(y, m + 1, 0);
-        const to = `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
-        return { from, to };
-    }},
+    {
+        id: 'today', label: '1 Day (Today)', getRange: () => {
+            const d = new Date();
+            const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return { from, to: from };
+        }
+    },
+    {
+        id: 'tomorrow', label: 'Tomorrow', getRange: () => {
+            const d = new Date();
+            d.setDate(d.getDate() + 1);
+            const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return { from, to: from };
+        }
+    },
+    {
+        id: 'this_week', label: 'This Week', getRange: () => {
+            const d = new Date();
+            const day = d.getDay();
+            const sun = new Date(d);
+            sun.setDate(d.getDate() - day);
+            const sat = new Date(sun);
+            sat.setDate(sun.getDate() + 6);
+            const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+            return { from: fmt(sun), to: fmt(sat) };
+        }
+    },
+    {
+        id: 'last_week', label: 'Last Week', getRange: () => {
+            const d = new Date();
+            const day = d.getDay();
+            const sun = new Date(d);
+            sun.setDate(d.getDate() - day - 7);
+            const sat = new Date(sun);
+            sat.setDate(sun.getDate() + 6);
+            const fmt = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+            return { from: fmt(sun), to: fmt(sat) };
+        }
+    },
+    {
+        id: 'this_month', label: 'This Month', getRange: () => {
+            const d = new Date();
+            const y = d.getFullYear(), m = d.getMonth();
+            const last = new Date(y, m + 1, 0);
+            const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            const to = `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
+            return { from, to };
+        }
+    },
+    {
+        id: 'last_month', label: 'Last Month', getRange: () => {
+            const d = new Date();
+            const y = d.getFullYear(), m = d.getMonth() - 1;
+            const from = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            const last = new Date(y, m + 1, 0);
+            const to = `${y}-${String(m + 1).padStart(2, '0')}-${String(last.getDate()).padStart(2, '0')}`;
+            return { from, to };
+        }
+    },
 ];
 
 const PlayerDetail = () => {
@@ -354,127 +366,126 @@ const PlayerDetail = () => {
     }
 
     return (
-        <Layout title="Player">
+        <Layout title="Player Details">
             <div className="min-w-0 max-w-full">
-            {/* Breadcrumb */}
-            <div className="mb-4">
-                <Link to="/my-users" className="text-gray-400 hover:text-yellow-500 text-sm inline-flex items-center gap-1 mb-2">
-                    <FaArrowLeft className="w-4 h-4" /> My Players
-                </Link>
-                <h1 className="text-2xl sm:text-3xl font-bold">Player <span className="text-gray-400 font-normal">» {player.username}</span></h1>
-            </div>
+                {/* Breadcrumb */}
+                <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <Link to="/my-users" className="text-slate-400 hover:text-amber-500 text-sm inline-flex items-center gap-2 mb-2 transition-colors">
+                            <FaArrowLeft className="w-3 h-3" /> Back to Players
+                        </Link>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                            {player.username}
+                            <span className="text-sm font-normal px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                                {player.role || 'Player'}
+                            </span>
+                        </h1>
+                    </div>
+                </div>
 
-            {/* Player info card */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6 min-w-0">
-                <div className="px-4 sm:px-6 py-4 border-b border-gray-700 flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-lg font-semibold text-yellow-500">Player Information</h2>
-                    <div className="flex flex-wrap items-center gap-3">
+                {/* Player info card */}
+                <div className="glass-panel rounded-2xl p-6 mb-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
+                        <div className="w-32 h-32 bg-amber-500/20 rounded-full blur-3xl"></div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-6 mb-6 border-b border-white/5 pb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-black font-bold text-xl shadow-lg shadow-amber-500/20">
+                                {player.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white">Player Overview</h2>
+                                <p className="text-slate-400 text-sm">Manage profile and wallet</p>
+                            </div>
+                        </div>
                         <button
                             type="button"
                             onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); setWalletSetBalance(''); }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-green-700 hover:bg-green-600 text-white transition-colors"
-                            title="Edit wallet"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
                         >
-                            <FaWallet className="w-4 h-4" /> Edit Wallet
+                            <FaWallet className="w-4 h-4" /> Manage Wallet
                         </button>
                     </div>
-                </div>
-                <div className="p-4 sm:p-6 min-w-0">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 text-sm">
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">UserID</p>
-                            <p className="text-white font-mono truncate" title={player.username}>{player.username}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">First Name</p>
-                            <p className="text-white truncate">{player.username || '—'}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Last Name</p>
-                            <p className="text-white">—</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Email</p>
-                            <p className="text-white truncate" title={player.email}>{player.email || '—'}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Name</p>
-                            <p className="text-white truncate">{player.username}</p>
-                        </div>
-                        <div className="min-w-0 col-span-2 sm:col-span-1">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Id</p>
-                            <p className="text-gray-300 font-mono text-xs truncate break-all" title={player._id}>{player._id}</p>
-                        </div>
-                        <div className="min-w-0 col-span-2 sm:col-span-1">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Device ID</p>
-                            <p className="text-gray-300 font-mono text-xs truncate break-all" title={player.lastLoginDeviceId || ''}>{player.lastLoginDeviceId || '—'}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">IP Address</p>
-                            <p className="text-gray-300 font-mono text-xs truncate" title={player.lastLoginIp || ''}>{formatIpDisplay(player.lastLoginIp)}</p>
-                        </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Status</p>
-                            <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-medium ${player.isActive !== false ? 'bg-green-900/50 text-green-400 border border-green-700' : 'bg-red-900/50 text-red-400 border border-red-700'}`}>
-                                {player.isActive !== false ? 'ALLOW' : 'SUSPENDED'}
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                        <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Status</p>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${player.isActive !== false ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${player.isActive !== false ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
+                                {player.isActive !== false ? 'Active' : 'Suspended'}
                             </span>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Balance</p>
-                            <p className="text-green-400 font-mono font-semibold">{player.walletBalance ?? 0}</p>
+                        <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Wallet Balance</p>
+                            <p className="text-emerald-400 font-mono font-bold text-lg">{formatCurrency(player.walletBalance)}</p>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Exchange Balance</p>
-                            <p className="text-gray-300">0</p>
+                        <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Phone</p>
+                            <p className="text-white font-medium truncate">{player.phone || '—'}</p>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-gray-500 uppercase tracking-wider text-xs">Bonus Balance</p>
-                            <p className="text-gray-300">0</p>
+                        <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Email</p>
+                            <p className="text-white font-medium truncate" title={player.email}>{player.email || '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Joined</p>
+                            <p className="text-white font-medium text-sm">{player.createdAt ? new Date(player.createdAt).toLocaleDateString('en-IN') : '—'}</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Date range */}
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="text-gray-400 text-sm">Date range:</span>
+                {/* Date range & Filters */}
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 glass-panel p-2 rounded-xl">
+                    <div className="flex bg-black/20 rounded-lg p-1">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${activeTab === tab.id ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
                     <div className="relative" ref={dropdownRef}>
                         <button
                             type="button"
                             onClick={() => setCalendarOpen((o) => !o)}
-                            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-gray-200"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black/20 border border-white/10 hover:bg-white/5 text-sm text-slate-200 transition-colors"
                         >
-                            <FaCalendarAlt className="w-4 h-4 text-yellow-500" />
-                            {statementFrom && statementTo ? formatDateRange(statementFrom, statementTo) : 'Select Date'}
+                            <FaCalendarAlt className="w-4 h-4 text-amber-500" />
+                            {statementFrom && statementTo ? formatDateRange(statementFrom, statementTo) : 'Select Date Range'}
                         </button>
                         {calendarOpen && (
-                            <div className="absolute left-0 top-full mt-2 py-3 rounded-xl bg-gray-800 border border-gray-600 shadow-xl z-50 flex flex-col sm:flex-row gap-4 max-w-[100vw]">
-                                <div className="min-w-0 sm:min-w-[200px] py-1">
+                            <div className="absolute right-0 top-full mt-2 glass-panel rounded-xl border border-white/10 shadow-2xl z-50 flex flex-col sm:flex-row shadow-black/50 overflow-hidden">
+                                <div className="min-w-[180px] border-b sm:border-b-0 sm:border-r border-white/5 p-2 bg-black/40">
                                     {STATEMENT_PRESETS.map((p) => (
                                         <button
                                             key={p.id}
                                             type="button"
                                             onClick={() => handlePresetSelect(p.id)}
-                                            className="w-full text-left px-4 py-2.5 text-sm text-gray-200 hover:bg-gray-700 flex items-center gap-2"
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors flex items-center justify-between ${statementPreset === p.id ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                                         >
-                                            {statementPreset === p.id ? <span className="text-yellow-500">●</span> : <span className="w-2" />}
                                             {p.label}
+                                            {statementPreset === p.id && <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>}
                                         </button>
                                     ))}
                                 </div>
-                                <div className="border-t sm:border-t-0 sm:border-l border-gray-600 pt-3 sm:pt-0 sm:pl-4 pr-4 min-w-0 sm:min-w-[200px]">
-                                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-2">Custom Date Range</div>
-                                    <div className="space-y-2">
+                                <div className="p-4 bg-[#0B1120]">
+                                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Custom Range</div>
+                                    <div className="space-y-3">
                                         <div>
-                                            <label className="block text-xs text-gray-400 mb-1">From</label>
-                                            <input type="date" value={statementFrom} onChange={(e) => setStatementFrom(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
+                                            <label className="block text-xs text-slate-400 mb-1.5">From</label>
+                                            <input type="date" value={statementFrom} onChange={(e) => setStatementFrom(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 focus:outline-none" />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-gray-400 mb-1">To</label>
-                                            <input type="date" value={statementTo} onChange={(e) => setStatementTo(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
+                                            <label className="block text-xs text-slate-400 mb-1.5">To</label>
+                                            <input type="date" value={statementTo} onChange={(e) => setStatementTo(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 focus:outline-none" />
                                         </div>
-                                        <button type="button" onClick={handleDateApply} className="w-full py-2 rounded-lg bg-yellow-500 text-black font-semibold text-sm">
-                                            Apply
+                                        <button type="button" onClick={handleDateApply} className="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-colors mt-2">
+                                            Apply Filter
                                         </button>
                                     </div>
                                 </div>
@@ -483,174 +494,246 @@ const PlayerDetail = () => {
                     </div>
                 </div>
 
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-2 mb-4 border-b border-gray-700 pb-2">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-2 rounded-lg font-semibold text-sm transition-colors ${activeTab === tab.id ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+                {/* Tab content */}
+                <div className="glass-panel rounded-2xl overflow-hidden min-h-[300px]">
+                    {activeTab === 'statement' && (
+                        <>
+                            {loadingTab ? (
+                                <div className="p-12 text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />
+                                    <p className="text-slate-400">Loading transactions...</p>
+                                </div>
+                            ) : statementData.length === 0 ? (
+                                <div className="p-12 text-center text-slate-500">No account activity found in this period.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead>
+                                            <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                                <th className="px-4 py-3 font-semibold">Date</th>
+                                                <th className="px-4 py-3 font-semibold">Description</th>
+                                                <th className="px-4 py-3 font-semibold">Type</th>
+                                                <th className="px-4 py-3 font-semibold text-right">Credit</th>
+                                                <th className="px-4 py-3 font-semibold text-right">Debit</th>
+                                                <th className="px-4 py-3 font-semibold text-right">Balance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {statementData.map((row, i) => (
+                                                <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                    <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
+                                                        {row.date.toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="font-medium text-white">{row.name}</div>
+                                                        <div className={`text-xs inline-flex px-1.5 py-0.5 rounded font-bold mt-1 ${row.status === 'WIN' || row.status === 'CREDIT' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{row.status}</div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-slate-400">{row.type}</td>
+                                                    <td className="px-4 py-3 text-right font-mono text-emerald-400">{row.credited ? `+${row.credited}` : '—'}</td>
+                                                    <td className="px-4 py-3 text-right font-mono text-red-400">{row.debited ? `-${row.debited}` : '—'}</td>
+                                                    <td className="px-4 py-3 text-right font-mono font-bold text-white">{formatCurrency(row.runningBalance)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </>
+                    )}
 
-            {/* Tab content */}
-            <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden min-h-[200px] min-w-0 max-w-full">
-                {activeTab === 'statement' && (
-                    <>
-                        {loadingTab ? (
-                            <div className="p-8 text-center text-gray-400">Loading...</div>
-                        ) : statementData.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">No transactions in this period.</div>
-                        ) : (
-                            <div className="divide-y divide-gray-700">
-                                {statementData.map((row, i) => (
-                                    <div key={i} className="p-4 sm:p-5 hover:bg-gray-700/20">
-                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-gray-600/50">
-                                            <span className="text-yellow-400 font-mono font-medium">{row.name}</span>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${row.status === 'WIN' || row.status === 'CREDIT' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>{row.status}</span>
+                    {activeTab === 'wallet' && (
+                        <>
+                            {loadingTab ? (
+                                <div className="p-12 text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />
+                                    <p className="text-slate-400">Loading wallet history...</p>
+                                </div>
+                            ) : walletTx.length === 0 ? (
+                                <div className="p-12 text-center text-slate-500">No wallet transactions found.</div>
+                            ) : (
+                                <div className="divide-y divide-white/5">
+                                    {walletTx.map((t) => (
+                                        <div key={t._id} className="p-4 hover:bg-white/5 flex items-center justify-between gap-4 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${t.type === 'credit' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                                                    <FaWallet className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-medium">{t.description || 'Wallet Transaction'}</p>
+                                                    <p className="text-xs text-slate-400">{new Date(t.createdAt).toLocaleString('en-IN')}</p>
+                                                </div>
+                                            </div>
+                                            <div className={`font-mono font-bold text-lg ${t.type === 'credit' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {t.type === 'credit' ? '+' : '-'}{formatCurrency(t.amount)}
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Type</p><p className="text-gray-200 truncate">{row.type}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Name</p><p className="text-yellow-400 font-mono truncate">{row.name}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Status</p><p className="text-gray-200">{row.status}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Last Balance</p><p className="text-gray-300 font-mono">{row.lastBalance}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Credited</p><p className="text-green-400 font-mono">{row.credited || '—'}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Debited</p><p className="text-red-400 font-mono">{row.debited || '—'}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Running Balance</p><p className="text-white font-mono font-medium">{row.runningBalance}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Last Bonus Balance</p><p className="text-gray-400 font-mono">{row.lastBonusBalance ?? 0}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Running Bonus Balance</p><p className="text-gray-400 font-mono">{row.runningBonusBalance ?? 0}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Last Exchange Balance</p><p className="text-gray-400 font-mono">{row.lastExchangeBalance ?? 0}</p></div>
-                                            <div className="min-w-0"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Running Exchange Balance</p><p className="text-gray-400 font-mono">{row.runningExchangeBalance ?? 0}</p></div>
-                                            <div className="min-w-0 col-span-2 sm:col-span-1"><p className="text-gray-500 uppercase tracking-wider mb-0.5">Updated</p><p className="text-gray-400">{row.date.toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}</p></div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'bets' && (
+                        <>
+                            {loadingTab ? (
+                                <div className="p-12 text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />
+                                    <p className="text-slate-400">Loading bet history...</p>
+                                </div>
+                            ) : bets.length === 0 ? (
+                                <div className="p-12 text-center text-slate-500">No betting activity found.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead>
+                                            <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                                <th className="px-4 py-3 font-semibold">Time</th>
+                                                <th className="px-4 py-3 font-semibold">Market</th>
+                                                <th className="px-4 py-3 font-semibold">Bet Number</th>
+                                                <th className="px-4 py-3 font-semibold">Amount</th>
+                                                <th className="px-4 py-3 font-semibold">Result</th>
+                                                <th className="px-4 py-3 font-semibold text-right">Payout</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {bets.map((b) => (
+                                                <tr key={b._id} className="hover:bg-white/5 transition-colors">
+                                                    <td className="px-4 py-3 text-slate-400 text-xs">
+                                                        {new Date(b.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-white font-medium">{b.marketId?.marketName || '—'} <span className="text-slate-500 text-xs font-normal">({b.betType})</span></td>
+                                                    <td className="px-4 py-3 font-mono text-amber-400 font-bold">{b.betNumber}</td>
+                                                    <td className="px-4 py-3 font-mono text-white">{formatCurrency(b.amount)}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase ${b.status === 'won' ? 'bg-emerald-500/10 text-emerald-400' : b.status === 'lost' ? 'bg-red-500/10 text-red-400' : 'bg-slate-700 text-slate-300'}`}>
+                                                            {b.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right font-mono font-bold text-emerald-400">{b.payout > 0 ? formatCurrency(b.payout) : '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {activeTab === 'profile' && (
+                        <div className="p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-4xl">
+                                <div>
+                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                        <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                                        Personal Info
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Username</span>
+                                            <span className="text-white font-medium">{player.username}</span>
+                                        </div>
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Email</span>
+                                            <span className="text-white font-medium">{player.email}</span>
+                                        </div>
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Phone</span>
+                                            <span className="text-white font-medium">{player.phone || '—'}</span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {activeTab === 'wallet' && (
-                    <>
-                        {loadingTab ? (
-                            <div className="p-8 text-center text-gray-400">Loading...</div>
-                        ) : walletTx.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">No wallet transactions.</div>
-                        ) : (
-                            <div className="divide-y divide-gray-700 min-w-0">
-                                {walletTx.map((t) => (
-                                    <div key={t._id} className="p-4 hover:bg-gray-700/20 flex flex-wrap items-center justify-between gap-3">
-                                        <div className="min-w-0 flex-1">
-                                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mr-2 ${t.type === 'credit' ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>{t.type}</span>
-                                            <span className="text-gray-200 text-sm break-words">{t.description || '—'}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                        <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                                        System Info
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Unique ID</span>
+                                            <span className="text-white font-mono text-xs">{player._id}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 shrink-0">
-                                            <span className="font-mono font-medium text-sm">{t.type === 'credit' ? '+' : '-'}{formatCurrency(t.amount)}</span>
-                                            <span className="text-gray-400 text-xs">{new Date(t.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Created At</span>
+                                            <span className="text-white font-medium">{player.createdAt ? new Date(player.createdAt).toLocaleString('en-IN') : '—'}</span>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {activeTab === 'bets' && (
-                    <>
-                        {loadingTab ? (
-                            <div className="p-8 text-center text-gray-400">Loading...</div>
-                        ) : bets.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">No bets.</div>
-                        ) : (
-                            <div className="divide-y divide-gray-700 min-w-0">
-                                {bets.map((b) => (
-                                    <div key={b._id} className="p-4 hover:bg-gray-700/20">
-                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                            <span className="text-yellow-400 font-mono font-medium">{b.betNumber}</span>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${b.status === 'won' ? 'bg-green-900/50 text-green-400' : b.status === 'lost' ? 'bg-red-900/50 text-red-400' : 'bg-gray-600 text-gray-300'}`}>{b.status}</span>
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Last IP</span>
+                                            <span className="text-white font-mono text-xs">{formatIpDisplay(player.lastLoginIp)}</span>
                                         </div>
-                                        <p className="text-gray-400 text-xs mb-2">{b.marketId?.marketName || '—'} · {b.betType || '—'}</p>
-                                        <div className="flex flex-wrap gap-4 text-sm">
-                                            <span><span className="text-gray-500">Amount</span> <span className="text-white font-mono">{formatCurrency(b.amount)}</span></span>
-                                            <span><span className="text-gray-500">Payout</span> <span className="text-green-400 font-mono">{formatCurrency(b.payout)}</span></span>
-                                            <span className="text-gray-400 text-xs">{new Date(b.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                            <span className="text-slate-400">Source</span>
+                                            <span className="text-white font-medium capitalize">{player.source}</span>
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        )}
-                    </>
-                )}
-
-                {activeTab === 'profile' && (
-                    <div className="p-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-                            <div><p className="text-gray-500 text-sm">Name</p><p className="text-white">{player.username}</p></div>
-                            <div><p className="text-gray-500 text-sm">Email</p><p className="text-white">{player.email}</p></div>
-                            <div><p className="text-gray-500 text-sm">Phone</p><p className="text-white">{player.phone || '—'}</p></div>
-                            <div><p className="text-gray-500 text-sm">Role</p><p className="text-white capitalize">{player.role || 'Player'}</p></div>
-                            <div><p className="text-gray-500 text-sm">Source</p><p className="text-white">{player.source === 'bookie' ? 'Bookie' : 'Super Admin'}</p></div>
-                            <div><p className="text-gray-500 text-sm">Created</p><p className="text-white">{player.createdAt ? new Date(player.createdAt).toLocaleString('en-IN') : '—'}</p></div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Edit Wallet Modal */}
             {walletModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
-                    <div className="bg-gray-800 rounded-xl border border-gray-600 shadow-xl w-full max-w-md">
-                        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-yellow-500">Edit Wallet</h3>
-                            <button type="button" onClick={() => setWalletModalOpen(false)} className="text-gray-400 hover:text-white p-1">×</button>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="glass-panel bg-[#0B1120] rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <FaWallet className="text-amber-500" /> Adjust Wallet Balance
+                            </h3>
+                            <button type="button" onClick={() => setWalletModalOpen(false)} className="text-slate-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
                         </div>
-                        <div className="p-4 space-y-4">
-                            <div className="rounded-lg bg-gray-700/50 px-3 py-2">
-                                <p className="text-gray-400 text-xs uppercase tracking-wider">Current Balance</p>
-                                <p className="text-green-400 font-mono font-bold text-xl">{formatCurrency(player?.walletBalance ?? 0)}</p>
+                        <div className="p-6 space-y-6">
+                            <div className="rounded-xl bg-black/30 border border-white/5 p-4 flex items-center justify-between">
+                                <span className="text-slate-400 text-sm font-medium">Current Balance</span>
+                                <span className="text-emerald-400 font-mono font-bold text-2xl">{formatCurrency(player?.walletBalance ?? 0)}</span>
                             </div>
+
                             {walletActionError && (
-                                <div className="rounded-lg bg-red-900/30 border border-red-600/50 text-red-200 text-sm px-3 py-2">{walletActionError}</div>
+                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm px-4 py-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                    {walletActionError}
+                                </div>
                             )}
-                            <div>
-                                <p className="text-gray-400 text-sm mb-2">Add (Credit) or Deduct (Debit)</p>
+
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Add or Deduct Amount</label>
                                 <div className="flex gap-2">
                                     <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        placeholder="Amount"
+                                        type="text"
+                                        placeholder="0"
                                         value={walletAdjustAmount}
-                                        onChange={(e) => setWalletAdjustAmount(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                                        className="flex-1 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
+                                        onChange={(e) => setWalletAdjustAmount(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        className="flex-1 px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 text-right font-mono font-bold"
                                     />
-                                    <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold disabled:opacity-50">Add</button>
-                                    <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold disabled:opacity-50">Deduct</button>
+                                    <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50">Credit (+)</button>
+                                    <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50">Debit (-)</button>
                                 </div>
                             </div>
-                            <div>
-                                <p className="text-gray-400 text-sm mb-2">Set balance to (exact value)</p>
+
+                            <div className="relative flex items-center py-2">
+                                <div className="flex-grow border-t border-white/10"></div>
+                                <span className="flex-shrink-0 mx-4 text-slate-500 text-xs uppercase">OR Set Exact Value</span>
+                                <div className="flex-grow border-t border-white/10"></div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Set Exact Balance</label>
                                 <div className="flex gap-2">
                                     <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        placeholder="New balance"
+                                        type="text"
+                                        placeholder="0"
                                         value={walletSetBalance}
-                                        onChange={(e) => setWalletSetBalance(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                                        className="flex-1 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
+                                        onChange={(e) => setWalletSetBalance(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                        className="flex-1 px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 text-right font-mono font-bold"
                                     />
-                                    <button type="button" onClick={handleWalletSetBalance} disabled={walletActionLoading} className="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-500 text-black font-semibold disabled:opacity-50">Set</button>
+                                    <button type="button" onClick={handleWalletSetBalance} disabled={walletActionLoading} className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20">Set</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
-            </div>
         </Layout>
     );
 };

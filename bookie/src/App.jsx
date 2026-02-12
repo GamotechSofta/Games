@@ -21,17 +21,17 @@ import Settings from './pages/Settings';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+    const { pathname } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'instant'
-    });
-  }, [pathname]);
+    useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: 'instant'
+        });
+    }, [pathname]);
 
-  return null;
+    return null;
 };
 
 const BookieHeartbeat = () => {
@@ -44,8 +44,11 @@ const PrivateRoute = ({ children }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-                <div className="text-emerald-500 animate-pulse">Loading...</div>
+            <div className="min-h-screen bg-[#0B1120] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
+                    <div className="text-amber-500 font-bold animate-pulse">Loading Panel...</div>
+                </div>
             </div>
         );
     }
