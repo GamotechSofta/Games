@@ -58,16 +58,17 @@ export const getDashboardStats = async (req, res) => {
             }).length;
         });
 
-        // Revenue & Bets in selected range
+        // Revenue & Bets in selected range (exclude cancelled – they are refunded)
+        const betMatchNoCancelled = { ...dateMatch, ...betFilter, status: { $ne: 'cancelled' } };
         const totalRevenue = await Bet.aggregate([
-            { $match: { ...dateMatch, ...betFilter } },
+            { $match: betMatchNoCancelled },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
         const totalPayouts = await Bet.aggregate([
             { $match: { status: 'won', ...dateMatch, ...betFilter } },
             { $group: { _id: null, total: { $sum: '$payout' } } },
         ]);
-        const totalBets = await Bet.countDocuments({ ...dateMatch, ...betFilter });
+        const totalBets = await Bet.countDocuments(betMatchNoCancelled);
         const winningBets = await Bet.countDocuments({ status: 'won', ...dateMatch, ...betFilter });
         const losingBets = await Bet.countDocuments({ status: 'lost', ...dateMatch, ...betFilter });
         const pendingBets = await Bet.countDocuments({ status: 'pending', ...betFilter });

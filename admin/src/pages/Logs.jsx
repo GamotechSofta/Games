@@ -27,10 +27,12 @@ const ACTION_LABELS = {
     help_ticket_update: 'Help Ticket Update',
     suspend_player: 'Suspend Player',
     unsuspend_player: 'Unsuspend Player',
+    bet_cancelled: 'Bet Cancelled',
 };
 
 const TYPE_LABELS = {
     super_admin: 'Super Admin',
+    user: 'User',
     admin: 'Admin',
     bookie: 'Bookie',
     user: 'Player',

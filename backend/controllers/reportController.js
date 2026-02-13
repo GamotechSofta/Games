@@ -20,9 +20,10 @@ export const getReport = async (req, res) => {
             dateFilter.userId = { $in: bookieUserIds };
         }
 
-        // Total revenue (from all bets)
+        // Total revenue (from all bets; exclude cancelled – they are refunded)
+        const revenueFilter = { ...dateFilter, status: { $ne: 'cancelled' } };
         const totalRevenue = await Bet.aggregate([
-            { $match: dateFilter },
+            { $match: revenueFilter },
             { $group: { _id: null, total: { $sum: '$amount' } } },
         ]);
 
@@ -33,8 +34,8 @@ export const getReport = async (req, res) => {
             { $group: { _id: null, total: { $sum: '$payout' } } },
         ]);
 
-        // Total bets
-        const totalBets = await Bet.countDocuments(dateFilter);
+        // Total bets (exclude cancelled for counts)
+        const totalBets = await Bet.countDocuments(revenueFilter);
 
         // Winning and losing bets
         const winningBets = await Bet.countDocuments({ status: 'won', ...dateFilter });
@@ -143,7 +144,7 @@ export const getRevenueReport = async (req, res) => {
             }
 
             const [betAgg] = await Bet.aggregate([
-                { $match: betFilter },
+                { $match: { ...betFilter, status: { $ne: 'cancelled' } } },
                 { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
             ]);
 
@@ -248,7 +249,7 @@ export const getRevenueReport = async (req, res) => {
             const betFilter = { ...dateFilter, userId: { $in: userIds } };
 
             const [betAgg] = await Bet.aggregate([
-                { $match: betFilter },
+                { $match: { ...betFilter, status: { $ne: 'cancelled' } } },
                 { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
             ]);
 
@@ -307,7 +308,7 @@ export const getRevenueReport = async (req, res) => {
             const betFilter = { ...dateFilter, userId: { $in: directUserIds } };
 
             const [betAgg] = await Bet.aggregate([
-                { $match: betFilter },
+                { $match: { ...betFilter, status: { $ne: 'cancelled' } } },
                 { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
             ]);
 
@@ -412,7 +413,7 @@ export const getBookieRevenueDetail = async (req, res) => {
             const betFilter = { ...dateFilter, userId: { $in: userIds } };
 
             const [betAgg] = await Bet.aggregate([
-                { $match: betFilter },
+                { $match: { ...betFilter, status: { $ne: 'cancelled' } } },
                 { $group: { _id: null, totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
             ]);
             const [payoutAgg] = await Bet.aggregate([
@@ -456,7 +457,7 @@ export const getBookieRevenueDetail = async (req, res) => {
         const userBetSummary = [];
         if (userIds.length > 0) {
             const perUser = await Bet.aggregate([
-                { $match: { userId: { $in: userIds }, ...dateFilter } },
+                { $match: { userId: { $in: userIds }, ...dateFilter, status: { $ne: 'cancelled' } } },
                 {
                     $group: {
                         _id: '$userId',

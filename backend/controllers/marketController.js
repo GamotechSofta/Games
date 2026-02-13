@@ -885,8 +885,8 @@ export const previewDeclareKingBazaar = async (req, res) => {
         const singleDigitRate = getRateForKey(rates, 'single');
         const jodiRate = getRateForKey(rates, 'jodi');
 
-        // Build base query for all bets
-        const baseQuery = { marketId: market._id };
+        // Build base query for all bets (exclude cancelled so stats match market detail)
+        const baseQuery = { marketId: market._id, status: { $ne: 'cancelled' } };
         if (bookieUserIds && bookieUserIds.length > 0) {
             baseQuery.bookieUserId = { $in: bookieUserIds };
         }
@@ -1123,7 +1123,7 @@ export const getMarketStats = async (req, res) => {
         }
 
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const matchFilter = { marketId };
+        const matchFilter = { marketId, status: { $ne: 'cancelled' } };
         if (bookieUserIds !== null) {
             matchFilter.userId = { $in: bookieUserIds };
         }
@@ -1437,7 +1437,7 @@ export const getSinglePattiSummary = async (req, res) => {
         if (!market) return res.status(404).json({ success: false, message: 'Market not found' });
 
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const matchFilter = { marketId };
+        const matchFilter = { marketId, status: { $ne: 'cancelled' } };
         if (bookieUserIds !== null) matchFilter.userId = { $in: bookieUserIds };
         const dateKey = date || toDateKeyIST(new Date());
         const startOfDay = new Date(`${dateKey}T00:00:00+05:30`);

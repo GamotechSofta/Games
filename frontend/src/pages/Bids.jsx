@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
-import { getRatesCurrent } from '../api/bets';
+import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import ResultDatePicker from '../components/ResultDatePicker';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 
@@ -261,6 +261,13 @@ const Bids = () => {
   const [draftStatuses, setDraftStatuses] = useState([]);
   const [draftMarkets, setDraftMarkets] = useState([]);
 
+  const [markets, setMarkets] = useState([]);
+  const [ratesMap, setRatesMap] = useState(null);
+  const [apiBets, setApiBets] = useState([]);
+  const [cancellingBetId, setCancellingBetId] = useState(null);
+  const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
+  const [localVersion, setLocalVersion] = useState(0);
+
   // Keep selected desktop panel on refresh (via ?tab=...)
   useEffect(() => {
     const t = TAB_TO_TITLE[tabParam];
@@ -307,14 +314,8 @@ const Bids = () => {
   const desktopBetHistory = useMemo(() => {
     const u = safeParse(localStorage.getItem('user') || 'null', null);
     const uid = u?._id || u?.id || u?.userId || u?.userid || u?.user_id || u?.uid || null;
-    const all = safeParse(localStorage.getItem('betHistory') || '[]', []);
-    const list = Array.isArray(all) ? all : [];
-    const onlyMine = uid ? list.filter((x) => x?.userId === uid) : [];
-    return { uid, items: onlyMine };
-  }, []);
-
-  const [markets, setMarkets] = useState([]);
-  const [ratesMap, setRatesMap] = useState(null);
+    return { uid, items: apiBets };
+  }, [apiBets]);
 
   const toDateKeyIST = (d) => {
     try {
@@ -394,6 +395,152 @@ const Bids = () => {
     return () => { alive = false; };
   }, []);
 
+  // Fetch bets from API
+  useEffect(() => {
+    let alive = true;
+    const fetchBets = async () => {
+      const result = await getMyBetHistory();
+      if (!alive) return;
+      if (result?.success && Array.isArray(result?.data)) {
+        setApiBets(result.data);
+      }
+    };
+    fetchBets();
+    const id = setInterval(fetchBets, 30000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [localVersion]);
+
+  // Function to check if a bet can be cancelled
+  const canCancelBet = (bet) => {
+    if (!bet || bet.status !== 'pending') {
+      return { canCancel: false, reason: `Status: ${bet?.status || 'unknown'}` };
+    }
+
+    const market = bet.marketId;
+    if (!market) {
+      return { canCancel: false, reason: 'Market not found' };
+    }
+
+    const now = new Date();
+    const betPlacedAt = new Date(bet.createdAt);
+    const timeSinceBetPlaced = (now - betPlacedAt) / 1000 / 60; // minutes
+
+    // Rule 1: Check if within 30 minutes of placing bet
+    if (timeSinceBetPlaced > 30) {
+      return { canCancel: false, reason: 'Can only cancel within 30 minutes of placing' };
+    }
+
+    // Rule 2: Check if at least 30 minutes before market closing
+    const closeStr = (market?.closingTime || '').toString().trim();
+    if (!closeStr) {
+      return { canCancel: false, reason: 'Market timing not configured' };
+    }
+
+    try {
+      const getTodayIST = () => {
+        return new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(new Date());
+      };
+
+      const normalizeTimeStr = (timeStr) => {
+        const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
+        return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
+      };
+
+      const parseISTDateTime = (isoStr) => {
+        const d = new Date(isoStr);
+        return isNaN(d.getTime()) ? null : d.getTime();
+      };
+
+      const todayIST = getTodayIST();
+      const openAt = parseISTDateTime(`${todayIST}T00:00:00+05:30`);
+      let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
+
+      if (closeAt <= openAt) {
+        const baseDate = new Date(`${todayIST}T12:00:00+05:30`);
+        baseDate.setDate(baseDate.getDate() + 1);
+        const nextDayStr = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(baseDate);
+        closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+      }
+
+      const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60; // minutes
+
+      if (timeUntilClosing < 30) {
+        return { canCancel: false, reason: 'Cannot cancel within 30 minutes of market closing' };
+      }
+
+      return { canCancel: true, reason: '' };
+    } catch (e) {
+      return { canCancel: false, reason: 'Error checking market timing' };
+    }
+  };
+
+  // Handle cancel bet
+  const handleCancelBet = async (betId) => {
+    if (!betId) return;
+    
+    setCancellingBetId(betId);
+    setCancelMessage({ type: '', text: '' });
+
+    try {
+      const result = await cancelBet(betId);
+      
+      if (result.success) {
+        // Update user balance
+        if (result.data?.newBalance != null) {
+          updateUserBalance(result.data.newBalance);
+        }
+        
+        // Show success message
+        setCancelMessage({
+          type: 'success',
+          text: `Bet cancelled successfully. ₹${result.data?.refundedAmount || 0} refunded to your wallet.`
+        });
+        
+        // Refresh bet list
+        setLocalVersion(v => v + 1);
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setCancelMessage({ type: '', text: '' });
+        }, 5000);
+      } else {
+        // Show error message
+        setCancelMessage({
+          type: 'error',
+          text: result.message || 'Failed to cancel bet'
+        });
+        
+        setTimeout(() => {
+          setCancelMessage({ type: '', text: '' });
+        }, 5000);
+      }
+    } catch (error) {
+      setCancelMessage({
+        type: 'error',
+        text: error.message || 'Failed to cancel bet'
+      });
+      
+      setTimeout(() => {
+        setCancelMessage({ type: '', text: '' });
+      }, 5000);
+    } finally {
+      setCancellingBetId(null);
+    }
+  };
+
   const marketByName = useMemo(() => {
     const map = new Map();
     for (const m of markets || []) {
@@ -420,40 +567,66 @@ const Bids = () => {
     };
   }, [resultsDate, todayKey]);
 
-  const desktopBetHistoryFlat = useMemo(() => {
-    const out = [];
-    for (const x of desktopBetHistory.items || []) {
-      const rows = Array.isArray(x?.rows) ? x.rows : [];
-      if (!rows.length) {
-        out.push({ x, r: null, idx: 0 });
-        continue;
-      }
-      rows.forEach((r, idx) => out.push({ x, r, idx }));
-    }
-    return out;
-  }, [desktopBetHistory.items]);
-
   const desktopRows = useMemo(() => {
-    return (desktopBetHistoryFlat || []).map(({ x, r, idx }) => {
-      const betValue = r?.number != null ? renderBetNumber(r.number) : '-';
-      const gameType = (x?.labelKey || 'Bet').toString();
-      const points = Number(r?.points || 0) || 0;
-      const session = (r?.type || x?.session || '').toString().trim().toUpperCase();
-      const market = (x?.marketTitle || '').toString().trim() || 'MARKET';
+    return (desktopBetHistory.items || []).map((bet) => {
+      const betValue = bet?.betNumber != null ? renderBetNumber(bet.betNumber) : '-';
+      const labelForType = (t) => {
+        const s = String(t || '').toLowerCase();
+        if (s === 'single') return 'Single Ank';
+        if (s === 'jodi') return 'Digit';
+        if (s === 'panna') return 'Panna';
+        if (s === 'half-sangam') return 'Half Sangam';
+        if (s === 'full-sangam') return 'Full Sangam';
+        return 'Bet';
+      };
+      const gameType = labelForType(bet.betType);
+      const points = Number(bet?.amount || 0) || 0;
+      const session = (bet?.betOn || '').toString().trim().toUpperCase();
+      const market = (bet?.marketId?.marketName || '').toString().trim() || 'MARKET';
       const marketKey = normalizeMarketName(market);
-      const m = marketByName.get(marketKey);
-      const verdict = evaluateBet({
-        market: m,
-        betNumberRaw: r?.number,
-        amount: points,
-        session,
-        ratesMap,
-      });
-      const statusLabel = verdict.state === 'won' ? 'Win' : verdict.state === 'lost' ? 'Loose' : 'Pending';
+      const m = marketByName.get(marketKey) || bet.marketId;
+      
+      // If bet is already settled, use that status
+      let verdict;
+      if (bet.status === 'won' || bet.status === 'lost' || bet.status === 'cancelled') {
+        verdict = {
+          state: bet.status,
+          payout: bet.payout || 0,
+          kind: inferBetKind(bet.betNumber),
+        };
+      } else {
+        verdict = evaluateBet({
+          market: m,
+          betNumberRaw: bet.betNumber,
+          amount: points,
+          session,
+          ratesMap,
+        });
+      }
+      
+      const statusLabel = verdict.state === 'won' ? 'Win' 
+        : verdict.state === 'lost' ? 'Loose'
+        : verdict.state === 'cancelled' ? 'Cancelled'
+        : 'Pending';
       const marketType = m?.marketType || null;
-      return { x, r, idx, betValue, gameType, points, session, market, marketKey, verdict, statusLabel, marketType };
+      
+      return { 
+        bet,
+        betId: bet._id,
+        betValue, 
+        gameType, 
+        points, 
+        session, 
+        market, 
+        marketKey, 
+        verdict, 
+        statusLabel, 
+        marketType,
+        createdAt: bet.createdAt,
+        canCancel: canCancelBet(bet),
+      };
     });
-  }, [desktopBetHistoryFlat, marketByName, ratesMap]);
+  }, [desktopBetHistory.items, marketByName, ratesMap]);
 
   const marketOptions = useMemo(() => {
     // Get markets from API with their marketType
@@ -510,7 +683,17 @@ const Bids = () => {
       }
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
       if (effectiveSelectedMarkets.length > 0 && !effectiveSelectedMarkets.includes(row.marketKey)) return false;
-      if (selectedStatuses.length > 0 && !selectedStatuses.includes(row.statusLabel)) return false;
+      if (selectedStatuses.length > 0) {
+        // Map status label to match filter options
+        const statusMap = {
+          'Win': 'Win',
+          'Loose': 'Loose',
+          'Pending': 'Pending',
+          'Cancelled': 'Cancelled'
+        };
+        const mappedStatus = statusMap[row.statusLabel] || row.statusLabel;
+        if (!selectedStatuses.includes(mappedStatus)) return false;
+      }
       return true;
     });
   }, [desktopRows, selectedMarkets, selectedSessions, selectedStatuses, isAnyHistoryPanel, historyScope]);
@@ -692,6 +875,17 @@ const Bids = () => {
 
             {isAnyHistoryPanel ? (
               <div className={isAnyHistoryPanel ? 'mt-0' : 'mt-6'}>
+                {/* Cancel message for desktop */}
+                {cancelMessage.text && (
+                  <div className={`mb-3 rounded-xl px-4 py-3 text-sm ${
+                    cancelMessage.type === 'success' 
+                      ? 'bg-green-500/10 border border-green-500/30 text-green-200' 
+                      : 'bg-red-500/10 border border-red-500/30 text-red-200'
+                  }`}>
+                    {cancelMessage.text}
+                  </div>
+                )}
+                
                 <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
                   {desktopBetHistory.uid && filteredDesktopRows.length === 0 ? (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
@@ -703,11 +897,11 @@ const Bids = () => {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {filteredDesktopRows.map(({ x, r, idx, betValue, gameType, points, session, market, verdict }) => {
+                      {filteredDesktopRows.map(({ betId, betValue, gameType, points, session, market, verdict, createdAt, canCancel }) => {
 
                         return (
                           <div
-                            key={`${x.id}-${r?.id ?? idx}`}
+                            key={betId}
                             className="rounded-2xl overflow-hidden border border-white/10 bg-black/25"
                           >
                             <div className="bg-[#0b2b55] px-4 py-3 flex items-center justify-between">
@@ -724,7 +918,7 @@ const Bids = () => {
                             <div className="px-4 py-4">
                               <div className="grid grid-cols-3 text-center text-[#d4af37] font-bold text-sm">
                                 <div>Game Type</div>
-                                <div>{(x?.labelKey || 'Bet').toString()}</div>
+                                <div>{gameType}</div>
                                 <div>Points</div>
                               </div>
                               <div className="mt-3 grid grid-cols-3 text-center text-white/90 text-sm">
@@ -736,7 +930,7 @@ const Bids = () => {
 
                             <div className="h-px bg-white/10" />
                             <div className="px-4 py-3 text-center text-white/70 text-sm">
-                              Transaction: <span className="font-semibold">{formatTxnTime(x?.createdAt)}</span>
+                              Transaction: <span className="font-semibold">{formatTxnTime(createdAt)}</span>
                             </div>
 
                             <div className="h-px bg-white/10" />
@@ -748,9 +942,49 @@ const Bids = () => {
                               <div className="px-4 py-3 text-center font-semibold text-red-400">
                                 Better Luck Next time
                               </div>
+                            ) : verdict.state === 'cancelled' ? (
+                              <div className="px-4 py-3 text-center font-semibold text-orange-400">
+                                Bet Cancelled
+                              </div>
                             ) : (
-                              <div className="px-4 py-3 text-center font-semibold text-[#43b36a]">
-                                Bet Placed
+                              <div className="px-4 py-3">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <span className="font-semibold text-[#43b36a] text-sm">Bet Placed</span>
+                                  {canCancel?.canCancel && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCancelBet(betId)}
+                                      disabled={cancellingBetId === betId}
+                                      className={`
+                                        inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2
+                                        text-xs font-semibold min-h-[36px]
+                                        transition-all duration-200
+                                        ${cancellingBetId === betId
+                                          ? 'bg-gray-700/80 text-gray-400 cursor-wait'
+                                          : 'bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98]'
+                                        }
+                                      `}
+                                      title="Cancel this bet and get refund"
+                                    >
+                                      {cancellingBetId === betId ? (
+                                        <>
+                                          <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                          </svg>
+                                          <span>Cancelling...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                          </svg>
+                                          <span>Cancel & refund</span>
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -833,8 +1067,8 @@ const Bids = () => {
                 <div className="h-px bg-white/10 my-3" />
 
                 <div className="text-lg font-bold text-[#d4af37] mb-3">By Winning Status</div>
-                <div className="flex items-center justify-around gap-3 pb-4">
-                  {['Win', 'Loose', 'Pending'].map((s) => (
+                <div className="grid grid-cols-2 gap-3 pb-4">
+                  {['Win', 'Loose', 'Pending', 'Cancelled'].map((s) => (
                     <label key={s} className="flex items-center gap-3 text-base sm:text-lg">
                       <input
                         type="checkbox"

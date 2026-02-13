@@ -5,6 +5,7 @@ import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
+import { logActivity, getClientIp } from '../utils/activityLogger.js';
 
 const VALID_BET_TYPES = ['single', 'jodi', 'panna', 'half-sangam', 'full-sangam'];
 const THREE_DIGITS = /^\d{3}$/;
@@ -220,6 +221,45 @@ export const placeBet = async (req, res) => {
     }
 };
 
+/**
+ * Get bet history for current user (user-facing).
+ * Query params: userId (required)
+ */
+export const getMyBetHistory = async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'userId is required',
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid userId' });
+        }
+
+        // Get user's bets from last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const bets = await Bet.find({
+            userId,
+            createdAt: { $gte: thirtyDaysAgo }
+        })
+            .populate({ path: 'marketId', select: 'marketName closingTime marketType', model: Market })
+            .sort({ createdAt: -1 })
+            .limit(500)
+            .lean();
+
+        res.status(200).json({ success: true, data: bets });
+    } catch (error) {
+        console.error('[getMyBetHistory]', error.message || error);
+        res.status(500).json({ success: false, message: error.message || 'Failed to fetch bet history' });
+    }
+};
+
 export const getBetHistory = async (req, res) => {
     try {
         const { userId, marketId, status, startDate, endDate } = req.query;
@@ -252,6 +292,185 @@ export const getBetHistory = async (req, res) => {
         res.status(200).json({ success: true, data: bets });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Cancel a bet (user-facing). Body: { userId, betId }
+ * Rules:
+ * 1. Bet can be cancelled within 30 minutes of placing it
+ * 2. Bet can be cancelled only if it's at least 30 minutes before market closing time
+ * 3. Only pending bets can be cancelled
+ */
+export const cancelBet = async (req, res) => {
+    try {
+        const { userId, betId } = req.body;
+
+        if (!userId || !betId) {
+            return res.status(400).json({
+                success: false,
+                message: 'userId and betId are required',
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(betId)) {
+            return res.status(400).json({ success: false, message: 'Invalid userId or betId' });
+        }
+
+        // Find the bet
+        const bet = await Bet.findById(betId);
+        if (!bet) {
+            return res.status(404).json({ success: false, message: 'Bet not found' });
+        }
+
+        // Verify the bet belongs to the user
+        if (bet.userId.toString() !== userId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to cancel this bet' });
+        }
+
+        // Check if bet is already cancelled or settled
+        if (bet.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: 'Bet is already cancelled' });
+        }
+
+        if (bet.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                message: 'Only pending bets can be cancelled',
+            });
+        }
+
+        // Get market details
+        const market = await Market.findById(bet.marketId).lean();
+        if (!market) {
+            return res.status(404).json({ success: false, message: 'Market not found' });
+        }
+
+        const now = new Date();
+        const betPlacedAt = new Date(bet.createdAt);
+        const timeSinceBetPlaced = (now - betPlacedAt) / 1000 / 60; // minutes
+
+        // Rule 1: Check if within 30 minutes of placing bet
+        if (timeSinceBetPlaced > 30) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bet can only be cancelled within 30 minutes of placing it',
+                code: 'CANCELLATION_TIMEOUT',
+            });
+        }
+
+        // Rule 2: Check if at least 30 minutes before market closing
+        const closeStr = (market?.closingTime || '').toString().trim();
+        if (!closeStr) {
+            return res.status(400).json({
+                success: false,
+                message: 'Market timing not configured',
+            });
+        }
+
+        // Calculate closing time in IST
+        const getTodayIST = () => {
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(new Date());
+        };
+
+        const normalizeTimeStr = (timeStr) => {
+            const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
+            return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
+        };
+
+        const parseISTDateTime = (isoStr) => {
+            const d = new Date(isoStr);
+            return isNaN(d.getTime()) ? null : d.getTime();
+        };
+
+        const todayIST = getTodayIST();
+        const openAt = parseISTDateTime(`${todayIST}T00:00:00+05:30`);
+        let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
+
+        if (closeAt <= openAt) {
+            const baseDate = new Date(`${todayIST}T12:00:00+05:30`);
+            baseDate.setDate(baseDate.getDate() + 1);
+            const nextDayStr = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(baseDate);
+            closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+        }
+
+        const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60; // minutes
+
+        if (timeUntilClosing < 30) {
+            return res.status(400).json({
+                success: false,
+                message: 'Bet cannot be cancelled within 30 minutes of market closing time',
+                code: 'TOO_CLOSE_TO_CLOSING',
+            });
+        }
+
+        // All checks passed, proceed with cancellation
+        bet.status = 'cancelled';
+        await bet.save();
+
+        // Refund amount to user's wallet
+        let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+            wallet = new Wallet({ userId, balance: 0 });
+        }
+
+        wallet.balance += bet.amount;
+        await wallet.save();
+
+        // Create wallet transaction for refund
+        const labelForType = (t) => {
+            const s = String(t || '').toLowerCase();
+            if (s === 'single') return 'Single Ank';
+            if (s === 'jodi') return 'Digit';
+            if (s === 'panna') return 'Panna';
+            if (s === 'half-sangam') return 'Half Sangam';
+            if (s === 'full-sangam') return 'Full Sangam';
+            return 'Bet';
+        };
+
+        await WalletTransaction.create({
+            userId,
+            type: 'credit',
+            amount: bet.amount,
+            description: `Bet cancelled – ${market.marketName} (${labelForType(bet.betType)} ${String(bet.betNumber || '').trim()})`,
+            referenceId: bet._id.toString(),
+        });
+
+        // Log for admin: bet cancelled by user (so admin panel / logs show the update)
+        const userDoc = await User.findById(userId).select('username').lean();
+        const username = userDoc?.username || userId.toString();
+        await logActivity({
+            action: 'bet_cancelled',
+            performedBy: username,
+            performedByType: 'user',
+            targetType: 'bet',
+            targetId: bet._id.toString(),
+            details: `Bet cancelled – ${market.marketName} (${labelForType(bet.betType)} ${String(bet.betNumber || '').trim()}) – Refunded ₹${bet.amount}`,
+            meta: { userId, marketId: bet.marketId.toString(), amount: bet.amount, betNumber: bet.betNumber, betType: bet.betType },
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Bet cancelled successfully and amount refunded',
+            data: {
+                newBalance: wallet.balance,
+                refundedAmount: bet.amount,
+            },
+        });
+    } catch (error) {
+        console.error('[cancelBet]', error.message || error);
+        res.status(500).json({ success: false, message: error.message || 'Failed to cancel bet' });
     }
 };
 

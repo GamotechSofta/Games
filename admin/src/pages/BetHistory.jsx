@@ -139,6 +139,7 @@ const BetHistory = () => {
                                                         bet.status === 'won' ? 'bg-green-600' :
                                                         bet.status === 'lost' ? 'bg-red-600' :
                                                         bet.status === 'pending' ? 'bg-yellow-600' :
+                                                        bet.status === 'cancelled' ? 'bg-orange-600' :
                                                         'bg-gray-600'
                                                     }`}>
                                                         {bet.status}

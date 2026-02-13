@@ -377,10 +377,11 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
     const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
 
     const todayIST = getTodayISTRange();
-    // Same scope as getMarketStats: same market (ObjectId like getMarketStats after Mongoose cast), same today IST range, same bookie filter
+    // Same scope as getMarketStats: same market (ObjectId like getMarketStats after Mongoose cast), same today IST range, same bookie filter; exclude cancelled
     const matchFilterAll = {
         marketId: oid,
         betOn: { $ne: 'close' },
+        status: { $ne: 'cancelled' },
         createdAt: { $gte: todayIST.start, $lte: todayIST.end },
     };
     if (hasBookieFilter) matchFilterAll.userId = { $in: bookieUserIds };
@@ -439,10 +440,11 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
         }
     }
 
-    // Half Sangam: same as other open games (single, panna) – include in totals and on-patti when Format A matches
+    // Half Sangam: same as other open games (single, panna) – include in totals and on-patti when Format A matches; exclude cancelled
     const matchHalfSangam = {
         marketId: oid,
         betType: 'half-sangam',
+        status: { $ne: 'cancelled' },
         createdAt: { $gte: todayIST.start, $lte: todayIST.end },
     };
     if (hasBookieFilter) matchHalfSangam.userId = { $in: bookieUserIds };
@@ -511,6 +513,7 @@ export async function previewDeclareClose(marketId, closingNumber, options = {})
 
     const matchFilterAll = {
         $or: [{ marketId: oid }, { marketId: marketIdStr }],
+        status: { $ne: 'cancelled' },
         createdAt: { $gte: todayIST.start, $lte: todayIST.end },
         $and: [
             {

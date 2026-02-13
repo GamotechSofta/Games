@@ -275,6 +275,23 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                     >
                                         Apply
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSpecialInputs((prev) => {
+                                                const next = { ...prev };
+                                                for (const num of list) {
+                                                    next[num] = '';
+                                                }
+                                                return next;
+                                            });
+                                            setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
+                                        }}
+                                        className="h-9 px-3 rounded-md font-bold text-xs border bg-[#202124] border-red-500/40 text-red-400 hover:border-red-500 transition-colors"
+                                        title="Clear all points in this group"
+                                    >
+                                        Clear
+                                    </button>
                                 </div>
 
                                 {/* Two-column layout: tighten + left align only on desktop */}

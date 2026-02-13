@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
-import { getRatesCurrent } from '../api/bets';
+import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 
 const safeParse = (raw, fallback) => {
@@ -141,12 +141,15 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const navigate = useNavigate();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedSessions, setSelectedSessions] = useState([]); // ['OPEN','CLOSE']
-  const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending']
+  const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending','Cancelled']
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
   const [page, setPage] = useState(1);
   const [markets, setMarkets] = useState([]);
   const [ratesMap, setRatesMap] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
+  const [apiBets, setApiBets] = useState([]);
+  const [cancellingBetId, setCancellingBetId] = useState(null);
+  const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
 
   // Scope behavior:
   // - default (null/empty): MAIN markets only (exclude starline/king)
@@ -172,24 +175,30 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const { userId, bets } = useMemo(() => {
     const u = safeParse(localStorage.getItem('user') || 'null', null);
     const uid = u?._id || u?.id || u?.userId || u?.userid || u?.user_id || u?.uid || null;
-    const all = safeParse(localStorage.getItem('betHistory') || '[]', []);
-    const list = Array.isArray(all) ? all : [];
-    const onlyMine = uid ? list.filter((x) => x?.userId === uid) : list;
-    const scoped = onlyMine.filter((x) => inScope(x?.marketTitle));
+    
+    // Filter API bets by scope
+    const scoped = (apiBets || []).filter((bet) => {
+      const marketTitle = bet?.marketId?.marketName || '';
+      return inScope(marketTitle);
+    });
+    
     return { userId: uid, bets: scoped };
-  }, [localVersion, scope]);
+  }, [localVersion, scope, apiBets]);
 
   const flat = useMemo(() => {
-    const out = [];
-    for (const x of bets || []) {
-      const rows = Array.isArray(x?.rows) ? x.rows : [];
-      if (!rows.length) {
-        out.push({ x, r: null, idx: 0 });
-        continue;
-      }
-      rows.forEach((r, idx) => out.push({ x, r, idx }));
-    }
-    return out;
+    // Convert API bets to the expected format for the UI
+    return (bets || []).map((bet) => ({
+      bet,
+      betId: bet._id,
+      marketTitle: bet?.marketId?.marketName || 'MARKET',
+      betNumber: bet.betNumber,
+      amount: bet.amount,
+      session: (bet.betOn || '').toUpperCase(),
+      betType: bet.betType,
+      status: bet.status,
+      createdAt: bet.createdAt,
+      marketData: bet.marketId,
+    }));
   }, [bets]);
 
   const fetchMarkets = async () => {
@@ -227,6 +236,166 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
     return () => { alive = false; };
   }, []);
 
+  // Fetch bets from API
+  useEffect(() => {
+    let alive = true;
+    const fetchBets = async () => {
+      const result = await getMyBetHistory();
+      if (!alive) return;
+      if (result?.success && Array.isArray(result?.data)) {
+        console.log('Fetched bets from API:', result.data.length, 'bets');
+        console.log('Sample bet:', result.data[0]);
+        setApiBets(result.data);
+      } else {
+        console.error('Failed to fetch bets:', result);
+      }
+    };
+    fetchBets();
+    const id = setInterval(fetchBets, 30000); // Refresh every 30 seconds
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [localVersion]);
+
+  // Function to check if a bet can be cancelled
+  const canCancelBet = (bet) => {
+    if (!bet || bet.status !== 'pending') {
+      console.log('Cannot cancel - bet status:', bet?.status);
+      return { canCancel: false, reason: `Status: ${bet?.status || 'unknown'}` };
+    }
+
+    const market = bet.marketId;
+    if (!market) {
+      console.log('Cannot cancel - market not found');
+      return { canCancel: false, reason: 'Market not found' };
+    }
+
+    const now = new Date();
+    const betPlacedAt = new Date(bet.createdAt);
+    const timeSinceBetPlaced = (now - betPlacedAt) / 1000 / 60; // minutes
+
+    console.log('Bet placed at:', betPlacedAt, 'Time since placed:', timeSinceBetPlaced, 'minutes');
+
+    // Rule 1: Check if within 30 minutes of placing bet
+    if (timeSinceBetPlaced > 30) {
+      return { canCancel: false, reason: 'Can only cancel within 30 minutes of placing' };
+    }
+
+    // Rule 2: Check if at least 30 minutes before market closing
+    const closeStr = (market?.closingTime || '').toString().trim();
+    if (!closeStr) {
+      console.log('Cannot cancel - market timing not configured');
+      return { canCancel: false, reason: 'Market timing not configured' };
+    }
+
+    try {
+      const getTodayIST = () => {
+        return new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(new Date());
+      };
+
+      const normalizeTimeStr = (timeStr) => {
+        const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
+        return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
+      };
+
+      const parseISTDateTime = (isoStr) => {
+        const d = new Date(isoStr);
+        return isNaN(d.getTime()) ? null : d.getTime();
+      };
+
+      const todayIST = getTodayIST();
+      const openAt = parseISTDateTime(`${todayIST}T00:00:00+05:30`);
+      let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
+
+      if (closeAt <= openAt) {
+        const baseDate = new Date(`${todayIST}T12:00:00+05:30`);
+        baseDate.setDate(baseDate.getDate() + 1);
+        const nextDayStr = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Kolkata',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(baseDate);
+        closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+      }
+
+      const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60; // minutes
+
+      console.log('Market closing at:', new Date(closeAt), 'Time until closing:', timeUntilClosing, 'minutes');
+
+      if (timeUntilClosing < 30) {
+        return { canCancel: false, reason: 'Cannot cancel within 30 minutes of market closing' };
+      }
+
+      console.log('Bet CAN be cancelled!');
+      return { canCancel: true, reason: '' };
+    } catch (e) {
+      console.error('Error checking market timing:', e);
+      return { canCancel: false, reason: 'Error checking market timing' };
+    }
+  };
+
+  // Handle cancel bet
+  const handleCancelBet = async (betId) => {
+    if (!betId) return;
+    
+    setCancellingBetId(betId);
+    setCancelMessage({ type: '', text: '' });
+
+    try {
+      const result = await cancelBet(betId);
+      
+      if (result.success) {
+        // Update user balance
+        if (result.data?.newBalance != null) {
+          updateUserBalance(result.data.newBalance);
+        }
+        
+        // Show success message
+        setCancelMessage({
+          type: 'success',
+          text: `Bet cancelled successfully. ₹${result.data?.refundedAmount || 0} refunded to your wallet.`
+        });
+        
+        // Refresh bet list
+        setLocalVersion(v => v + 1);
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setCancelMessage({ type: '', text: '' });
+        }, 5000);
+      } else {
+        // Show error message
+        setCancelMessage({
+          type: 'error',
+          text: result.message || 'Failed to cancel bet'
+        });
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setCancelMessage({ type: '', text: '' });
+        }, 5000);
+      }
+    } catch (error) {
+      setCancelMessage({
+        type: 'error',
+        text: error.message || 'Failed to cancel bet'
+      });
+      
+      setTimeout(() => {
+        setCancelMessage({ type: '', text: '' });
+      }, 5000);
+    } finally {
+      setCancellingBetId(null);
+    }
+  };
+
   const marketByName = useMemo(() => {
     const map = new Map();
     for (const m of markets || []) {
@@ -243,9 +412,12 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
       type: m?.marketType || null,
     })).filter((x) => x.name);
     
-    // Get markets from history (name only, no type)
+    // Get markets from history
     const fromHistory = (bets || [])
-      .map((x) => ({ name: (x?.marketTitle || '').toString().trim(), type: null }))
+      .map((bet) => ({
+        name: (bet?.marketId?.marketName || '').toString().trim(),
+        type: bet?.marketId?.marketType || null
+      }))
       .filter((x) => x.name);
     
     // Merge and deduplicate
@@ -274,85 +446,62 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   }, [markets, bets, scope]);
 
   const enriched = useMemo(() => {
-    return flat.map(({ x, r, idx }) => {
-      const points = Number(r?.points || 0) || 0;
-      const session = (r?.type || x?.session || '').toString().trim().toUpperCase();
-      const marketTitle = (x?.marketTitle || '').toString().trim() || 'MARKET';
-      const m = marketByName.get(normalizeMarketName(marketTitle));
+    console.log('Enriching bets, flat count:', flat.length);
+    return flat.map((item) => {
+      const { bet, betId, marketTitle, betNumber, amount, session, betType, status, createdAt, marketData } = item;
+      const m = marketByName.get(normalizeMarketName(marketTitle)) || marketData;
+      
+      console.log('Processing bet:', betId, 'status:', status, 'market:', marketTitle, 'marketData:', marketData);
+      
+      // If bet is already settled (won/lost/cancelled), use that status
+      if (status === 'won' || status === 'lost' || status === 'cancelled') {
+        const verdict = {
+          state: status,
+          payout: bet.payout || 0,
+          kind: inferBetKind(betNumber),
+        };
+        return { 
+          bet, 
+          betId, 
+          points: amount, 
+          session, 
+          marketTitle, 
+          betNumber, 
+          betType,
+          status,
+          createdAt,
+          verdict,
+          canCancel: status === 'pending' ? canCancelBet(bet) : { canCancel: false, reason: `Status is ${status}` },
+        };
+      }
+      
+      // Otherwise evaluate bet status
       const computed = evaluateBet({
         market: m,
-        betNumberRaw: r?.number,
-        amount: points,
+        betNumberRaw: betNumber,
+        amount,
         session,
         ratesMap,
       });
 
-      const storedState = (r?.settledState || '').toString();
-      const storedPayout = Number(r?.settledPayout || 0) || 0;
-      const finalVerdict =
-        storedState === 'won' || storedState === 'lost'
-          ? { ...computed, state: storedState, payout: storedPayout }
-          : computed;
+      const cancelCheck = canCancelBet(bet);
+      console.log('Cancel check for bet', betId, ':', cancelCheck);
 
-      return { x, r, idx, points, session, marketTitle, computedVerdict: computed, verdict: finalVerdict };
+      return {
+        bet,
+        betId,
+        points: amount,
+        session,
+        marketTitle,
+        betNumber,
+        betType,
+        status,
+        createdAt,
+        verdict: computed,
+        canCancel: cancelCheck,
+      };
     });
   }, [flat, marketByName, ratesMap]);
-
-  // Persist settled verdicts so refresh always shows same message
-  const toPersist = useMemo(() => {
-    return (enriched || [])
-      .filter((row) => {
-        const r = row?.r;
-        if (!r?.id) return false;
-        if (r?.settledState) return false;
-        return row?.computedVerdict?.state === 'won' || row?.computedVerdict?.state === 'lost';
-      })
-      .map((row) => ({
-        entryId: row.x?.id,
-        rowId: row.r?.id,
-        state: row.computedVerdict.state,
-        payout: Number(row.computedVerdict.payout || 0) || 0,
-      }))
-      .filter((x) => x.entryId && x.rowId);
-  }, [enriched]);
-
-  useEffect(() => {
-    if (!toPersist.length) return;
-    try {
-      const raw = localStorage.getItem('betHistory');
-      const prev = raw ? safeParse(raw, []) : [];
-      if (!Array.isArray(prev) || prev.length === 0) return;
-
-      let changed = false;
-      const next = prev.map((entry) => {
-        const entryId = entry?.id;
-        const matches = toPersist.filter((u) => u.entryId === entryId);
-        if (!matches.length) return entry;
-
-        const rows = Array.isArray(entry?.rows) ? entry.rows : [];
-        const newRows = rows.map((r) => {
-          const m = matches.find((u) => u.rowId === r?.id);
-          if (!m) return r;
-          if (r?.settledState) return r;
-          changed = true;
-          return {
-            ...r,
-            settledState: m.state,
-            settledPayout: m.payout,
-            settledAt: new Date().toISOString(),
-          };
-        });
-        return changed ? { ...entry, rows: newRows } : entry;
-      });
-
-      if (changed) {
-        localStorage.setItem('betHistory', JSON.stringify(next));
-        setLocalVersion((v) => v + 1);
-      }
-    } catch {
-      // ignore
-    }
-  }, [toPersist]);
 
   const filtered = useMemo(() => {
     return (enriched || []).filter((row) => {
@@ -365,7 +514,10 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
 
       if (selectedStatuses.length > 0) {
         const st =
-          row.verdict.state === 'won' ? 'Win' : row.verdict.state === 'lost' ? 'Loose' : 'Pending';
+          row.verdict.state === 'won' ? 'Win' 
+          : row.verdict.state === 'lost' ? 'Loose' 
+          : row.verdict.state === 'cancelled' ? 'Cancelled'
+          : 'Pending';
         if (!selectedStatuses.includes(st)) return false;
       }
       return true;
@@ -456,18 +608,58 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
           </button>
         </div>
 
+        {/* Debug info (temporary) */}
+        {apiBets.length > 0 && (
+          <div className="mb-4 rounded-xl px-4 py-3 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-200">
+            <div className="font-bold mb-2">Debug Info:</div>
+            <div>Total bets: {apiBets.length}</div>
+            <div>Filtered bets: {filtered.length}</div>
+            {apiBets[0] && (
+              <div className="mt-2 space-y-1">
+                <div>First bet ID: {apiBets[0]._id}</div>
+                <div>Status: {apiBets[0].status}</div>
+                <div>Created: {apiBets[0].createdAt}</div>
+                <div>Market: {apiBets[0].marketId?.marketName || 'N/A'}</div>
+                <div>Closing Time: {apiBets[0].marketId?.closingTime || 'N/A'}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cancel message */}
+        {cancelMessage.text && (
+          <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${
+            cancelMessage.type === 'success' 
+              ? 'bg-green-500/10 border border-green-500/30 text-green-200' 
+              : 'bg-red-500/10 border border-red-500/30 text-red-200'
+          }`}>
+            {cancelMessage.text}
+          </div>
+        )}
+
         {/* Cards */}
         <div className="space-y-4">
           {filtered.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
               {userId ? 'No bets found.' : 'Please login to see your bet history.'}
             </div>
-          ) : paged.map(({ x, r, idx, points, session, marketTitle, verdict }) => {
-            const betValue = r?.number != null ? renderBetNumber(r.number) : '-';
-            const gameType = (x?.labelKey || 'Bet').toString();
+          ) : paged.map((row) => {
+            const { betId, points, session, marketTitle, betNumber, betType, verdict, createdAt, canCancel, status } = row;
+            const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
+            
+            const labelForType = (t) => {
+              const s = String(t || '').toLowerCase();
+              if (s === 'single') return 'Single Ank';
+              if (s === 'jodi') return 'Digit';
+              if (s === 'panna') return 'Panna';
+              if (s === 'half-sangam') return 'Half Sangam';
+              if (s === 'full-sangam') return 'Full Sangam';
+              return 'Bet';
+            };
+            const gameType = labelForType(betType);
 
             return (
-            <div key={`${x.id}-${r?.id ?? idx}`} className="rounded-2xl overflow-hidden border border-white/10 bg-[#202124] shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+            <div key={betId} className="rounded-2xl overflow-hidden border border-white/10 bg-[#202124] shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
               <div className="bg-black/30 px-4 py-3 text-center border-b border-white/10">
                 <div className="text-[#d4af37] font-extrabold tracking-wide">
                   {marketTitle.toUpperCase()} {session ? `(${session})` : ''}
@@ -477,7 +669,7 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
               <div className="px-4 py-4">
                 <div className="grid grid-cols-3 text-center text-[#d4af37] font-bold">
                   <div>Game Type</div>
-                  <div>{(x?.labelKey || 'Bet').toString()}</div>
+                  <div>{gameType}</div>
                   <div>Points</div>
                 </div>
                 <div className="mt-3 grid grid-cols-3 text-center text-white/90">
@@ -490,7 +682,7 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
               <div className="h-px bg-white/10" />
 
               <div className="px-4 py-3 text-center text-white/70">
-                Transaction: <span className="font-semibold">{formatTxnTime(x?.createdAt)}</span>
+                Transaction: <span className="font-semibold">{formatTxnTime(createdAt)}</span>
               </div>
 
               <div className="h-px bg-white/10" />
@@ -503,9 +695,51 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                 <div className="px-4 py-3 text-center font-semibold text-red-400">
                   Better Luck Next time
                 </div>
+              ) : verdict.state === 'cancelled' ? (
+                <div className="px-4 py-3 text-center font-semibold text-orange-400">
+                  Bet Cancelled
+                </div>
               ) : (
-                <div className="px-4 py-3 text-center font-semibold text-[#43b36a]">
-                  Bet Placed
+                <div className="px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="font-semibold text-[#43b36a]">Bet Placed</span>
+                    {canCancel?.canCancel ? (
+                      <button
+                        type="button"
+                        onClick={() => handleCancelBet(betId)}
+                        disabled={cancellingBetId === betId}
+                        className={`
+                          inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
+                          text-sm font-semibold min-h-[44px] min-w-[120px]
+                          transition-all duration-200
+                          ${cancellingBetId === betId
+                            ? 'bg-gray-700/80 text-gray-400 cursor-wait'
+                            : 'bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98]'
+                          }
+                        `}
+                        title="Cancel this bet and get refund"
+                      >
+                        {cancellingBetId === betId ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            <span>Cancelling...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Cancel & refund</span>
+                          </>
+                        )}
+                      </button>
+                    ) : canCancel?.reason ? (
+                      <span className="text-xs text-gray-500">({canCancel.reason})</span>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>
@@ -556,8 +790,8 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                 <div className="h-px bg-white/10 my-3" />
 
                 <div className="text-lg font-bold text-[#d4af37] mb-3">By Winning Status</div>
-                <div className="flex items-center justify-around gap-3 pb-4">
-                  {['Win', 'Loose', 'Pending'].map((s) => (
+                <div className="grid grid-cols-2 gap-3 pb-4">
+                  {['Win', 'Loose', 'Pending', 'Cancelled'].map((s) => (
                     <label key={s} className="flex items-center gap-3 text-base sm:text-lg">
                       <input
                         type="checkbox"
