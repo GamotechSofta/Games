@@ -65,7 +65,7 @@ const WithdrawFundHistory = () => {
         .reduce((sum, w) => sum + w.amount, 0);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
             {/* Total Withdrawn */}
             <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/30 rounded-2xl p-5 border border-purple-500/30">
                 <p className="text-gray-400 text-sm">Total Withdrawn</p>
