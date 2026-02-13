@@ -151,8 +151,9 @@ const Bids = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const myBetsSubPaths = ['/bids', '/bet-history', '/market-result-history', '/starline-bet-history', '/king-bazaar-bet-history'];
   const handleBack = () => {
-    // Desktop: always go Home (as requested).
+    // Desktop: always go Home.
     try {
       if (window?.matchMedia?.('(min-width: 768px)')?.matches) {
         navigate('/');
@@ -160,15 +161,15 @@ const Bids = () => {
       }
     } catch (_) {}
 
-    // Mobile: go to previous real page, not just switch sections.
+    // Mobile: go to previous page, but never to another My Bets sub-page.
     try {
       const prev = sessionStorage.getItem('prevPathname');
-      if (prev && prev !== '/bids' && prev !== '/bet-history' && prev !== '/market-result-history') {
+      if (prev && !myBetsSubPaths.includes(prev)) {
         navigate(prev);
         return;
       }
     } catch (_) {}
-    navigate(-1);
+    navigate('/');
   };
 
   // Mobile only: prevent page scrolling (as requested)
