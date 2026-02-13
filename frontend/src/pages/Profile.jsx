@@ -217,24 +217,19 @@ const Profile = () => {
   /* ── Reusable blocks (rendered in both mobile & desktop layouts) ── */
 
   const heroCard = (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] border border-white/10 shadow-2xl">
-      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-yellow-500/5 blur-2xl" />
-      <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-blue-500/5 blur-2xl" />
+    <div className="relative overflow-hidden rounded-3xl bg-[#141416] border border-white/5">
       <div className="relative p-5 md:p-6">
         <div className="flex items-center gap-4 mb-5">
           <div className="relative">
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#f2c14e] to-[#f5a623] flex items-center justify-center text-black text-2xl md:text-3xl font-bold shadow-lg shadow-yellow-500/20">
               {avatarInitial}
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 border-2 border-[#16213e]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 border-2 border-[#141416]" />
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-bold text-lg md:text-xl truncate leading-tight">
               {form.username || 'User'}
             </h3>
-            <p className="text-gray-400 text-sm truncate mt-0.5">
-              {form.email || form.phone || 'No contact info'}
-            </p>
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
                 <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Active</span>
@@ -247,7 +242,7 @@ const Profile = () => {
             </div>
           </div>
         </div>
-        <div className="rounded-2xl bg-black/30 backdrop-blur border border-white/10 p-4">
+        <div className="rounded-2xl bg-[#1a1a1a] border border-white/5 p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Wallet Balance</p>
@@ -260,6 +255,15 @@ const Profile = () => {
             </div>
           </div>
         </div>
+        {/* Sign Out Button */}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2.5 py-3 mt-4 rounded-2xl bg-[#141416] border border-white/10 text-red-400 font-semibold hover:bg-white/[0.03] hover:border-white/15 active:scale-[0.98] transition-all"
+        >
+          <IconLogout />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );
@@ -271,7 +275,7 @@ const Profile = () => {
           key={action.label}
           type="button"
           onClick={() => navigate(action.path)}
-          className="flex flex-col items-center gap-2 py-3 px-1 rounded-2xl bg-[#141416] border border-white/5 hover:border-white/15 active:scale-95 transition-all md:py-4 md:hover:bg-white/[0.03]"
+          className="flex flex-col items-center gap-2 py-3 px-1 rounded-2xl active:scale-95 transition-all md:py-4"
         >
           <div className={`w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-white shadow-lg`}>
             {action.icon}
@@ -303,7 +307,7 @@ const Profile = () => {
   );
 
   const accountInfoBlock = (
-    <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+    <div className="overflow-hidden">
       <div className="px-5 pt-5 pb-3">
         <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Account Information</h3>
       </div>
@@ -419,19 +423,17 @@ const Profile = () => {
       {/* Single layout: responsive grid (stack on mobile, sidebar+main on desktop) */}
       <div className="max-w-lg md:max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
         <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] lg:grid-cols-[380px_1fr] gap-4 md:gap-6 items-start">
-          {/* Left: hero, quick actions, settings, logout */}
+          {/* Left: hero, quick actions */}
           <div className="space-y-4 md:sticky md:top-[72px]">
             {heroCard}
             {quickActionsBlock('grid-cols-4')}
-            {settingsBlock}
-            {logoutBtn}
           </div>
 
           {/* Right: account info (list on mobile, 2-col grid on desktop) + quick stats on desktop */}
           <div className="space-y-4 md:space-y-5 min-w-0">
             <div className="md:hidden">{accountInfoBlock}</div>
             <div className="hidden md:block space-y-5">
-              <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+              <div className="overflow-hidden">
                 <div className="px-6 pt-6 pb-4 border-b border-white/5">
                   <h3 className="text-white font-semibold text-base uppercase tracking-wider">Account Information</h3>
                   <p className="text-gray-500 text-sm mt-1">Your personal details and account data</p>
@@ -461,17 +463,6 @@ const Profile = () => {
                       {field.copyable && field.value !== 'Not set' && renderCopyBtn(field.label)}
                     </div>
                   ))}
-                  <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 border border-yellow-500/15 hover:border-yellow-500/25 transition-colors">
-                    <div className="w-11 h-11 rounded-xl bg-[#f2c14e]/10 flex items-center justify-center text-[#f2c14e] shrink-0">
-                      <IconWallet />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Account Balance</p>
-                      <p className="text-[#f2c14e] text-base font-bold mt-0.5">
-                        ₹{walletValue !== null ? walletValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                      </p>
-                    </div>
-                  </div>
                   {memberSince && (
                     <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
                       <div className="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 shrink-0">
@@ -484,31 +475,6 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors">
-                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Account Status</p>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-emerald-400 text-xs font-bold">Active</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate('/passbook')}
-                  className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
-                >
-                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Passbook</p>
-                  <p className="text-white text-sm font-bold">View Transactions</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/bet-history')}
-                  className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
-                >
-                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Bet History</p>
-                  <p className="text-white text-sm font-bold">View All Bets</p>
-                </button>
               </div>
             </div>
             <div className="h-2 md:hidden" />
