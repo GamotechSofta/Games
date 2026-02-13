@@ -134,55 +134,55 @@ const WithdrawFundHistory = () => {
                     )}
                 </div>
             ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {filteredWithdrawals.map((withdrawal) => (
                         <div
                             key={withdrawal._id}
-                            className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10"
+                            className="bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-white/10"
                         >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${
                                         withdrawal.status === 'approved' ? 'bg-green-600/20' : 
                                         withdrawal.status === 'rejected' ? 'bg-red-600/20' : 'bg-yellow-600/20'
                                     }`}>
                                         {withdrawal.status === 'approved' ? (
-                                            <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                                             </svg>
                                         ) : withdrawal.status === 'rejected' ? (
-                                            <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         ) : (
-                                            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         )}
                                     </div>
-                                    <div>
-                                        <p className="text-white font-semibold">₹{withdrawal.amount.toLocaleString()}</p>
-                                        <p className="text-gray-500 text-xs">{formatDate(withdrawal.createdAt)}</p>
-                                    </div>
+                                    <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${getStatusBadge(withdrawal.status)}`}>
+                                        {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                                    </span>
                                 </div>
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(withdrawal.status)}`}>
-                                    {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                                </span>
+                                <div>
+                                    <p className="text-white font-semibold text-sm sm:text-base">₹{withdrawal.amount.toLocaleString()}</p>
+                                    <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">{formatDate(withdrawal.createdAt)}</p>
+                                </div>
                             </div>
 
                             {/* Bank Details */}
                             {withdrawal.bankDetailId && (
-                                <div className="mt-3 pt-3 border-t border-white/5">
-                                    <p className="text-gray-400 text-sm">
+                                <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
+                                    <p className="text-gray-400 text-[10px] sm:text-xs break-all">
                                         <span className="text-gray-500">To:</span> {withdrawal.bankDetailId.accountHolderName}
                                     </p>
                                     {withdrawal.bankDetailId.bankName && (
-                                        <p className="text-gray-500 text-xs">
+                                        <p className="text-gray-500 text-[10px] sm:text-xs break-all">
                                             {withdrawal.bankDetailId.bankName} - ****{withdrawal.bankDetailId.accountNumber?.slice(-4)}
                                         </p>
                                     )}
                                     {withdrawal.bankDetailId.upiId && (
-                                        <p className="text-gray-500 text-xs">
+                                        <p className="text-gray-500 text-[10px] sm:text-xs break-all">
                                             UPI: {withdrawal.bankDetailId.upiId}
                                         </p>
                                     )}
@@ -193,12 +193,12 @@ const WithdrawFundHistory = () => {
                             {(withdrawal.adminRemarks || withdrawal.processedAt) && (
                                 <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
                                     {withdrawal.adminRemarks && (
-                                        <p className="text-gray-400 text-sm">
+                                        <p className="text-gray-400 text-[10px] sm:text-xs break-all">
                                             <span className="text-gray-500">Admin:</span> {withdrawal.adminRemarks}
                                         </p>
                                     )}
                                     {withdrawal.processedAt && (
-                                        <p className="text-gray-500 text-xs">
+                                        <p className="text-gray-500 text-[10px] sm:text-xs">
                                             Processed: {formatDate(withdrawal.processedAt)}
                                         </p>
                                     )}

@@ -17,10 +17,9 @@ const BankDetail = () => {
         accountNumber: '',
         ifscCode: '',
         bankName: '',
-        upiId: '',
-        accountType: 'savings',
     });
     const [submitting, setSubmitting] = useState(false);
+    const [fetchingBankName, setFetchingBankName] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -50,8 +49,6 @@ const BankDetail = () => {
             accountNumber: '',
             ifscCode: '',
             bankName: '',
-            upiId: '',
-            accountType: 'savings',
         });
         setEditingId(null);
         setShowForm(false);
@@ -63,11 +60,46 @@ const BankDetail = () => {
             accountNumber: acc.accountNumber || '',
             ifscCode: acc.ifscCode || '',
             bankName: acc.bankName || '',
-            upiId: acc.upiId || '',
-            accountType: acc.accountType || 'savings',
         });
         setEditingId(acc._id);
         setShowForm(true);
+    };
+
+    const fetchBankNameFromIFSC = async (ifscCode) => {
+        if (!ifscCode || ifscCode.length < 11) return;
+        
+        const cleanIFSC = ifscCode.trim().toUpperCase();
+        if (cleanIFSC.length !== 11) return;
+
+        setFetchingBankName(true);
+        try {
+            // Using Razorpay IFSC API (free and reliable)
+            const res = await fetch(`https://ifsc.razorpay.com/${cleanIFSC}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.BANK) {
+                    setFormData(prev => ({ ...prev, bankName: data.BANK }));
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch bank name from IFSC:', err);
+            // Silently fail - user can manually enter bank name
+        } finally {
+            setFetchingBankName(false);
+        }
+    };
+
+    const handleIFSCChange = (e) => {
+        const ifscValue = e.target.value.toUpperCase();
+        setFormData({ ...formData, ifscCode: ifscValue });
+        
+        // Auto-fetch bank name when IFSC is complete (11 characters)
+        if (ifscValue.length === 11) {
+            fetchBankNameFromIFSC(ifscValue);
+        } else if (ifscValue.length < 11) {
+            // Clear bank name if IFSC is incomplete
+            setFormData(prev => ({ ...prev, bankName: '' }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -80,8 +112,8 @@ const BankDetail = () => {
             return;
         }
 
-        if (!formData.upiId && (!formData.accountNumber || !formData.ifscCode)) {
-            setError('Please provide either UPI ID or bank account details');
+        if (!formData.accountNumber || !formData.ifscCode) {
+            setError('Account number and IFSC code are required');
             return;
         }
 
@@ -165,14 +197,14 @@ const BankDetail = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h3 className="text-lg font-bold text-white">Bank Accounts</h3>
-                    <p className="text-gray-400 text-sm">{bankAccounts.length}/5 accounts added</p>
+                    <p className="text-gray-400 text-sm">{bankAccounts.length}/1 account added</p>
                 </div>
-                {bankAccounts.length < 5 && !showForm && (
+                {bankAccounts.length < 1 && !showForm && (
                     <button
                         onClick={() => setShowForm(true)}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
@@ -214,71 +246,40 @@ const BankDetail = () => {
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-gray-300 text-sm mb-1">Bank Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.bankName}
-                                    onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="e.g., HDFC Bank"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-gray-300 text-sm mb-1">Account Type</label>
-                                <select
-                                    value={formData.accountType}
-                                    onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="savings">Savings</option>
-                                    <option value="current">Current</option>
-                                    <option value="upi_only">UPI Only</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-gray-300 text-sm mb-1">Account Number</label>
-                                <input
-                                    type="text"
-                                    value={formData.accountNumber}
-                                    onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter account number"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-gray-300 text-sm mb-1">IFSC Code</label>
-                                <input
-                                    type="text"
-                                    value={formData.ifscCode}
-                                    onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value.toUpperCase() })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="e.g., HDFC0001234"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/10"></div>
-                            </div>
-                            <div className="relative flex justify-center">
-                                <span className="px-3 bg-[#1a1a1a] text-gray-500 text-sm">OR</span>
-                            </div>
+                        <div>
+                            <label className="block text-gray-300 text-sm mb-1">Bank Account Number</label>
+                            <input
+                                type="text"
+                                value={formData.accountNumber}
+                                onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter account number"
+                            />
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 text-sm mb-1">UPI ID</label>
+                            <label className="block text-gray-300 text-sm mb-1">IFSC Code</label>
                             <input
                                 type="text"
-                                value={formData.upiId}
-                                onChange={(e) => setFormData({ ...formData, upiId: e.target.value })}
+                                value={formData.ifscCode}
+                                onChange={handleIFSCChange}
+                                maxLength="11"
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., yourname@paytm"
+                                placeholder="e.g., HDFC0001234"
+                            />
+                            {fetchingBankName && (
+                                <p className="text-blue-400 text-xs mt-1">Fetching bank name...</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-300 text-sm mb-1">Bank Name</label>
+                            <input
+                                type="text"
+                                value={formData.bankName}
+                                onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., HDFC Bank"
                             />
                         </div>
 
@@ -369,7 +370,7 @@ const BankDetail = () => {
                                     onClick={() => handleEdit(acc)}
                                     className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-xs"
                                 >
-                                    Edit
+                                    Update
                                 </button>
                                 <button
                                     onClick={() => handleDelete(acc._id)}

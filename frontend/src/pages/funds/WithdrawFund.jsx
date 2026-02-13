@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
 const WithdrawFund = () => {
+    const navigate = useNavigate();
     const [config, setConfig] = useState(null);
     const [bankAccounts, setBankAccounts] = useState([]);
     const [walletBalance, setWalletBalance] = useState(0);
@@ -13,6 +15,8 @@ const WithdrawFund = () => {
     const [success, setSuccess] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedAmount, setSubmittedAmount] = useState(0);
+    const [showNoBankAccountModal, setShowNoBankAccountModal] = useState(false);
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -40,9 +44,14 @@ const WithdrawFund = () => {
             const res = await fetch(`${API_BASE_URL}/bank-details?userId=${user.id}`);
             const data = await res.json();
             if (data.success) {
-                setBankAccounts(data.data || []);
+                const accounts = data.data || [];
+                setBankAccounts(accounts);
+                // Show popup if no bank accounts
+                if (accounts.length === 0) {
+                    setShowNoBankAccountModal(true);
+                }
                 // Auto-select default account
-                const defaultAcc = data.data?.find(acc => acc.isDefault);
+                const defaultAcc = accounts.find(acc => acc.isDefault);
                 if (defaultAcc) {
                     setSelectedBankId(defaultAcc._id);
                 }
@@ -89,12 +98,37 @@ const WithdrawFund = () => {
             return;
         }
 
+        // Auto-select default bank account if none selected
         if (!selectedBankId) {
-            setError('Please select a bank account');
-            return;
+            const defaultAcc = bankAccounts.find(acc => acc.isDefault);
+            if (defaultAcc) {
+                setSelectedBankId(defaultAcc._id);
+            } else if (bankAccounts.length > 0) {
+                setSelectedBankId(bankAccounts[0]._id);
+            } else {
+                setError('Please add a bank account first');
+                return;
+            }
         }
 
+        // Show confirmation modal
+        setShowConfirmationModal(true);
+    };
+
+    const confirmWithdrawal = async () => {
+        setShowConfirmationModal(false);
         setLoading(true);
+        setError('');
+        setSuccess('');
+
+        const numAmount = parseFloat(amount);
+        const finalBankId = selectedBankId || bankAccounts.find(acc => acc.isDefault)?._id || bankAccounts[0]?._id;
+
+        if (!finalBankId) {
+            setError('Please select a bank account');
+            setLoading(false);
+            return;
+        }
 
         try {
             const res = await fetch(`${API_BASE_URL}/payments/withdraw`, {
@@ -103,7 +137,7 @@ const WithdrawFund = () => {
                 body: JSON.stringify({
                     userId: user.id,
                     amount: numAmount,
-                    bankDetailId: selectedBankId,
+                    bankDetailId: finalBankId,
                     userNote,
                 }),
             });
@@ -126,9 +160,9 @@ const WithdrawFund = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
             {/* Wallet Balance Card */}
-            <div className="rounded-2xl bg-black/0 p-0">
+            <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
                 <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
                     <div className="px-4 pt-3 pb-2 flex items-center justify-center gap-2 text-sm text-gray-300">
                         <svg className="w-4 h-4 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -157,15 +191,10 @@ const WithdrawFund = () => {
                         <div className="text-sm text-white/90 truncate">
                             {user?.username || user?.name || 'User'}
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
-                            <span className="w-3 h-3 rounded-full bg-[#d4af37] inline-block" />
+                        <div className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
+                            Min: ₹{config?.minWithdrawal || 500} | Max: ₹{config?.maxWithdrawal || 25000}
                         </div>
                     </div>
-                </div>
-
-                <div className="mt-3 text-gray-400 text-sm">
-                    Min: ₹{config?.minWithdrawal || 500} | Max: ₹{config?.maxWithdrawal || 25000}
                 </div>
             </div>
 
@@ -190,88 +219,28 @@ const WithdrawFund = () => {
             )}
 
             {/* Withdraw Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="px-4 sm:px-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Amount Input */}
                 <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">Amount (₹)</label>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-gray-300 text-sm font-medium">Amount (₹)</label>
+                        <button
+                            type="button"
+                            onClick={() => setAmount(Math.min(walletBalance, config?.maxWithdrawal || 25000).toString())}
+                            className="text-red-400 text-sm hover:text-red-300"
+                        >
+                            Withdraw Max (₹{Math.min(walletBalance, config?.maxWithdrawal || 25000).toLocaleString()})
+                        </button>
+                    </div>
                     <input
-                        type="number"
+                        type="text"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        placeholder="Enter amount"
+                        placeholder="Enter Withdraw Amount"
+                        inputMode="numeric"
+                        onWheel={(e) => e.target.blur()}
                         className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                        min={config?.minWithdrawal || 500}
-                        max={Math.min(config?.maxWithdrawal || 25000, walletBalance)}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setAmount(Math.min(walletBalance, config?.maxWithdrawal || 25000).toString())}
-                        className="mt-2 text-red-400 text-sm hover:text-red-300"
-                    >
-                        Withdraw Max (₹{Math.min(walletBalance, config?.maxWithdrawal || 25000).toLocaleString()})
-                    </button>
-                </div>
-
-                {/* Bank Account Selection */}
-                <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">Select Bank Account</label>
-                    <div className="space-y-2">
-                        {bankAccounts.map((acc) => (
-                            <label
-                                key={acc._id}
-                                className={`flex items-center p-4 bg-[#1a1a1a] border rounded-xl cursor-pointer transition-colors ${
-                                    selectedBankId === acc._id
-                                        ? 'border-red-500 bg-red-900/20'
-                                        : 'border-white/10 hover:border-white/30'
-                                }`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="bankAccount"
-                                    value={acc._id}
-                                    checked={selectedBankId === acc._id}
-                                    onChange={(e) => setSelectedBankId(e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className="flex-1">
-                                    <p className="text-white font-medium">{acc.accountHolderName}</p>
-                                    {acc.accountNumber && (
-                                        <p className="text-gray-400 text-sm">
-                                            {acc.bankName} - ****{acc.accountNumber.slice(-4)}
-                                        </p>
-                                    )}
-                                    {acc.upiId && (
-                                        <p className="text-gray-400 text-sm">UPI: {acc.upiId}</p>
-                                    )}
-                                </div>
-                                {acc.isDefault && (
-                                    <span className="px-2 py-1 bg-yellow-600/30 text-yellow-400 text-xs rounded-full">
-                                        Default
-                                    </span>
-                                )}
-                                <div className={`w-5 h-5 rounded-full border-2 ml-3 flex items-center justify-center ${
-                                    selectedBankId === acc._id ? 'border-red-500' : 'border-gray-600'
-                                }`}>
-                                    {selectedBankId === acc._id && (
-                                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                                    )}
-                                </div>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Note */}
-                <div>
-                    <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Note <span className="text-gray-500">(Optional)</span>
-                    </label>
-                    <textarea
-                        value={userNote}
-                        onChange={(e) => setUserNote(e.target.value)}
-                        placeholder="Any special instructions..."
-                        className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                        rows={2}
                     />
                 </div>
 
@@ -283,10 +252,12 @@ const WithdrawFund = () => {
                 >
                     {loading ? 'Submitting...' : 'Submit Withdrawal Request'}
                 </button>
-            </form>
+                </form>
+            </div>
 
             {/* Info */}
-            <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10">
+            <div className="px-4 sm:px-6">
+                <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10">
                 <h4 className="text-yellow-400 font-semibold mb-2">Withdrawal Info:</h4>
                 <ul className="text-gray-400 text-sm space-y-1">
                     <li>• Withdrawals are processed within 24 hours</li>
@@ -294,44 +265,143 @@ const WithdrawFund = () => {
                     <li>• Minimum withdrawal: ₹{config?.minWithdrawal || 500}</li>
                     <li>• Maximum withdrawal: ₹{config?.maxWithdrawal || 25000}</li>
                 </ul>
+                </div>
             </div>
 
-            {/* Success Modal */}
-            {showSuccessModal && (
+            {/* No Bank Account Warning Modal */}
+            {showNoBankAccountModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-red-500/30 text-center">
-                        {/* Success Icon */}
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-yellow-500/30 text-center">
+                        {/* Warning Icon */}
+                        <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-2">Withdrawal Request Submitted!</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">No bank account added!</h3>
                         
-                        <div className="bg-red-900/30 rounded-xl p-4 mb-4">
-                            <p className="text-gray-400 text-sm">Amount</p>
-                            <p className="text-2xl font-bold text-red-400">₹{submittedAmount.toLocaleString()}</p>
-                        </div>
-
                         <p className="text-gray-400 text-sm mb-6">
-                            Your withdrawal request has been submitted successfully. 
-                            Amount will be transferred to your bank account after admin approval within 24 hours.
+                            Please add a bank account first from the "Bank Detail" section to withdraw funds.
                         </p>
 
                         <div className="space-y-3">
                             <button
+                                onClick={() => {
+                                    setShowNoBankAccountModal(false);
+                                    navigate('/funds?tab=bank-detail');
+                                }}
+                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-xl transition-colors"
+                            >
+                                Add Bank Account
+                            </button>
+                            <button
+                                onClick={() => setShowNoBankAccountModal(false)}
+                                className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmationModal && (() => {
+                const selectedBank = bankAccounts.find(acc => acc._id === selectedBankId) || bankAccounts.find(acc => acc.isDefault) || bankAccounts[0];
+                return selectedBank ? (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+                        <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-yellow-500/30 p-4 sm:p-6">
+                            {/* Warning Icon */}
+                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+
+                            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center">Confirm Withdrawal</h3>
+                            
+                            {/* Amount */}
+                            <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                                <p className="text-gray-400 text-xs sm:text-sm mb-1">Withdrawal Amount</p>
+                                <p className="text-xl sm:text-2xl font-bold text-red-400">₹{Number(amount || 0).toLocaleString('en-IN')}</p>
+                            </div>
+
+                            {/* Bank Details */}
+                            <div className="bg-blue-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                                <p className="text-gray-400 text-xs sm:text-sm mb-2">Bank Account Details</p>
+                                <div className="space-y-1 text-xs sm:text-sm">
+                                    <p className="text-white font-medium">{selectedBank.accountHolderName}</p>
+                                    {selectedBank.bankName && (
+                                        <p className="text-gray-300">Bank: {selectedBank.bankName}</p>
+                                    )}
+                                    {selectedBank.accountNumber && (
+                                        <p className="text-gray-300">A/C: ****{selectedBank.accountNumber.slice(-4)}</p>
+                                    )}
+                                    {selectedBank.ifscCode && (
+                                        <p className="text-gray-300">IFSC: {selectedBank.ifscCode}</p>
+                                    )}
+                                    {selectedBank.upiId && (
+                                        <p className="text-gray-300">UPI: {selectedBank.upiId}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 sm:space-y-3">
+                                <button
+                                    onClick={confirmWithdrawal}
+                                    className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors text-sm sm:text-base"
+                                >
+                                    Confirm Withdrawal
+                                </button>
+                                <button
+                                    onClick={() => setShowConfirmationModal(false)}
+                                    className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : null;
+            })()}
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-red-500/30 text-center p-4 sm:p-6">
+                        {/* Success Icon */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Withdrawal Request Submitted!</h3>
+                        
+                        <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
+                            <p className="text-gray-400 text-xs sm:text-sm">Amount</p>
+                            <p className="text-xl sm:text-2xl font-bold text-red-400">₹{submittedAmount.toLocaleString()}</p>
+                        </div>
+
+                        <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">
+                            Your withdrawal request has been submitted successfully. 
+                            Amount will be transferred to your bank account after admin approval within 24 hours.
+                        </p>
+
+                        <div className="space-y-2 sm:space-y-3">
+                            <button
                                 onClick={() => setShowSuccessModal(false)}
-                                className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors"
+                                className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors text-sm sm:text-base"
                             >
                                 Done
                             </button>
                             <button
                                 onClick={() => {
                                     setShowSuccessModal(false);
-                                    window.location.href = '/funds?tab=withdraw-fund-history';
+                                    navigate('/funds?tab=withdraw-fund-history');
                                 }}
-                                className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
+                                className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
                             >
                                 View History
                             </button>

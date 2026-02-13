@@ -156,7 +156,7 @@ const AddFund = () => {
 
             {step === 1 ? (
                 <div className="space-y-4 sm:space-y-5">
-                    <div className="rounded-2xl bg-black/0 p-0">
+                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
                         {/* Top card (as screenshot) */}
                         <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
                             <div className="px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 flex items-center justify-center gap-2 text-[13px] sm:text-sm text-gray-300">
@@ -206,23 +206,8 @@ const AddFund = () => {
                             </div>
                         </div>
 
-                        {/* Support button */}
-                        <div className="mt-3 sm:mt-4 flex justify-center">
-                            <button
-                                type="button"
-                                onClick={() => navigate('/support')}
-                                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-full bg-[#202124] border border-white/10 text-[13px] sm:text-sm font-semibold text-white shadow-sm hover:border-[#d4af37]/35 hover:bg-[#222] transition-colors"
-                            >
-                                <svg className="w-4 h-4 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 10c0 3.866-3.134 7-7 7a7.003 7.003 0 01-4-1.25L3 17l1.25-4A7.003 7.003 0 017 6c0-1.105.895-2 2-2h2a7 7 0 017 7z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 10h.01M12 10h.01M15 10h.01" />
-                                </svg>
-                                Support
-                            </button>
-                        </div>
-
                         {/* Amount input */}
-                        <div className="mt-3 sm:mt-4 flex items-center justify-center gap-2">
+                        <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2">
                             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#202124] border border-white/10 flex items-center justify-center shadow-sm shrink-0">
                                 <svg className="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M4 10l8-4 8 4" />
@@ -347,10 +332,6 @@ const AddFund = () => {
                                 >
                                     Copy
                                 </button>
-                            </div>
-                            <div className="bg-black/30 rounded-xl p-4 border border-white/10">
-                                <p className="text-gray-400 text-sm">Pay to</p>
-                                <p className="text-white font-semibold">{config?.upiName || 'Golden Games'}</p>
                             </div>
                         </div>
                     </div>

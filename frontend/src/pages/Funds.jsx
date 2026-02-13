@@ -115,6 +115,14 @@ const Funds = () => {
     }
   }, [activeKey]);
 
+  // Sync tabParam from URL to activeKey when navigating externally
+  useEffect(() => {
+    if (tabParam && items.some((i) => i.key === tabParam) && tabParam !== activeKey) {
+      setActiveKey(tabParam);
+      if (!isDesktop) setMobileView(tabParam);
+    }
+  }, [tabParam]);
+
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
   const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;
   const ActiveComponent = activeItem?.component;
@@ -131,6 +139,11 @@ const Funds = () => {
   };
 
   const isAddFundMobileView = mobileView === 'add-fund';
+  const isWithdrawFundMobileView = mobileView === 'withdraw-fund';
+  const isBankDetailMobileView = mobileView === 'bank-detail';
+  const isAddFundHistoryMobileView = mobileView === 'add-fund-history';
+  const isWithdrawFundHistoryMobileView = mobileView === 'withdraw-fund-history';
+  const shouldRemoveCardBackground = isAddFundMobileView || isWithdrawFundMobileView || isBankDetailMobileView || isAddFundHistoryMobileView || isWithdrawFundHistoryMobileView;
 
   return (
     <div className="min-h-screen bg-black text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 md:pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
@@ -194,10 +207,10 @@ const Funds = () => {
               </main>
             ) : (
               <div
-                className={`bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] ${
-                  isAddFundMobileView
-                    ? 'p-3 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden'
-                    : 'p-4 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hidden'
+                className={`${
+                  shouldRemoveCardBackground
+                    ? 'p-0 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden'
+                    : 'bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-4 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hidden'
                 }`}
               >
                 {mobileDetailItem?.component && React.createElement(mobileDetailItem.component)}
