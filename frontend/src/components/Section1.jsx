@@ -105,7 +105,7 @@ const Section1 = () => {
             </div>
             <div className="text-left">
               <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">STARLINE</h3>
-              <p className="text-gray-500 text-[11px] mt-1 group-hover:text-gray-400 transition-colors">Play Now →</p>
+              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">Tap to Play</p>
             </div>
             <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -140,7 +140,7 @@ const Section1 = () => {
             </div>
             <div className="text-left">
               <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">KING BAZAAR</h3>
-              <p className="text-gray-500 text-[11px] mt-1 group-hover:text-gray-400 transition-colors">Play Now →</p>
+              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">Tap to Play</p>
             </div>
             <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
