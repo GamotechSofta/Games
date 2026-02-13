@@ -159,9 +159,10 @@ const BottomNavbar = () => {
                   scrollToTop();
                   return;
                 }
-                // Funds: go to main Funds screen (no tab so list shows); replace if already on /funds
+                // Funds: go to main Funds screen (no tab) so list always shows
                 if (item.path === '/funds') {
-                  navigate('/funds', { replace: location.pathname === '/funds' });
+                  const alreadyOnFunds = location.pathname === '/funds';
+                  navigate({ pathname: '/funds', search: '' }, { replace: alreadyOnFunds });
                   return;
                 }
                 navigate(item.path);

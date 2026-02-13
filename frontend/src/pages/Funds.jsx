@@ -110,19 +110,24 @@ const Funds = () => {
   const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
   const [mobileView, setMobileView] = useState(null); // mobile: null = list, key = detail
 
+  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. When tabParam is null (list view) don't write tab — avoids flicker when opening Funds from bottom bar.
   useEffect(() => {
-    if (tabParam !== activeKey) {
-      setSearchParams({ tab: activeKey }, { replace: true });
+    if (!isDesktop && mobileView === null) {
+      if (tabParam) setSearchParams({}, { replace: true });
+      return;
     }
-  }, [activeKey]);
+    if (tabParam != null && tabParam !== activeKey) {
+      setSearchParams({ tab: activeKey }, { replace: isDesktop });
+    }
+  }, [activeKey, isDesktop, mobileView, tabParam]);
 
-  // Sync tabParam from URL to activeKey when navigating externally
+  // Sync tabParam from URL to state when navigating (e.g. device back or external link)
   useEffect(() => {
     if (tabParam && items.some((i) => i.key === tabParam) && tabParam !== activeKey) {
       setActiveKey(tabParam);
       if (!isDesktop) setMobileView(tabParam);
     } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
-      // No tab or invalid tab (e.g. navigated to /funds from bottom bar) → show list
+      // No tab or invalid tab → show list
       setActiveKey(items[0]?.key || 'add-fund');
       setMobileView(null);
     }
@@ -136,7 +141,10 @@ const Funds = () => {
 
   const handleItemClick = (key) => {
     setActiveKey(key);
-    if (!isDesktop) setMobileView(key);
+    if (!isDesktop) {
+      setMobileView(key);
+      setSearchParams({ tab: key }, { replace: false }); // push so device back goes to list
+    }
   };
 
   const handleMobileBack = () => {
@@ -144,10 +152,11 @@ const Funds = () => {
   };
 
   // Back from main Funds list: same behaviour as My Bets (desktop → home, mobile → prev or home).
-  const fundsPath = '/funds';
+  const isFundsPath = (p) => !p || p === '/funds' || p.startsWith('/funds?');
   const handleBack = () => {
     if (mobileView) {
       handleMobileBack();
+      if (!isDesktop) setSearchParams({}, { replace: true });
       return;
     }
     try {
@@ -158,7 +167,7 @@ const Funds = () => {
     } catch (_) {}
     try {
       const prev = sessionStorage.getItem('prevPathname');
-      if (prev && prev !== fundsPath) {
+      if (prev && !isFundsPath(prev)) {
         navigate(prev);
         return;
       }

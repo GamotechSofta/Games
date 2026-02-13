@@ -6,7 +6,7 @@ import MenuItemCard from '../../components/MenuItemCard';
  */
 export default function FundsSidebar({ items = [], activeKey, onItemClick }) {
   return (
-    <div className="space-y-2 md:space-y-2.5">
+    <div className="grid grid-cols-2 gap-2 md:gap-2.5 min-w-0 w-full">
       {items.map((item) => (
         <MenuItemCard
           key={item.key}
