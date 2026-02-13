@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -113,13 +113,14 @@ const Funds = () => {
   const showList = mobileView === null || isDesktop;
   const showContent = mobileView !== null || isDesktop;
 
-  const handleItemClick = (key) => {
+  const handleItemClick = useCallback((key) => {
+    if (key == null) return;
     setActiveKey(key);
     if (!isDesktop) {
       setMobileView(key);
       setSearchParams({ tab: key }, { replace: false }); // push so device back goes to list
     }
-  };
+  }, [isDesktop, setSearchParams]);
 
   const handleMobileBack = () => {
     setMobileView(null);

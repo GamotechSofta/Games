@@ -5,6 +5,12 @@ import MenuItemCard from '../../components/MenuItemCard';
  * Sidebar menu for Funds screen (Add Fund, Withdraw Fund, Bank Detail, etc.).
  */
 export default function FundsSidebar({ items = [], activeKey, onItemClick }) {
+  const handleClick = (key) => {
+    if (key != null && typeof onItemClick === 'function') {
+      onItemClick(key);
+    }
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-2.5 min-w-0 w-full">
       {items.map((item) => (
@@ -15,7 +21,7 @@ export default function FundsSidebar({ items = [], activeKey, onItemClick }) {
           color={item.color}
           icon={item.icon}
           active={item.key === activeKey}
-          onClick={() => onItemClick(item.key)}
+          onClick={() => handleClick(item.key)}
         />
       ))}
     </div>
