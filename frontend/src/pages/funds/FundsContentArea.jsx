@@ -34,10 +34,10 @@ export default function FundsContentArea({
 
   return (
     <div
-      className={`${
+      className={`min-h-[280px] ${
         shouldRemoveCardBackground
-          ? 'p-0 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden'
-          : 'bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-4 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hidden'
+          ? 'p-0 min-h-[60vh] max-h-[calc(100dvh-180px)] overflow-y-auto overflow-x-hidden scrollbar-hidden ios-scroll-touch'
+          : 'bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-4 min-h-[50vh] max-h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden scrollbar-hidden ios-scroll-touch'
       }`}
     >
       {mobileDetailItem?.component && React.createElement(mobileDetailItem.component)}

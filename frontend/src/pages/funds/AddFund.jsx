@@ -142,7 +142,7 @@ const AddFund = () => {
     };
 
     return (
-        <div className={`space-y-4 sm:space-y-6 ${step === 2 ? 'pb-28' : ''}`}>
+        <div className={`space-y-4 sm:space-y-6 ${step === 2 ? 'pb-32 sm:pb-28' : ''}`}>
             {/* Messages */}
             {error && (
                 <div className="p-4 bg-red-900/50 border border-red-600 rounded-xl text-red-300 text-sm">
@@ -425,7 +425,7 @@ const AddFund = () => {
                     </form>
 
                     {/* Instructions */}
-                    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10">
+                    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10 mb-6">
                         <h4 className="text-yellow-400 font-semibold mb-2">How to Add Funds:</h4>
                         <ol className="text-gray-400 text-sm space-y-2 list-decimal list-inside">
                             <li>Scan the QR code above OR copy the UPI ID</li>
