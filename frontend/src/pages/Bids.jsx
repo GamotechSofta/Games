@@ -697,6 +697,12 @@ const Bids = () => {
 
   // Group desktop bet history by market (sorted) for table layout
   const groupedDesktopByMarket = useMemo(() => {
+    const sessionOrder = (s) => {
+      const u = (s || '').toString().trim().toUpperCase();
+      if (u === 'OPEN') return 0;
+      if (u === 'CLOSE') return 1;
+      return 2;
+    };
     const map = new Map();
     for (const row of filteredDesktopRows || []) {
       const key = row.marketKey;
@@ -705,7 +711,11 @@ const Bids = () => {
       map.get(key).bets.push(row);
     }
     for (const g of map.values()) {
-      g.bets.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      g.bets.sort((a, b) => {
+        const bySession = sessionOrder(a.session) - sessionOrder(b.session);
+        if (bySession !== 0) return bySession;
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+      });
     }
     return Array.from(map.values()).sort((a, b) => a.marketTitle.localeCompare(b.marketTitle, undefined, { sensitivity: 'base' }));
   }, [filteredDesktopRows]);
