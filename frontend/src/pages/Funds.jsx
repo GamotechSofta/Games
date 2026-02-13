@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import MenuItemCard from '../components/MenuItemCard';
+import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { AddFund, WithdrawFund, BankDetail, AddFundHistory, WithdrawFundHistory } from './funds/index';
 
 const Funds = () => {
@@ -101,24 +104,26 @@ const Funds = () => {
     },
   ]), []);
 
-  // Get active tab from URL or default to first
+  const { isDesktop } = useBreakpoint();
   const tabParam = searchParams.get('tab');
-  const [activeKey, setActiveKey] = useState(tabParam || items[0]?.key || 'add-fund');
-  const [mobileView, setMobileView] = useState(null); // null = list, string = key of active item
+  const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
+  const [mobileView, setMobileView] = useState(null); // mobile: null = list, key = detail
 
   useEffect(() => {
-    // Sync URL with active key on desktop
     if (tabParam !== activeKey) {
       setSearchParams({ tab: activeKey }, { replace: true });
     }
   }, [activeKey]);
 
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
+  const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;
   const ActiveComponent = activeItem?.component;
+  const showList = mobileView === null || isDesktop;
+  const showContent = mobileView !== null || isDesktop;
 
   const handleItemClick = (key) => {
     setActiveKey(key);
-    setMobileView(key); // On mobile, show the component
+    if (!isDesktop) setMobileView(key);
   };
 
   const handleMobileBack = () => {
@@ -143,7 +148,7 @@ const Funds = () => {
               </svg>
             </button>
             <h1 className="text-xl sm:text-2xl font-bold">
-              {mobileView ? items.find(i => i.key === mobileView)?.title : 'Funds'}
+              {showContent && !isDesktop ? (mobileDetailItem || activeItem)?.title : 'Funds'}
             </h1>
           </div>
 
@@ -152,117 +157,54 @@ const Funds = () => {
           </div>
         </div>
 
-        {/* Mobile: List view or Component view */}
-        <div className="md:hidden">
-          {mobileView === null ? (
-            // List view
-            <div className="space-y-2.5">
+        <ResponsiveSidebarLayout
+          sidebar={showList ? (
+            <div className="space-y-2 md:space-y-2.5">
               {items.map((item) => (
-                <div
+                <MenuItemCard
                   key={item.key}
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  color={item.color}
+                  icon={item.icon}
+                  active={item.key === activeKey}
                   onClick={() => handleItemClick(item.key)}
-                  className="bg-[#202124] border border-white/10 rounded-2xl p-3 flex items-center justify-between shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') handleItemClick(item.key);
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
-                      style={{ backgroundColor: item.color }}
-                    >
-                      {item.icon}
-                    </div>
-                    <div>
-                      <p className="text-sm sm:text-base font-semibold">{item.title}</p>
-                      <p className="text-[11px] sm:text-xs text-gray-400 leading-snug">{item.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-black/30 border border-white/10 flex items-center justify-center text-white/70">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
+                />
               ))}
             </div>
-          ) : (
-            // Component view
-            <div
-              className={`bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] ${
-                isAddFundMobileView
-                  ? 'p-3 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden'
-                  : 'p-4 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hidden'
-              }`}
-            >
-              {items.find(i => i.key === mobileView)?.component && (
-                React.createElement(items.find(i => i.key === mobileView).component)
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Desktop: sidebar-style list + right panel (My Bets style) */}
-        <div className="hidden md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-start">
-          <aside className="md:sticky md:top-[96px] space-y-2">
-            {items.map((item) => {
-              const active = item.key === activeKey;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setActiveKey(item.key)}
-                  className={`w-full text-left bg-[#202124] border rounded-2xl p-3 md:p-5 flex items-center justify-between shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors ${
-                    active ? 'border-[#d4af37]/40 bg-[#202124]' : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 md:gap-4">
-                    <div
-                      className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
-                      style={{ backgroundColor: item.color }}
-                    >
-                      {item.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm md:text-base font-semibold text-white truncate">{item.title}</p>
-                      <p className="text-xs text-gray-400 truncate">{item.subtitle}</p>
-                    </div>
-                  </div>
+          ) : null}
+          content={showContent ? (
+            isDesktop ? (
+              <main className="rounded-2xl bg-[#202124] border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6">
+                <div className="flex items-center justify-center gap-4 mb-6">
                   <div
-                    className={`w-8 h-8 md:w-9 md:h-9 rounded-full border flex items-center justify-center ${
-                      active ? 'bg-[#d4af37]/15 border-[#d4af37]/35 text-[#d4af37]' : 'bg-black/30 border-white/10 text-white/70'
-                    }`}
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
+                    style={{ backgroundColor: activeItem?.color || '#f3b61b' }}
                   >
-                    <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                    {activeItem?.icon}
                   </div>
-                </button>
-              );
-            })}
-          </aside>
-
-          <main className="rounded-2xl bg-[#202124] border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6">
-            <div className="flex items-center justify-center gap-4 mb-6">
+                  <div className="min-w-0 text-center">
+                    <div className="text-xl font-bold text-white truncate">{activeItem?.title}</div>
+                    <div className="text-sm text-gray-400">{activeItem?.subtitle}</div>
+                  </div>
+                </div>
+                <div className="max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-hidden">
+                  {ActiveComponent && <ActiveComponent />}
+                </div>
+              </main>
+            ) : (
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
-                style={{ backgroundColor: activeItem?.color || '#f3b61b' }}
+                className={`bg-[#202124] border border-white/10 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.35)] ${
+                  isAddFundMobileView
+                    ? 'p-3 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-hidden'
+                    : 'p-4 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-hidden'
+                }`}
               >
-                {activeItem?.icon}
+                {mobileDetailItem?.component && React.createElement(mobileDetailItem.component)}
               </div>
-              <div className="min-w-0 text-center">
-                <div className="text-xl font-bold text-white truncate">{activeItem?.title}</div>
-                <div className="text-sm text-gray-400">{activeItem?.subtitle}</div>
-              </div>
-            </div>
-
-            <div className="max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-hidden">
-              {ActiveComponent && <ActiveComponent />}
-            </div>
-          </main>
-        </div>
+            )
+          ) : null}
+        />
       </div>
     </div>
   );

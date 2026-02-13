@@ -514,8 +514,8 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
 
       if (selectedStatuses.length > 0) {
         const st =
-          row.verdict.state === 'won' ? 'Win' 
-          : row.verdict.state === 'lost' ? 'Loose' 
+          row.verdict.state === 'won' ? 'Win'
+          : row.verdict.state === 'lost' ? 'Loose'
           : row.verdict.state === 'cancelled' ? 'Cancelled'
           : 'Pending';
         if (!selectedStatuses.includes(st)) return false;
@@ -524,24 +524,57 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
     });
   }, [enriched, selectedMarkets, selectedSessions, selectedStatuses]);
 
+  // Group by market, sort markets by name, sort bets within market by createdAt desc
+  const groupedByMarket = useMemo(() => {
+    const map = new Map();
+    for (const row of filtered || []) {
+      const key = normalizeMarketName(row.marketTitle);
+      const title = (row.marketTitle || '').toString().trim() || 'MARKET';
+      if (!map.has(key)) map.set(key, { marketKey: key, marketTitle: title, bets: [] });
+      map.get(key).bets.push(row);
+    }
+    for (const g of map.values()) {
+      g.bets.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+    const sorted = Array.from(map.values()).sort((a, b) => a.marketTitle.localeCompare(b.marketTitle, undefined, { sensitivity: 'base' }));
+    return sorted;
+  }, [filtered]);
+
   // Reset to page 1 when filters/data change
   useEffect(() => {
     setPage(1);
-  }, [selectedSessions, selectedStatuses, selectedMarkets, enriched.length]);
+  }, [selectedSessions, selectedStatuses, selectedMarkets, groupedByMarket.length]);
 
-  const PAGE_SIZE = 10;
+  const MARKETS_PER_PAGE = 5;
   const totalPages = useMemo(() => {
-    const n = Math.ceil((filtered?.length || 0) / PAGE_SIZE);
+    const n = Math.ceil((groupedByMarket?.length || 0) / MARKETS_PER_PAGE);
     return n > 0 ? n : 1;
-  }, [filtered]);
+  }, [groupedByMarket]);
 
   const currentPage = Math.min(Math.max(1, page), totalPages);
-  const paged = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return (filtered || []).slice(start, start + PAGE_SIZE);
-  }, [filtered, currentPage]);
+  const pagedMarkets = useMemo(() => {
+    const start = (currentPage - 1) * MARKETS_PER_PAGE;
+    return (groupedByMarket || []).slice(start, start + MARKETS_PER_PAGE);
+  }, [groupedByMarket, currentPage]);
 
-  const hasPagination = (filtered?.length || 0) > PAGE_SIZE;
+  const hasPagination = (groupedByMarket?.length || 0) > MARKETS_PER_PAGE;
+
+  const labelForType = (t) => {
+    const s = String(t || '').toLowerCase();
+    if (s === 'single') return 'Single Ank';
+    if (s === 'jodi') return 'Jodi';
+    if (s === 'panna') return 'Panna';
+    if (s === 'half-sangam') return 'Half Sangam';
+    if (s === 'full-sangam') return 'Full Sangam';
+    return t || 'Bet';
+  };
+
+  const statusLabel = (verdict) => {
+    if (verdict?.state === 'won') return { text: 'Won', className: 'text-[#43b36a] font-semibold' };
+    if (verdict?.state === 'lost') return { text: 'Lost', className: 'text-red-400 font-semibold' };
+    if (verdict?.state === 'cancelled') return { text: 'Cancelled', className: 'text-orange-400 font-semibold' };
+    return { text: 'Pending', className: 'text-amber-400/90 font-medium' };
+  };
 
   // Draft state for modal
   const [draftSessions, setDraftSessions] = useState([]);
@@ -577,7 +610,7 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
 
   return (
     <div className={`min-h-screen bg-black text-white px-3 sm:px-4 pt-3 ${hasPagination ? 'pb-[calc(100px+env(safe-area-inset-bottom,0px))]' : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))]'}`}>
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
         {/* Header row */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -608,24 +641,6 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
           </button>
         </div>
 
-        {/* Debug info (temporary) */}
-        {apiBets.length > 0 && (
-          <div className="mb-4 rounded-xl px-4 py-3 text-xs bg-blue-500/10 border border-blue-500/30 text-blue-200">
-            <div className="font-bold mb-2">Debug Info:</div>
-            <div>Total bets: {apiBets.length}</div>
-            <div>Filtered bets: {filtered.length}</div>
-            {apiBets[0] && (
-              <div className="mt-2 space-y-1">
-                <div>First bet ID: {apiBets[0]._id}</div>
-                <div>Status: {apiBets[0].status}</div>
-                <div>Created: {apiBets[0].createdAt}</div>
-                <div>Market: {apiBets[0].marketId?.marketName || 'N/A'}</div>
-                <div>Closing Time: {apiBets[0].marketId?.closingTime || 'N/A'}</div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Cancel message */}
         {cancelMessage.text && (
           <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${
@@ -637,114 +652,109 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
           </div>
         )}
 
-        {/* Cards */}
-        <div className="space-y-4">
-          {filtered.length === 0 ? (
+        {/* Grouped by market: each market as a section with table */}
+        <div className="space-y-6">
+          {!userId ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
-              {userId ? 'No bets found.' : 'Please login to see your bet history.'}
+              Please login to see your bet history.
             </div>
-          ) : paged.map((row) => {
-            const { betId, points, session, marketTitle, betNumber, betType, verdict, createdAt, canCancel, status } = row;
-            const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
-            
-            const labelForType = (t) => {
-              const s = String(t || '').toLowerCase();
-              if (s === 'single') return 'Single Ank';
-              if (s === 'jodi') return 'Digit';
-              if (s === 'panna') return 'Panna';
-              if (s === 'half-sangam') return 'Half Sangam';
-              if (s === 'full-sangam') return 'Full Sangam';
-              return 'Bet';
-            };
-            const gameType = labelForType(betType);
-
-            return (
-            <div key={betId} className="rounded-2xl overflow-hidden border border-white/10 bg-[#202124] shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
-              <div className="bg-black/30 px-4 py-3 text-center border-b border-white/10">
-                <div className="text-[#d4af37] font-extrabold tracking-wide">
-                  {marketTitle.toUpperCase()} {session ? `(${session})` : ''}
-                </div>
-              </div>
-
-              <div className="px-4 py-4">
-                <div className="grid grid-cols-3 text-center text-[#d4af37] font-bold">
-                  <div>Game Type</div>
-                  <div>{gameType}</div>
-                  <div>Points</div>
-                </div>
-                <div className="mt-3 grid grid-cols-3 text-center text-white/90">
-                  <div className="font-semibold">{gameType}</div>
-                  <div className="font-extrabold">{betValue}</div>
-                  <div className="font-extrabold">{points}</div>
-                </div>
-              </div>
-
-              <div className="h-px bg-white/10" />
-
-              <div className="px-4 py-3 text-center text-white/70">
-                Transaction: <span className="font-semibold">{formatTxnTime(createdAt)}</span>
-              </div>
-
-              <div className="h-px bg-white/10" />
-
-              {verdict.state === 'won' ? (
-                <div className="px-4 py-3 text-center font-semibold text-[#43b36a]">
-                  Congratulations, You Won {verdict.payout ? `₹${Number(verdict.payout || 0).toLocaleString('en-IN')}` : ''}
-                </div>
-              ) : verdict.state === 'lost' ? (
-                <div className="px-4 py-3 text-center font-semibold text-red-400">
-                  Better Luck Next time
-                </div>
-              ) : verdict.state === 'cancelled' ? (
-                <div className="px-4 py-3 text-center font-semibold text-orange-400">
-                  Bet Cancelled
-                </div>
-              ) : (
-                <div className="px-4 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="font-semibold text-[#43b36a]">Bet Placed</span>
-                    {canCancel?.canCancel ? (
-                      <button
-                        type="button"
-                        onClick={() => handleCancelBet(betId)}
-                        disabled={cancellingBetId === betId}
-                        className={`
-                          inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5
-                          text-sm font-semibold min-h-[44px] min-w-[120px]
-                          transition-all duration-200
-                          ${cancellingBetId === betId
-                            ? 'bg-gray-700/80 text-gray-400 cursor-wait'
-                            : 'bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98]'
-                          }
-                        `}
-                        title="Cancel this bet and get refund"
-                      >
-                        {cancellingBetId === betId ? (
-                          <>
-                            <svg className="animate-spin h-4 w-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            <span>Cancelling...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span>Cancel & refund</span>
-                          </>
-                        )}
-                      </button>
-                    ) : canCancel?.reason ? (
-                      <span className="text-xs text-gray-500">({canCancel.reason})</span>
-                    ) : null}
-                  </div>
-                </div>
-              )}
+          ) : groupedByMarket.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
+              No bets found.
             </div>
-            );
-          })}
+          ) : (
+            pagedMarkets.map(({ marketKey, marketTitle, bets }) => (
+              <section key={marketKey} className="rounded-2xl overflow-hidden border border-white/10 bg-[#202124] shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+                <div className="bg-[#0b2b55] px-4 py-3 border-b border-white/10">
+                  <h2 className="text-white font-extrabold tracking-wide truncate">
+                    {marketTitle.toUpperCase()}
+                  </h2>
+                  <p className="text-[#d4af37]/90 text-xs mt-0.5">
+                    {bets.length} bet{bets.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] lg:min-w-[720px] border-collapse text-sm lg:text-base">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-black/20">
+                        <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">#</th>
+                        <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game Type</th>
+                        <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet Number</th>
+                        <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Session</th>
+                        <th className="text-right py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Points</th>
+                        <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Status</th>
+                        <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Date & Time</th>
+                        <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider w-32">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bets.map((row, idx) => {
+                        const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel } = row;
+                        const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
+                        const gameType = labelForType(betType);
+                        const status = statusLabel(verdict);
+                        return (
+                          <tr key={betId} className="border-b border-white/5 hover:bg-white/[0.03] transition-colors">
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-sm">{idx + 1}</td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-white text-sm font-medium">{gameType}</td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-white font-semibold">{betValue}</td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
+                              {session ? (
+                                <span className="text-xs font-bold text-[#d4af37] border border-[#d4af37]/30 rounded-full px-2 py-0.5">
+                                  {session}
+                                </span>
+                              ) : (
+                                <span className="text-gray-500">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-right text-white font-semibold">{points}</td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
+                              <span className={status.className}>{status.text}</span>
+                              {verdict?.state === 'won' && verdict?.payout != null && verdict.payout > 0 && (
+                                <div className="text-[#43b36a] text-xs mt-0.5">₹{Number(verdict.payout).toLocaleString('en-IN')}</div>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
+                            <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
+                              {verdict?.state === 'pending' && canCancel?.canCancel ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelBet(betId)}
+                                  disabled={cancellingBetId === betId}
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                                  title="Cancel & refund"
+                                >
+                                  {cancellingBetId === betId ? (
+                                    <>
+                                      <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                      </svg>
+                                      <span>Cancelling...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                      </svg>
+                                      <span>Cancel</span>
+                                    </>
+                                  )}
+                                </button>
+                              ) : verdict?.state !== 'pending' ? (
+                                <span className="text-gray-500 text-xs">—</span>
+                              ) : null}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))
+          )}
         </div>
       </div>
 

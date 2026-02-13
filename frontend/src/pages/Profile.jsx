@@ -416,121 +416,102 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* ═══════════ MOBILE LAYOUT (unchanged) ═══════════ */}
-      <div className="md:hidden max-w-lg mx-auto px-4 pt-4 space-y-4">
-        {heroCard}
-        {quickActionsBlock('grid-cols-4')}
-        {accountInfoBlock}
-        {settingsBlock}
-        {logoutBtn}
-        <div className="h-2" />
-      </div>
-
-      {/* ═══════════ DESKTOP LAYOUT ═══════════ */}
-      <div className="hidden md:block max-w-6xl mx-auto px-6 lg:px-8 pt-6">
-        <div className="grid grid-cols-[340px_1fr] lg:grid-cols-[380px_1fr] gap-6 items-start">
-
-          {/* ── Left Sidebar ── */}
-          <div className="sticky top-[72px] space-y-4">
+      {/* Single layout: responsive grid (stack on mobile, sidebar+main on desktop) */}
+      <div className="max-w-lg md:max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] lg:grid-cols-[380px_1fr] gap-4 md:gap-6 items-start">
+          {/* Left: hero, quick actions, settings, logout */}
+          <div className="space-y-4 md:sticky md:top-[72px]">
             {heroCard}
             {quickActionsBlock('grid-cols-4')}
             {settingsBlock}
             {logoutBtn}
           </div>
 
-          {/* ── Right Content ── */}
-          <div className="space-y-5">
-            {/* Account Info — expanded for desktop */}
-            <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
-              <div className="px-6 pt-6 pb-4 border-b border-white/5">
-                <h3 className="text-white font-semibold text-base uppercase tracking-wider">Account Information</h3>
-                <p className="text-gray-500 text-sm mt-1">Your personal details and account data</p>
-              </div>
-
-              {/* 2-col grid for info fields on desktop */}
-              <div className="p-5 grid grid-cols-2 gap-4">
-                {/* User ID - full width */}
-                <div className="col-span-2 group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                  <div className="w-11 h-11 rounded-xl bg-gray-500/10 flex items-center justify-center text-gray-400 shrink-0">
-                    <IconId />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">User ID</p>
-                    <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
-                  </div>
-                  {renderCopyBtn('User ID')}
+          {/* Right: account info (list on mobile, 2-col grid on desktop) + quick stats on desktop */}
+          <div className="space-y-4 md:space-y-5 min-w-0">
+            <div className="md:hidden">{accountInfoBlock}</div>
+            <div className="hidden md:block space-y-5">
+              <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+                <div className="px-6 pt-6 pb-4 border-b border-white/5">
+                  <h3 className="text-white font-semibold text-base uppercase tracking-wider">Account Information</h3>
+                  <p className="text-gray-500 text-sm mt-1">Your personal details and account data</p>
                 </div>
-
-                {/* Info fields as cards */}
-                {infoFields.map((field) => (
-                  <div key={field.label} className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${field.color}`} style={{ backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)' }}>
-                      {field.icon}
+                <div className="p-5 grid grid-cols-2 gap-4">
+                  <div className="col-span-2 group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                    <div className="w-11 h-11 rounded-xl bg-gray-500/10 flex items-center justify-center text-gray-400 shrink-0">
+                      <IconId />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{field.label}</p>
-                      <p className={`text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
-                        {field.value}
+                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">User ID</p>
+                      <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
+                    </div>
+                    {renderCopyBtn('User ID')}
+                  </div>
+                  {infoFields.map((field) => (
+                    <div key={field.label} className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${field.color}`} style={{ backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)' }}>
+                        {field.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{field.label}</p>
+                        <p className={`text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
+                          {field.value}
+                        </p>
+                      </div>
+                      {field.copyable && field.value !== 'Not set' && renderCopyBtn(field.label)}
+                    </div>
+                  ))}
+                  <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 border border-yellow-500/15 hover:border-yellow-500/25 transition-colors">
+                    <div className="w-11 h-11 rounded-xl bg-[#f2c14e]/10 flex items-center justify-center text-[#f2c14e] shrink-0">
+                      <IconWallet />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Account Balance</p>
+                      <p className="text-[#f2c14e] text-base font-bold mt-0.5">
+                        ₹{walletValue !== null ? walletValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                       </p>
                     </div>
-                    {field.copyable && field.value !== 'Not set' && renderCopyBtn(field.label)}
                   </div>
-                ))}
-
-                {/* Wallet balance card */}
-                <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gradient-to-r from-yellow-500/5 to-yellow-600/5 border border-yellow-500/15 hover:border-yellow-500/25 transition-colors">
-                  <div className="w-11 h-11 rounded-xl bg-[#f2c14e]/10 flex items-center justify-center text-[#f2c14e] shrink-0">
-                    <IconWallet />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Account Balance</p>
-                    <p className="text-[#f2c14e] text-base font-bold mt-0.5">
-                      ₹{walletValue !== null ? walletValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Member Since card */}
-                {memberSince && (
-                  <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 shrink-0">
-                      <IconCalendar />
+                  {memberSince && (
+                    <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                      <div className="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 shrink-0">
+                        <IconCalendar />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Member Since</p>
+                        <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Member Since</p>
-                      <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Stats Bar */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors">
-                <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Account Status</p>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-emerald-400 text-xs font-bold">Active</span>
+                  )}
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => navigate('/passbook')}
-                className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
-              >
-                <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Passbook</p>
-                <p className="text-white text-sm font-bold">View Transactions</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/bet-history')}
-                className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
-              >
-                <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Bet History</p>
-                <p className="text-white text-sm font-bold">View All Bets</p>
-              </button>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors">
+                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Account Status</p>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-emerald-400 text-xs font-bold">Active</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/passbook')}
+                  className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
+                >
+                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Passbook</p>
+                  <p className="text-white text-sm font-bold">View Transactions</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/bet-history')}
+                  className="rounded-2xl bg-[#141416] border border-white/5 p-5 text-center hover:border-white/10 transition-colors active:scale-[0.98]"
+                >
+                  <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2">Bet History</p>
+                  <p className="text-white text-sm font-bold">View All Bets</p>
+                </button>
+              </div>
             </div>
+            <div className="h-2 md:hidden" />
           </div>
         </div>
       </div>

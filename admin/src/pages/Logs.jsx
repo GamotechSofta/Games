@@ -32,7 +32,6 @@ const ACTION_LABELS = {
 
 const TYPE_LABELS = {
     super_admin: 'Super Admin',
-    user: 'User',
     admin: 'Admin',
     bookie: 'Bookie',
     user: 'Player',

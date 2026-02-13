@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import ResultDatePicker from '../components/ResultDatePicker';
+import MenuItemCard from '../components/MenuItemCard';
+import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 
 const safeParse = (raw, fallback) => {
@@ -285,7 +288,13 @@ const Bids = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTitle]);
 
-  const handleMobileItemClick = (item) => {
+  const { isDesktop } = useBreakpoint();
+
+  const handleItemClick = (item) => {
+    if (isDesktop) {
+      setActiveTitle(item?.title ?? activeTitle);
+      return;
+    }
     if (item?.title === 'Bet History') {
       navigate('/bet-history');
       return;
@@ -302,13 +311,7 @@ const Bids = () => {
       navigate('/market-result-history');
       return;
     }
-    // keep current behavior for other items
-    setActiveTitle(item.title);
-  };
-
-  const handleDesktopItemClick = (item) => {
-    // Desktop: show content on right panel (no navigation)
-    setActiveTitle(item.title);
+    setActiveTitle(item?.title ?? activeTitle);
   };
 
   const desktopBetHistory = useMemo(() => {
@@ -672,9 +675,8 @@ const Bids = () => {
             ? (selectedMarkets || []).filter((k) => isKingBazaarMarketName(k))
             : (selectedMarkets || []).filter((k) => !isStarlineMarketName(k) && !isKingBazaarMarketName(k)))
       : selectedMarkets;
-    return (desktopRows || []).filter((row) => {
+    const rows = (desktopRows || []).filter((row) => {
       if (isAnyHistoryPanel) {
-        // Use marketType if available, fallback to name-based check
         const isStar = row.marketType === 'startline' || (row.marketType == null && isStarlineMarketName(row.market));
         const isKing = row.marketType === 'king' || (row.marketType == null && isKingBazaarMarketName(row.market));
         if (historyScope === 'starline' && !isStar) return false;
@@ -684,19 +686,29 @@ const Bids = () => {
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
       if (effectiveSelectedMarkets.length > 0 && !effectiveSelectedMarkets.includes(row.marketKey)) return false;
       if (selectedStatuses.length > 0) {
-        // Map status label to match filter options
-        const statusMap = {
-          'Win': 'Win',
-          'Loose': 'Loose',
-          'Pending': 'Pending',
-          'Cancelled': 'Cancelled'
-        };
+        const statusMap = { 'Win': 'Win', 'Loose': 'Loose', 'Pending': 'Pending', 'Cancelled': 'Cancelled' };
         const mappedStatus = statusMap[row.statusLabel] || row.statusLabel;
         if (!selectedStatuses.includes(mappedStatus)) return false;
       }
       return true;
     });
+    return rows;
   }, [desktopRows, selectedMarkets, selectedSessions, selectedStatuses, isAnyHistoryPanel, historyScope]);
+
+  // Group desktop bet history by market (sorted) for table layout
+  const groupedDesktopByMarket = useMemo(() => {
+    const map = new Map();
+    for (const row of filteredDesktopRows || []) {
+      const key = row.marketKey;
+      const title = (row.market || '').toString().trim() || 'MARKET';
+      if (!map.has(key)) map.set(key, { marketKey: key, marketTitle: title, bets: [] });
+      map.get(key).bets.push(row);
+    }
+    for (const g of map.values()) {
+      g.bets.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+    return Array.from(map.values()).sort((a, b) => a.marketTitle.localeCompare(b.marketTitle, undefined, { sensitivity: 'base' }));
+  }, [filteredDesktopRows]);
 
   useEffect(() => {
     if (!isDesktopFilterOpen) return;
@@ -763,87 +775,23 @@ const Bids = () => {
           </div>
         </div>
 
-        {/* Mobile: same list layout */}
-        <div className="space-y-4 md:hidden">
-          {items.map((item) => (
-            <div
-              key={item.title}
-              onClick={() => handleMobileItemClick(item)}
-              className="bg-[#202124] border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-[0_12px_24px_rgba(0,0,0,0.35)]"
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
-                  style={{ backgroundColor: item.color }}
-                >
-                  {item.iconUrl ? (
-                    <img src={item.iconUrl} alt={item.title} className="w-7 h-7 object-contain" />
-                  ) : (
-                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
-                      <circle cx="12" cy="12" r="8" />
-                    </svg>
-                  )}
-                </div>
-                <div>
-                  <p className="text-base sm:text-lg font-semibold">{item.title}</p>
-                  <p className="text-xs sm:text-sm text-gray-400">{item.subtitle}</p>
-                </div>
-              </div>
-              <div className="w-9 h-9 rounded-full bg-black/30 border border-white/10 flex items-center justify-center text-white/70">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop: sidebar-style list */}
-        <div className="hidden md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-start">
-          <aside className="md:sticky md:top-[96px] space-y-3 md:space-y-5">
-            {items.map((item) => {
-              const active = item.title === activeTitle;
-              return (
-                <button
+        <ResponsiveSidebarLayout
+          sidebar={
+            <div className="space-y-3 md:space-y-5">
+              {items.map((item) => (
+                <MenuItemCard
                   key={item.title}
-                  type="button"
-                  onClick={() => handleDesktopItemClick(item)}
-                  className={`w-full text-left bg-[#202124] border rounded-2xl p-4 md:p-5 flex items-center justify-between shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors ${
-                    active ? 'border-[#d4af37]/40 bg-[#202124]' : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-12 h-12 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
-                      style={{ backgroundColor: item.color }}
-                    >
-                      {item.iconUrl ? (
-                        <img src={item.iconUrl} alt={item.title} className="w-6 h-6 object-contain" />
-                      ) : (
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
-                          <circle cx="12" cy="12" r="8" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-base font-semibold text-white truncate">{item.title}</p>
-                      <p className="text-xs text-gray-400 truncate">{item.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className={`w-9 h-9 rounded-full border flex items-center justify-center ${
-                    active ? 'bg-[#d4af37]/15 border-[#d4af37]/35 text-[#d4af37]' : 'bg-black/30 border-white/10 text-white/70'
-                  }`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              );
-            })}
-          </aside>
-
+                  title={item.title}
+                  subtitle={item.subtitle}
+                  color={item.color}
+                  iconUrl={item.iconUrl}
+                  active={item.title === activeTitle}
+                  onClick={() => handleItemClick(item)}
+                />
+              ))}
+            </div>
+          }
+          content={isDesktop ? (
           <main
             className={
               (isAnyHistoryPanel || isGameResultsPanel)
@@ -887,109 +835,72 @@ const Bids = () => {
                 )}
                 
                 <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
-                  {desktopBetHistory.uid && filteredDesktopRows.length === 0 ? (
-                    <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
-                      No bets found.
-                    </div>
-                  ) : !desktopBetHistory.uid ? (
+                  {!desktopBetHistory.uid ? (
                     <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
                       Please login to see your bet history.
                     </div>
+                  ) : groupedDesktopByMarket.length === 0 ? (
+                    <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
+                      No bets found.
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {filteredDesktopRows.map(({ betId, betValue, gameType, points, session, market, verdict, createdAt, canCancel }) => {
-
-                        return (
-                          <div
-                            key={betId}
-                            className="rounded-2xl overflow-hidden border border-white/10 bg-black/25"
-                          >
-                            <div className="bg-[#0b2b55] px-4 py-3 flex items-center justify-between">
-                              <div className="text-white font-extrabold tracking-wide truncate">
-                                {market.toUpperCase()}
-                              </div>
-                              {session ? (
-                                <div className="text-xs font-bold text-[#d4af37] border border-[#d4af37]/30 rounded-full px-3 py-1">
-                                  {session}
-                                </div>
-                              ) : null}
-                            </div>
-
-                            <div className="px-4 py-4">
-                              <div className="grid grid-cols-3 text-center text-[#d4af37] font-bold text-sm">
-                                <div>Game Type</div>
-                                <div>{gameType}</div>
-                                <div>Points</div>
-                              </div>
-                              <div className="mt-3 grid grid-cols-3 text-center text-white/90 text-sm">
-                                <div className="font-semibold">{gameType}</div>
-                                <div className="font-extrabold">{betValue}</div>
-                                <div className="font-extrabold">{points}</div>
-                              </div>
-                            </div>
-
-                            <div className="h-px bg-white/10" />
-                            <div className="px-4 py-3 text-center text-white/70 text-sm">
-                              Transaction: <span className="font-semibold">{formatTxnTime(createdAt)}</span>
-                            </div>
-
-                            <div className="h-px bg-white/10" />
-                            {verdict.state === 'won' ? (
-                              <div className="px-4 py-3 text-center font-semibold text-[#43b36a]">
-                                Congratulations, You Won {verdict.payout ? `₹${Number(verdict.payout || 0).toLocaleString('en-IN')}` : ''}
-                              </div>
-                            ) : verdict.state === 'lost' ? (
-                              <div className="px-4 py-3 text-center font-semibold text-red-400">
-                                Better Luck Next time
-                              </div>
-                            ) : verdict.state === 'cancelled' ? (
-                              <div className="px-4 py-3 text-center font-semibold text-orange-400">
-                                Bet Cancelled
-                              </div>
-                            ) : (
-                              <div className="px-4 py-3">
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                  <span className="font-semibold text-[#43b36a] text-sm">Bet Placed</span>
-                                  {canCancel?.canCancel && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCancelBet(betId)}
-                                      disabled={cancellingBetId === betId}
-                                      className={`
-                                        inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2
-                                        text-xs font-semibold min-h-[36px]
-                                        transition-all duration-200
-                                        ${cancellingBetId === betId
-                                          ? 'bg-gray-700/80 text-gray-400 cursor-wait'
-                                          : 'bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98]'
-                                        }
-                                      `}
-                                      title="Cancel this bet and get refund"
-                                    >
-                                      {cancellingBetId === betId ? (
-                                        <>
-                                          <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                          </svg>
-                                          <span>Cancelling...</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                          </svg>
-                                          <span>Cancel & refund</span>
-                                        </>
-                                      )}
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                    <div className="space-y-4">
+                      {groupedDesktopByMarket.map(({ marketKey, marketTitle, bets }) => (
+                        <section key={marketKey} className="rounded-xl overflow-hidden border border-white/10 bg-black/25">
+                          <div className="bg-[#0b2b55] px-4 py-2.5 border-b border-white/10">
+                            <h3 className="text-white font-extrabold tracking-wide truncate text-sm">
+                              {marketTitle.toUpperCase()}
+                            </h3>
+                            <p className="text-[#d4af37]/90 text-xs mt-0.5">{bets.length} bet{bets.length !== 1 ? 's' : ''}</p>
                           </div>
-                        );
-                      })}
+                          <div className="overflow-x-auto">
+                            <table className="w-full min-w-[580px] border-collapse text-sm">
+                              <thead>
+                                <tr className="border-b border-white/10 bg-black/20">
+                                  <th className="text-left py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">#</th>
+                                  <th className="text-left py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game Type</th>
+                                  <th className="text-left py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet</th>
+                                  <th className="text-center py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Session</th>
+                                  <th className="text-right py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Points</th>
+                                  <th className="text-center py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Status</th>
+                                  <th className="text-left py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Time</th>
+                                  <th className="text-center py-2 px-2 text-[#d4af37] font-bold text-xs uppercase tracking-wider w-24">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {bets.map((row, idx) => {
+                                  const { betId, betValue, gameType, points, session, verdict, createdAt, canCancel } = row;
+                                  const statusCls = verdict.state === 'won' ? 'text-[#43b36a] font-semibold' : verdict.state === 'lost' ? 'text-red-400 font-semibold' : verdict.state === 'cancelled' ? 'text-orange-400 font-semibold' : 'text-amber-400/90 font-medium';
+                                  const statusText = verdict.state === 'won' ? 'Won' : verdict.state === 'lost' ? 'Lost' : verdict.state === 'cancelled' ? 'Cancelled' : 'Pending';
+                                  return (
+                                    <tr key={betId} className="border-b border-white/5 hover:bg-white/[0.03]">
+                                      <td className="py-2 px-2 text-gray-400 text-xs">{idx + 1}</td>
+                                      <td className="py-2 px-2 text-white font-medium">{gameType}</td>
+                                      <td className="py-2 px-2 text-white font-semibold">{betValue}</td>
+                                      <td className="py-2 px-2 text-center">
+                                        {session ? <span className="text-[10px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1.5 py-0.5">{session}</span> : <span className="text-gray-500">—</span>}
+                                      </td>
+                                      <td className="py-2 px-2 text-right text-white font-semibold">{points}</td>
+                                      <td className="py-2 px-2 text-center">
+                                        <span className={statusCls}>{statusText}</span>
+                                        {verdict.state === 'won' && verdict.payout > 0 && <div className="text-[#43b36a] text-[10px]">₹{Number(verdict.payout).toLocaleString('en-IN')}</div>}
+                                      </td>
+                                      <td className="py-2 px-2 text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
+                                      <td className="py-2 px-2 text-center">
+                                        {verdict.state === 'pending' && canCancel?.canCancel ? (
+                                          <button type="button" onClick={() => handleCancelBet(betId)} disabled={cancellingBetId === betId} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[32px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 disabled:opacity-60" title="Cancel & refund">
+                                            {cancellingBetId === betId ? <svg className="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> : <><svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>Cancel</span></>}
+                                          </button>
+                                        ) : verdict.state !== 'pending' ? <span className="text-gray-500 text-[10px]">—</span> : null}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </section>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -1022,7 +933,8 @@ const Bids = () => {
               </div>
             )}
           </main>
-        </div>
+          ) : null}
+        />
       </div>
 
       {/* Desktop Bet History Filter modal */}
