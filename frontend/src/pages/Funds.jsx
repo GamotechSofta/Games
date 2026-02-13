@@ -74,7 +74,7 @@ const Funds = () => {
   const { isDesktop } = useBreakpoint();
   const tabParam = searchParams.get('tab');
   const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
-  const [mobileView, setMobileView] = useState(null); // mobile: null = list, key = detail
+  const [mobileView, setMobileView] = useState(() => (!isDesktop && tabParam && items.some((i) => i.key === tabParam)) ? tabParam : null); // mobile: null = list, key = detail
 
   // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. When tabParam is null (list view) don't write tab — avoids flicker when opening Funds from bottom bar.
   useEffect(() => {
@@ -89,15 +89,23 @@ const Funds = () => {
 
   // Sync tabParam from URL to state when navigating (e.g. device back or external link)
   useEffect(() => {
-    if (tabParam && items.some((i) => i.key === tabParam) && tabParam !== activeKey) {
-      setActiveKey(tabParam);
-      if (!isDesktop) setMobileView(tabParam);
+    if (tabParam && items.some((i) => i.key === tabParam)) {
+      if (tabParam !== activeKey) {
+        setActiveKey(tabParam);
+      }
+      if (!isDesktop && tabParam !== mobileView) {
+        setMobileView(tabParam);
+      }
     } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
       // No tab or invalid tab → show list
-      setActiveKey(items[0]?.key || 'add-fund');
-      setMobileView(null);
+      if (activeKey !== (items[0]?.key || 'add-fund')) {
+        setActiveKey(items[0]?.key || 'add-fund');
+      }
+      if (!isDesktop && mobileView !== null) {
+        setMobileView(null);
+      }
     }
-  }, [tabParam]);
+  }, [tabParam, activeKey, mobileView, isDesktop]);
 
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
   const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;
