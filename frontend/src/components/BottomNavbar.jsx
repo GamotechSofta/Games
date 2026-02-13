@@ -95,15 +95,15 @@ const BottomNavbar = () => {
   };
 
   const navEl = (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-[100] md:hidden"
+    <div
+      id="app-bottom-nav"
+      role="navigation"
+      aria-label="Main navigation"
+      className="app-bottom-nav-fixed md:hidden"
       style={{
         paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
         paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
-        // Force own compositor layer on iOS so fixed positioning stays viewport-relative
-        transform: 'translateZ(0)',
-        WebkitTransform: 'translateZ(0)',
       }}
     >
       {/* Backplate to prevent white background showing behind navbar */}
@@ -198,7 +198,7 @@ const BottomNavbar = () => {
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 
   // Portal to document.body so no parent (e.g. overflow-x-hidden layout) breaks position:fixed on iOS
