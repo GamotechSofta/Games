@@ -76,22 +76,32 @@ const Funds = () => {
   const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
   const [mobileView, setMobileView] = useState(() => (!isDesktop && tabParam && items.some((i) => i.key === tabParam)) ? tabParam : null); // mobile: null = list, key = detail
   const userJustSelectedTabRef = useRef(false);
+  const lastSyncedTabRef = useRef(tabParam);
 
-  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. When tabParam is null (list view) don't write tab — avoids flicker when opening Funds from bottom bar.
+  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. Only write when desired URL state differs to avoid navigation throttle loop.
   useEffect(() => {
-    if (!isDesktop && mobileView === null) {
-      if (tabParam) setSearchParams({}, { replace: true });
+    const desiredTab = (!isDesktop && mobileView === null) ? null : activeKey;
+    if (desiredTab === null) {
+      if (tabParam != null) {
+        lastSyncedTabRef.current = null;
+        setSearchParams({}, { replace: true });
+      }
       return;
     }
-    if (tabParam != null && tabParam !== activeKey) {
-      setSearchParams({ tab: activeKey }, { replace: isDesktop });
+    if (lastSyncedTabRef.current === desiredTab) return;
+    if (tabParam === desiredTab) {
+      lastSyncedTabRef.current = desiredTab;
+      return;
     }
+    lastSyncedTabRef.current = desiredTab;
+    setSearchParams({ tab: desiredTab }, { replace: isDesktop });
   }, [activeKey, isDesktop, mobileView, tabParam]);
 
   // Sync tabParam from URL to state when navigating (e.g. device back or external link). Don't reset mobileView to list when tabParam is still null after a tap — URL updates async.
   useEffect(() => {
     if (tabParam && items.some((i) => i.key === tabParam)) {
       userJustSelectedTabRef.current = false;
+      lastSyncedTabRef.current = tabParam;
       if (tabParam !== activeKey) {
         setActiveKey(tabParam);
       }
@@ -99,15 +109,18 @@ const Funds = () => {
         setMobileView(tabParam);
       }
     } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
-      // No tab or invalid tab → show list (unless we just tapped a tab and URL hasn't updated yet)
-      if (activeKey !== (items[0]?.key || 'add-fund')) {
-        setActiveKey(items[0]?.key || 'add-fund');
-      }
-      if (!isDesktop && mobileView !== null && !userJustSelectedTabRef.current) {
-        setMobileView(null);
+      lastSyncedTabRef.current = null;
+      // No tab or invalid tab → show list. Don't reset activeKey/mobileView when user just tapped a tab (URL hasn't updated yet).
+      if (!userJustSelectedTabRef.current) {
+        if (activeKey !== (items[0]?.key || 'add-fund')) {
+          setActiveKey(items[0]?.key || 'add-fund');
+        }
+        if (!isDesktop && mobileView !== null) {
+          setMobileView(null);
+        }
       }
     }
-  }, [tabParam, activeKey, mobileView, isDesktop]);
+  }, [tabParam, activeKey, mobileView, isDesktop, items]);
 
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
   const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;

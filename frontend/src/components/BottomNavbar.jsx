@@ -202,8 +202,12 @@ const BottomNavbar = () => {
   );
 
   // Portal to document.body so no parent (e.g. overflow-x-hidden layout) breaks position:fixed on iOS
-  if (typeof document !== 'undefined' && document.body) {
-    return createPortal(navEl, document.body);
+  try {
+    if (typeof document !== 'undefined' && document.body) {
+      return createPortal(navEl, document.body);
+    }
+  } catch (_) {
+    // fallback if portal fails (e.g. in some SSR or test envs)
   }
   return navEl;
 };
