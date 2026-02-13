@@ -8,8 +8,8 @@ import React from 'react';
  */
 export default function ResponsiveSidebarLayout({ sidebar, content, className = '' }) {
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-[360px_1fr] md:gap-6 md:items-start ${className}`}>
-      <aside className="md:sticky md:top-[96px] space-y-3 md:space-y-5">
+    <div className={`grid grid-cols-1 md:grid-cols-[360px_1fr] md:gap-6 md:items-start min-w-0 ${className}`}>
+      <aside className="md:sticky md:top-[96px] space-y-3 md:space-y-5 min-w-0 w-full">
         {sidebar}
       </aside>
       <main className="min-w-0">

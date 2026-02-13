@@ -800,7 +800,7 @@ const Bids = () => {
 
         <ResponsiveSidebarLayout
           sidebar={
-            <div className="space-y-3 md:space-y-5">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-5 min-w-0 w-full">
               {items.map((item) => (
                 <MenuItemCard
                   key={item.title}
