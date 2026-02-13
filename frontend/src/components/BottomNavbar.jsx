@@ -114,6 +114,7 @@ const BottomNavbar = () => {
               <button
                 key={item.id}
                 onClick={() => {
+                  window.dispatchEvent(new Event('closeHeaderMenu'));
                   if (item.path === '/' && location.pathname === '/') {
                     scrollToTop();
                     return;
@@ -153,6 +154,7 @@ const BottomNavbar = () => {
             <button
               key={item.id}
               onClick={() => {
+                window.dispatchEvent(new Event('closeHeaderMenu'));
                 if (item.path === '/' && location.pathname === '/') {
                   scrollToTop();
                   return;

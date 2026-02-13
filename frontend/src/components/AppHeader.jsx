@@ -13,12 +13,8 @@ const AppHeader = () => {
     { label: 'My Bets', path: '/bids' },
     { label: 'Funds', path: '/funds' },
     { label: 'Top Winners', path: '/top-winners' },
-    { label: 'Starline Winners', path: '/support' },
     { label: 'Telegram Channel', path: '/support' },
     { label: 'Notification', path: '/support' },
-    { label: 'Game Chart', path: '/support' },
-    { label: 'Game Rate', path: '/support' },
-    { label: 'Time Table', path: '/support' },
     { label: 'Help Desk', path: '/support' },
     { label: 'Share App', path: '/support' },
     { label: 'Logout', path: '/login' }
@@ -75,10 +71,15 @@ const AppHeader = () => {
     window.addEventListener('userLogin', checkUser);
     window.addEventListener('userLogout', checkUser);
 
+    // Close sidebar when user taps a bottom navbar item (mobile)
+    const closeMenu = () => setIsMenuOpen(false);
+    window.addEventListener('closeHeaderMenu', closeMenu);
+
     return () => {
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userLogin', checkUser);
       window.removeEventListener('userLogout', checkUser);
+      window.removeEventListener('closeHeaderMenu', closeMenu);
     };
   }, []);
 
@@ -269,7 +270,7 @@ const AppHeader = () => {
                 >
                   {/* Icon Container */}
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
-                    {item.label === 'Top Winners' || item.label === 'Starline Winners' ? (
+                    {item.label === 'Top Winners' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797561/podium_swqjij.png"
                         alt={item.label}
@@ -297,24 +298,6 @@ const AppHeader = () => {
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798359/notification_1_pflwit.png"
                         alt="Notification"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-                      />
-                    ) : item.label === 'Game Chart' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798462/start_eotpxc.png"
-                        alt="Game Chart"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-                      />
-                    ) : item.label === 'Game Rate' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798548/stars_v1jfzk.png"
-                        alt="Game Rate"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
-                      />
-                    ) : item.label === 'Time Table' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798627/schedule_frf8zc.png"
-                        alt="Time Table"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
                     ) : item.label === 'Help Desk' ? (

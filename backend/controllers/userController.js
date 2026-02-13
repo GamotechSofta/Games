@@ -115,6 +115,7 @@ export const userLogin = async (req, res) => {
             phone: user.phone || '',
             role: user.role,
             balance: balance,
+            createdAt: user.createdAt || null,
         };
         if (user.referredBy) {
             data.referredBy = user.referredBy;
@@ -266,6 +267,7 @@ export const userSignup = async (req, res) => {
             phone: userDoc.phone || '',
             role: userDoc.role,
             balance: 0,
+            createdAt: userDoc.createdAt || now,
         };
         if (referredBy) {
             signupData.referredBy = referredBy;
