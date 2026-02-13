@@ -1055,8 +1055,8 @@ export const getMarketResultHistory = async (req, res) => {
             return res.status(200).json({ success: true, data: [] });
         }
 
-        // Always return a row for every market (today and past), merging stored snapshots if present.
-        const markets = await Market.find().sort({ startingTime: 1 }).lean();
+        // Return only regular (main) markets for result history; exclude startline and king bazaar.
+        const markets = await Market.find({ marketType: 'main' }).sort({ startingTime: 1 }).lean();
 
         let stored = [];
         if (dateKey !== todayKey) {
