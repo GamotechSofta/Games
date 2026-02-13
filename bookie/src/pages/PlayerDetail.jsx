@@ -97,7 +97,6 @@ const PlayerDetail = () => {
     const [loadingTab, setLoadingTab] = useState(false);
     const [walletModalOpen, setWalletModalOpen] = useState(false);
     const [walletAdjustAmount, setWalletAdjustAmount] = useState('');
-    const [walletSetBalance, setWalletSetBalance] = useState('');
     const [walletActionLoading, setWalletActionLoading] = useState(false);
     const [walletActionError, setWalletActionError] = useState('');
     const dropdownRef = useRef(null);
@@ -301,36 +300,6 @@ const PlayerDetail = () => {
         }
     };
 
-    const handleWalletSetBalance = async () => {
-        const balance = Number(walletSetBalance);
-        if (!Number.isFinite(balance) || balance < 0) {
-            setWalletActionError('Enter a valid non-negative balance');
-            return;
-        }
-        setWalletActionError('');
-        setWalletActionLoading(true);
-        try {
-            const res = await fetch(`${API_BASE_URL}/wallet/set-balance`, {
-                method: 'PUT',
-                headers: getBookieAuthHeaders(),
-                body: JSON.stringify({ userId, balance }),
-            });
-            const data = await res.json();
-            if (data.success) {
-                setWalletSetBalance('');
-                fetchPlayer();
-                if (activeTab === 'wallet') fetchWalletTx();
-                setWalletModalOpen(false);
-            } else {
-                setWalletActionError(data.message || 'Failed to set balance');
-            }
-        } catch (err) {
-            setWalletActionError('Network error. Please try again.');
-        } finally {
-            setWalletActionLoading(false);
-        }
-    };
-
     const formatCurrency = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
     const formatIpDisplay = (ip) => {
@@ -401,7 +370,7 @@ const PlayerDetail = () => {
                         </div>
                         <button
                             type="button"
-                            onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); setWalletSetBalance(''); }}
+                            onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); }}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
                         >
                             <FaWallet className="w-4 h-4" /> Manage Wallet
@@ -708,26 +677,6 @@ const PlayerDetail = () => {
                                     />
                                     <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50">Credit (+)</button>
                                     <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50">Debit (-)</button>
-                                </div>
-                            </div>
-
-                            <div className="relative flex items-center py-2">
-                                <div className="flex-grow border-t border-white/10"></div>
-                                <span className="flex-shrink-0 mx-4 text-slate-500 text-xs uppercase">OR Set Exact Value</span>
-                                <div className="flex-grow border-t border-white/10"></div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Set Exact Balance</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="0"
-                                        value={walletSetBalance}
-                                        onChange={(e) => setWalletSetBalance(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                        className="flex-1 px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 text-right font-mono font-bold"
-                                    />
-                                    <button type="button" onClick={handleWalletSetBalance} disabled={walletActionLoading} className="px-6 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold transition-colors disabled:opacity-50 shadow-lg shadow-amber-500/20">Set</button>
                                 </div>
                             </div>
                         </div>
