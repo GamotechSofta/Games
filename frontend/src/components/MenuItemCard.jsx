@@ -50,7 +50,7 @@ export default function MenuItemCard({
     </>
   );
 
-  const baseClass = `w-full min-w-0 min-h-[68px] sm:min-h-[80px] md:min-h-[88px] text-left bg-[#202124] border rounded-2xl py-4 px-2 sm:py-5 sm:px-3 md:py-6 md:px-5 flex items-center justify-between gap-2 shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors ${
+  const baseClass = `w-full min-w-0 min-h-[68px] sm:min-h-[80px] md:min-h-[88px] text-left bg-[#202124] border rounded-2xl py-4 px-2 sm:py-5 sm:px-3 md:py-6 md:px-5 flex items-center justify-between gap-2 shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors cursor-pointer touch-manipulation ${
     active ? 'border-[#d4af37]/40 bg-[#202124]' : 'border-white/10 hover:border-white/20'
   } ${className}`;
 

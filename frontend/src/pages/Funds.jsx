@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -75,6 +75,7 @@ const Funds = () => {
   const tabParam = searchParams.get('tab');
   const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
   const [mobileView, setMobileView] = useState(() => (!isDesktop && tabParam && items.some((i) => i.key === tabParam)) ? tabParam : null); // mobile: null = list, key = detail
+  const userJustSelectedTabRef = useRef(false);
 
   // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. When tabParam is null (list view) don't write tab — avoids flicker when opening Funds from bottom bar.
   useEffect(() => {
@@ -87,9 +88,10 @@ const Funds = () => {
     }
   }, [activeKey, isDesktop, mobileView, tabParam]);
 
-  // Sync tabParam from URL to state when navigating (e.g. device back or external link)
+  // Sync tabParam from URL to state when navigating (e.g. device back or external link). Don't reset mobileView to list when tabParam is still null after a tap — URL updates async.
   useEffect(() => {
     if (tabParam && items.some((i) => i.key === tabParam)) {
+      userJustSelectedTabRef.current = false;
       if (tabParam !== activeKey) {
         setActiveKey(tabParam);
       }
@@ -97,11 +99,11 @@ const Funds = () => {
         setMobileView(tabParam);
       }
     } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
-      // No tab or invalid tab → show list
+      // No tab or invalid tab → show list (unless we just tapped a tab and URL hasn't updated yet)
       if (activeKey !== (items[0]?.key || 'add-fund')) {
         setActiveKey(items[0]?.key || 'add-fund');
       }
-      if (!isDesktop && mobileView !== null) {
+      if (!isDesktop && mobileView !== null && !userJustSelectedTabRef.current) {
         setMobileView(null);
       }
     }
@@ -115,6 +117,7 @@ const Funds = () => {
 
   const handleItemClick = useCallback((key) => {
     if (key == null) return;
+    userJustSelectedTabRef.current = true;
     setActiveKey(key);
     if (!isDesktop) {
       setMobileView(key);
