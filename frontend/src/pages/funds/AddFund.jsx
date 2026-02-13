@@ -471,8 +471,7 @@ const AddFund = () => {
                             <button
                                 onClick={() => {
                                     setShowSuccessModal(false);
-                                    // Navigate to history - this will be handled by parent
-                                    window.location.href = '/funds?tab=add-fund-history';
+                                    navigate('/funds?tab=add-fund-history');
                                 }}
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                             >

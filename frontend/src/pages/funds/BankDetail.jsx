@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
 const BankDetail = () => {
+    const navigate = useNavigate();
     const [bankAccounts, setBankAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -417,7 +419,7 @@ const BankDetail = () => {
                             <button
                                 onClick={() => {
                                     setShowSuccessModal(false);
-                                    window.location.href = '/funds?tab=withdraw-fund';
+                                    navigate('/funds?tab=withdraw-fund');
                                 }}
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                             >

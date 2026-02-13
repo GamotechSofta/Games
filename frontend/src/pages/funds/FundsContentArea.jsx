@@ -12,8 +12,8 @@ export default function FundsContentArea({
 }) {
   if (isDesktop) {
     return (
-      <main className="rounded-2xl bg-[#202124] border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6">
-        <div className="flex items-center justify-center gap-4 mb-6">
+      <main className="rounded-2xl bg-[#202124] border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6 min-h-0 flex flex-col">
+        <div className="flex items-center justify-center gap-4 mb-6 shrink-0">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
             style={{ backgroundColor: activeItem?.color || '#f3b61b' }}
@@ -25,7 +25,7 @@ export default function FundsContentArea({
             <div className="text-sm text-gray-400">{activeItem?.subtitle}</div>
           </div>
         </div>
-        <div className="max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-hidden">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden ios-scroll-touch max-h-[calc(100vh-280px)]">
           {ActiveComponent && <ActiveComponent />}
         </div>
       </main>

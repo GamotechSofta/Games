@@ -75,8 +75,11 @@ const WithdrawFundHistory = () => {
             {/* Stats */}
             <div className="grid grid-cols-4 gap-3">
                 <div 
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFilter('all')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors ${
+                    onKeyDown={(e) => e.key === 'Enter' && setFilter('all')}
+                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
                         filter === 'all' ? 'bg-blue-600/30 border border-blue-500' : 'bg-[#1a1a1a] border border-white/10'
                     }`}
                 >
@@ -84,8 +87,11 @@ const WithdrawFundHistory = () => {
                     <p className="text-xs text-gray-400">Total</p>
                 </div>
                 <div 
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFilter('pending')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors ${
+                    onKeyDown={(e) => e.key === 'Enter' && setFilter('pending')}
+                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
                         filter === 'pending' ? 'bg-yellow-600/30 border border-yellow-500' : 'bg-[#1a1a1a] border border-white/10'
                     }`}
                 >
@@ -93,8 +99,11 @@ const WithdrawFundHistory = () => {
                     <p className="text-xs text-gray-400">Pending</p>
                 </div>
                 <div 
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFilter('approved')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors ${
+                    onKeyDown={(e) => e.key === 'Enter' && setFilter('approved')}
+                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
                         filter === 'approved' ? 'bg-green-600/30 border border-green-500' : 'bg-[#1a1a1a] border border-white/10'
                     }`}
                 >
@@ -102,8 +111,11 @@ const WithdrawFundHistory = () => {
                     <p className="text-xs text-gray-400">Approved</p>
                 </div>
                 <div 
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setFilter('rejected')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors ${
+                    onKeyDown={(e) => e.key === 'Enter' && setFilter('rejected')}
+                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
                         filter === 'rejected' ? 'bg-red-600/30 border border-red-500' : 'bg-[#1a1a1a] border border-white/10'
                     }`}
                 >
