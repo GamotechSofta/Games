@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     FaTachometerAlt,
@@ -21,6 +21,19 @@ import {
 const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const navRef = useRef(null);
+
+    // Restore scroll position on mount
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem('sidebar-scroll');
+        if (savedScroll && navRef.current) {
+            navRef.current.scrollTop = parseInt(savedScroll, 10);
+        }
+    }, []);
+
+    const handleScroll = (e) => {
+        sessionStorage.setItem('sidebar-scroll', e.target.scrollTop);
+    };
 
     const menuGroups = [
         {
@@ -107,7 +120,11 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
             </div>
 
             {/* Menu Sections */}
-            <nav className="flex-1 px-3 space-y-7 overflow-y-auto custom-scrollbar py-4">
+            <nav
+                ref={navRef}
+                onScroll={handleScroll}
+                className="flex-1 px-3 space-y-7 overflow-y-auto custom-scrollbar py-4"
+            >
                 {menuGroups.map((group, gIdx) => (
                     <div key={gIdx} className="space-y-2">
                         <h3 className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">{group.title}</h3>

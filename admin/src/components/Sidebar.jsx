@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     FaTachometerAlt,
@@ -22,6 +22,19 @@ import {
 const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const navRef = useRef(null);
+
+    // Restore scroll position on mount
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem('admin-sidebar-scroll');
+        if (savedScroll && navRef.current) {
+            navRef.current.scrollTop = parseInt(savedScroll, 10);
+        }
+    }, []);
+
+    const handleScroll = (e) => {
+        sessionStorage.setItem('admin-sidebar-scroll', e.target.scrollTop);
+    };
 
     const menuItems = [
         { path: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
@@ -80,7 +93,11 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
             </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto">
+            <nav
+                ref={navRef}
+                onScroll={handleScroll}
+                className="flex-1 p-3 sm:p-4 space-y-1 overflow-y-auto"
+            >
                 {menuItems.map((item) => (
                     <button
                         key={item.path}

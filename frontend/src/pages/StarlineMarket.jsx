@@ -311,20 +311,18 @@ const StarlineMarket = () => {
                       },
                     });
                   }}
-                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${
-                    canOpen
+                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${canOpen
                       ? 'border-white/10 hover:border-[#d4af37]/40 active:scale-[0.99] cursor-pointer'
                       : 'border-white/10 opacity-95 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   {/* Top image area (photo-style) */}
                   <div className="relative h-[150px] md:h-[190px] overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#15171b] to-[#050505]">
                     <img
                       src={imageUrl}
                       alt="Starline Market"
-                      className={`absolute inset-0 w-full h-full object-contain p-0 ${isFourteenthImage ? 'scale-125' : ''} ${
-                        canOpen ? '' : 'opacity-70 md:grayscale'
-                      }`}
+                      className={`absolute inset-0 w-full h-full object-contain p-0 ${isFourteenthImage ? 'scale-125' : ''} ${canOpen ? '' : 'opacity-70 md:grayscale'
+                        }`}
                       loading="lazy"
                       draggable="false"
                     />
@@ -341,11 +339,10 @@ const StarlineMarket = () => {
 
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <div
-                        className={`font-extrabold text-[#d4af37] tracking-wide ${
-                          isKalyanStarline
-                            ? (String(pill).includes('*') ? 'text-[22px] md:text-[28px] leading-none' : 'text-[18px] md:text-[22px]')
-                            : 'text-[16px] md:text-[18px]'
-                        }`}
+                        className={`font-extrabold text-[#d4af37] tracking-wide ${isKalyanStarline
+                            ? (String(pill).includes('*') ? 'text-[18px] md:text-[22px] leading-none' : 'text-[16px] md:text-[18px]')
+                            : 'text-[14px] md:text-[16px]'
+                          }`}
                       >
                         {pill}
                       </div>
@@ -356,13 +353,12 @@ const StarlineMarket = () => {
                     </div>
 
                     <div
-                      className={`mt-1 text-center text-[12px] font-semibold ${
-                        statusText === 'Close For Today'
+                      className={`mt-1 text-center text-[12px] font-semibold ${statusText === 'Close For Today'
                           ? 'text-red-400'
                           : statusText === 'Open'
                             ? 'text-emerald-400'
                             : 'text-white/80'
-                      }`}
+                        }`}
                     >
                       {statusText}
                     </div>

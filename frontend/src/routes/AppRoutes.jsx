@@ -36,7 +36,7 @@ const ScrollToTop = () => {
       if (prevPathRef.current) {
         sessionStorage.setItem('prevPathname', prevPathRef.current);
       }
-    } catch (_) {}
+    } catch (_) { }
     prevPathRef.current = pathname;
 
     // Use requestAnimationFrame to ensure DOM has updated, then scroll
@@ -45,21 +45,11 @@ const ScrollToTop = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       if (document.documentElement) document.documentElement.scrollTop = 0;
       if (document.body) document.body.scrollTop = 0;
-      
-      // Scroll any scrollable containers (with a small delay to catch dynamically rendered ones)
-      setTimeout(() => {
-        const scrollableElements = document.querySelectorAll('[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"]');
-        scrollableElements.forEach((el) => {
-          if (el.scrollTop > 0) {
-            el.scrollTop = 0;
-          }
-        });
-      }, 10);
     };
 
     // Immediate scroll
     scrollToTop();
-    
+
     // Also scroll after a short delay to catch any late-rendering containers
     const timer = setTimeout(scrollToTop, 50);
 

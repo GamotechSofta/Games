@@ -323,27 +323,27 @@ const KingBazaarMarket = () => {
                     if (!canOpen) return;
                     const marketForBidOptions = m._raw
                       ? {
-                          ...(m._raw || {}),
-                          _id: m.id,
-                          marketName: m.marketName,
-                          gameName: m.marketName,
-                          startingTime: m.startingTime,
-                          closingTime: m.closingTime,
-                          openingNumber: m.openingNumber,
-                          closingNumber: m.closingNumber,
-                          status: m.status === 'running' ? 'running' : 'open',
-                        }
+                        ...(m._raw || {}),
+                        _id: m.id,
+                        marketName: m.marketName,
+                        gameName: m.marketName,
+                        startingTime: m.startingTime,
+                        closingTime: m.closingTime,
+                        openingNumber: m.openingNumber,
+                        closingNumber: m.closingNumber,
+                        status: m.status === 'running' ? 'running' : 'open',
+                      }
                       : {
-                          _id: 'king-demo-market',
-                          marketType: 'king',
-                          marketName: m.marketName,
-                          gameName: m.marketName,
-                          startingTime: m.startingTime,
-                          closingTime: m.closingTime,
-                          openingNumber: null,
-                          closingNumber: null,
-                          status: 'open',
-                        };
+                        _id: 'king-demo-market',
+                        marketType: 'king',
+                        marketName: m.marketName,
+                        gameName: m.marketName,
+                        startingTime: m.startingTime,
+                        closingTime: m.closingTime,
+                        openingNumber: null,
+                        closingNumber: null,
+                        status: 'open',
+                      };
                     navigate('/bidoptions', {
                       state: {
                         marketType: 'king',
@@ -351,19 +351,17 @@ const KingBazaarMarket = () => {
                       },
                     });
                   }}
-                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${
-                    canOpen
+                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${canOpen
                       ? 'border-white/10 hover:border-[#d4af37]/40 active:scale-[0.99] cursor-pointer'
                       : 'border-white/10 opacity-95 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   <div className="relative h-[150px] md:h-[190px] overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#15171b] to-[#050505]">
                     <img
                       src={imageUrl}
                       alt="King Bazaar Market"
-                      className={`absolute inset-0 w-full h-full object-contain p-0 ${
-                        canOpen ? '' : 'opacity-70 md:grayscale'
-                      }`}
+                      className={`absolute inset-0 w-full h-full object-contain p-0 ${canOpen ? '' : 'opacity-70 md:grayscale'
+                        }`}
                       loading="lazy"
                       draggable="false"
                     />
@@ -379,11 +377,10 @@ const KingBazaarMarket = () => {
 
                     <div className="mt-1 flex items-center justify-between gap-2">
                       <div
-                        className={`font-extrabold text-[#d4af37] tracking-wide ${
-                          String(pill).includes('*')
-                            ? 'text-[22px] md:text-[28px] leading-none'
-                            : 'text-[16px] md:text-[18px]'
-                        }`}
+                        className={`font-extrabold text-[#d4af37] tracking-wide ${String(pill).includes('*')
+                            ? 'text-[18px] md:text-[22px] leading-none'
+                            : 'text-[14px] md:text-[16px]'
+                          }`}
                       >
                         {pill}
                       </div>
@@ -394,13 +391,12 @@ const KingBazaarMarket = () => {
                     </div>
 
                     <div
-                      className={`mt-1 text-center text-[12px] font-semibold ${
-                        statusText === 'Close For Today'
+                      className={`mt-1 text-center text-[12px] font-semibold ${statusText === 'Close For Today'
                           ? 'text-red-400'
                           : statusText === 'Open'
                             ? 'text-emerald-400'
                             : 'text-white/80'
-                      }`}
+                        }`}
                     >
                       {statusText}
                     </div>

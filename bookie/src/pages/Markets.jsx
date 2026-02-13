@@ -232,7 +232,7 @@ const Markets = () => {
                     <div className="bg-black/40 border border-white/10 rounded-xl py-3 px-2 relative overflow-hidden group-hover:border-amber-500/30 transition-colors">
                         <div className="absolute inset-0 bg-amber-500/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                        <div className="relative z-10 flex items-center justify-center font-mono font-bold text-3xl text-white tracking-[0.3em]">
+                        <div className="relative z-10 flex items-center justify-center font-mono font-bold text-xl text-white tracking-[0.3em]">
                             {marketType === 'startline' && hasResult ? (
                                 // For Starline with result: show as "345-6" (3 digits, dash, 1 digit)
                                 <>
