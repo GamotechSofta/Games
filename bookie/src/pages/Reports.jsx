@@ -186,53 +186,44 @@ const Reports = () => {
                 </div>
 
                 {/* Date filters */}
-                <div className="glass-panel p-4 rounded-2xl border border-white/5">
-                    <div className="flex flex-col lg:flex-row items-center gap-6">
-                        <div className="flex items-center gap-3 w-full lg:w-auto">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
-                                <FaCalendarAlt className="w-5 h-5 text-amber-500" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Date Range</p>
-                                <p className="text-white font-medium text-sm">Select analysis period</p>
-                            </div>
+                <div className="glass-panel px-4 py-3 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 shrink-0">
+                            <FaCalendarAlt className="w-4 h-4 text-amber-500" />
+                            <span className="text-xs font-medium text-slate-400 hidden sm:inline">Date Range</span>
                         </div>
 
-                        <div className="flex-1 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 custom-scrollbar">
-                            <div className="flex items-center gap-2">
-                                {PRESETS.map((p) => (
-                                    <button
-                                        key={p.id}
-                                        type="button"
-                                        onClick={() => applyPreset(p.id)}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activePreset === p.id
-                                                ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5'
-                                            }`}
-                                    >
-                                        {p.label}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="flex items-center gap-1.5">
+                            {PRESETS.map((p) => (
+                                <button
+                                    key={p.id}
+                                    type="button"
+                                    onClick={() => applyPreset(p.id)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activePreset === p.id
+                                            ? 'bg-amber-500 text-black'
+                                            : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                                        }`}
+                                >
+                                    {p.label}
+                                </button>
+                            ))}
                         </div>
 
-                        <div className="flex items-center gap-3 w-full lg:w-auto border-t lg:border-t-0 lg:border-l border-white/5 pt-4 lg:pt-0 lg:pl-6">
-                            <div className="flex items-center gap-2 bg-black/40 rounded-xl p-1 border border-white/10">
-                                <input type="date" value={dateRange.startDate}
-                                    onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
-                                    className="bg-transparent text-white text-xs font-medium px-3 py-1.5 focus:outline-none appearance-none [&::-webkit-calendar-picker-indicator]:invert"
-                                />
-                                <span className="text-slate-500 text-xs">to</span>
-                                <input type="date" value={dateRange.endDate}
-                                    onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
-                                    className="bg-transparent text-white text-xs font-medium px-3 py-1.5 focus:outline-none appearance-none [&::-webkit-calendar-picker-indicator]:invert"
-                                />
-                            </div>
+                        <div className="flex items-center gap-2 ml-auto">
+                            <input type="date" value={dateRange.startDate}
+                                onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
+                                className="bg-white/5 text-white text-xs px-2 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-amber-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                            />
+                            <span className="text-slate-500 text-xs">to</span>
+                            <input type="date" value={dateRange.endDate}
+                                onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
+                                className="bg-white/5 text-white text-xs px-2 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-amber-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                            />
                             <button type="button" onClick={fetchReport} disabled={loading}
-                                className="p-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-xl border border-amber-500/20 transition-colors disabled:opacity-50"
+                                className="p-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg transition-colors disabled:opacity-50"
                                 title="Refresh Data"
                             >
-                                <FaSyncAlt className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                <FaSyncAlt className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                             </button>
                         </div>
                     </div>
