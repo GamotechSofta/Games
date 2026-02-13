@@ -80,7 +80,7 @@ const WalletSection = () => {
   const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
 
   return (
-    <section className="w-full bg-black py-2 sm:py-4 px-2 min-[375px]:px-4 sm:px-6 max-w-full overflow-x-hidden">
+    <section className="w-full bg-black pt-3 pb-2 sm:py-4 px-2 min-[375px]:px-4 sm:px-6 max-w-full overflow-x-hidden">
       {/* Available Points Balance Card */}
       <div className="relative w-full max-w-lg mx-auto mb-6 sm:mb-12">
         {/* Main Card - Premium Design */}
@@ -138,14 +138,14 @@ const WalletSection = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/funds?tab=add-fund')}
-                  className="group relative w-9 h-9 min-[375px]:w-10 min-[375px]:h-10 sm:w-14 sm:h-14 md:w-[56px] md:h-[56px] rounded-lg min-[375px]:rounded-xl bg-gradient-to-br from-[#25d366] to-[#1a9e47] flex items-center justify-center text-white overflow-hidden transition-all duration-200 hover:from-[#2ee576] hover:to-[#20bd5a] active:scale-95 shadow-lg hover:shadow-xl hover:shadow-green-500/40 shrink-0"
+                  className="group relative w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 sm:w-14 sm:h-14 md:w-[56px] md:h-[56px] rounded-xl min-[375px]:rounded-2xl sm:rounded-2xl bg-gradient-to-br from-[#25d366] to-[#1a9e47] flex items-center justify-center text-white overflow-hidden transition-all duration-200 hover:from-[#2ee576] hover:to-[#20bd5a] active:scale-95 shadow-lg hover:shadow-xl hover:shadow-green-500/40 shrink-0"
                   aria-label="Add Money"
                   title="Add Money"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-white/25 to-transparent"></div>
-                  <span className="relative flex items-center justify-center gap-1">
-                    <span className="text-xl sm:text-2xl md:text-3xl font-black">₹</span>
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                  <span className="relative flex items-center justify-center gap-0.5 sm:gap-1">
+                    <span className="text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-black leading-none">₹</span>
+                    <svg className="w-4 h-4 min-[375px]:w-5 min-[375px]:h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 5v14M19 12H5" />
                     </svg>
                   </span>
