@@ -149,6 +149,7 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const [apiBets, setApiBets] = useState([]);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
+  const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
 
   // Scope behavior:
   // - default (null/empty): MAIN markets only (exclude starline/king)
@@ -340,10 +341,23 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
     }
   };
 
-  // Handle cancel bet
-  const handleCancelBet = async (betId) => {
+  const handleCancelBetClick = (betId) => {
     if (!betId) return;
-    
+    setConfirmCancelBetId(betId);
+  };
+
+  const handleCancelBetConfirm = async (id) => {
+    const betId = id ?? confirmCancelBetId;
+    setConfirmCancelBetId(null);
+    if (!betId) return;
+    await handleCancelBet(typeof betId === 'string' ? betId : (betId?._id ?? betId?.$oid ?? String(betId)));
+  };
+
+  // Handle cancel bet (after confirmation)
+  const handleCancelBet = async (betIdParam) => {
+    const betId = typeof betIdParam === 'string' ? betIdParam : (betIdParam?._id ?? betIdParam?.$oid ?? String(betIdParam || ''));
+    if (!betId) return;
+
     setCancellingBetId(betId);
     setCancelMessage({ type: '', text: '' });
 
@@ -597,11 +611,39 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
         {/* Cancel message */}
         {cancelMessage.text && (
           <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${
-            cancelMessage.type === 'success' 
-              ? 'bg-green-500/10 border border-green-500/30 text-green-200' 
+            cancelMessage.type === 'success'
+              ? 'bg-green-500/10 border border-green-500/30 text-green-200'
               : 'bg-red-500/10 border border-red-500/30 text-red-200'
           }`}>
             {cancelMessage.text}
+          </div>
+        )}
+
+        {/* Cancel bet confirmation modal (mobile + desktop) */}
+        {confirmCancelBetId && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
+            <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#202124] shadow-2xl p-5 space-y-4">
+              <h3 className="text-lg font-bold text-white">Cancel bet?</h3>
+              <p className="text-gray-300 text-sm">
+                Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmCancelBetId(null)}
+                  className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
+                >
+                  No, keep bet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
+                  className="flex-1 py-3 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
+                >
+                  Yes, cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -671,14 +713,14 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                         <span className="text-gray-400 shrink-0">Time</span>
                         <span className="text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                       </div>
-                      {verdict?.state === 'pending' && (
+                      {verdict?.state === 'pending' && canCancel?.canCancel && (
                         <div className="pt-1.5 border-t border-white/10">
                           <button
                             type="button"
-                            onClick={() => canCancel?.canCancel && handleCancelBet(betId)}
-                            disabled={cancellingBetId === betId || !canCancel?.canCancel}
-                            title={canCancel?.canCancel ? 'Cancel & refund' : (canCancel?.reason || 'Cannot cancel')}
-                            className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                            onClick={() => handleCancelBetClick(betId)}
+                            disabled={cancellingBetId === betId}
+                            title="Cancel & refund"
+                            className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
                           >
                             {cancellingBetId === betId ? <><svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Cancelling...</> : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Cancel & refund</>}
                           </button>
@@ -746,13 +788,13 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                           </td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
-                            {verdict?.state === 'pending' ? (
+                            {verdict?.state === 'pending' && canCancel?.canCancel ? (
                               <button
                                 type="button"
-                                onClick={() => canCancel?.canCancel && handleCancelBet(betId)}
-                                disabled={cancellingBetId === betId || !canCancel?.canCancel}
-                                title={canCancel?.canCancel ? 'Cancel & refund' : (canCancel?.reason || 'Cannot cancel')}
-                                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                                onClick={() => handleCancelBetClick(betId)}
+                                disabled={cancellingBetId === betId}
+                                title="Cancel & refund"
+                                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
                               >
                                 {cancellingBetId === betId ? (
                                   <><svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>Cancelling...</span></>

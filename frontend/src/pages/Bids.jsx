@@ -269,6 +269,7 @@ const Bids = () => {
   const [apiBets, setApiBets] = useState([]);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
+  const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
 
   // Keep selected desktop panel on refresh (via ?tab=...)
@@ -490,10 +491,22 @@ const Bids = () => {
     }
   };
 
-  // Handle cancel bet
-  const handleCancelBet = async (betId) => {
+  const handleCancelBetClick = (betId) => {
     if (!betId) return;
-    
+    setConfirmCancelBetId(betId);
+  };
+
+  const handleCancelBetConfirm = async (id) => {
+    const betId = id ?? confirmCancelBetId;
+    setConfirmCancelBetId(null);
+    if (!betId) return;
+    await handleCancelBet(typeof betId === 'string' ? betId : (betId?._id ?? betId?.$oid ?? String(betId)));
+  };
+
+  const handleCancelBet = async (betIdParam) => {
+    const betId = typeof betIdParam === 'string' ? betIdParam : (betIdParam?._id ?? betIdParam?.$oid ?? String(betIdParam || ''));
+    if (!betId) return;
+
     setCancellingBetId(betId);
     setCancelMessage({ type: '', text: '' });
 
@@ -898,7 +911,7 @@ const Bids = () => {
                                       <td className="py-2 px-2 text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
                                       <td className="py-2 px-2 text-center">
                                         {verdict.state === 'pending' && canCancel?.canCancel ? (
-                                          <button type="button" onClick={() => handleCancelBet(betId)} disabled={cancellingBetId === betId} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[32px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 disabled:opacity-60" title="Cancel & refund">
+                                          <button type="button" onClick={() => handleCancelBetClick(betId)} disabled={cancellingBetId === betId} className="inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[32px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 disabled:opacity-60" title="Cancel & refund">
                                             {cancellingBetId === betId ? <svg className="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> : <><svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>Cancel</span></>}
                                           </button>
                                         ) : verdict.state !== 'pending' ? <span className="text-gray-500 text-[10px]">—</span> : null}
@@ -946,6 +959,34 @@ const Bids = () => {
           ) : null}
         />
       </div>
+
+      {/* Cancel bet confirmation (mobile + desktop) */}
+      {confirmCancelBetId && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#202124] shadow-2xl p-5 space-y-4">
+            <h3 className="text-lg font-bold text-white">Cancel bet?</h3>
+            <p className="text-gray-300 text-sm">
+              Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
+            </p>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmCancelBetId(null)}
+                className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
+              >
+                No, keep bet
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
+                className="flex-1 py-3 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
+              >
+                Yes, cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Desktop Bet History Filter modal */}
       {isDesktopFilterOpen ? (

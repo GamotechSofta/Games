@@ -106,7 +106,7 @@ export async function placeBet(marketId, bets, scheduledDate) {
  */
 export async function cancelBet(betId) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
-  const rawUserId = user?.id || user?._id;
+  const rawUserId = user?.userId || user?.id || user?._id;
   if (!rawUserId) {
     return { success: false, message: 'Please log in to cancel a bet' };
   }
@@ -115,13 +115,14 @@ export async function cancelBet(betId) {
     return { success: false, message: 'Session invalid. Please log in again.' };
   }
 
-  if (!betId || !isValidObjectId(betId)) {
+  const normalizedBetId = toObjectIdString(betId);
+  if (!normalizedBetId || !isValidObjectId(normalizedBetId)) {
     return { success: false, message: 'Invalid bet ID' };
   }
 
   const payload = {
     userId,
-    betId,
+    betId: normalizedBetId,
   };
 
   const response = await fetch(`${API_BASE_URL}/bets/cancel`, {
