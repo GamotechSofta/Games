@@ -14,6 +14,7 @@ const AddFund = () => {
     const [success, setSuccess] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedAmount, setSubmittedAmount] = useState(0);
+    const [showCopyNotification, setShowCopyNotification] = useState(false);
     const [step, setStep] = useState(1); // 1 = Amount, 2 = Payment Details
     const [addCashLoading, setAddCashLoading] = useState(false);
 
@@ -323,10 +324,33 @@ const AddFund = () => {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(config?.upiId || '');
-                                        setSuccess('UPI ID copied!');
-                                        setTimeout(() => setSuccess(''), 2000);
+                                    onClick={async () => {
+                                        const upiId = config?.upiId || '';
+                                        if (!upiId) {
+                                            setError('UPI ID not available');
+                                            return;
+                                        }
+                                        try {
+                                            await navigator.clipboard.writeText(upiId);
+                                            setShowCopyNotification(true);
+                                            setTimeout(() => setShowCopyNotification(false), 3000);
+                                        } catch (err) {
+                                            // Fallback for older browsers
+                                            const textArea = document.createElement('textarea');
+                                            textArea.value = upiId;
+                                            textArea.style.position = 'fixed';
+                                            textArea.style.opacity = '0';
+                                            document.body.appendChild(textArea);
+                                            textArea.select();
+                                            try {
+                                                document.execCommand('copy');
+                                                setShowCopyNotification(true);
+                                                setTimeout(() => setShowCopyNotification(false), 3000);
+                                            } catch (fallbackErr) {
+                                                setError('Failed to copy UPI ID');
+                                            }
+                                            document.body.removeChild(textArea);
+                                        }
                                     }}
                                     className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] hover:brightness-105 text-black rounded-lg text-sm font-extrabold border border-black/20 shadow-[0_10px_18px_rgba(212,175,55,0.25)]"
                                 >
@@ -455,6 +479,18 @@ const AddFund = () => {
                                 View History
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Copy Notification Toast */}
+            {showCopyNotification && (
+                <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out">
+                    <div className="bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-green-400">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-semibold text-sm">UPI ID copied!</span>
                     </div>
                 </div>
             )}
