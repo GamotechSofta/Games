@@ -159,6 +159,11 @@ const BottomNavbar = () => {
                   scrollToTop();
                   return;
                 }
+                // Funds: go to main Funds screen (no tab so list shows); replace if already on /funds
+                if (item.path === '/funds') {
+                  navigate('/funds', { replace: location.pathname === '/funds' });
+                  return;
+                }
                 navigate(item.path);
               }}
               className="relative flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg min-w-[48px] active:scale-95 transition-all duration-150 touch-manipulation"

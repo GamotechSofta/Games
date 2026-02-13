@@ -120,6 +120,10 @@ const Funds = () => {
     if (tabParam && items.some((i) => i.key === tabParam) && tabParam !== activeKey) {
       setActiveKey(tabParam);
       if (!isDesktop) setMobileView(tabParam);
+    } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
+      // No tab or invalid tab (e.g. navigated to /funds from bottom bar) → show list
+      setActiveKey(items[0]?.key || 'add-fund');
+      setMobileView(null);
     }
   }, [tabParam]);
 
@@ -138,6 +142,29 @@ const Funds = () => {
     setMobileView(null);
   };
 
+  // Back from main Funds list: same behaviour as My Bets (desktop → home, mobile → prev or home).
+  const fundsPath = '/funds';
+  const handleBack = () => {
+    if (mobileView) {
+      handleMobileBack();
+      return;
+    }
+    try {
+      if (window?.matchMedia?.('(min-width: 768px)')?.matches) {
+        navigate('/');
+        return;
+      }
+    } catch (_) {}
+    try {
+      const prev = sessionStorage.getItem('prevPathname');
+      if (prev && prev !== fundsPath) {
+        navigate(prev);
+        return;
+      }
+    } catch (_) {}
+    navigate('/');
+  };
+
   const isAddFundMobileView = mobileView === 'add-fund';
   const isWithdrawFundMobileView = mobileView === 'withdraw-fund';
   const isBankDetailMobileView = mobileView === 'bank-detail';
@@ -152,7 +179,7 @@ const Funds = () => {
           <div className="flex items-center gap-3 pt-4 md:pt-0">
             <button
               type="button"
-              onClick={() => mobileView ? handleMobileBack() : navigate('/')}
+              onClick={handleBack}
               className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
               aria-label="Back"
             >
