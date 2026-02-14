@@ -473,7 +473,7 @@ const Revenue = () => {
                                 <div><span className="text-gray-500">Bets: </span><span className="text-white font-bold">{formatCurrency(overallSummary.grandTotalBets)}</span></div>
                                 <div><span className="text-gray-500">Payouts: </span><span className="text-red-400 font-bold">{formatCurrency(overallSummary.grandTotalPayouts)}</span></div>
                                 <div><span className="text-gray-500">Bookie Payouts: </span><span className="text-orange-400 font-bold">{formatCurrency(overallSummary.totalBookieCommission)}</span></div>
-                                <div><span className="text-gray-500">Net Profit: </span><span className={`font-bold ${overallSummary.totalAdminProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(overallSummary.totalAdminProfit)}</span></div>
+                                <div><span className="text-gray-500">Total Net Profit: </span><span className={`font-bold ${overallSummary.totalAdminProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(overallSummary.totalAdminProfit)}</span></div>
                             </div>
                         </div>
                     </div>
@@ -623,7 +623,7 @@ const Revenue = () => {
                     </table>
 
                     <div className="border-t-2 border-gray-400 pt-2 font-bold">
-                        Overall: Bets {formatCurrency(overallSummary?.grandTotalBets)} | Payouts {formatCurrency(overallSummary?.grandTotalPayouts)} | Net Profit {formatCurrency(overallSummary?.totalAdminProfit)}
+                        Overall: Bets {formatCurrency(overallSummary?.grandTotalBets)} | Payouts {formatCurrency(overallSummary?.grandTotalPayouts)} | Total Net Profit {formatCurrency(overallSummary?.totalAdminProfit)}
                     </div>
                 </div>
             )}

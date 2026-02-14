@@ -267,7 +267,7 @@ const Reports = () => {
                             <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 rounded-xl p-5 border border-amber-500/30">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-gray-400">Net Profit</p>
+                                        <p className="text-sm font-medium text-gray-400">Total Net Profit</p>
                                         <p className="text-2xl font-bold text-amber-400 mt-1">{formatCurrency(report.netProfit)}</p>
                                     </div>
                                     <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
@@ -369,7 +369,7 @@ const Reports = () => {
                         <tbody>
                             <tr><td className="py-1 font-medium">Total Revenue</td><td className="text-right">{formatCurrency(report.totalRevenue)}</td></tr>
                             <tr><td className="py-1 font-medium">Total Payouts</td><td className="text-right">{formatCurrency(report.totalPayouts)}</td></tr>
-                            <tr><td className="py-1 font-medium">Net Profit</td><td className="text-right">{formatCurrency(report.netProfit)}</td></tr>
+                            <tr><td className="py-1 font-medium">Total Net Profit</td><td className="text-right">{formatCurrency(report.netProfit)}</td></tr>
                             <tr><td className="py-1 font-medium">Total Bets</td><td className="text-right">{formatNumber(report.totalBets)}</td></tr>
                             <tr><td className="py-1 font-medium">Active Players</td><td className="text-right">{formatNumber(report.activeUsers)}</td></tr>
                             <tr><td className="py-1 font-medium">Winning Bets</td><td className="text-right">{formatNumber(report.winningBets)}</td></tr>

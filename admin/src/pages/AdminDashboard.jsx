@@ -228,8 +228,8 @@ const AdminDashboard = () => {
                     <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard Overview</h1>
                     <p className="text-gray-400 text-sm mt-2">Loading your admin overview...</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                    {[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
@@ -368,26 +368,28 @@ const AdminDashboard = () => {
             )}
 
             {/* Primary KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-green-500/10 to-transparent rounded-xl p-5 border border-green-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Revenue (period)</p>
-                    <p className="text-2xl font-bold text-green-400 font-mono">{formatCurrency(stats?.revenue?.total)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Bet amount collected in selected range</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+                <div className="min-w-0 overflow-hidden bg-gradient-to-br from-green-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-green-500/30">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Revenue</p>
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-green-400 font-mono whitespace-nowrap">{formatCurrency(stats?.revenue?.total)}</p>
                 </div>
-                <div className="bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl p-5 border border-blue-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Net Profit (period)</p>
-                    <p className="text-2xl font-bold text-blue-400 font-mono">{formatCurrency(stats?.revenue?.netProfit)}</p>
-                    <p className="text-xs text-gray-500 mt-1">Revenue − Payouts in selected range</p>
+                <div className="min-w-0 overflow-hidden bg-gradient-to-br from-red-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-red-500/30">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Payouts</p>
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-red-400 font-mono whitespace-nowrap">{formatCurrency(stats?.revenue?.payouts)}</p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-500/10 to-transparent rounded-xl p-5 border border-purple-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Players (all-time)</p>
-                    <p className="text-2xl font-bold text-purple-400 font-mono">{stats?.users?.total ?? 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">{stats?.users?.active ?? 0} active · {stats?.users?.newToday ?? 0} new in range</p>
+                <div className="min-w-0 overflow-hidden bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-blue-500/30">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Net Profit</p>
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-blue-400 font-mono whitespace-nowrap">{formatCurrency(stats?.revenue?.netProfit)}</p>
                 </div>
-                <div className="bg-gradient-to-br from-amber-500/10 to-transparent rounded-xl p-5 border border-amber-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Bets (period)</p>
-                    <p className="text-2xl font-bold text-amber-400 font-mono">{stats?.bets?.total ?? 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Win rate: {stats?.bets?.winRate ?? 0}%</p>
+                <div className="min-w-0 overflow-hidden bg-gradient-to-br from-purple-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-purple-500/30">
+                    <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-tight sm:tracking-wider mb-1 whitespace-nowrap">Total Players (all-time)</p>
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-purple-400 font-mono">{stats?.users?.total ?? 0}</p>
+                    <p className="text-xs text-gray-500 mt-1 break-words">{stats?.users?.active ?? 0} active · {stats?.users?.newToday ?? 0} new in range</p>
+                </div>
+                <div className="min-w-0 overflow-hidden bg-gradient-to-br from-amber-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-amber-500/30">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Bets</p>
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-amber-400 font-mono">{stats?.bets?.total ?? 0}</p>
+                    <p className="text-xs text-gray-500 mt-1 break-words">Win rate: {stats?.bets?.winRate ?? 0}%</p>
                 </div>
             </div>
 
@@ -397,7 +399,7 @@ const AdminDashboard = () => {
                 <SectionCard title="Revenue & Payouts" description="Selected period" icon={FaMoneyBillWave} linkTo="/reports" linkLabel="Reports">
                     <StatRow label="Total Revenue" value={formatCurrency(stats?.revenue?.total)} colorClass="text-green-400" />
                     <StatRow label="Total Payouts" value={formatCurrency(stats?.revenue?.payouts)} colorClass="text-red-400" />
-                    <StatRow label="Net Profit" value={formatCurrency(stats?.revenue?.netProfit)} colorClass="text-blue-400" />
+                    <StatRow label="Total Net Profit" value={formatCurrency(stats?.revenue?.netProfit)} colorClass="text-blue-400" />
                 </SectionCard>
 
                 {/* Players */}
@@ -472,7 +474,7 @@ const AdminDashboard = () => {
                         <p className="text-xl font-bold text-red-400 font-mono">{formatCurrency(stats?.revenue?.payouts)}</p>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                        <p className="text-gray-400 text-sm mb-1">Net Profit</p>
+                        <p className="text-gray-400 text-sm mb-1">Total Net Profit</p>
                         <p className="text-xl font-bold text-blue-400 font-mono">{formatCurrency(stats?.revenue?.netProfit)}</p>
                     </div>
                 </div>
