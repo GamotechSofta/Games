@@ -114,7 +114,7 @@ const BidReviewModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-6">
+    <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 sm:p-6">
       {/* Overlay */}
       {stage === 'review' ? (
         <button type="button" onClick={handleClose} aria-label="Close" className="absolute inset-0 bg-black/60" />
@@ -122,8 +122,8 @@ const BidReviewModal = ({
         <div aria-hidden="true" className="absolute inset-0 bg-black/60" />
       )}
 
-      {/* Modal */}
-      <div className="relative w-full max-w-md sm:max-w-lg">
+      {/* Modal - centered, above mobile navbar */}
+      <div className="relative w-full max-w-md sm:max-w-lg mx-auto flex-shrink-0">
         {stage === 'success' ? (
           <div className="bg-[#202124] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-white/10">
             <style>{`
