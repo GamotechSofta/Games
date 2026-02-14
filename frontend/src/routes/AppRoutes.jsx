@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
+import { useBreakpoint } from '../hooks/useBreakpoint';
 import AppHeader from '../components/AppHeader';
 import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
@@ -77,9 +78,14 @@ const PUBLIC_PATHS = ['/login'];
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  const { isDesktop } = useBreakpoint();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const isLoginPage = location.pathname === '/login';
   const isHomePage = location.pathname === '/';
+
+  const hideTopNavOnMobile =
+    !isDesktop &&
+    (['/bids', '/funds', '/profile'].includes(location.pathname) || location.pathname.startsWith('/support'));
 
   useEffect(() => {
     const check = () => setHasUser(!!localStorage.getItem('user'));
@@ -139,14 +145,16 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black">
-      <AppHeader />
-      {/* Reduce mobile top-gap under fixed header */}
-      {/* Desktop: ensure no overlap under fixed header */}
+      {!hideTopNavOnMobile && <AppHeader />}
       <div
         className={
-          isBidPage
-            ? 'pt-[calc(52px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(70px+env(safe-area-inset-top,0px))]'
-            : ((isBetsPage || isHistoryPage) ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] sm:pt-[calc(76px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]' : 'pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]')
+          hideTopNavOnMobile
+            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
+            : isBidPage
+              ? 'pt-[calc(52px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(70px+env(safe-area-inset-top,0px))]'
+              : (isBetsPage || isHistoryPage)
+                ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] sm:pt-[calc(76px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]'
+                : 'pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
         }
       >
         {children}
