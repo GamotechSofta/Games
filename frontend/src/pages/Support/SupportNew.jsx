@@ -88,45 +88,47 @@ const SupportNew = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#0a0a0b] text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-xl mx-auto">
-        <div className="flex items-center gap-3 pt-4 pb-3">
+        <div className="flex items-center gap-3 pt-4 pb-2">
           <button
             type="button"
             onClick={() => navigate('/support')}
-            className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-gray-700 transition-colors shrink-0"
+            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <h1 className="text-xl sm:text-2xl font-semibold text-white">Raise help ticket</h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Raise help ticket</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Describe your problem and attach screenshots if needed</p>
+          </div>
         </div>
-        <p className="text-gray-400 text-sm sm:text-base mb-6">Describe your problem and attach screenshots if needed.</p>
 
         {!userId && (
-          <div className="mb-6 p-4 bg-gray-900 border border-gray-700 rounded-2xl text-amber-400/90 shadow-[0_8px_18px_rgba(0,0,0,0.35)] text-center">
+          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm text-center">
             Please login to submit a support request.
           </div>
         )}
 
-        <div className="bg-gray-900 rounded-2xl border border-gray-800 p-4 sm:p-6 shadow-[0_8px_18px_rgba(0,0,0,0.35)] w-full">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="mt-6 rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 p-4 sm:p-6 w-full">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="support-subject" className="block text-sm font-medium text-gray-300 mb-1">Subject</label>
+              <label htmlFor="support-subject" className="block text-sm font-medium text-gray-400 mb-2">Subject</label>
               <input
                 id="support-subject"
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="e.g. Payment issue, Game error"
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#f3b61b]/50 focus:border-[#f3b61b] transition"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 transition"
                 disabled={!userId}
               />
             </div>
             <div>
-              <label htmlFor="support-description" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="support-description" className="block text-sm font-medium text-gray-400 mb-2">
                 Describe your problem <span className="text-red-400">*</span>
               </label>
               <textarea
@@ -135,12 +137,12 @@ const SupportNew = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Explain your issue in detail..."
                 rows={5}
-                className="w-full px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#f3b61b]/50 focus:border-[#f3b61b] resize-y transition"
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 resize-y transition"
                 disabled={!userId}
               />
             </div>
             <div>
-              <label htmlFor="support-screenshots" className="block text-sm font-medium text-gray-300 mb-1">
+              <label htmlFor="support-screenshots" className="block text-sm font-medium text-gray-400 mb-2">
                 Screenshots (optional, max 5 images)
               </label>
               <input
@@ -149,19 +151,19 @@ const SupportNew = () => {
                 accept="image/jpeg,image/jpg,image/png,image/gif"
                 multiple
                 onChange={handleFileChange}
-                className="w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#f3b61b] file:text-black file:font-semibold file:cursor-pointer hover:file:bg-[#e5a914]"
+                className="w-full text-sm text-gray-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-amber-500 file:to-orange-600 file:text-black file:font-semibold file:cursor-pointer hover:file:opacity-90 transition"
                 disabled={!userId}
               />
               {screenshots.length > 0 && (
-                <p className="mt-1 text-sm text-gray-500">{screenshots.length} file(s) selected</p>
+                <p className="mt-2 text-xs text-gray-500">{screenshots.length} file(s) selected</p>
               )}
             </div>
             {message.text && (
               <div
-                className={`p-3 rounded-xl text-sm ${
+                className={`p-4 rounded-xl text-sm ${
                   message.type === 'success'
-                    ? 'bg-green-900/40 border border-green-800 text-green-400'
-                    : 'bg-red-900/40 border border-red-800 text-red-400'
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
                 }`}
               >
                 {message.text}
@@ -170,9 +172,9 @@ const SupportNew = () => {
             <button
               type="submit"
               disabled={!userId || loading}
-              className="w-full px-6 py-2.5 bg-[#f3b61b] hover:bg-[#e5a914] disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-semibold rounded-xl transition shadow-[0_4px_12px_rgba(243,182,27,0.35)]"
+              className="w-full px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed text-black font-semibold rounded-xl transition shadow-lg shadow-amber-500/20"
             >
-              {loading ? 'Submitting...' : 'Submit'}
+              {loading ? 'Submitting...' : 'Submit ticket'}
             </button>
           </form>
         </div>
