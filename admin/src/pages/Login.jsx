@@ -11,11 +11,12 @@ const Login = () => {
     const navigate = useNavigate();
     const hasRedirected = useRef(false);
 
-    // If already logged in, go to dashboard (once only – avoids navigation throttle in Strict Mode)
+    // If already logged in (admin + password, same as PrivateRoute), go to dashboard once – avoids redirect loop/throttle
     useEffect(() => {
         if (hasRedirected.current) return;
         const admin = localStorage.getItem('admin');
-        if (admin) {
+        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
+        if (admin && password) {
             hasRedirected.current = true;
             navigate('/dashboard', { replace: true });
         }
