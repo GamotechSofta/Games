@@ -85,9 +85,16 @@ const Layout = ({ children }) => {
   const isLoginPage = location.pathname === '/login';
   const isHomePage = location.pathname === '/';
 
+  // Hide top nav on mobile only (CSS) for My Bets landing + Bet History list + related history screens
+  const hideTopNavMobileOnly =
+    location.pathname === '/bids' ||
+    location.pathname === '/bet-history' ||
+    location.pathname === '/starline-bet-history' ||
+    location.pathname === '/king-bazaar-bet-history' ||
+    location.pathname === '/market-result-history';
   const hideTopNavOnMobile =
     !isDesktop &&
-    (['/bids', '/funds', '/profile', '/notifications', '/bidoptions', '/game-bid'].includes(location.pathname) ||
+    (['/funds', '/profile', '/notifications', '/bidoptions', '/game-bid'].includes(location.pathname) ||
       location.pathname.startsWith('/support'));
 
   // Mobile only: hide bottom navbar (currently none; show on all screens)
@@ -159,16 +166,25 @@ const Layout = ({ children }) => {
           : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
       }
     >
-      {!hideTopNavOnMobile && <AppHeader />}
+      {/* My Bets, Bet History, Game Results etc.: hide top nav on mobile only via CSS */}
+      {hideTopNavMobileOnly ? (
+        <div className="hidden md:block">
+          <AppHeader />
+        </div>
+      ) : (
+        !hideTopNavOnMobile && <AppHeader />
+      )}
       <div
         className={
-          hideTopNavOnMobile
-            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
-            : isBidPage
-              ? 'pt-[calc(52px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(70px+env(safe-area-inset-top,0px))]'
-              : (isBetsPage || isHistoryPage)
-                ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] sm:pt-[calc(76px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]'
-                : 'pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
+          hideTopNavMobileOnly
+            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
+            : hideTopNavOnMobile
+              ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
+              : isBidPage
+                ? 'pt-[calc(52px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(70px+env(safe-area-inset-top,0px))]'
+                : (isBetsPage || isHistoryPage)
+                  ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] sm:pt-[calc(76px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]'
+                  : 'pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
         }
       >
         {children}
