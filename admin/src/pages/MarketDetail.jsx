@@ -32,46 +32,46 @@ const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleSt
 
 /** Card container matching AddResult/UpdateRate style */
 const SectionCard = ({ title, children, className = '' }) => (
-    <div className={`rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden ${className}`}>
-        <h2 className="text-base sm:text-lg font-bold text-yellow-500 bg-gray-800/90 px-4 py-3 border-b border-gray-700">
+    <div className={`rounded-lg border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden ${className}`}>
+        <h2 className="text-sm sm:text-base font-bold text-yellow-500 bg-gray-800/90 px-3 py-2 border-b border-gray-700">
             {title}
         </h2>
-        <div className="p-3 sm:p-4">{children}</div>
+        <div className="p-2.5 sm:p-3">{children}</div>
     </div>
 );
 
 /** Stat table: dark theme, same as admin tables */
 const StatTable = ({ title, rowLabel1, rowLabel2, columns, getAmount, getCount, totalAmount, totalBets }) => (
     <SectionCard title={title}>
-        <div className="overflow-x-auto rounded-lg border border-gray-700 bg-gray-800">
-            <table className="w-full text-sm border-collapse">
+        <div className="overflow-x-auto rounded border border-gray-700 bg-gray-800">
+            <table className="w-full text-xs sm:text-sm border-collapse">
                 <thead>
                     <tr className="bg-gray-700/70 border-b border-gray-600">
-                        <th className="text-left py-2.5 px-3 font-semibold text-yellow-500">{rowLabel1}</th>
+                        <th className="text-left py-2 px-2.5 font-semibold text-yellow-500">{rowLabel1}</th>
                         {columns.map((c) => (
-                            <th key={c} className="py-2.5 px-2 text-center font-semibold text-gray-300">{c}</th>
+                            <th key={c} className="py-2 px-1.5 text-center font-semibold text-gray-300">{c}</th>
                         ))}
-                        <th className="py-2.5 px-3 text-center font-semibold text-yellow-500">Total</th>
+                        <th className="py-2 px-2.5 text-center font-semibold text-yellow-500">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr className="border-b border-gray-700">
-                        <td className="py-2 px-3 font-medium text-gray-300">{rowLabel2}</td>
+                        <td className="py-1.5 px-2.5 font-medium text-gray-300">{rowLabel2}</td>
                         {columns.map((c) => (
-                            <td key={c} className="py-2 px-2 text-center text-white font-mono text-xs sm:text-sm">
+                            <td key={c} className="py-1.5 px-1.5 text-center text-white font-mono text-xs">
                                 {getAmount(c)}
                             </td>
                         ))}
-                        <td className="py-2 px-3 text-center font-semibold text-amber-400">{formatNum(totalAmount)}</td>
+                        <td className="py-1.5 px-2.5 text-center font-semibold text-amber-400">{formatNum(totalAmount)}</td>
                     </tr>
                     <tr className="bg-gray-700/30">
-                        <td className="py-2 px-3 font-medium text-gray-400">No. of Bets</td>
+                        <td className="py-1.5 px-2.5 font-medium text-gray-400">No. of Bets</td>
                         {columns.map((c) => (
-                            <td key={c} className="py-2 px-2 text-center text-gray-300">
+                            <td key={c} className="py-1.5 px-1.5 text-center text-gray-300">
                                 {getCount(c)}
                             </td>
                         ))}
-                        <td className="py-2 px-3 text-center font-semibold text-gray-200">{formatNum(totalBets)}</td>
+                        <td className="py-1.5 px-2.5 text-center font-semibold text-gray-200">{formatNum(totalBets)}</td>
                     </tr>
                 </tbody>
             </table>
@@ -730,7 +730,7 @@ const MarketDetail = () => {
 
     return (
         <AdminLayout onLogout={handleLogout} title="Market Detail">
-            <div className="w-full min-w-0 px-0 sm:px-1 pb-6 sm:pb-8">
+            <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8 overflow-x-hidden">
                 <Link
                     to="/markets"
                     className="inline-flex items-center gap-2 text-gray-400 hover:text-yellow-500 text-sm mb-4 transition-colors"
@@ -738,34 +738,34 @@ const MarketDetail = () => {
                     <FaArrowLeft className="w-4 h-4" /> Markets Management
                 </Link>
 
-                {/* Overview card – updates when Open/Closed view changes (key forces refresh) */}
-                <div key={`overview-${statusView}`} className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-xl overflow-hidden mb-6 sm:mb-8">
-                    <div className="bg-gray-800 border-b border-gray-700 px-4 py-3">
-                        <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{market.marketName}</h1>
-                        <p className="text-gray-400 text-sm mt-0.5">Market overview & result</p>
+                {/* Overview card – updates when Open/Closed view changes (key forces refresh); responsive for mobile */}
+                <div key={`overview-${statusView}`} className="rounded-lg border border-gray-700 bg-gray-800/80 shadow-xl overflow-hidden mb-4 sm:mb-6 min-w-0">
+                    <div className="bg-gray-800 border-b border-gray-700 px-3 py-2.5">
+                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{market.marketName}</h1>
+                        <p className="text-gray-400 text-xs mt-0.5">Market overview & result</p>
                         {marketId && (
                             <p className="text-[11px] text-gray-500 mt-1 font-mono" title="Same ID as in Add Result → Check">ID: {marketId}</p>
                         )}
                     </div>
-                    <div className="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
-                                <FaClock className="text-yellow-500 w-5 h-5" />
+                    <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
+                                <FaClock className="text-yellow-500 w-4 h-4" />
                             </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wider">Timeline</p>
-                                <p className="font-mono text-white text-sm sm:text-base">{timeline}</p>
-                                <p className="text-xs text-gray-500">Opens 12:00 AM, closes at closing time</p>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[11px] text-gray-400 uppercase tracking-wider">Timeline</p>
+                                <p className="font-mono text-white text-xs sm:text-sm break-words">{timeline}</p>
+                                <p className="text-[11px] text-gray-500">Opens 12:00 AM, closes at closing time</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
-                                <FaHashtag className="text-yellow-500 w-5 h-5" />
+                        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
+                                <FaHashtag className="text-yellow-500 w-4 h-4" />
                             </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wider">Result</p>
-                                <p className="font-mono text-amber-400 text-lg font-bold">{resultDisplay}</p>
-                                <p className="text-xs text-gray-500">
+                            <div className="min-w-0 flex-1 overflow-hidden">
+                                <p className="text-[11px] text-gray-400 uppercase tracking-wider">Result</p>
+                                <p className="font-mono text-amber-400 text-sm sm:text-base font-bold break-all">{resultDisplay}</p>
+                                <p className="text-[11px] text-gray-500">
                                     Open: {hasOpen ? market.openingNumber : '—'} · Close: {hasClose ? market.closingNumber : '—'}
                                 </p>
                                 <p className="text-[10px] text-amber-400/90 mt-0.5">
@@ -773,39 +773,39 @@ const MarketDetail = () => {
                                     {isStartline && <span className="text-gray-500"> (Starline: open only)</span>}
                                 </p>
                                 {(resultOnPatti?.open || resultOnPatti?.close) && (
-                                    <div className="mt-3 pt-3 border-t border-gray-600 space-y-2 text-[11px]">
+                                    <div className="mt-3 pt-3 border-t border-gray-600 space-y-2 text-[10px] sm:text-[11px]">
                                         <p className="text-gray-400 font-semibold uppercase tracking-wider">Result on Patti</p>
                                         {resultOnPatti?.open && (
-                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 space-y-1">
+                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
                                                 <p className="text-gray-500 font-medium mb-1">Open</p>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Bet Amount on Patti</span>
-                                                    <span className="font-mono text-amber-400">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Bet Amount on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Win Amount on Patti</span>
-                                                    <span className="font-mono text-amber-400">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Win Amount on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Players Bet on Patti</span>
-                                                    <span className="font-mono text-amber-400">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Players Bet on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
                                                 </div>
                                             </div>
                                         )}
                                         {resultOnPatti?.close && (
-                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 space-y-1">
+                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
                                                 <p className="text-gray-500 font-medium mb-1">Close</p>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Bet Amount on Patti</span>
-                                                    <span className="font-mono text-amber-400">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Bet Amount on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Win Amount on Patti</span>
-                                                    <span className="font-mono text-amber-400">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Win Amount on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center gap-2">
-                                                    <span className="text-gray-400 shrink-0">Total Players Bet on Patti</span>
-                                                    <span className="font-mono text-amber-400">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
+                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
+                                                    <span className="text-gray-400 min-w-0">Total Players Bet on Patti</span>
+                                                    <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -813,26 +813,26 @@ const MarketDetail = () => {
                                 )}
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
-                                <FaChartBar className="text-yellow-500 w-5 h-5" />
+                        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-lg bg-gray-700/80 flex items-center justify-center shrink-0">
+                                <FaChartBar className="text-yellow-500 w-4 h-4" />
                             </div>
-                            <div>
-                                <p className="text-xs text-gray-400 uppercase tracking-wider">Total Bet Amount</p>
-                                <p className="font-mono text-lg font-semibold text-white">₹{formatNum(displayAmount)}</p>
-                                <p className="text-xs text-gray-500">{formatNum(displayBets)} bets</p>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-[11px] text-gray-400 uppercase tracking-wider">Total Bet Amount</p>
+                                <p className="font-mono text-base sm:text-lg font-semibold text-white">₹{formatNum(displayAmount)}</p>
+                                <p className="text-[11px] text-gray-500">{formatNum(displayBets)} bets</p>
                                 <p className="text-[10px] text-gray-500">({isKingBazaar ? 'All bets' : (effectiveView === 'open' ? 'Open bets only' : 'Closed bets only')})</p>
                             </div>
                         </div>
                         {!isStartline && !isKingBazaar && (
-                        <div className="flex items-center gap-3">
-                            <div className="shrink-0 w-full sm:w-auto">
-                                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">View</p>
+                        <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                            <div className="w-full sm:w-auto min-w-0 flex-1 sm:flex-none">
+                                <p className="text-[11px] text-gray-400 uppercase tracking-wider mb-0.5">View</p>
                                 <select
                                     value={statusView}
                                     onChange={handleStatusViewChange}
                                     aria-label="View open bets or closed bets"
-                                    className="w-full sm:w-auto min-w-[140px] rounded-lg border border-gray-600 bg-gray-700 text-white px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none cursor-pointer"
+                                    className="w-full sm:w-auto min-w-[120px] rounded border border-gray-600 bg-gray-700 text-white px-2.5 py-1.5 text-xs font-medium focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 outline-none cursor-pointer"
                                 >
                                     <option value="open">Open bets only</option>
                                     <option value="closed">Closed bets only</option>
@@ -844,7 +844,7 @@ const MarketDetail = () => {
                 </div>
 
                 {/* All games shown in both views; section data updates by Open/Closed (other view = blank). */}
-                <div key={`sections-${statusView}`} className="space-y-6">
+                <div key={`sections-${statusView}`} className="space-y-4">
                     {isKingBazaar ? (
                         <>
                             <StatTable

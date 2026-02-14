@@ -84,12 +84,12 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Markets Management</h1>
+                <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Markets Management</h1>
                 
-                <div className="mb-6">
+                <div className="mb-4">
                     <button
                         onClick={handleCreate}
-                        className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-sm bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg transition-colors"
                     >
                         + Add New Market
                     </button>

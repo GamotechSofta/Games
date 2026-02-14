@@ -105,10 +105,10 @@ const Markets = () => {
                     </div>
                 )}
 
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-6 truncate">Markets Management</h1>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-4 truncate">Markets Management</h1>
 
                 {/* Top tabs: Regular | Starline | King Bazaar */}
-                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                     {TABS.map((tab) => {
                         const isActive = activeTab === tab.id;
                         const Icon = tab.icon;
@@ -117,13 +117,13 @@ const Markets = () => {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base transition-all ${
+                                className={`inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
                                     isActive
                                         ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600'
                                 }`}
                             >
-                                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 {tab.label}
                             </button>
                         );

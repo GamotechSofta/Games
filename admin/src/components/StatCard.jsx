@@ -52,7 +52,7 @@ const StatCard = ({
 
     return (
         <div
-            className={`group relative glass rounded-xl p-6 border border-gray-700/50 hover:${c.border} transition-all duration-300 hover:shadow-xl hover:${c.shadow} hover:-translate-y-1 overflow-hidden animate-slideUp`}
+            className={`group relative glass rounded-lg p-4 border border-gray-700/50 hover:${c.border} transition-all duration-300 hover:shadow-xl hover:${c.shadow} hover:-translate-y-1 overflow-hidden animate-slideUp`}
             style={{ animationDelay: `${delay}s` }}
         >
             {/* Animated background gradient */}
@@ -61,24 +61,24 @@ const StatCard = ({
             {/* Content */}
             <div className="relative z-10">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-400 mb-1">{title}</p>
-                        <p className="text-3xl font-bold text-white font-mono">{value}</p>
+                <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-400 mb-0.5">{title}</p>
+                        <p className="text-xl sm:text-2xl font-bold text-white font-mono">{value}</p>
                     </div>
 
                     {/* Icon */}
                     {Icon && (
-                        <div className={`w-12 h-12 rounded-xl ${c.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border ${c.iconBorder}`}>
-                            <Icon className={`w-6 h-6 ${c.iconText}`} />
+                        <div className={`w-10 h-10 rounded-lg ${c.iconBg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border ${c.iconBorder}`}>
+                            <Icon className={`w-5 h-5 ${c.iconText}`} />
                         </div>
                     )}
                 </div>
 
                 {/* Details */}
                 {details.length > 0 && (
-                    <div className="pt-3 border-t border-gray-700/30">
-                        <div className="flex gap-4 text-xs">
+                    <div className="pt-2 border-t border-gray-700/30">
+                        <div className="flex flex-wrap gap-2 sm:gap-3 text-[11px] sm:text-xs">
                             {details.map((detail, index) => (
                                 <div key={index}>
                                     <span className="text-gray-500">{detail.label}: </span>
@@ -91,8 +91,8 @@ const StatCard = ({
 
                 {/* Subtitle */}
                 {subtitle && (
-                    <div className="pt-3 border-t border-gray-700/30">
-                        <p className="text-xs text-gray-500">{subtitle}</p>
+                    <div className="pt-2 border-t border-gray-700/30">
+                        <p className="text-[11px] text-gray-500">{subtitle}</p>
                     </div>
                 )}
             </div>

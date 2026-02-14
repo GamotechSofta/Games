@@ -10,6 +10,7 @@ html {
 body {
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.9375rem; /* Slightly smaller base for admin (15px) */
 }
 
 .font-mono {
