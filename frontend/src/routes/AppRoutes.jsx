@@ -90,9 +90,8 @@ const Layout = ({ children }) => {
     (['/bids', '/funds', '/profile', '/notifications', '/bidoptions', '/game-bid'].includes(location.pathname) ||
       location.pathname.startsWith('/support'));
 
-  // Mobile only: hide bottom navbar on Bids and Funds screens
-  const hideBottomNavOnMobile =
-    !isDesktop && (location.pathname === '/bids' || location.pathname === '/funds');
+  // Mobile only: hide bottom navbar (currently none; show on all screens)
+  const hideBottomNavOnMobile = false;
 
   useEffect(() => {
     const check = () => setHasUser(!!localStorage.getItem('user'));
