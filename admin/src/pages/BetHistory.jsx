@@ -5,35 +5,96 @@ import { clearAdminAuth } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
+const RANGES = [
+    { id: 'today', label: 'Today' },
+    { id: 'yesterday', label: 'Yesterday' },
+    { id: 'this_week', label: 'This Week' },
+    { id: 'last_week', label: 'Last Week' },
+    { id: 'this_month', label: 'This Month' },
+    { id: 'last_month', label: 'Last Month' },
+    { id: 'custom', label: 'Custom' },
+];
+
+function getDateRange(rangeId, customStart = '', customEnd = '') {
+    const toYMD = (d) => d.toISOString().slice(0, 10);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (rangeId === 'custom') {
+        if (customStart && customEnd) {
+            const end = new Date(customEnd);
+            end.setDate(end.getDate() + 1);
+            return { startDate: customStart, endDate: toYMD(end), label: `${customStart} to ${customEnd}` };
+        }
+        return { startDate: '', endDate: '', label: 'Custom' };
+    }
+
+    switch (rangeId) {
+        case 'today':
+            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+        case 'yesterday': {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            return { startDate: toYMD(yesterday), endDate: toYMD(today), label: 'Yesterday' };
+        }
+        case 'this_week': {
+            const day = today.getDay();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            return { startDate: toYMD(monday), endDate: toYMD(tomorrow), label: 'This Week' };
+        }
+        case 'last_week': {
+            const day = today.getDay();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            const lastMonday = new Date(monday);
+            lastMonday.setDate(monday.getDate() - 7);
+            return { startDate: toYMD(lastMonday), endDate: toYMD(monday), label: 'Last Week' };
+        }
+        case 'this_month': {
+            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            return { startDate: toYMD(first), endDate: toYMD(nextMonth), label: 'This Month' };
+        }
+        case 'last_month': {
+            const firstThis = new Date(today.getFullYear(), today.getMonth(), 1);
+            const firstLast = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            return { startDate: toYMD(firstLast), endDate: toYMD(firstThis), label: 'Last Month' };
+        }
+        default:
+            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+    }
+}
+
 const BetHistory = () => {
     const navigate = useNavigate();
     const [bets, setBets] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({
-        userId: '',
-        marketId: '',
-        status: '',
-        startDate: '',
-        endDate: '',
-    });
+    const [dateRange, setDateRange] = useState('today');
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
+
+    const { startDate, endDate, label } = getDateRange(dateRange, customStart, customEnd);
 
     useEffect(() => {
         fetchBets();
-    }, [filters]);
+    }, [dateRange, customStart, customEnd]);
 
     const fetchBets = async () => {
         try {
             setLoading(true);
             const admin = JSON.parse(localStorage.getItem('admin'));
             const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-            const queryParams = new URLSearchParams();
-            if (filters.userId) queryParams.append('userId', filters.userId);
-            if (filters.marketId) queryParams.append('marketId', filters.marketId);
-            if (filters.status) queryParams.append('status', filters.status);
-            if (filters.startDate) queryParams.append('startDate', filters.startDate);
-            if (filters.endDate) queryParams.append('endDate', filters.endDate);
+            const params = new URLSearchParams();
+            if (startDate && endDate) {
+                params.append('startDate', startDate);
+                params.append('endDate', endDate);
+            }
 
-            const response = await fetch(`${API_BASE_URL}/bets/history?${queryParams}`, {
+            const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
+            const response = await fetch(url, {
                 headers: {
                     'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
                 },
@@ -58,45 +119,45 @@ const BetHistory = () => {
         <AdminLayout onLogout={handleLogout} title="Bet History">
                     <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Bet History</h1>
 
-                    {/* Filters */}
-                    <div className="bg-gray-800 rounded-lg p-4 mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                        <input
-                            type="text"
-                            placeholder="Player ID"
-                            value={filters.userId}
-                            onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Market ID"
-                            value={filters.marketId}
-                            onChange={(e) => setFilters({ ...filters, marketId: e.target.value })}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                        />
-                        <select
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                        >
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="won">Won</option>
-                            <option value="lost">Lost</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        <input
-                            type="date"
-                            value={filters.startDate}
-                            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                        />
-                        <input
-                            type="date"
-                            value={filters.endDate}
-                            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
-                        />
+                    {/* Date range */}
+                    <div className="bg-gray-800 rounded-lg p-4 mb-4 sm:mb-6 border border-gray-700">
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Date range</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {RANGES.map((r) => (
+                                <button
+                                    key={r.id}
+                                    type="button"
+                                    onClick={() => setDateRange(r.id)}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                        dateRange === r.id
+                                            ? 'bg-orange-500 text-white'
+                                            : 'bg-gray-700 text-white hover:bg-gray-600'
+                                    }`}
+                                >
+                                    {r.label}
+                                </button>
+                            ))}
+                        </div>
+                        {dateRange === 'custom' && (
+                            <div className="flex flex-wrap gap-3 items-center mb-3">
+                                <input
+                                    type="date"
+                                    value={customStart}
+                                    onChange={(e) => setCustomStart(e.target.value)}
+                                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <span className="text-gray-500">to</span>
+                                <input
+                                    type="date"
+                                    value={customEnd}
+                                    onChange={(e) => setCustomEnd(e.target.value)}
+                                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                            </div>
+                        )}
+                        <p className="text-gray-400 text-sm">
+                            Showing data for: <span className="text-orange-500 font-medium">{dateRange === 'custom' && customStart && customEnd ? `${customStart} to ${customEnd}` : label}</span>
+                        </p>
                     </div>
 
                     {/* Bet Table */}

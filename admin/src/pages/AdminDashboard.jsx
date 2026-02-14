@@ -20,6 +20,7 @@ import {
 import { API_BASE_URL, getAdminAuthHeaders, clearAdminAuth } from '../utils/api';
 
 const PRESETS = [
+    { id: 'all', label: 'All', getRange: () => ({ from: null, to: null }) },
     { id: 'today', label: 'Today', getRange: () => {
         const d = new Date();
         const y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
@@ -130,7 +131,7 @@ const AdminDashboard = () => {
     const getFromTo = () => {
         if (customMode && customFrom && customTo) return { from: customFrom, to: customTo };
         const preset = PRESETS.find((p) => p.id === datePreset);
-        return preset ? preset.getRange() : PRESETS[0].getRange();
+        return preset ? preset.getRange() : PRESETS[1].getRange();
     };
 
     useEffect(() => {
@@ -156,7 +157,12 @@ const AdminDashboard = () => {
             setError('');
             const { from, to } = rangeOverride || getFromTo();
             const params = new URLSearchParams();
-            if (from && to) { params.set('from', from); params.set('to', to); }
+            if (from != null && to != null && from !== '' && to !== '') {
+                params.set('from', from);
+                params.set('to', to);
+            } else {
+                params.set('all', '1');
+            }
             if (isRefresh) params.set('_', String(Date.now()));
             const query = params.toString();
             const url = `${API_BASE_URL}/dashboard/stats${query ? `?${query}` : ''}`;
@@ -248,7 +254,7 @@ const AdminDashboard = () => {
         );
     }
 
-    const displayLabel = customMode && customFrom && customTo ? formatRangeLabel(customFrom, customTo) : (PRESETS.find((p) => p.id === datePreset)?.label || 'Today');
+    const displayLabel = customMode && customFrom && customTo ? formatRangeLabel(customFrom, customTo) : (PRESETS.find((p) => p.id === datePreset)?.label || 'All');
 
     return (
         <AdminLayout onLogout={handleLogout} title="Dashboard">
@@ -274,10 +280,10 @@ const AdminDashboard = () => {
                     </button>
                 </div>
 
-                {/* Date Filter */}
+                {/* Date Filter – all buttons in one row (screenshot style) */}
                 <div className="bg-gray-800/60 rounded-xl p-4 border border-gray-700">
-                    <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">Date Range</p>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Date range</p>
+                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1">
                         {PRESETS.map((p) => {
                             const isActive = !customMode && datePreset === p.id;
                             return (
@@ -285,7 +291,7 @@ const AdminDashboard = () => {
                                     key={p.id}
                                     type="button"
                                     onClick={() => handlePresetSelect(p.id)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${isActive ? 'bg-amber-500 text-black' : 'bg-gray-700 border border-gray-600 text-gray-200 hover:bg-gray-600'}`}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors shrink-0 ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                                 >
                                     {p.label}
                                 </button>
@@ -294,27 +300,27 @@ const AdminDashboard = () => {
                         <button
                             type="button"
                             onClick={handleCustomToggle}
-                            className={`px-4 py-2 rounded-lg text-sm font-semibold ${customMode ? 'bg-amber-500 text-black' : 'bg-gray-700 border border-gray-600 text-gray-200 hover:bg-gray-600'}`}
+                            className={`px-3 py-2 rounded-lg text-sm font-medium shrink-0 transition-colors ${customMode ? 'bg-orange-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
                         >
                             Custom
                         </button>
-                        {customOpen && (
-                            <div className="flex flex-wrap items-end gap-3 w-full mt-3 p-3 rounded-lg bg-gray-800 border border-gray-600">
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">From</label>
-                                    <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
-                                </div>
-                                <div>
-                                    <label className="block text-xs text-gray-400 mb-1">To</label>
-                                    <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
-                                </div>
-                                <button type="button" onClick={handleCustomApply} className="px-4 py-2 rounded-lg bg-amber-500 text-black font-semibold text-sm">
-                                    Apply
-                                </button>
-                            </div>
-                        )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Showing data for: <span className="text-amber-400 font-medium">{displayLabel}</span></p>
+                    {customOpen && (
+                        <div className="flex flex-wrap items-end gap-3 w-full mt-3 p-3 rounded-lg bg-gray-800 border border-gray-600">
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">From</label>
+                                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
+                            </div>
+                            <div>
+                                <label className="block text-xs text-gray-400 mb-1">To</label>
+                                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-sm text-white" />
+                            </div>
+                            <button type="button" onClick={handleCustomApply} className="px-4 py-2 rounded-lg bg-amber-500 text-black font-semibold text-sm">
+                                Apply
+                            </button>
+                        </div>
+                    )}
+                    <p className="text-gray-400 text-sm mt-3">Showing data for: <span className="text-orange-500 font-medium">{displayLabel}</span></p>
                 </div>
             </div>
 

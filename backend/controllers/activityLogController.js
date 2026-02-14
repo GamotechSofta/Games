@@ -1,4 +1,6 @@
 import ActivityLog from '../models/activityLog/activityLog.js';
+import Admin from '../models/admin/admin.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Get activity logs - super_admin only
@@ -40,6 +42,52 @@ export const getLogs = async (req, res) => {
                 total,
                 totalPages: Math.ceil(total / parseInt(limit, 10)),
             },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Delete activity logs - super_admin only.
+ * Query: olderThanDays (optional) - delete only logs older than N days; if omitted, delete all.
+ * Body: { secretDeclarePassword?: string } – required if admin has secret declare password set.
+ */
+export const deleteLogs = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can delete logs',
+            });
+        }
+
+        const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+        if (adminWithSecret?.secretDeclarePassword) {
+            const provided = (req.body?.secretDeclarePassword ?? '').toString().trim();
+            const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
+            if (!isValid) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Invalid secret declare password. Enter the correct password to delete logs.',
+                    code: 'INVALID_SECRET_DECLARE_PASSWORD',
+                });
+            }
+        }
+
+        const olderThanDays = req.query.olderThanDays ? parseInt(req.query.olderThanDays, 10) : null;
+        const query = {};
+        if (olderThanDays != null && Number.isFinite(olderThanDays) && olderThanDays > 0) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - olderThanDays);
+            query.createdAt = { $lt: cutoff };
+        }
+
+        const result = await ActivityLog.deleteMany(query);
+        res.status(200).json({
+            success: true,
+            message: `${result.deletedCount} log(s) deleted`,
+            deletedCount: result.deletedCount,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

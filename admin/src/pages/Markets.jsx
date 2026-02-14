@@ -39,7 +39,9 @@ const Markets = () => {
     const fetchMarkets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
+            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main&_t=${Date.now()}`, {
+                headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+            });
             const data = await response.json();
             if (data.success) {
                 setMarkets(data.data || []);
@@ -59,8 +61,10 @@ const Markets = () => {
             navigate('/');
             return;
         }
-        fetchMarkets();
-    }, [navigate]);
+        if (location.pathname === '/markets') {
+            fetchMarkets();
+        }
+    }, [navigate, location.pathname]);
 
     useRefreshOnMarketReset(fetchMarkets);
 

@@ -14,7 +14,7 @@ import {
     getAdminUpi,
     setAdminUpi,
 } from '../../controllers/adminController.js';
-import { getLogs } from '../../controllers/activityLogController.js';
+import { getLogs, deleteLogs } from '../../controllers/activityLogController.js';
 import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -33,6 +33,7 @@ router.patch('/me/secret-declare-password', verifySuperAdmin, setSecretDeclarePa
 // Super Admin management routes (Super Admin only)
 router.get('/super-admins', verifyAdmin, getAllSuperAdmins); // Get all super admins
 router.get('/logs', verifyAdmin, getLogs); // Get activity logs
+router.delete('/logs', verifyAdmin, deleteLogs); // Delete activity logs (super_admin only)
 
 // Bookie management routes (Super Admin only)
 router.post('/bookies', verifyAdmin, createBookie); // Create new bookie

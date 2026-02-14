@@ -45,10 +45,11 @@ const Logs = () => {
     const [error, setError] = useState('');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
-    const [filterAction, setFilterAction] = useState('');
-    const [filterPerformedBy, setFilterPerformedBy] = useState('');
     const [filterType, setFilterType] = useState('');
     const [sortOrder, setSortOrder] = useState('desc');
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
 
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin'));
@@ -64,8 +65,6 @@ const Logs = () => {
         if (showLoader) setError('');
         try {
             const params = new URLSearchParams({ page, limit: 50, sort: sortOrder });
-            if (filterAction) params.append('action', filterAction);
-            if (filterPerformedBy) params.append('performedBy', filterPerformedBy);
             if (filterType) params.append('performedByType', filterType);
             const response = await fetch(`${API_BASE_URL}/admin/logs?${params}`, {
                 headers: getAuthHeaders(),
@@ -93,11 +92,39 @@ const Logs = () => {
         fetchLogs(true);
         const interval = setInterval(() => fetchLogs(false), 15000);
         return () => clearInterval(interval);
-    }, [navigate, page, filterAction, filterPerformedBy, filterType, sortOrder]);
+    }, [navigate, page, filterType, sortOrder]);
 
     const handleLogout = () => {
         clearAdminAuth();
         navigate('/');
+    };
+
+    const handleDeleteLogs = async () => {
+        setDeleteLoading(true);
+        setError('');
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/logs`, {
+                method: 'DELETE',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ secretDeclarePassword: deletePassword }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setShowDeleteModal(false);
+                setDeletePassword('');
+                setPage(1);
+                fetchLogs(true);
+            } else {
+                const msg = data.code === 'INVALID_SECRET_DECLARE_PASSWORD'
+                    ? (data.message || 'Invalid secret declare password. Enter the correct password to delete logs.')
+                    : (data.message || 'Failed to delete logs');
+                setError(msg);
+            }
+        } catch (err) {
+            setError('Failed to delete logs');
+        } finally {
+            setDeleteLoading(false);
+        }
     };
 
     const formatTimestamp = (ts) => {
@@ -124,21 +151,7 @@ const Logs = () => {
             </p>
 
             {/* Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 mb-4 p-3 sm:p-4 bg-gray-800 rounded-lg border border-gray-700">
-                <input
-                    type="text"
-                    placeholder="Filter by action..."
-                    value={filterAction}
-                    onChange={(e) => { setFilterAction(e.target.value); setPage(1); }}
-                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 min-w-0 w-full"
-                />
-                <input
-                    type="text"
-                    placeholder="Filter by user..."
-                    value={filterPerformedBy}
-                    onChange={(e) => { setFilterPerformedBy(e.target.value); setPage(1); }}
-                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 min-w-0 w-full"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 p-3 sm:p-4 bg-gray-800 rounded-lg border border-gray-700">
                 <select
                     value={filterType}
                     onChange={(e) => { setFilterType(e.target.value); setPage(1); }}
@@ -158,12 +171,57 @@ const Logs = () => {
                     <option value="asc">Oldest first</option>
                 </select>
                 <button
-                    onClick={() => { setFilterAction(''); setFilterPerformedBy(''); setFilterType(''); setPage(1); }}
+                    onClick={() => { setFilterType(''); setPage(1); }}
                     className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm font-medium w-full sm:col-span-2 xl:col-span-1"
                 >
                     Clear
                 </button>
+                <button
+                    type="button"
+                    onClick={() => { setShowDeleteModal(true); setDeletePassword(''); setError(''); }}
+                    className="px-3 py-2 bg-red-900/60 hover:bg-red-800 border border-red-700 rounded-lg text-sm font-medium text-red-200 hover:text-red-100 w-full"
+                >
+                    Delete logs
+                </button>
             </div>
+
+            {/* Delete logs modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70">
+                    <div className="bg-gray-800 rounded-xl border border-gray-600 shadow-xl max-w-md w-full p-4 sm:p-6">
+                        <h3 className="text-lg font-bold text-white mb-4">Delete activity logs</h3>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-300 mb-1">Secret declare password</label>
+                            <input
+                                type="password"
+                                placeholder="Required if you have set this password"
+                                value={deletePassword}
+                                onChange={(e) => setDeletePassword(e.target.value)}
+                                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-500 focus:ring-2 focus:ring-yellow-500"
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                type="button"
+                                onClick={() => { setShowDeleteModal(false); setDeletePassword(''); }}
+                                disabled={deleteLoading}
+                                className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm font-medium disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteLogs}
+                                disabled={deleteLoading}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-medium text-white disabled:opacity-50"
+                            >
+                                {deleteLoading ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {error && (
                 <div className="mb-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">

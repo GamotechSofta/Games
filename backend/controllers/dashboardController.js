@@ -9,8 +9,11 @@ import HelpDesk from '../models/helpDesk/helpDesk.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingClosed } from '../utils/marketTiming.js';
 
-/** Parse from/to query (YYYY-MM-DD). Default to today if missing. Returns { start, end } in UTC-like range for DB. */
-function getDateRange(fromStr, toStr) {
+/** Parse from/to query (YYYY-MM-DD). If all=1 or from=all, returns null (all-time). Default to today if from/to missing. Returns { start, end } or { start: null, end: null } for all-time. */
+function getDateRange(fromStr, toStr, allTime) {
+    if (allTime || fromStr === 'all' || toStr === 'all') {
+        return { start: null, end: null };
+    }
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let start = new Date(today);
@@ -37,9 +40,12 @@ export const getDashboardStats = async (req, res) => {
         const walletMatch = bookieUserIds !== null ? { userId: { $in: bookieUserIds } } : {};
         const helpDeskFilter = bookieUserIds !== null ? { userId: { $in: bookieUserIds } } : {};
 
-        const { from, to } = req.query;
-        const { start: rangeStart, end: rangeEnd } = getDateRange(from, to);
-        const dateMatch = { createdAt: { $gte: rangeStart, $lte: rangeEnd } };
+        const { from, to, all } = req.query;
+        const allTime = all === '1' || all === 'true';
+        const { start: rangeStart, end: rangeEnd } = getDateRange(from, to, allTime);
+        const dateMatch = rangeStart != null && rangeEnd != null
+            ? { createdAt: { $gte: rangeStart, $lte: rangeEnd } }
+            : {};
 
         // Total Users (all-time)
         const totalUsers = await User.countDocuments(userFilter);
@@ -145,7 +151,7 @@ export const getDashboardStats = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                dateRange: { from: rangeStart.toISOString(), to: rangeEnd.toISOString() },
+                dateRange: rangeStart != null && rangeEnd != null ? { from: rangeStart.toISOString(), to: rangeEnd.toISOString() } : { all: true },
                 users: {
                     total: totalUsers,
                     active: activeUsers,

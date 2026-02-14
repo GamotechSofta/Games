@@ -2,25 +2,92 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
 
+const RANGES = [
+    { id: 'today', label: 'Today' },
+    { id: 'yesterday', label: 'Yesterday' },
+    { id: 'this_week', label: 'This Week' },
+    { id: 'last_week', label: 'Last Week' },
+    { id: 'this_month', label: 'This Month' },
+    { id: 'last_month', label: 'Last Month' },
+    { id: 'custom', label: 'Custom' },
+];
+
+function getDateRange(rangeId, customStart = '', customEnd = '') {
+    const toYMD = (d) => d.toISOString().slice(0, 10);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (rangeId === 'custom') {
+        if (customStart && customEnd) {
+            const end = new Date(customEnd);
+            end.setDate(end.getDate() + 1);
+            return { startDate: customStart, endDate: toYMD(end), label: `${customStart} to ${customEnd}` };
+        }
+        return { startDate: '', endDate: '', label: 'Custom' };
+    }
+
+    switch (rangeId) {
+        case 'today':
+            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+        case 'yesterday': {
+            const yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            return { startDate: toYMD(yesterday), endDate: toYMD(today), label: 'Yesterday' };
+        }
+        case 'this_week': {
+            const day = today.getDay();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            return { startDate: toYMD(monday), endDate: toYMD(tomorrow), label: 'This Week' };
+        }
+        case 'last_week': {
+            const day = today.getDay();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            const lastMonday = new Date(monday);
+            lastMonday.setDate(monday.getDate() - 7);
+            return { startDate: toYMD(lastMonday), endDate: toYMD(monday), label: 'Last Week' };
+        }
+        case 'this_month': {
+            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+            return { startDate: toYMD(first), endDate: toYMD(nextMonth), label: 'This Month' };
+        }
+        case 'last_month': {
+            const firstThis = new Date(today.getFullYear(), today.getMonth(), 1);
+            const firstLast = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            return { startDate: toYMD(firstLast), endDate: toYMD(firstThis), label: 'Last Month' };
+        }
+        default:
+            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+    }
+}
+
 const BetHistory = () => {
     const [bets, setBets] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({ userId: '', marketId: '', status: '', startDate: '', endDate: '' });
+    const [dateRange, setDateRange] = useState('today');
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
+
+    const { startDate, endDate, label } = getDateRange(dateRange, customStart, customEnd);
 
     useEffect(() => {
         fetchBets();
-    }, [filters]);
+    }, [dateRange, customStart, customEnd]);
 
     const fetchBets = async () => {
         try {
             setLoading(true);
-            const q = new URLSearchParams();
-            if (filters.userId) q.append('userId', filters.userId);
-            if (filters.marketId) q.append('marketId', filters.marketId);
-            if (filters.status) q.append('status', filters.status);
-            if (filters.startDate) q.append('startDate', filters.startDate);
-            if (filters.endDate) q.append('endDate', filters.endDate);
-            const response = await fetch(`${API_BASE_URL}/bets/history?${q}`, { headers: getBookieAuthHeaders() });
+            const params = new URLSearchParams();
+            if (startDate && endDate) {
+                params.append('startDate', startDate);
+                params.append('endDate', endDate);
+            }
+            const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
+            const response = await fetch(url, { headers: getBookieAuthHeaders() });
             const data = await response.json();
             if (data.success) setBets(data.data);
         } catch (err) {
@@ -40,71 +107,45 @@ const BetHistory = () => {
                     </h1>
                 </div>
 
-                {/* Filters */}
+                {/* Date range */}
                 <div className="glass-panel p-4 rounded-2xl mb-6 border border-white/5">
-                    <div className="flex flex-wrap gap-4 items-center">
-                        <div className="flex-1 min-w-[150px]">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Player ID</label>
-                            <input
-                                type="text"
-                                placeholder="Search by Player"
-                                value={filters.userId}
-                                onChange={(e) => setFilters({ ...filters, userId: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm"
-                            />
-                        </div>
-                        <div className="flex-1 min-w-[150px]">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Market</label>
-                            <input
-                                type="text"
-                                placeholder="Search by Market"
-                                value={filters.marketId}
-                                onChange={(e) => setFilters({ ...filters, marketId: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm"
-                            />
-                        </div>
-
-                        <div className="flex-1 min-w-[150px] relative">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Status</label>
-                            <select
-                                value={filters.status}
-                                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
-                                style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundPosition: 'right 0.75rem center',
-                                    backgroundSize: '1.25rem',
-                                    paddingRight: '2.5rem',
-                                    appearance: 'none'
-                                }}
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Date range</p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                        {RANGES.map((r) => (
+                            <button
+                                key={r.id}
+                                type="button"
+                                onClick={() => setDateRange(r.id)}
+                                className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                                    dateRange === r.id
+                                        ? 'bg-amber-500 text-white'
+                                        : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                                }`}
                             >
-                                <option value="" className="bg-[#1a1a1a] text-white">All Status</option>
-                                <option value="pending" className="bg-[#1a1a1a] text-white">Pending</option>
-                                <option value="won" className="bg-[#1a1a1a] text-white">Won</option>
-                                <option value="lost" className="bg-[#1a1a1a] text-white">Lost</option>
-                                <option value="cancelled" className="bg-[#1a1a1a] text-white">Cancelled</option>
-                            </select>
-                        </div>
-                        <div className="flex-1 min-w-[150px]">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">From Date</label>
-                            <input
-                                type="date"
-                                value={filters.startDate}
-                                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer [color-scheme:dark]"
-                            />
-                        </div>
-                        <div className="flex-1 min-w-[150px]">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">To Date</label>
-                            <input
-                                type="date"
-                                value={filters.endDate}
-                                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer [color-scheme:dark]"
-                            />
-                        </div>
+                                {r.label}
+                            </button>
+                        ))}
                     </div>
+                    {dateRange === 'custom' && (
+                        <div className="flex flex-wrap gap-3 items-center mb-3">
+                            <input
+                                type="date"
+                                value={customStart}
+                                onChange={(e) => setCustomStart(e.target.value)}
+                                className="px-3 py-2 rounded-xl bg-[#1a1a1a] border border-white/10 text-white text-sm [color-scheme:dark]"
+                            />
+                            <span className="text-slate-500">to</span>
+                            <input
+                                type="date"
+                                value={customEnd}
+                                onChange={(e) => setCustomEnd(e.target.value)}
+                                className="px-3 py-2 rounded-xl bg-[#1a1a1a] border border-white/10 text-white text-sm [color-scheme:dark]"
+                            />
+                        </div>
+                    )}
+                    <p className="text-slate-400 text-sm">
+                        Showing data for: <span className="text-amber-500 font-medium">{dateRange === 'custom' && customStart && customEnd ? `${customStart} to ${customEnd}` : label}</span>
+                    </p>
                 </div>
 
                 {loading ? (
@@ -129,7 +170,7 @@ const BetHistory = () => {
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {bets.length === 0 ? (
-                                        <tr><td colSpan="7" className="px-6 py-8 text-center text-slate-500">No bets found match filtering criteria.</td></tr>
+                                        <tr><td colSpan="7" className="px-6 py-8 text-center text-slate-500">No bets found.</td></tr>
                                     ) : (
                                         bets.map((bet) => (
                                             <tr key={bet._id} className="hover:bg-white/5 transition-colors group">

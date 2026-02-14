@@ -1,6 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+/** Format HH:mm to 12-hour with AM/PM (e.g. "01:00" → "1:00 AM", "13:30" → "1:30 PM") */
+function formatTime12h(timeStr) {
+    const s = (timeStr || '').toString().trim().slice(0, 5);
+    const [hh, mm] = s.split(':');
+    const h = parseInt(hh, 10) || 0;
+    const m = parseInt(mm, 10) || 0;
+    const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    const ampm = h < 12 ? 'AM' : 'PM';
+    return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`;
+}
+
+/** Returns true if closing time (HH:mm, IST) has passed today in IST */
+function isClosingTimePassedIST(closingTime, nowMs = Date.now()) {
+    const t = (closingTime || '').toString().trim().slice(0, 5);
+    const [hh, mm] = t.split(':');
+    const h = String(Number(hh) || 0).padStart(2, '0');
+    const m = String(Number(mm) || 0).padStart(2, '0');
+    const normalized = `${h}:${m}`;
+    if (!/^\d{2}:\d{2}$/.test(normalized)) return false;
+    const getTodayIST = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const todayIST = getTodayIST(new Date(nowMs));
+    const dateStr = normalized === '00:00' ? (() => { const b = new Date(`${todayIST}T12:00:00+05:30`); b.setDate(b.getDate() + 1); return getTodayIST(b); })() : todayIST;
+    const targetMs = new Date(`${dateStr}T${normalized}:00+05:30`).getTime();
+    return !Number.isNaN(targetMs) && nowMs >= targetMs;
+}
+
 const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) => {
     const navigate = useNavigate();
     const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -8,6 +34,12 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
     const [passwordError, setPasswordError] = useState('');
     const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
     const [marketToDelete, setMarketToDelete] = useState(null);
+    const [, setTick] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => setTick((t) => t + 1), 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         fetch(`${apiBaseUrl}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
@@ -69,12 +101,13 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
         performDelete(marketToDelete, val, true);
     };
 
-    // ***-**-*** → Open (green), 156-2*-*** → Running (green), 987-45-456 → Closed (red)
+    // Result declared → closed (red). Open declared, close not → running (green). Else: if closing time (IST) passed → closed (red), else open (green).
     const getMarketStatus = (market) => {
         const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
         const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
         if (hasOpening && hasClosing) return { status: 'closed', color: 'bg-red-600' };
         if (hasOpening && !hasClosing) return { status: 'running', color: 'bg-green-600' };
+        if (isClosingTimePassedIST(market.closingTime)) return { status: 'closed', color: 'bg-red-600' };
         return { status: 'open', color: 'bg-green-600' };
     };
 
@@ -89,23 +122,29 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                         key={market._id}
                         className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden"
                     >
-                        {/* Status Badge */}
-                        <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block mb-3 sm:mb-4`}>
-                            {status.status === 'open' && 'OPEN'}
-                            {status.status === 'running' && 'CLOSED IS RUNNING'}
-                            {status.status === 'closed' && 'CLOSED'}
+                        {/* Top row: Status (left) + Result (right) */}
+                        <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                            <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                                {status.status === 'open' && 'OPEN'}
+                                {status.status === 'running' && 'CLOSED IS RUNNING'}
+                                {status.status === 'closed' && 'CLOSED'}
+                            </div>
+                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate" title={market.displayResult || market.winNumber || ''}>
+                                {(() => {
+                                    const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
+                                    if (!raw) return '';
+                                    return String(raw).replace(/-/g, '_');
+                                })()}
+                            </span>
                         </div>
 
                         {/* Market Info */}
                         <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={market.marketName}>{market.marketName}</h3>
                         <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                            <p className="truncate"><span className="font-semibold">Opening:</span> {market.startingTime}</p>
-                            <p className="truncate"><span className="font-semibold">Closing:</span> {market.closingTime}</p>
+                            <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(market.startingTime)}</p>
+                            <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(market.closingTime)}</p>
                             {market.betClosureTime != null && market.betClosureTime !== '' && (
                                 <p><span className="font-semibold">Bet Closure:</span> {market.betClosureTime} sec</p>
-                            )}
-                            {market.winNumber && (
-                                <p><span className="font-semibold">Win Number:</span> <span className="text-green-400 font-mono">{market.winNumber}</span></p>
                             )}
                         </div>
 
