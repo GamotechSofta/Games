@@ -6,6 +6,8 @@ const BidOptions = () => {
   const location = useLocation();
   const market = location.state?.market;
   const marketType = (location.state?.marketType || '').toString().trim().toLowerCase();
+  const kingBazaarMarketKey = location.state?.kingBazaarMarketKey;
+  const kingBazaarMarketLabel = location.state?.kingBazaarMarketLabel || 'King Bazaar';
   const inferredKing = (() => {
     const t = marketType;
     if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
@@ -243,7 +245,17 @@ const BidOptions = () => {
       {/* Header */}
       <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-black border-b border-gray-800 relative">
         <button
-          onClick={() => navigate(isStarline ? '/startline-dashboard' : '/')}
+          onClick={() => {
+            if (isStarline) {
+              navigate('/startline-dashboard');
+            } else if (isKingBazaar && kingBazaarMarketKey != null) {
+              navigate('/king-bazaar-market', {
+                state: { marketKey: kingBazaarMarketKey, marketLabel: kingBazaarMarketLabel },
+              });
+            } else {
+              navigate('/');
+            }
+          }}
           className="absolute left-3 sm:left-4 flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 text-gray-400 hover:text-white active:scale-95 touch-manipulation"
           aria-label="Back"
         >
@@ -274,7 +286,12 @@ const BidOptions = () => {
                 market,
                 betType: option.displayTitle || option.title,
                 sessionPreset: option.sessionPreset,
-                gameMode: (option.displayTitle || option.title).toLowerCase().includes('bulk') ? 'bulk' : 'easy'
+                gameMode: (option.displayTitle || option.title).toLowerCase().includes('bulk') ? 'bulk' : 'easy',
+                ...(isKingBazaar && kingBazaarMarketKey != null && {
+                  marketType: 'king',
+                  kingBazaarMarketKey,
+                  kingBazaarMarketLabel,
+                }),
               }
             })}
             className="relative rounded-2xl bg-gradient-to-br from-[#1b1d22] via-[#15171b] to-[#0f1013] border border-white/10 p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 hover:from-[#23262d] hover:via-[#1a1d22] hover:to-[#121418] active:scale-[0.98] transition-all cursor-pointer shadow-[0_12px_30px_rgba(0,0,0,0.38)] group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px]"

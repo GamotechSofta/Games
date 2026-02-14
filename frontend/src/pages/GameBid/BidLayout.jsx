@@ -100,7 +100,21 @@ const BidLayout = ({
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 <button
-                    onClick={() => market ? navigate('/bidoptions', { state: { market } }) : navigate(-1)}
+                    onClick={() => {
+                      if (!market) {
+                        navigate(-1);
+                        return;
+                      }
+                      const state = {
+                        market,
+                        ...(location.state?.marketType && { marketType: location.state.marketType }),
+                        ...(location.state?.kingBazaarMarketKey != null && {
+                          kingBazaarMarketKey: location.state.kingBazaarMarketKey,
+                          kingBazaarMarketLabel: location.state.kingBazaarMarketLabel || 'King Bazaar',
+                        }),
+                      };
+                      navigate('/bidoptions', { state });
+                    }}
                     className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full active:scale-95 transition-colors touch-manipulation"
                     aria-label="Back"
                 >

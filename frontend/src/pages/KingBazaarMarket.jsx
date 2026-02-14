@@ -348,6 +348,8 @@ const KingBazaarMarket = () => {
                       state: {
                         marketType: 'king',
                         market: marketForBidOptions,
+                        kingBazaarMarketKey: marketKey,
+                        kingBazaarMarketLabel: marketLabel || 'King Bazaar',
                       },
                     });
                   }}
