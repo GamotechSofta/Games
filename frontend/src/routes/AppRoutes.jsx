@@ -10,7 +10,6 @@ import Funds from '../pages/Funds';
 import Download from '../pages/Download';
 import Login from '../pages/Login';
 import Passbook from '../pages/Passbook';
-import SupportLanding from '../pages/Support/SupportLanding';
 import SupportNew from '../pages/Support/SupportNew';
 import SupportStatus from '../pages/Support/SupportStatus';
 import Bids from '../pages/Bids';
@@ -25,13 +24,14 @@ import StarlineMarket from '../pages/StarlineMarket';
 import KingBazaarDashboard from '../pages/KingBazaarDashboard';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
 
-// Scroll to top on route change
+// Scroll to top on every route/screen change (pathname or search params)
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname, search } = location;
   const prevPathRef = useRef(null);
 
   useEffect(() => {
-    // Store previous pathname for "Back" buttons that shouldn't step through in-page state.
+    // Store previous pathname for "Back" buttons
     try {
       if (prevPathRef.current) {
         sessionStorage.setItem('prevPathname', prevPathRef.current);
@@ -39,22 +39,37 @@ const ScrollToTop = () => {
     } catch (_) { }
     prevPathRef.current = pathname;
 
-    // Use requestAnimationFrame to ensure DOM has updated, then scroll
     const scrollToTop = () => {
-      // Scroll window and document elements
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       if (document.documentElement) document.documentElement.scrollTop = 0;
       if (document.body) document.body.scrollTop = 0;
+      // Mobile: scrollIntoView helps iOS Safari and Chrome Android
+      try {
+        document.body.scrollIntoView?.({ behavior: 'instant', block: 'start' });
+        document.documentElement?.scrollIntoView?.({ behavior: 'instant', block: 'start' });
+      } catch (_) {}
+      // Scroll main scrollable containers (window + overflow divs) – same for mobile and desktop
+      try {
+        const scrollables = document.querySelectorAll(
+          '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"], [class*="ios-scroll-touch"]'
+        );
+        scrollables.forEach((el) => {
+          if (el && typeof el.scrollTop === 'number') el.scrollTop = 0;
+        });
+      } catch (_) {}
     };
 
-    // Immediate scroll
     scrollToTop();
+    const raf = requestAnimationFrame(scrollToTop);
+    const t1 = setTimeout(scrollToTop, 100);
+    const t2 = setTimeout(scrollToTop, 250);
 
-    // Also scroll after a short delay to catch any late-rendering containers
-    const timer = setTimeout(scrollToTop, 50);
-
-    return () => clearTimeout(timer);
-  }, [pathname]);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [pathname, search]);
 
   return null;
 };
@@ -155,7 +170,7 @@ const AppRoutes = () => {
           <Route path="/funds" element={<Funds />} />
           <Route path="/download" element={<Download />} />
           <Route path="/passbook" element={<Passbook />} />
-          <Route path="/support" element={<SupportLanding />} />
+          <Route path="/support" element={<SupportNew />} />
           <Route path="/support/new" element={<SupportNew />} />
           <Route path="/support/status" element={<SupportStatus />} />
           <Route path="/login" element={<Login />} />

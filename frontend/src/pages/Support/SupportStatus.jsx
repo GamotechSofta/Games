@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
 const statusLabel = (status) => {
-  const map = { open: 'Open', 'in-progress': 'In Progress', resolved: 'Resolved', closed: 'Closed' };
+  const map = { open: 'Open', 'in-progress': 'In progress', resolved: 'Resolved', closed: 'Closed' };
   return map[status] || status;
 };
 
-const statusClass = (status) => {
+const statusColor = (status) => {
   const map = {
-    open: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
-    'in-progress': 'bg-amber-500/20 text-amber-400 border-amber-500/40',
-    resolved: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+    open: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+    'in-progress': 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    resolved: 'bg-green-500/20 text-green-300 border-green-500/40',
     closed: 'bg-gray-500/20 text-gray-400 border-gray-500/40',
   };
   return map[status] || 'bg-gray-500/20 text-gray-400 border-gray-500/40';
@@ -21,13 +21,13 @@ const SupportStatus = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [myTickets, setMyTickets] = useState([]);
-  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const userId = user?._id || user?.id;
 
   const fetchMyTickets = async () => {
     if (!userId) return;
-    setTicketsLoading(true);
+    setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/help-desk/my-tickets?userId=${encodeURIComponent(userId)}`);
       const data = await res.json();
@@ -35,7 +35,7 @@ const SupportStatus = () => {
     } catch (_) {
       setMyTickets([]);
     } finally {
-      setTicketsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -68,77 +68,68 @@ const SupportStatus = () => {
   }, [userId]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-xl mx-auto">
-        <div className="flex items-center gap-3 pt-4 pb-2">
+    <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+      <div className="max-w-md mx-auto pt-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
           <button
             type="button"
             onClick={() => navigate('/support')}
-            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation"
             aria-label="Back"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Check problem status</h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">See status and reply for your submitted tickets</p>
+            <h1 className="text-lg font-bold text-white">My tickets</h1>
+            <p className="text-xs text-gray-500">Status and replies</p>
           </div>
         </div>
 
         {!userId ? (
-          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm text-center">
-            Please login to see your ticket status.
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
+            Please log in to see your tickets.
           </div>
-        ) : ticketsLoading ? (
-          <div className="mt-6 flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
+        ) : loading ? (
+          <div className="flex items-center justify-center gap-2 py-12">
             <div className="w-5 h-5 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-            <p className="text-gray-400 text-sm">Loading tickets...</p>
+            <span className="text-sm text-gray-400">Loading...</span>
           </div>
         ) : myTickets.length === 0 ? (
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-white/5 flex items-center justify-center">
-              <svg className="w-7 h-7 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
+          <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-8 text-center">
             <p className="text-gray-400 text-sm">No tickets yet.</p>
-            <p className="text-gray-500 text-xs mt-1">Raise a help ticket from the Help Desk.</p>
+            <p className="text-gray-500 text-xs mt-1">Send a request from Support and it will show here.</p>
             <button
               type="button"
-              onClick={() => navigate('/support/new')}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-semibold text-sm hover:opacity-95 transition"
+              onClick={() => navigate('/support')}
+              className="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition"
             >
-              Raise help ticket
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
+              Ask for help
             </button>
           </div>
         ) : (
-          <div className="mt-6 space-y-4">
+          <div className="space-y-3">
             {myTickets.map((t) => (
               <div
                 key={t._id}
-                className="rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 p-4 sm:p-5"
+                className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4"
               >
-                <div className="flex justify-between items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-white truncate">{t.subject}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {t.createdAt ? new Date(t.createdAt).toLocaleString() : ''}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusClass(t.status)}`}>
+                <div className="flex justify-between items-start gap-2">
+                  <p className="font-medium text-white text-sm truncate flex-1">{t.subject}</p>
+                  <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(t.status)}`}>
                     {statusLabel(t.status)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-400 mt-3 line-clamp-3 leading-relaxed">{t.description}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                </p>
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{t.description}</p>
                 {t.adminResponse && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Response from support</p>
-                    <p className="text-sm text-emerald-400/90 whitespace-pre-wrap leading-relaxed">{t.adminResponse}</p>
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <p className="text-xs text-gray-500 mb-1">Reply from support</p>
+                    <p className="text-sm text-green-300/90 whitespace-pre-wrap">{t.adminResponse}</p>
                   </div>
                 )}
               </div>

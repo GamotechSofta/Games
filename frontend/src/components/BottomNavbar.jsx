@@ -6,20 +6,19 @@ const BottomNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const scrollToTop = () => {
+  const scrollToTopSmooth = () => {
     try {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      if (document.documentElement) document.documentElement.scrollTop = 0;
-      if (document.body) document.body.scrollTop = 0;
-      // Also scroll any scrollable containers (match AppRoutes behavior)
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      if (document.documentElement) document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      if (document.body) document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       setTimeout(() => {
         const scrollableElements = document.querySelectorAll(
-          '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"]'
+          '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"], [class*="ios-scroll-touch"]'
         );
         scrollableElements.forEach((el) => {
-          if (el && typeof el.scrollTop === 'number') el.scrollTop = 0;
+          if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         });
-      }, 10);
+      }, 50);
     } catch (_) {}
   };
 
@@ -120,10 +119,11 @@ const BottomNavbar = () => {
                 onClick={() => {
                   window.dispatchEvent(new Event('closeHeaderMenu'));
                   if (item.path === '/' && location.pathname === '/') {
-                    scrollToTop();
+                    scrollToTopSmooth();
                     return;
                   }
                   navigate(item.path);
+                  setTimeout(scrollToTopSmooth, 100);
                 }}
                 className="flex flex-col items-center justify-center -mt-4 relative z-10 active:scale-90 transition-transform duration-150 touch-manipulation"
               >
@@ -160,16 +160,18 @@ const BottomNavbar = () => {
               onClick={() => {
                 window.dispatchEvent(new Event('closeHeaderMenu'));
                 if (item.path === '/' && location.pathname === '/') {
-                  scrollToTop();
+                  scrollToTopSmooth();
                   return;
                 }
                 // Funds: go to main Funds screen (no tab) so list always shows
                 if (item.path === '/funds') {
                   const alreadyOnFunds = location.pathname === '/funds';
                   navigate({ pathname: '/funds', search: '' }, { replace: alreadyOnFunds });
+                  setTimeout(scrollToTopSmooth, 100);
                   return;
                 }
                 navigate(item.path);
+                setTimeout(scrollToTopSmooth, 100);
               }}
               className="relative flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg min-w-[48px] active:scale-95 transition-all duration-150 touch-manipulation"
             >

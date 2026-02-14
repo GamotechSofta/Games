@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../../config/api';
 const SupportNew = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [subject, setSubject] = useState('Support Request');
+  const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [screenshots, setScreenshots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ const SupportNew = () => {
     if (!files?.length) return;
     const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
     if (list.length !== files.length) {
-      setMessage({ type: 'error', text: 'Only image files (e.g. PNG, JPG) are allowed.' });
+      setMessage({ type: 'error', text: 'Only images (PNG, JPG) allowed.' });
     }
     setScreenshots(list.length ? list : []);
   };
@@ -49,11 +49,11 @@ const SupportNew = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userId) {
-      setMessage({ type: 'error', text: 'Please login to submit a support request.' });
+      setMessage({ type: 'error', text: 'Please login first.' });
       return;
     }
     if (!description.trim()) {
-      setMessage({ type: 'error', text: 'Please describe your problem.' });
+      setMessage({ type: 'error', text: 'Please describe your issue.' });
       return;
     }
     setMessage({ type: '', text: '' });
@@ -61,7 +61,7 @@ const SupportNew = () => {
     try {
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('subject', subject.trim() || 'Support Request');
+      formData.append('subject', (subject.trim() || 'Support Request'));
       formData.append('description', description.trim());
       screenshots.forEach((file) => formData.append('screenshots', file));
 
@@ -72,112 +72,138 @@ const SupportNew = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage({ type: 'success', text: 'Your request has been submitted. We will get back to you soon.' });
+        setMessage({ type: 'success', text: 'Request sent. We’ll reply within 24 hours.' });
+        setSubject('');
         setDescription('');
         setScreenshots([]);
         const input = document.getElementById('support-screenshots');
         if (input) input.value = '';
       } else {
-        setMessage({ type: 'error', text: data.message || 'Failed to submit. Please try again.' });
+        setMessage({ type: 'error', text: data.message || 'Something went wrong. Try again.' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      setMessage({ type: 'error', text: 'Network error. Try again.' });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleBack = () => {
+    try {
+      const prev = sessionStorage.getItem('prevPathname');
+      if (prev && prev !== '/support' && prev !== '/support/new') {
+        navigate(prev);
+        return;
+      }
+    } catch (_) {}
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-xl mx-auto">
-        <div className="flex items-center gap-3 pt-4 pb-2">
+    <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+      <div className="max-w-md mx-auto pt-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
           <button
             type="button"
-            onClick={() => navigate('/support')}
-            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
+            onClick={handleBack}
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation"
             aria-label="Back"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Raise help ticket</h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Describe your problem and attach screenshots if needed</p>
+            <h1 className="text-lg font-bold text-white">Support</h1>
+            <p className="text-xs text-gray-500">We reply within 24 hours</p>
           </div>
         </div>
 
-        {!userId && (
-          <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm text-center">
-            Please login to submit a support request.
+        {!userId ? (
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
+            Please log in to send a request.
           </div>
-        )}
-
-        <div className="mt-6 rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 p-4 sm:p-6 w-full">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="support-subject" className="block text-sm font-medium text-gray-400 mb-2">Subject</label>
-              <input
-                id="support-subject"
-                type="text"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g. Payment issue, Game error"
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 transition"
-                disabled={!userId}
-              />
-            </div>
-            <div>
-              <label htmlFor="support-description" className="block text-sm font-medium text-gray-400 mb-2">
-                Describe your problem <span className="text-red-400">*</span>
-              </label>
-              <textarea
-                id="support-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Explain your issue in detail..."
-                rows={5}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/50 resize-y transition"
-                disabled={!userId}
-              />
-            </div>
-            <div>
-              <label htmlFor="support-screenshots" className="block text-sm font-medium text-gray-400 mb-2">
-                Screenshots (optional, max 5 images)
-              </label>
-              <input
-                id="support-screenshots"
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif"
-                multiple
-                onChange={handleFileChange}
-                className="w-full text-sm text-gray-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-amber-500 file:to-orange-600 file:text-black file:font-semibold file:cursor-pointer hover:file:opacity-90 transition"
-                disabled={!userId}
-              />
-              {screenshots.length > 0 && (
-                <p className="mt-2 text-xs text-gray-500">{screenshots.length} file(s) selected</p>
-              )}
-            </div>
-            {message.text && (
-              <div
-                className={`p-4 rounded-xl text-sm ${
-                  message.type === 'success'
-                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-                    : 'bg-red-500/10 border border-red-500/30 text-red-400'
-                }`}
-              >
-                {message.text}
+        ) : (
+          <>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="support-subject" className="block text-sm text-gray-400 mb-1.5">
+                  What’s it about?
+                </label>
+                <input
+                  id="support-subject"
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="e.g. Payment, Game, Account"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
+                />
               </div>
-            )}
-            <button
-              type="submit"
-              disabled={!userId || loading}
-              className="w-full px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed text-black font-semibold rounded-xl transition shadow-lg shadow-amber-500/20"
-            >
-              {loading ? 'Submitting...' : 'Submit ticket'}
-            </button>
-          </form>
-        </div>
+
+              <div>
+                <label htmlFor="support-description" className="block text-sm text-gray-400 mb-1.5">
+                  What happened? <span className="text-amber-400">*</span>
+                </label>
+                <textarea
+                  id="support-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe your issue in a few lines..."
+                  rows={4}
+                  className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="support-screenshots" className="block text-sm text-gray-400 mb-1.5">
+                  Add photos (optional)
+                </label>
+                <input
+                  id="support-screenshots"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif"
+                  multiple
+                  onChange={handleFileChange}
+                  className="w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-amber-500 file:text-black file:font-medium file:cursor-pointer"
+                />
+                {screenshots.length > 0 && (
+                  <p className="mt-1.5 text-xs text-gray-500">{screenshots.length} photo(s) added</p>
+                )}
+              </div>
+
+              {message.text && (
+                <div
+                  className={`p-3 rounded-xl text-sm ${
+                    message.type === 'success'
+                      ? 'bg-green-500/10 text-green-300 border border-green-500/30'
+                      : 'bg-red-500/10 text-red-300 border border-red-500/30'
+                  }`}
+                >
+                  {message.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold transition"
+              >
+                {loading ? 'Sending...' : 'Send request'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => navigate('/support/status')}
+                className="text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2"
+              >
+                View my tickets
+              </button>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
