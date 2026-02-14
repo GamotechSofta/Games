@@ -110,7 +110,7 @@ const Funds = () => {
       }
     } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
       lastSyncedTabRef.current = null;
-      // No tab or invalid tab → show list. Don't reset activeKey/mobileView when user just tapped a tab (URL hasn't updated yet).
+      // No tab or invalid tab → show list. Don't reset when user just tapped a tab (URL hasn't updated yet).
       if (!userJustSelectedTabRef.current) {
         if (activeKey !== (items[0]?.key || 'add-fund')) {
           setActiveKey(items[0]?.key || 'add-fund');
@@ -121,6 +121,15 @@ const Funds = () => {
       }
     }
   }, [tabParam, activeKey, mobileView, isDesktop, items]);
+
+  // Device/hardware back: ensure we sync to list when user presses browser back (popstate).
+  useEffect(() => {
+    const handlePopState = () => {
+      userJustSelectedTabRef.current = false;
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
   const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;
@@ -139,7 +148,11 @@ const Funds = () => {
   }, [isDesktop, setSearchParams]);
 
   const handleMobileBack = () => {
+    userJustSelectedTabRef.current = false;
     setMobileView(null);
+    if (!isDesktop) {
+      navigate({ pathname: '/funds', search: '' }, { replace: true });
+    }
   };
 
   // Back from main Funds list: same behaviour as My Bets (desktop → home, mobile → prev or home).
@@ -147,7 +160,6 @@ const Funds = () => {
   const handleBack = () => {
     if (mobileView) {
       handleMobileBack();
-      if (!isDesktop) setSearchParams({}, { replace: true });
       return;
     }
     try {

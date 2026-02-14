@@ -141,8 +141,40 @@ const AddFund = () => {
         }, 3000);
     };
 
+    const handleBackToFunds = () => navigate('/funds');
+    const handleBackToAmount = () => setStep(1);
+
     return (
         <div className={`space-y-4 sm:space-y-6 ${step === 2 ? 'pb-32 sm:pb-28' : ''}`}>
+            {/* Back navigation */}
+            <div className="flex items-center gap-2 -mt-1 sm:mt-0">
+                {step === 1 ? (
+                    <button
+                        type="button"
+                        onClick={handleBackToFunds}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium transition-colors py-1 -mx-1 min-h-[44px] min-w-[44px] touch-manipulation"
+                        aria-label="Back to Funds"
+                    >
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span>Back to Funds</span>
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={handleBackToAmount}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium transition-colors py-1 -mx-1 min-h-[44px] min-w-[44px] touch-manipulation"
+                        aria-label="Back to amount"
+                    >
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span>Back to amount</span>
+                    </button>
+                )}
+            </div>
+
             {/* Messages */}
             {error && (
                 <div className="p-4 bg-red-900/50 border border-red-600 rounded-xl text-red-300 text-sm">
@@ -276,10 +308,14 @@ const AddFund = () => {
                         </div>
                         <button
                             type="button"
-                            onClick={() => setStep(1)}
-                            className="shrink-0 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/10"
+                            onClick={handleBackToAmount}
+                            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/10"
+                            aria-label="Back to amount"
                         >
-                            Back
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Change amount
                         </button>
                     </div>
 

@@ -136,6 +136,23 @@ const Passbook = () => {
     { key: 'debit', label: 'Withdrawn', count: stats.debitCount },
   ];
 
+  const handleBack = () => {
+    try {
+      if (typeof window !== 'undefined' && window.matchMedia?.('(min-width: 768px)')?.matches) {
+        navigate('/');
+        return;
+      }
+    } catch (_) {}
+    try {
+      const prev = sessionStorage.getItem('prevPathname');
+      if (prev && prev !== '/passbook') {
+        navigate(prev);
+        return;
+      }
+    } catch (_) {}
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
 
@@ -144,7 +161,7 @@ const Passbook = () => {
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={handleBack}
             className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
             aria-label="Back"
           >
