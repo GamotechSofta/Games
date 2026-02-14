@@ -141,7 +141,8 @@ const Settings = () => {
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8">
                 <h1 className="text-xl sm:text-2xl font-bold text-white mb-6">Settings</h1>
 
-                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden max-w-xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden min-w-0">
                     <h2 className="text-lg font-bold text-yellow-500 bg-gray-800 px-4 py-3 border-b border-gray-700">
                         Secret Declare Password
                     </h2>
@@ -238,7 +239,7 @@ const Settings = () => {
                     </div>
                 </div>
                 {/* UPI ID Section */}
-                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden max-w-xl mt-6">
+                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden min-w-0">
                     <h2 className="text-lg font-bold text-yellow-500 bg-gray-800 px-4 py-3 border-b border-gray-700">
                         Admin UPI ID
                     </h2>
@@ -273,6 +274,7 @@ const Settings = () => {
                             </button>
                         </form>
                     </div>
+                </div>
                 </div>
             </div>
         </AdminLayout>
