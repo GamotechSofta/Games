@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
@@ -8,6 +8,7 @@ const Section1 = () => {
   const navigate = useNavigate();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isInitialLoad = useRef(true);
   const [, setTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 60000);
@@ -42,10 +43,11 @@ const Section1 = () => {
     return { status: 'open', timer: null };
   };
 
-  // Fetch markets from API
+  // Fetch markets from API – only show loading skeleton on initial load; refresh updates in place to avoid UI fluctuation
   const fetchMarkets = async () => {
+    const showLoading = isInitialLoad.current;
+    if (showLoading) setLoading(true);
     try {
-      setLoading(true);
       const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
       const data = await response.json();
 
@@ -73,7 +75,10 @@ const Section1 = () => {
     } catch (error) {
       console.error('Error fetching markets:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        isInitialLoad.current = false;
+        setLoading(false);
+      }
     }
   };
 
@@ -194,7 +199,7 @@ const Section1 = () => {
             <div
               key={market.id}
               onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
-              className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-200 ${
+              className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-200 ${
                 isClickable 
                   ? 'cursor-pointer hover:scale-[1.02]' 
                   : 'cursor-not-allowed opacity-80'
@@ -203,7 +208,7 @@ const Section1 = () => {
               {/* Status: ***-**-***=Open(green), 156-2*-***=Running(green), 987-45-456=Closed(red) */}
               <div className={`${
                 market.status === 'closed' ? 'bg-red-600' : 'bg-green-600'
-              } py-1.5 min-[375px]:py-2 px-2 min-[375px]:px-3 text-center`}>
+              } py-1.5 min-[375px]:py-2 px-2 min-[375px]:px-3 text-center min-h-[32px] flex items-center justify-center`}>
                 <p className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold leading-tight">
                   {market.status === 'open' && 'MARKET IS OPEN'}
                   {market.status === 'running' && 'CLOSED IS RUNNING'}
@@ -211,10 +216,10 @@ const Section1 = () => {
                 </p>
               </div>
 
-            {/* Card Content */}
+            {/* Card Content – min-heights reduce layout shift when result updates */}
             <div className="p-2 min-[375px]:p-3 sm:p-4">
               {/* Time with Clock Icon */}
-              <div className="flex items-center gap-1 mb-1.5 min-[375px]:mb-2">
+              <div className="flex items-center gap-1 mb-1.5 min-[375px]:mb-2 min-h-[20px]">
                 <svg
                   className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0"
                   fill="none"
@@ -227,13 +232,13 @@ const Section1 = () => {
               </div>
 
               {/* Game Name */}
-              <h3 className="text-white text-xs min-[375px]:text-sm sm:text-base md:text-lg font-semibold mb-2 min-[375px]:mb-3 truncate">
+              <h3 className="text-white text-xs min-[375px]:text-sm sm:text-base md:text-lg font-semibold mb-2 min-[375px]:mb-3 truncate min-h-[1.25em]">
                 {market.gameName}
               </h3>
 
-              {/* Result */}
-              <div>
-                <p className="text-yellow-400 text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-bold">
+              {/* Result – fixed min-height so ***-**-*** and 123-45-678 don't shift layout */}
+              <div className="min-h-[28px] min-[375px]:min-h-[32px] sm:min-h-[36px] md:min-h-[40px] flex items-end">
+                <p className="text-yellow-400 text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-bold leading-tight transition-opacity duration-150">
                   {market.result}
                 </p>
               </div>
