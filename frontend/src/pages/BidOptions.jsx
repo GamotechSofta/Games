@@ -8,6 +8,8 @@ const BidOptions = () => {
   const marketType = (location.state?.marketType || '').toString().trim().toLowerCase();
   const kingBazaarMarketKey = location.state?.kingBazaarMarketKey;
   const kingBazaarMarketLabel = location.state?.kingBazaarMarketLabel || 'King Bazaar';
+  const starlineMarketKey = location.state?.starlineMarketKey;
+  const starlineMarketLabel = location.state?.starlineMarketLabel || 'Starline';
   const inferredKing = (() => {
     const t = marketType;
     if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;
@@ -246,7 +248,11 @@ const BidOptions = () => {
       <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-black border-b border-gray-800 relative">
         <button
           onClick={() => {
-            if (isStarline) {
+            if (isStarline && starlineMarketKey != null) {
+              navigate('/starline-market', {
+                state: { marketKey: starlineMarketKey, marketLabel: starlineMarketLabel },
+              });
+            } else if (isStarline) {
               navigate('/startline-dashboard');
             } else if (isKingBazaar && kingBazaarMarketKey != null) {
               navigate('/king-bazaar-market', {
@@ -291,6 +297,11 @@ const BidOptions = () => {
                   marketType: 'king',
                   kingBazaarMarketKey,
                   kingBazaarMarketLabel,
+                }),
+                ...(isStarline && starlineMarketKey != null && {
+                  marketType: 'starline',
+                  starlineMarketKey,
+                  starlineMarketLabel,
                 }),
               }
             })}

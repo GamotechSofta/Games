@@ -308,6 +308,8 @@ const StarlineMarket = () => {
                           closingNumber: m.closingNumber,
                           status: m.status === 'running' ? 'running' : 'open',
                         },
+                        starlineMarketKey: marketKey,
+                        starlineMarketLabel: marketLabel || 'Starline',
                       },
                     });
                   }}

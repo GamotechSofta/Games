@@ -112,6 +112,10 @@ const BidLayout = ({
                           kingBazaarMarketKey: location.state.kingBazaarMarketKey,
                           kingBazaarMarketLabel: location.state.kingBazaarMarketLabel || 'King Bazaar',
                         }),
+                        ...(location.state?.starlineMarketKey != null && {
+                          starlineMarketKey: location.state.starlineMarketKey,
+                          starlineMarketLabel: location.state.starlineMarketLabel || 'Starline',
+                        }),
                       };
                       navigate('/bidoptions', { state });
                     }}
