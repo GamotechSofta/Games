@@ -86,7 +86,8 @@ const Layout = ({ children }) => {
 
   const hideTopNavOnMobile =
     !isDesktop &&
-    (['/bids', '/funds', '/profile', '/notifications'].includes(location.pathname) || location.pathname.startsWith('/support'));
+    (['/bids', '/funds', '/profile', '/notifications', '/bidoptions', '/game-bid'].includes(location.pathname) ||
+      location.pathname.startsWith('/support'));
 
   // Mobile only: hide bottom navbar on Bids and Funds screens
   const hideBottomNavOnMobile =
