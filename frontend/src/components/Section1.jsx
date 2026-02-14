@@ -166,8 +166,20 @@ const Section1 = () => {
       </div>
       {/* Market Cards Grid */}
       {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-400">Loading markets...</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-[375px]:gap-3 sm:gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="bg-gray-800 rounded-lg overflow-hidden border border-white/5 skeleton-shimmer">
+              <div className="bg-white/10 py-2 px-3" />
+              <div className="p-2 min-[375px]:p-3 sm:p-4 space-y-2">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded bg-white/10 shrink-0" />
+                  <div className="h-3 flex-1 max-w-[80%] rounded bg-white/10" />
+                </div>
+                <div className="h-4 w-3/4 rounded bg-white/10" />
+                <div className="h-6 min-[375px]:h-7 sm:h-8 w-24 rounded bg-white/10" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : markets.length === 0 ? (
         <div className="text-center py-12">

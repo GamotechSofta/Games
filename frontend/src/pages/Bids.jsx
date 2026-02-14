@@ -236,6 +236,8 @@ const Bids = () => {
   const [markets, setMarkets] = useState([]);
   const [ratesMap, setRatesMap] = useState(null);
   const [apiBets, setApiBets] = useState([]);
+  const [betsLoading, setBetsLoading] = useState(true);
+  const [resultsLoading, setResultsLoading] = useState(true);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -338,10 +340,13 @@ const Bids = () => {
       }
     } catch {
       setResultsRows([]);
+    } finally {
+      setResultsLoading(false);
     }
   };
 
   const refetchAll = async () => {
+    setResultsLoading(true);
     await Promise.all([fetchMarkets(), fetchHistory()]);
   };
 
@@ -371,11 +376,17 @@ const Bids = () => {
   // Fetch bets from API
   useEffect(() => {
     let alive = true;
+    setBetsLoading(true);
     const fetchBets = async () => {
-      const result = await getMyBetHistory();
       if (!alive) return;
-      if (result?.success && Array.isArray(result?.data)) {
-        setApiBets(result.data);
+      try {
+        const result = await getMyBetHistory();
+        if (!alive) return;
+        if (result?.success && Array.isArray(result?.data)) {
+          setApiBets(result.data);
+        }
+      } finally {
+        if (alive) setBetsLoading(false);
       }
     };
     fetchBets();
@@ -541,6 +552,7 @@ const Bids = () => {
 
   useEffect(() => {
     let alive = true;
+    setResultsLoading(true);
     const run = async () => {
       await fetchHistory();
     };
@@ -806,20 +818,55 @@ const Bids = () => {
             )}
 
             {isAnyHistoryPanel ? (
-              <MyBetsBetHistoryPanel
-                desktopBetHistoryUid={desktopBetHistory.uid}
-                groupedDesktopByMarket={groupedDesktopByMarket}
-                cancelMessage={cancelMessage}
-                onCancelBetClick={handleCancelBetClick}
-                cancellingBetId={cancellingBetId}
-                formatTxnTime={formatTxnTime}
-              />
+              betsLoading ? (
+                <div className="mt-0 max-h-[calc(100vh-220px)] overflow-hidden">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <div key={i} className="rounded-lg border border-white/10 bg-[#202124] p-3 space-y-2 skeleton-shimmer">
+                        <div className="flex justify-between gap-1">
+                          <div className="h-3 w-8 rounded bg-white/10" />
+                          <div className="h-4 w-12 rounded bg-white/10" />
+                        </div>
+                        <div className="h-3 w-3/4 rounded bg-white/10" />
+                        <div className="h-3 w-full rounded bg-white/10" />
+                        <div className="h-3 w-2/3 rounded bg-white/10" />
+                        <div className="h-3 w-1/2 rounded bg-white/10" />
+                        <div className="h-3 w-full rounded bg-white/10" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <MyBetsBetHistoryPanel
+                  desktopBetHistoryUid={desktopBetHistory.uid}
+                  groupedDesktopByMarket={groupedDesktopByMarket}
+                  cancelMessage={cancelMessage}
+                  onCancelBetClick={handleCancelBetClick}
+                  cancellingBetId={cancellingBetId}
+                  formatTxnTime={formatTxnTime}
+                />
+              )
             ) : activeTitle === 'Game Results' ? (
-              <MyBetsGameResultsPanel
-                resultsDate={resultsDate}
-                onResultsDateChange={setResultsDate}
-                resultsRows={resultsRows}
-              />
+              resultsLoading ? (
+                <div className="mt-3 max-h-[calc(100vh-300px)] overflow-hidden space-y-3">
+                  <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 skeleton-shimmer">
+                    <div className="h-4 w-24 rounded bg-white/10" />
+                    <div className="h-8 w-28 rounded-lg bg-white/10" />
+                  </div>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                    <div key={i} className="rounded-2xl bg-[#202124] border border-white/10 px-4 py-3 flex items-center justify-between gap-3 skeleton-shimmer">
+                      <div className="h-4 flex-1 max-w-[60%] rounded bg-white/10" />
+                      <div className="h-5 w-16 rounded bg-white/10 shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <MyBetsGameResultsPanel
+                  resultsDate={resultsDate}
+                  onResultsDateChange={setResultsDate}
+                  resultsRows={resultsRows}
+                />
+              )
             ) : (
               <div className="mt-6 text-gray-300 text-sm">
                 Select an item from the left menu. We will add the actual pages/content here next.

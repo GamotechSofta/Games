@@ -117,7 +117,7 @@ const TopWinners = () => {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[76px] rounded-2xl bg-[#202124] border border-white/10 animate-pulse" />
+              <div key={i} className="h-[76px] rounded-2xl bg-[#202124] border border-white/10 skeleton-shimmer" />
             ))}
           </div>
         ) : normalized.length === 0 ? (

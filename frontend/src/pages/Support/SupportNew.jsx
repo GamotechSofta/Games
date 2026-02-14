@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../config/api';
 const SupportNew = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [pageLoading, setPageLoading] = useState(true);
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [screenshots, setScreenshots] = useState([]);
@@ -24,6 +25,7 @@ const SupportNew = () => {
     } else {
       setUser(null);
     }
+    setPageLoading(false);
     const onUserChange = () => {
       const r = localStorage.getItem('user');
       setUser(r ? JSON.parse(r) : null);
@@ -120,7 +122,23 @@ const SupportNew = () => {
           </div>
         </div>
 
-        {!userId ? (
+        {pageLoading ? (
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 space-y-3 skeleton-shimmer">
+              <div className="h-4 w-28 bg-white/10 rounded" />
+              <div className="h-12 w-full bg-white/10 rounded-xl" />
+            </div>
+            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 space-y-3 skeleton-shimmer">
+              <div className="h-4 w-32 bg-white/10 rounded" />
+              <div className="h-24 w-full bg-white/10 rounded-xl" />
+            </div>
+            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 skeleton-shimmer">
+              <div className="h-4 w-24 bg-white/10 rounded mb-3" />
+              <div className="h-10 w-full bg-white/10 rounded-lg" />
+            </div>
+            <div className="h-12 w-full rounded-xl bg-white/10 skeleton-shimmer" />
+          </div>
+        ) : !userId ? (
           <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
             Please log in to send a request.
           </div>

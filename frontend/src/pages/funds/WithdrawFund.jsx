@@ -7,6 +7,7 @@ const WithdrawFund = () => {
     const [config, setConfig] = useState(null);
     const [bankAccounts, setBankAccounts] = useState([]);
     const [walletBalance, setWalletBalance] = useState(0);
+    const [pageLoading, setPageLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [selectedBankId, setSelectedBankId] = useState('');
     const [userNote, setUserNote] = useState('');
@@ -21,9 +22,17 @@ const WithdrawFund = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
-        fetchConfig();
-        fetchBankAccounts();
-        fetchWalletBalance();
+        let cancelled = false;
+        setPageLoading(true);
+        (async () => {
+            await Promise.all([
+                fetchConfig(),
+                fetchBankAccounts(),
+                fetchWalletBalance(),
+            ]);
+            if (!cancelled) setPageLoading(false);
+        })();
+        return () => { cancelled = true; };
     }, []);
 
     const fetchConfig = async () => {
@@ -161,6 +170,22 @@ const WithdrawFund = () => {
 
     return (
         <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+            {pageLoading ? (
+                <div className="space-y-6">
+                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
+                        <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
+                            <div className="h-8 bg-white/10 mx-4 mt-3 w-36 rounded" />
+                            <div className="h-16 bg-white/10 mx-4 my-3 rounded-xl w-2/3" />
+                            <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-48" />
+                        </div>
+                    </div>
+                    <div className="px-4 sm:px-6 space-y-4">
+                        <div className="h-12 w-full rounded-xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+                        <div className="h-14 w-full rounded-xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+                    </div>
+                </div>
+            ) : (
+            <>
             {/* Wallet Balance Card */}
             <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
                 <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
@@ -267,6 +292,8 @@ const WithdrawFund = () => {
                 </ul>
                 </div>
             </div>
+            </>
+            )}
 
             {/* No Bank Account Warning Modal */}
             {showNoBankAccountModal && (

@@ -145,7 +145,7 @@ const KingBazaarDashboard = () => {
         <div className="mt-5 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 lg:gap-5">
           {loadingGroups ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-transparent animate-pulse" />
+              <div key={i} className="h-[95px] md:h-[120px] rounded-2xl bg-[#202124] border border-white/10 skeleton-shimmer" />
             ))
           ) : kingBazaarGroups.length === 0 ? (
             <div className="col-span-full text-center py-8">

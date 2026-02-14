@@ -66,6 +66,35 @@ const AddFundHistory = () => {
 
     return (
         <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+            {loading ? (
+                <>
+                    <div className="bg-gradient-to-r from-green-900/40 to-green-800/30 rounded-2xl p-5 border border-green-500/30 skeleton-shimmer">
+                        <div className="h-4 w-32 bg-white/10 rounded mb-2" />
+                        <div className="h-8 w-40 bg-white/10 rounded" />
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="p-3 rounded-xl bg-[#1a1a1a] border border-white/10 skeleton-shimmer">
+                                <div className="h-6 w-8 bg-white/10 rounded mx-auto mb-2" />
+                                <div className="h-3 w-12 bg-white/10 rounded mx-auto" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-white/10 skeleton-shimmer">
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                    <div className="h-8 w-8 rounded-full bg-white/10" />
+                                    <div className="h-5 w-16 rounded-full bg-white/10" />
+                                </div>
+                                <div className="h-5 w-20 bg-white/10 rounded" />
+                                <div className="h-3 w-24 bg-white/10 rounded mt-1" />
+                            </div>
+                        ))}
+                    </div>
+                </>
+            ) : (
+                <>
             {/* Total Deposits */}
             <div className="bg-gradient-to-r from-green-900/40 to-green-800/30 rounded-2xl p-5 border border-green-500/30">
                 <p className="text-gray-400 text-sm">Total Added Funds</p>
@@ -125,12 +154,7 @@ const AddFundHistory = () => {
             </div>
 
             {/* List */}
-            {loading ? (
-                <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-500 mx-auto"></div>
-                    <p className="text-gray-400 mt-3">Loading history...</p>
-                </div>
-            ) : filteredDeposits.length === 0 ? (
+            {filteredDeposits.length === 0 ? (
                 <div className="text-center py-8 bg-[#1a1a1a] rounded-xl border border-white/10">
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -220,6 +244,8 @@ const AddFundHistory = () => {
                         </div>
                     ))}
                 </div>
+            )}
+                </>
             )}
         </div>
     );

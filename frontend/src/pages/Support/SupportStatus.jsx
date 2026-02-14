@@ -93,9 +93,18 @@ const SupportStatus = () => {
             Please log in to see your tickets.
           </div>
         ) : loading ? (
-          <div className="flex items-center justify-center gap-2 py-12">
-            <div className="w-5 h-5 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-            <span className="text-sm text-gray-400">Loading...</span>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 skeleton-shimmer">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="h-4 flex-1 max-w-[60%] rounded bg-white/10" />
+                  <div className="h-6 w-16 rounded-lg bg-white/10 shrink-0" />
+                </div>
+                <div className="h-3 w-24 bg-white/10 rounded mt-2" />
+                <div className="h-4 w-full bg-white/10 rounded mt-2" />
+                <div className="h-3 w-3/4 bg-white/10 rounded mt-2" />
+              </div>
+            ))}
           </div>
         ) : myTickets.length === 0 ? (
           <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-8 text-center">

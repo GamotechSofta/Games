@@ -232,8 +232,27 @@ const Bank = () => {
             Please login to see your transaction history.
           </div>
         ) : loading ? (
-          <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300 shadow-[0_10px_22px_rgba(0,0,0,0.35)]">
-            Loading...
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-[#202124] rounded-2xl border border-white/10 p-4 skeleton-shimmer">
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 rounded bg-white/10" />
+                  <div className="h-4 w-20 rounded bg-white/10" />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  {[1, 2, 3, 4].map((j) => (
+                    <div key={j} className="space-y-1">
+                      <div className="h-3 w-16 rounded bg-white/10" />
+                      <div className="h-4 w-20 rounded bg-white/10" />
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex justify-between">
+                  <div className="h-3 w-28 rounded bg-white/10" />
+                  <div className="h-3 w-24 rounded bg-white/10" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-center text-red-200">

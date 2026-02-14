@@ -307,9 +307,16 @@ const BankDetail = () => {
 
             {/* Bank Accounts List */}
             {loading ? (
-                <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="text-gray-400 mt-3">Loading...</p>
+                <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="rounded-xl bg-[#1a1a1a] border border-white/10 p-4 flex items-center justify-between gap-4 skeleton-shimmer">
+                            <div className="space-y-2 flex-1 min-w-0">
+                                <div className="h-5 w-32 bg-white/10 rounded" />
+                                <div className="h-4 w-48 bg-white/10 rounded" />
+                            </div>
+                            <div className="h-9 w-20 rounded-lg bg-white/10 shrink-0" />
+                        </div>
+                    ))}
                 </div>
             ) : bankAccounts.length === 0 ? (
                 <div className="text-center py-8 bg-[#1a1a1a] rounded-xl border border-white/10">

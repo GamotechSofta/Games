@@ -52,15 +52,15 @@ const formatAmount = (amount) => {
 
 /* ───────── Skeleton Loader ───────── */
 const SkeletonRow = () => (
-  <div className="flex items-center gap-3.5 px-4 py-4 animate-pulse">
-    <div className="w-10 h-10 rounded-xl bg-white/5" />
+  <div className="flex items-center gap-3.5 px-4 py-4 skeleton-shimmer">
+    <div className="w-10 h-10 rounded-xl bg-white/10" />
     <div className="flex-1 space-y-2">
-      <div className="h-3.5 w-32 rounded-lg bg-white/5" />
-      <div className="h-3 w-20 rounded-lg bg-white/5" />
+      <div className="h-3.5 w-32 rounded-lg bg-white/10" />
+      <div className="h-3 w-20 rounded-lg bg-white/10" />
     </div>
     <div className="space-y-2 text-right">
-      <div className="h-4 w-16 rounded-lg bg-white/5 ml-auto" />
-      <div className="h-3 w-12 rounded-lg bg-white/5 ml-auto" />
+      <div className="h-4 w-16 rounded-lg bg-white/10 ml-auto" />
+      <div className="h-3 w-12 rounded-lg bg-white/10 ml-auto" />
     </div>
   </div>
 );

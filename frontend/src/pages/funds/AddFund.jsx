@@ -6,6 +6,7 @@ const AddFund = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
     const [config, setConfig] = useState(null);
+    const [configLoading, setConfigLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [upiTransactionId, setUpiTransactionId] = useState('');
     const [screenshot, setScreenshot] = useState(null);
@@ -35,6 +36,8 @@ const AddFund = () => {
             }
         } catch (err) {
             console.error('Failed to fetch config:', err);
+        } finally {
+            setConfigLoading(false);
         }
     };
 
@@ -193,6 +196,25 @@ const AddFund = () => {
 
             {step === 1 ? (
                 <div className="space-y-4 sm:space-y-5">
+                    {configLoading ? (
+                        <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 space-y-6">
+                            <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
+                                <div className="h-8 bg-white/10 mx-4 mt-3 w-32 rounded" />
+                                <div className="h-14 bg-white/10 mx-4 my-3 rounded-xl w-3/4" />
+                                <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-24" />
+                            </div>
+                            <div className="flex justify-center gap-2">
+                                <div className="h-11 w-11 rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
+                                <div className="h-11 flex-1 max-w-[320px] rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 max-w-[520px] mx-auto">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="h-9 rounded-md bg-[#202124] border border-white/10 skeleton-shimmer" />
+                                ))}
+                            </div>
+                            <div className="max-w-[520px] mx-auto h-10 rounded-md bg-[#202124] border border-white/10 skeleton-shimmer" />
+                        </div>
+                    ) : (
                     <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
                         {/* Top card (as screenshot) */}
                         <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
@@ -297,6 +319,22 @@ const AddFund = () => {
                         <div className="mt-2.5 sm:mt-3 max-w-[520px] mx-auto bg-[#202124] rounded-md border border-white/10 px-3 py-2 text-[10px] sm:text-[11px] text-gray-300">
                             Deposit time use only phone pay App Always 🙏🙏
                         </div>
+                    </div>
+                    )}
+                </div>
+            ) : configLoading ? (
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between gap-3 bg-[#1a1a1a] rounded-2xl p-4 border border-white/10 skeleton-shimmer">
+                        <div className="space-y-2">
+                            <div className="h-4 w-24 bg-white/10 rounded" />
+                            <div className="h-6 w-28 bg-white/10 rounded" />
+                        </div>
+                    </div>
+                    <div className="rounded-2xl bg-[#202124] border border-white/10 p-4 space-y-4 skeleton-shimmer">
+                        <div className="h-4 w-32 bg-white/10 rounded" />
+                        <div className="h-12 bg-white/10 rounded" />
+                        <div className="h-12 bg-white/10 rounded" />
+                        <div className="h-12 bg-white/10 rounded-xl" />
                     </div>
                 </div>
             ) : (

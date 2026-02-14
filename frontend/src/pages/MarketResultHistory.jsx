@@ -28,6 +28,7 @@ const formatDateLabel = (d) => {
 const MarketResultHistory = () => {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
+  const [resultsLoading, setResultsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const todayKey = useMemo(() => toDateKeyIST(new Date()), []);
 
@@ -45,11 +46,14 @@ const MarketResultHistory = () => {
       if (data?.success && Array.isArray(data?.data)) setResults(data.data);
     } catch {
       // ignore
+    } finally {
+      setResultsLoading(false);
     }
   };
 
   useEffect(() => {
     let alive = true;
+    setResultsLoading(true);
     const run = async () => {
       await fetchResults();
     };
@@ -104,7 +108,16 @@ const MarketResultHistory = () => {
 
         {/* List */}
         <div className="space-y-3">
-          {rows.length === 0 ? (
+          {resultsLoading ? (
+            <>
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                <div key={i} className="rounded-2xl bg-[#202124] border border-white/10 px-5 py-4 flex items-center justify-between gap-4 skeleton-shimmer">
+                  <div className="h-5 flex-1 max-w-[60%] rounded bg-white/10" />
+                  <div className="h-6 w-20 rounded bg-white/10 shrink-0" />
+                </div>
+              ))}
+            </>
+          ) : rows.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
               No markets found.
             </div>

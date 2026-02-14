@@ -110,8 +110,14 @@ const IconCopy = () => (
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(() => readUserFromStorage());
+  const [profileLoading, setProfileLoading] = useState(true);
   const [toast, setToast] = useState('');
   const [copiedField, setCopiedField] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setProfileLoading(false), 120);
+    return () => clearTimeout(t);
+  }, []);
 
   const initialForm = useMemo(() => {
     const u = user || {};
@@ -182,6 +188,65 @@ const Profile = () => {
   const handleLogout = () => {
     clearUserAuth();
   };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+        <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5">
+          <div className="flex items-center gap-3 px-4 py-3 max-w-lg md:max-w-6xl mx-auto">
+            <div className="w-9 h-9 rounded-full bg-white/10 skeleton-shimmer" />
+            <div className="h-5 flex-1 max-w-[120px] rounded bg-white/10 skeleton-shimmer" />
+          </div>
+        </div>
+        <div className="max-w-lg md:max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-4 md:gap-6 items-start">
+            <div className="space-y-4 md:sticky md:top-[72px]">
+              <div className="rounded-3xl bg-[#141416] border border-white/5 p-5 skeleton-shimmer">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-16 h-16 rounded-2xl bg-white/10" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-32 bg-white/10 rounded" />
+                    <div className="h-6 w-20 rounded-full bg-white/10" />
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-[#1a1a1a] border border-white/5 p-4">
+                  <div className="h-3 w-24 bg-white/10 rounded mb-2" />
+                  <div className="h-8 w-32 bg-white/10 rounded" />
+                </div>
+                <div className="h-12 mt-4 rounded-2xl bg-white/10 w-full" />
+              </div>
+              <div className="grid grid-cols-4 gap-2.5">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex flex-col items-center gap-2 py-3 rounded-2xl">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 skeleton-shimmer" />
+                    <div className="h-3 w-12 bg-white/10 rounded skeleton-shimmer" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-4 min-w-0">
+              <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+                <div className="px-5 pt-5 pb-3">
+                  <div className="h-4 w-40 bg-white/10 rounded skeleton-shimmer" />
+                </div>
+                <div className="px-4 pb-4 space-y-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex items-center gap-3.5 px-3 py-3.5 rounded-2xl">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 skeleton-shimmer" />
+                      <div className="flex-1 space-y-1">
+                        <div className="h-3 w-20 bg-white/10 rounded skeleton-shimmer" />
+                        <div className="h-4 w-28 bg-white/10 rounded skeleton-shimmer" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 

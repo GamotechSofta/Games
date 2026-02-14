@@ -147,6 +147,7 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   const [ratesMap, setRatesMap] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
   const [apiBets, setApiBets] = useState([]);
+  const [betsLoading, setBetsLoading] = useState(true);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -239,19 +240,20 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
   // Fetch bets from API
   useEffect(() => {
     let alive = true;
+    setBetsLoading(true);
     const fetchBets = async () => {
-      const result = await getMyBetHistory();
-      if (!alive) return;
-      if (result?.success && Array.isArray(result?.data)) {
-        console.log('Fetched bets from API:', result.data.length, 'bets');
-        console.log('Sample bet:', result.data[0]);
-        setApiBets(result.data);
-      } else {
-        console.error('Failed to fetch bets:', result);
+      try {
+        const result = await getMyBetHistory();
+        if (!alive) return;
+        if (result?.success && Array.isArray(result?.data)) {
+          setApiBets(result.data);
+        }
+      } finally {
+        if (alive) setBetsLoading(false);
       }
     };
     fetchBets();
-    const id = setInterval(fetchBets, 30000); // Refresh every 30 seconds
+    const id = setInterval(fetchBets, 30000);
     return () => {
       alive = false;
       clearInterval(id);
@@ -649,7 +651,23 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
 
         {/* One card per bet, newest first (no market grouping) */}
         <div className="space-y-4">
-          {!userId ? (
+          {betsLoading ? (
+            <div className="grid grid-cols-2 gap-3 overflow-x-hidden">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="rounded-lg border border-white/10 bg-[#202124] p-3 space-y-2 skeleton-shimmer">
+                  <div className="flex justify-between gap-1">
+                    <div className="h-3 w-8 rounded bg-white/10" />
+                    <div className="h-4 w-12 rounded bg-white/10" />
+                  </div>
+                  <div className="h-3 w-3/4 rounded bg-white/10" />
+                  <div className="h-3 w-full rounded bg-white/10" />
+                  <div className="h-3 w-2/3 rounded bg-white/10" />
+                  <div className="h-3 w-1/2 rounded bg-white/10" />
+                  <div className="h-3 w-full rounded bg-white/10" />
+                </div>
+              ))}
+            </div>
+          ) : !userId ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
               Please login to see your bet history.
             </div>
