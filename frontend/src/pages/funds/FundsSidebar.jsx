@@ -22,6 +22,7 @@ export default function FundsSidebar({ items = [], activeKey, onItemClick }) {
           icon={item.icon}
           active={item.key === activeKey}
           onClick={() => handleClick(item.key)}
+          compactOnDesktop
         />
       ))}
     </div>

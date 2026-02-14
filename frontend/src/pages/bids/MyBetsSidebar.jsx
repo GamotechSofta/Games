@@ -6,7 +6,7 @@ import MenuItemCard from '../../components/MenuItemCard';
  */
 export default function MyBetsSidebar({ items = [], activeTitle, onItemClick }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3 md:gap-5 min-w-0 w-full">
+    <div className="grid grid-cols-2 md:grid-cols-1 gap-2 sm:gap-3 md:gap-2.5 min-w-0 w-full">
       {items.map((item) => (
         <MenuItemCard
           key={item.title}
@@ -16,6 +16,7 @@ export default function MyBetsSidebar({ items = [], activeTitle, onItemClick }) 
           iconUrl={item.iconUrl}
           active={item.title === activeTitle}
           onClick={() => onItemClick(item)}
+          compactOnDesktop
         />
       ))}
     </div>
