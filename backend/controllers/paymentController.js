@@ -19,22 +19,21 @@ export const getPaymentConfig = async (req, res) => {
     try {
         const { userId } = req.query;
 
-        // Default: use .env UPI (admin's fallback)
-        let upiId = process.env.UPI_ID || 'example@paytm';
-        let upiName = process.env.UPI_NAME || 'Golden Games';
+        // UPI: 1) DB (super_admin/bookie), 2) code fallback (no env)
+        const UPI_FALLBACK_ID = 'example@paytm';
+        const UPI_FALLBACK_NAME = 'Golden Games';
+        let upiId = UPI_FALLBACK_ID;
+        let upiName = UPI_FALLBACK_NAME;
 
-        // If userId provided, check if user belongs to a bookie_collects bookie
-        if (userId) {
-            try {
+        try {
+            if (userId) {
                 const user = await User.findById(userId).select('referredBy').lean();
                 if (user?.referredBy) {
                     const bookie = await Admin.findById(user.referredBy).select('bookieType upiId username').lean();
                     if (bookie?.bookieType === 'bookie_collects' && bookie.upiId) {
-                        // Use bookie's UPI
                         upiId = decrypt(bookie.upiId);
                         upiName = bookie.username || 'Bookie';
                     } else {
-                        // admin_collects or bookie has no UPI set - try admin's DB UPI first
                         const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
                         if (superAdmin?.upiId) {
                             upiId = decrypt(superAdmin.upiId);
@@ -42,17 +41,23 @@ export const getPaymentConfig = async (req, res) => {
                         }
                     }
                 } else {
-                    // Direct user (no bookie) - try admin's DB UPI
                     const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
                     if (superAdmin?.upiId) {
                         upiId = decrypt(superAdmin.upiId);
                         upiName = superAdmin.username || upiName;
                     }
                 }
-            } catch (err) {
-                console.error('Error resolving UPI for user:', userId, err.message);
-                // Fallback to env UPI on error
+            } else {
+                // No userId - use super_admin UPI from DB
+                const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
+                if (superAdmin?.upiId) {
+                    upiId = decrypt(superAdmin.upiId);
+                    upiName = superAdmin.username || upiName;
+                }
             }
+        } catch (err) {
+            console.error('Error resolving UPI for user:', userId, err.message);
+            // Keep fallback values on error
         }
 
         res.status(200).json({

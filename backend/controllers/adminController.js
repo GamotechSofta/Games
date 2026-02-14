@@ -329,7 +329,7 @@ export const getBookieById = async (req, res) => {
 
         const { id } = req.params;
 
-        const bookie = await Admin.findOne({ _id: id, role: 'bookie' }).select('-password');
+        const bookie = await Admin.findOne({ _id: id, role: 'bookie' }).select('-password').lean();
         if (!bookie) {
             return res.status(404).json({
                 success: false,
@@ -337,9 +337,16 @@ export const getBookieById = async (req, res) => {
             });
         }
 
+        // Include decrypted UPI for admin to view/edit
+        let upiIdDecrypted = '';
+        if (bookie.upiId) {
+            try { upiIdDecrypted = decrypt(bookie.upiId); } catch { /* keep empty */ }
+        }
+        const data = { ...bookie, upiIdDecrypted };
+
         res.status(200).json({
             success: true,
-            data: bookie,
+            data,
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });

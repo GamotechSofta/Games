@@ -87,7 +87,7 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
 
     return (
         <aside
-            className={`fixed left-0 top-0 h-screen w-64 sm:w-[280px] bg-[#020617] border-r border-white/5 flex flex-col z-50 overflow-hidden shadow-[10px_0_30px_-15px_rgba(0,0,0,0.5)]
+            className={`fixed left-0 top-0 h-screen w-64 sm:w-[280px] bg-[#020617] border-r border-white/30 flex flex-col z-50 overflow-hidden shadow-[10px_0_30px_-15px_rgba(0,0,0,0.5)]
                 transform transition-all duration-300 ease-in-out
                 lg:translate-x-0
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}

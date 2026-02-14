@@ -301,8 +301,8 @@ const BookieManagement = () => {
         if (pendingBookie) performToggleStatus(pendingBookie, val);
     };
 
-    // Open edit modal - split username "First Last" into firstName, lastName
-    const openEditModal = (bookie) => {
+    // Open edit modal - fetch bookie by ID to get decrypted UPI, then populate form
+    const openEditModal = async (bookie) => {
         setSelectedBookie(bookie);
         const parts = (bookie.username || '').trim().split(/\s+/);
         const firstName = parts[0] || '';
@@ -316,9 +316,21 @@ const BookieManagement = () => {
             confirmPassword: '',
             bookieType: bookie.bookieType || 'admin_collects',
             commissionPercentage: bookie.commissionPercentage ?? '',
-            upiId: '', // UPI is encrypted server-side, can't prefill
+            upiId: '',
         });
         setShowEditModal(true);
+        // Fetch full bookie to get decrypted UPI ID
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/bookies/${bookie._id}`, { headers: getAuthHeaders() });
+            const json = await res.json();
+            if (json.success && json.data) {
+                const b = json.data;
+                const decryptedUpi = b.upiIdDecrypted || '';
+                setFormData(prev => ({ ...prev, upiId: decryptedUpi }));
+            }
+        } catch {
+            // Keep upiId empty on fetch error
+        }
     };
 
     // Open delete modal
