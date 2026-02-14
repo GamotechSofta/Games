@@ -25,6 +25,7 @@ import StarlineMarket from '../pages/StarlineMarket';
 import KingBazaarDashboard from '../pages/KingBazaarDashboard';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
 import Notifications from '../pages/Notifications';
+import GameRate from '../pages/GameRate';
 
 // Scroll to top on every route/screen change (pathname or search params)
 const ScrollToTop = () => {
@@ -145,6 +146,7 @@ const Layout = ({ children }) => {
     location.pathname === '/startline-dashboard' ||
     location.pathname === '/king-bazaar-dashboard' ||
     location.pathname === '/king-bazaar-market' ||
+    location.pathname === '/game-rate' ||
     isSupportPage;
   const isBetsPage = location.pathname === '/bids';
   const isHistoryPage =
@@ -207,6 +209,7 @@ const AppRoutes = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/top-winners" element={<TopWinners />} />
+          <Route path="/game-rate" element={<GameRate />} />
         </Routes>
       </Layout>
     </Router>
