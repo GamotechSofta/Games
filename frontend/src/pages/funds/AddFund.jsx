@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api';
 
 const AddFund = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [config, setConfig] = useState(null);
     const [amount, setAmount] = useState('');
     const [upiTransactionId, setUpiTransactionId] = useState('');
@@ -15,7 +16,8 @@ const AddFund = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedAmount, setSubmittedAmount] = useState(0);
     const [showCopyNotification, setShowCopyNotification] = useState(false);
-    const [step, setStep] = useState(1); // 1 = Amount, 2 = Payment Details
+    const stepFromUrl = searchParams.get('step');
+    const step = stepFromUrl === '2' ? 2 : 1; // 1 = Amount, 2 = Payment Details (synced with URL for device back)
     const [addCashLoading, setAddCashLoading] = useState(false);
 
     useEffect(() => {
@@ -102,7 +104,11 @@ const AddFund = () => {
                 setUpiTransactionId('');
                 setScreenshot(null);
                 setScreenshotPreview(null);
-                setStep(1);
+                setSearchParams((p) => {
+                    const next = new URLSearchParams(p);
+                    next.delete('step');
+                    return next;
+                }, { replace: true });
             } else {
                 setError(data.message || 'Failed to submit request');
             }
@@ -137,30 +143,28 @@ const AddFund = () => {
         setAddCashLoading(true);
         window.setTimeout(() => {
             setAddCashLoading(false);
-            setStep(2);
+            setSearchParams((p) => {
+                const next = new URLSearchParams(p);
+                next.set('tab', 'add-fund');
+                next.set('step', '2');
+                return next;
+            }, { replace: false });
         }, 3000);
     };
 
-    const handleBackToFunds = () => navigate('/funds');
-    const handleBackToAmount = () => setStep(1);
+    const handleBackToAmount = () => {
+        setSearchParams((p) => {
+            const next = new URLSearchParams(p);
+            next.delete('step');
+            return next;
+        }, { replace: true });
+    };
 
     return (
         <div className={`space-y-4 sm:space-y-6 ${step === 2 ? 'pb-32 sm:pb-28' : ''}`}>
-            {/* Back navigation */}
-            <div className="flex items-center gap-2 -mt-1 sm:mt-0">
-                {step === 1 ? (
-                    <button
-                        type="button"
-                        onClick={handleBackToFunds}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium transition-colors py-1 -mx-1 min-h-[44px] min-w-[44px] touch-manipulation"
-                        aria-label="Back to Funds"
-                    >
-                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>Back to Funds</span>
-                    </button>
-                ) : (
+            {/* Step 2 only: in-content back to amount (header back still goes to Funds list) */}
+            {step === 2 && (
+                <div className="flex items-center gap-2 -mt-1 sm:mt-0">
                     <button
                         type="button"
                         onClick={handleBackToAmount}
@@ -172,8 +176,8 @@ const AddFund = () => {
                         </svg>
                         <span>Back to amount</span>
                     </button>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Messages */}
             {error && (

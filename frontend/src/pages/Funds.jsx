@@ -78,23 +78,30 @@ const Funds = () => {
   const userJustSelectedTabRef = useRef(false);
   const lastSyncedTabRef = useRef(tabParam);
 
-  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. Only write when desired URL state differs to avoid navigation throttle loop.
+  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. Preserve other params (e.g. step) when updating tab.
   useEffect(() => {
     const desiredTab = (!isDesktop && mobileView === null) ? null : activeKey;
     if (desiredTab === null) {
       if (tabParam != null) {
         lastSyncedTabRef.current = null;
-        setSearchParams({}, { replace: true });
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('tab');
+          next.delete('step');
+          return next;
+        }, { replace: true });
       }
       return;
     }
     if (lastSyncedTabRef.current === desiredTab) return;
-    if (tabParam === desiredTab) {
-      lastSyncedTabRef.current = desiredTab;
-      return;
-    }
+    if (tabParam === desiredTab) return;
     lastSyncedTabRef.current = desiredTab;
-    setSearchParams({ tab: desiredTab }, { replace: isDesktop });
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', desiredTab);
+      next.delete('step');
+      return next;
+    }, { replace: isDesktop });
   }, [activeKey, isDesktop, mobileView, tabParam]);
 
   // Sync tabParam from URL to state when navigating (e.g. device back or external link). Don't reset mobileView to list when tabParam is still null after a tap — URL updates async.
@@ -143,9 +150,9 @@ const Funds = () => {
     setActiveKey(key);
     if (!isDesktop) {
       setMobileView(key);
-      setSearchParams({ tab: key }, { replace: false }); // push so device back goes to list
+      // Do not setSearchParams here — the sync effect will push one history entry. Otherwise we push twice and device back needs two presses.
     }
-  }, [isDesktop, setSearchParams]);
+  }, [isDesktop]);
 
   const handleMobileBack = () => {
     userJustSelectedTabRef.current = false;
