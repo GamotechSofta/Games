@@ -1,20 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { getBalance, updateUserBalance } from '../api/bets';
 import { clearUserAuth } from '../utils/auth';
+import { getNotificationUnreadCount } from '../utils/notificationCount';
 
 const AppHeader = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  const refreshNotificationCount = useCallback(() => {
+    getNotificationUnreadCount().then(setNotificationCount);
+  }, []);
 
   const menuItems = [
     { label: 'My Bets', path: '/bids' },
     { label: 'Funds', path: '/funds' },
     { label: 'Top Winners', path: '/top-winners' },
     { label: 'Telegram Channel', path: '/support' },
-    { label: 'Notification', path: '/support' },
+    { label: 'Notification', path: '/notifications' },
     { label: 'Help Desk', path: '/support' },
     { label: 'Share App', path: '/support' },
     { label: 'Logout', path: '/login' }
@@ -42,6 +49,7 @@ const AppHeader = () => {
         }
       } else {
         setUser(null);
+        setNotificationCount(0);
       }
       loadStoredBalance();
     };
@@ -75,13 +83,27 @@ const AppHeader = () => {
     const closeMenu = () => setIsMenuOpen(false);
     window.addEventListener('closeHeaderMenu', closeMenu);
 
+    refreshNotificationCount();
+    window.addEventListener('notificationsSeen', refreshNotificationCount);
+    window.addEventListener('userLogin', refreshNotificationCount);
+
+    const intervalId = setInterval(refreshNotificationCount, 45000);
+
     return () => {
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userLogin', checkUser);
       window.removeEventListener('userLogout', checkUser);
       window.removeEventListener('closeHeaderMenu', closeMenu);
+      window.removeEventListener('notificationsSeen', refreshNotificationCount);
+      window.removeEventListener('userLogin', refreshNotificationCount);
+      clearInterval(intervalId);
     };
-  }, []);
+  }, [refreshNotificationCount]);
+
+  // Refresh badge when route changes (e.g. leaving /notifications so count updates)
+  useEffect(() => {
+    refreshNotificationCount();
+  }, [location.pathname, refreshNotificationCount]);
 
   const handleLogout = () => {
     clearUserAuth();
@@ -159,17 +181,21 @@ const AppHeader = () => {
             <span className="hidden md:inline"> App</span>
           </button>
 
-          {/* Notification - mobile only */}
+          {/* Notification - mobile and desktop (laptop) */}
           <button
-            onClick={() => navigate('/support')}
-            className="md:hidden shrink-0 w-10 h-10 rounded-xl bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 relative"
+            onClick={() => navigate('/notifications')}
+            className="shrink-0 w-10 h-10 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-xl bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 relative"
             aria-label="Notifications"
+            title="Notifications"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+            <svg className="w-5 h-5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
             </svg>
-            {/* Notification badge - can be shown if there are unread notifications */}
-            {/* <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span> */}
+            {notificationCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+                {notificationCount > 99 ? '99+' : notificationCount}
+              </span>
+            )}
           </button>
 
           {/* Wallet - desktop only, responsive size */}
@@ -340,7 +366,11 @@ const AppHeader = () => {
                   <span className="text-sm sm:text-base font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
                     {item.label}
                   </span>
-                  
+                  {item.label === 'Notification' && notificationCount > 0 && (
+                    <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
+                      {notificationCount > 99 ? '99+' : notificationCount}
+                    </span>
+                  )}
                   {/* Arrow Indicator */}
                   <svg className="w-5 h-5 text-white/20 group-hover:text-yellow-500/60 group-hover:translate-x-1 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

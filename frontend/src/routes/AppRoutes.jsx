@@ -24,6 +24,7 @@ import TopWinners from '../pages/TopWinners';
 import StarlineMarket from '../pages/StarlineMarket';
 import KingBazaarDashboard from '../pages/KingBazaarDashboard';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
+import Notifications from '../pages/Notifications';
 
 // Scroll to top on every route/screen change (pathname or search params)
 const ScrollToTop = () => {
@@ -85,7 +86,7 @@ const Layout = ({ children }) => {
 
   const hideTopNavOnMobile =
     !isDesktop &&
-    (['/bids', '/funds', '/profile'].includes(location.pathname) || location.pathname.startsWith('/support'));
+    (['/bids', '/funds', '/profile', '/notifications'].includes(location.pathname) || location.pathname.startsWith('/support'));
 
   useEffect(() => {
     const check = () => setHasUser(!!localStorage.getItem('user'));
@@ -135,6 +136,7 @@ const Layout = ({ children }) => {
     location.pathname === '/bet-history' ||
     location.pathname === '/starline-bet-history' ||
     location.pathname === '/market-result-history' ||
+    location.pathname === '/notifications' ||
     location.pathname === '/startline-dashboard' ||
     location.pathname === '/king-bazaar-dashboard' ||
     location.pathname === '/king-bazaar-market' ||
@@ -192,6 +194,7 @@ const AppRoutes = () => {
           <Route path="/king-bazaar-dashboard" element={<KingBazaarDashboard />} />
           <Route path="/king-bazaar-market" element={<KingBazaarMarket />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/top-winners" element={<TopWinners />} />
         </Routes>
       </Layout>
