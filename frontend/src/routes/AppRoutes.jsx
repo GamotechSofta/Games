@@ -88,6 +88,10 @@ const Layout = ({ children }) => {
     !isDesktop &&
     (['/bids', '/funds', '/profile', '/notifications'].includes(location.pathname) || location.pathname.startsWith('/support'));
 
+  // Mobile only: hide bottom navbar on Bids and Funds screens
+  const hideBottomNavOnMobile =
+    !isDesktop && (location.pathname === '/bids' || location.pathname === '/funds');
+
   useEffect(() => {
     const check = () => setHasUser(!!localStorage.getItem('user'));
     window.addEventListener('userLogin', check);
@@ -146,7 +150,13 @@ const Layout = ({ children }) => {
     location.pathname === '/bet-history' || location.pathname === '/market-result-history';
 
   return (
-    <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black">
+    <div
+      className={
+        hideBottomNavOnMobile
+          ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
+          : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
+      }
+    >
       {!hideTopNavOnMobile && <AppHeader />}
       <div
         className={
@@ -161,7 +171,7 @@ const Layout = ({ children }) => {
       >
         {children}
       </div>
-      <BottomNavbar />
+      {!hideBottomNavOnMobile && <BottomNavbar />}
     </div>
   );
 };
