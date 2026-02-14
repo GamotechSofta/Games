@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
@@ -9,11 +9,16 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const hasRedirected = useRef(false);
 
-    // If already logged in, go to dashboard
-    React.useEffect(() => {
+    // If already logged in, go to dashboard (once only – avoids navigation throttle in Strict Mode)
+    useEffect(() => {
+        if (hasRedirected.current) return;
         const admin = localStorage.getItem('admin');
-        if (admin) navigate('/dashboard', { replace: true });
+        if (admin) {
+            hasRedirected.current = true;
+            navigate('/dashboard', { replace: true });
+        }
     }, [navigate]);
 
     const handleSubmit = async (e) => {
