@@ -13,6 +13,7 @@ import TopWinners from './pages/TopWinners';
 import Reports from './pages/Reports';
 import Revenue from './pages/Revenue';
 import Payments from './pages/Payments';
+import DailySettlement from './pages/DailySettlement';
 import Wallet from './pages/Wallet';
 
 import HelpDesk from './pages/HelpDesk';
@@ -77,6 +78,7 @@ const AppRoutes = () => (
         <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
         <Route path="/revenue" element={<PrivateRoute><Revenue /></PrivateRoute>} />
         <Route path="/payments" element={<PrivateRoute><Payments /></PrivateRoute>} />
+        <Route path="/daily-settlement" element={<PrivateRoute><DailySettlement /></PrivateRoute>} />
         <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
 
         <Route path="/help-desk" element={<PrivateRoute><HelpDesk /></PrivateRoute>} />

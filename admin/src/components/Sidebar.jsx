@@ -47,6 +47,7 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
         { path: '/reports', label: 'Report', icon: FaChartLine },
         { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
         { path: '/payment-management', label: 'Payments', icon: FaCreditCard },
+        { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
         { path: '/wallet', label: 'Wallet', icon: FaWallet },
         { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },
         { path: '/logs', label: 'Logs', icon: FaClipboardList },
@@ -62,6 +63,9 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
         }
         if (path === '/revenue') {
             return location.pathname === '/revenue' || location.pathname.startsWith('/revenue/');
+        }
+        if (path === '/daily-settlement') {
+            return location.pathname === '/daily-settlement';
         }
         return location.pathname === path;
     };

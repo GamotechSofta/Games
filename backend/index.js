@@ -16,6 +16,7 @@ import rateRoutes from './routes/rate/rateRoutes.js';
 
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
+import settlementRoutes from './routes/settlement/settlementRoutes.js';
 import { getClientIp } from './utils/activityLogger.js';
 import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
@@ -102,6 +103,7 @@ app.use('/api/v1/rates', rateRoutes);
 
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
+app.use('/api/v1/settlements', settlementRoutes);
 
 // Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
 // Runs every day at 00:00 IST to clear opening/closing numbers for fresh day

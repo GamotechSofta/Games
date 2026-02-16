@@ -11,6 +11,7 @@ import Reports from './pages/Reports';
 import Revenue from './pages/Revenue';
 import BookieDetail from './pages/BookieDetail';
 import PaymentManagement from './pages/PaymentManagement';
+import DailySettlement from './pages/DailySettlement';
 import Wallet from './pages/Wallet';
 import HelpDesk from './pages/HelpDesk';
 import Logs from './pages/Logs';
@@ -174,6 +175,14 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <PaymentManagement />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/daily-settlement"
+                    element={
+                        <PrivateRoute>
+                            <DailySettlement />
                         </PrivateRoute>
                     }
                 />

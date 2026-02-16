@@ -369,6 +369,283 @@ export const getRevenueReport = async (req, res) => {
 };
 
 /**
+ * Bookie Collects - Daily breakdown: per bookie, per date - revenue and amount to pay
+ * Admin only. Used in Daily Settlement Bookie Collects tab.
+ */
+export const getBookieCollectsDailyBreakdown = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({ success: false, message: 'Only Super Admin can access' });
+        }
+
+        const { startDate, endDate } = req.query;
+        const dateFilter = {};
+        if (startDate || endDate) {
+            dateFilter.createdAt = {};
+            if (startDate) dateFilter.createdAt.$gte = new Date(startDate + 'T00:00:00.000Z');
+            if (endDate) dateFilter.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+        }
+
+        const bookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' })
+            .select('_id username phone commissionPercentage')
+            .lean();
+
+        const allUsers = await User.find().select('_id referredBy').lean();
+        const bookieUserMap = {};
+        for (const u of allUsers) {
+            if (u.referredBy) {
+                const bid = u.referredBy.toString();
+                if (!bookieUserMap[bid]) bookieUserMap[bid] = [];
+                bookieUserMap[bid].push(u._id);
+            }
+        }
+
+        const result = [];
+
+        for (const bookie of bookies) {
+            const userIds = bookieUserMap[bookie._id.toString()] || [];
+            if (userIds.length === 0) {
+                result.push({
+                    bookieId: bookie._id,
+                    bookieName: bookie.username,
+                    bookiePhone: bookie.phone,
+                    commissionPercentage: bookie.commissionPercentage || 0,
+                    dailyBreakdown: [],
+                    totalRevenue: 0,
+                    totalAmountDue: 0,
+                });
+                continue;
+            }
+
+            const betFilter = { ...dateFilter, userId: { $in: userIds }, status: { $ne: 'cancelled' } };
+
+            const dailyAgg = await Bet.aggregate([
+                { $match: betFilter },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        totalBetAmount: { $sum: '$amount' },
+                        count: { $sum: 1 },
+                    },
+                },
+                { $sort: { _id: -1 } },
+            ]);
+
+            const commPct = bookie.commissionPercentage || 0;
+            const dailyBreakdown = dailyAgg.map((row) => {
+                const rev = row.totalBetAmount || 0;
+                const amountDue = Math.round((rev * commPct / 100) * 100) / 100;
+                return {
+                    date: row._id,
+                    revenue: Math.round(rev * 100) / 100,
+                    amountDue,
+                    betCount: row.count || 0,
+                };
+            });
+
+            const totalRevenue = dailyBreakdown.reduce((s, d) => s + d.revenue, 0);
+            const totalAmountDue = dailyBreakdown.reduce((s, d) => s + d.amountDue, 0);
+
+            result.push({
+                bookieId: bookie._id,
+                bookieName: bookie.username,
+                bookiePhone: bookie.phone,
+                commissionPercentage: commPct,
+                dailyBreakdown,
+                totalRevenue,
+                totalAmountDue,
+            });
+        }
+
+        return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Admin Collects - Daily breakdown: per bookie, per date - revenue and commission
+ * Admin only. Used in Daily Settlement Admin Collects tab (Revenue column).
+ */
+export const getAdminCollectsDailyBreakdown = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({ success: false, message: 'Only Super Admin can access' });
+        }
+
+        const { startDate, endDate } = req.query;
+        const dateFilter = {};
+        if (startDate || endDate) {
+            dateFilter.createdAt = {};
+            if (startDate) dateFilter.createdAt.$gte = new Date(startDate + 'T00:00:00.000Z');
+            if (endDate) dateFilter.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+        }
+
+        const bookies = await Admin.find({ role: 'bookie', bookieType: 'admin_collects' })
+            .select('_id username phone commissionPercentage')
+            .lean();
+
+        const allUsers = await User.find().select('_id referredBy').lean();
+        const bookieUserMap = {};
+        for (const u of allUsers) {
+            if (u.referredBy) {
+                const bid = u.referredBy.toString();
+                if (!bookieUserMap[bid]) bookieUserMap[bid] = [];
+                bookieUserMap[bid].push(u._id);
+            }
+        }
+
+        const result = [];
+
+        for (const bookie of bookies) {
+            const userIds = bookieUserMap[bookie._id.toString()] || [];
+            if (userIds.length === 0) {
+                result.push({
+                    bookieId: bookie._id,
+                    bookieName: bookie.username,
+                    dailyBreakdown: [],
+                });
+                continue;
+            }
+
+            const betFilter = { ...dateFilter, userId: { $in: userIds }, status: { $ne: 'cancelled' } };
+
+            const dailyAgg = await Bet.aggregate([
+                { $match: betFilter },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        totalBetAmount: { $sum: '$amount' },
+                        count: { $sum: 1 },
+                    },
+                },
+                { $sort: { _id: -1 } },
+            ]);
+
+            const commPct = bookie.commissionPercentage || 0;
+            const dailyBreakdown = dailyAgg.map((row) => {
+                const rev = row.totalBetAmount || 0;
+                const commission = Math.round((rev * commPct / 100) * 100) / 100;
+                return {
+                    date: row._id,
+                    revenue: Math.round(rev * 100) / 100,
+                    commission,
+                    betCount: row.count || 0,
+                };
+            });
+
+            result.push({
+                bookieId: bookie._id,
+                bookieName: bookie.username,
+                dailyBreakdown,
+            });
+        }
+
+        return res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Admin Collects bookie - Daily commission breakdown (date-wise)
+ * Bookie only. Used in Daily Settlement - table with Request Money per row
+ */
+export const getBookieCommissionDaily = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'bookie') {
+            return res.status(403).json({ success: false, message: 'Bookie access only' });
+        }
+        const bookieType = req.admin.bookieType || 'admin_collects';
+        if (bookieType !== 'admin_collects') {
+            return res.status(400).json({ success: false, message: 'Only Admin Collects bookies can use this' });
+        }
+
+        const { startDate, endDate } = req.query;
+        const dateFilter = {};
+        if (startDate || endDate) {
+            dateFilter.createdAt = {};
+            if (startDate) dateFilter.createdAt.$gte = new Date(startDate + 'T00:00:00.000Z');
+            if (endDate) dateFilter.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
+        }
+
+        const users = await User.find({ referredBy: req.admin._id }).select('_id').lean();
+        const userIds = users.map((u) => u._id);
+
+        const dailyBreakdown = [];
+        if (startDate && endDate) {
+            const from = new Date(startDate + 'T00:00:00.000Z');
+            const to = new Date(endDate + 'T23:59:59.999Z');
+            const d = new Date(from);
+            while (d <= to) {
+                const dateStr = d.toISOString().slice(0, 10);
+                dailyBreakdown.push({ date: dateStr, betVolume: 0, commission: 0, betCount: 0 });
+                d.setUTCDate(d.getUTCDate() + 1);
+            }
+            dailyBreakdown.sort((a, b) => b.date.localeCompare(a.date));
+        }
+
+        if (userIds.length === 0) {
+            return res.status(200).json({ success: true, data: { dailyBreakdown, totalCommission: 0 } });
+        }
+
+        const betFilter = { ...dateFilter, userId: { $in: userIds }, status: { $ne: 'cancelled' } };
+        const dailyAgg = await Bet.aggregate([
+            { $match: betFilter },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    totalBetAmount: { $sum: '$amount' },
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+
+        const commPct = req.admin.commissionPercentage || 0;
+        const aggMap = {};
+        dailyAgg.forEach((row) => {
+            const rev = row.totalBetAmount || 0;
+            const commission = Math.round((rev * commPct / 100) * 100) / 100;
+            aggMap[row._id] = { betVolume: Math.round(rev * 100) / 100, commission, betCount: row.count || 0 };
+        });
+
+        // Generate all dates in range - show every day with 0 if no bets
+        let resultBreakdown = [];
+        if (startDate && endDate) {
+            const from = new Date(startDate + 'T00:00:00.000Z');
+            const to = new Date(endDate + 'T23:59:59.999Z');
+            const d = new Date(from);
+            while (d <= to) {
+                const dateStr = d.toISOString().slice(0, 10);
+                const row = aggMap[dateStr] || { betVolume: 0, commission: 0, betCount: 0 };
+                resultBreakdown.push({
+                    date: dateStr,
+                    betVolume: row.betVolume,
+                    commission: row.commission,
+                    betCount: row.betCount,
+                });
+                d.setUTCDate(d.getUTCDate() + 1);
+            }
+            resultBreakdown.sort((a, b) => b.date.localeCompare(a.date));
+        } else {
+            Object.keys(aggMap).sort((a, b) => b.localeCompare(a)).forEach((dateStr) => {
+                const row = aggMap[dateStr];
+                resultBreakdown.push({ date: dateStr, betVolume: row.betVolume, commission: row.commission, betCount: row.betCount });
+            });
+        }
+
+        const totalCommission = resultBreakdown.reduce((s, d) => s + d.commission, 0);
+
+        return res.status(200).json({
+            success: true,
+            data: { dailyBreakdown: resultBreakdown, totalCommission },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * Bookie detail: comprehensive info for a single bookie.
  * Returns bookie profile, revenue stats, users list, and recent bet history.
  * Admin only.

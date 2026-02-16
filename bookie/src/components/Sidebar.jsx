@@ -59,6 +59,7 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
             items: [
                 { path: '/revenue', label: 'Revenue Log', icon: FaMoneyBillWave },
                 { path: '/payments', label: 'Payment Requests', icon: FaCreditCard },
+                { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
                 { path: '/wallet', label: 'Wallet Manager', icon: FaWallet },
             ]
         },
@@ -77,6 +78,7 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
         }
         if (path === '/reports') return location.pathname === '/reports';
         if (path === '/revenue') return location.pathname === '/revenue' || location.pathname.startsWith('/revenue/');
+        if (path === '/daily-settlement') return location.pathname === '/daily-settlement';
         return location.pathname === path;
     };
 
