@@ -95,7 +95,7 @@ const BidLayout = ({
     }, [location.pathname]);
 
     return (
-        <div className="min-h-screen min-h-ios-screen bg-black font-sans w-full max-w-full overflow-x-hidden">
+        <div className="game-bid-page min-h-screen min-h-ios-screen bg-black font-sans w-full max-w-full overflow-x-hidden">
             {/* Header - Home theme dark - iOS safe area padding */}
             <div
                 className="bg-[#202124] border-b border-white/10 py-2 flex items-center justify-between gap-2 sticky top-0 z-10 mt-4"
