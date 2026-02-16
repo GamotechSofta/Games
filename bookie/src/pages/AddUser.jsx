@@ -9,7 +9,7 @@ const AddUser = () => {
         password: '',
         phone: '',
         role: 'user',
-        balance: 0,
+        balance: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -19,7 +19,7 @@ const AddUser = () => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
-            [name]: name === 'balance' ? parseFloat(value) || 0 : value,
+            [name]: name === 'balance' ? (value === '' ? '' : (parseFloat(value) || 0)) : value,
         });
     };
 
@@ -29,10 +29,11 @@ const AddUser = () => {
         setSuccess('');
         setLoading(true);
         try {
+            const payload = { ...formData, balance: formData.balance === '' ? 0 : Number(formData.balance) };
             const response = await fetch(`${API_BASE_URL}/users/create`, {
                 method: 'POST',
                 headers: getBookieAuthHeaders(),
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
             const data = await response.json();
             if (data.success) {
@@ -43,7 +44,7 @@ const AddUser = () => {
                     password: '',
                     phone: '',
                     role: 'user',
-                    balance: 0,
+                    balance: '',
                 });
             } else {
                 setError(data.message || 'Failed to create user');
@@ -157,7 +158,7 @@ const AddUser = () => {
                                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Initial Balance</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <span className="text-slate-500 font-bold">$</span>
+                                        <span className="text-slate-500 font-bold">₹</span>
                                     </div>
                                     <input
                                         type="number"
@@ -166,6 +167,7 @@ const AddUser = () => {
                                         onChange={handleChange}
                                         min="0"
                                         step="0.01"
+                                        placeholder=""
                                         className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors font-mono"
                                     />
                                 </div>
