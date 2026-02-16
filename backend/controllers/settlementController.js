@@ -358,14 +358,11 @@ export const rejectSettlement = async (req, res) => {
 };
 
 /**
- * Admin: Update settlement (only when pending)
+ * Update settlement (only when pending)
+ * Admin: can update any pending. Bookie: can update own pending (admin_collects request)
  */
 export const updateSettlement = async (req, res) => {
     try {
-        if (req.admin?.role === 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only admin can update settlements' });
-        }
-
         const { id } = req.params;
         const { amount, remarks } = req.body;
 
@@ -373,9 +370,14 @@ export const updateSettlement = async (req, res) => {
         if (!settlement) {
             return res.status(404).json({ success: false, message: 'Settlement not found' });
         }
-
         if (settlement.status !== 'pending') {
             return res.status(400).json({ success: false, message: 'Can only edit pending settlements' });
+        }
+        if (req.admin?.role === 'bookie') {
+            const bid = (settlement.bookieId?._id || settlement.bookieId)?.toString?.();
+            if (bid !== req.admin._id?.toString?.()) {
+                return res.status(403).json({ success: false, message: 'You can only edit your own settlements' });
+            }
         }
 
         if (amount != null && amount >= 0) settlement.amount = Number(amount);
@@ -394,20 +396,23 @@ export const updateSettlement = async (req, res) => {
 };
 
 /**
- * Admin: Delete settlement (only when pending)
+ * Delete settlement (only when pending)
+ * Admin: can delete any pending. Bookie: can delete own pending (admin_collects request)
  */
 export const deleteSettlement = async (req, res) => {
     try {
-        if (req.admin?.role === 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only admin can delete settlements' });
-        }
-
         const settlement = await DailySettlement.findById(req.params.id);
         if (!settlement) {
             return res.status(404).json({ success: false, message: 'Settlement not found' });
         }
         if (settlement.status !== 'pending') {
             return res.status(400).json({ success: false, message: 'Can only delete pending settlements' });
+        }
+        if (req.admin?.role === 'bookie') {
+            const bid = (settlement.bookieId?._id || settlement.bookieId)?.toString?.();
+            if (bid !== req.admin._id?.toString?.()) {
+                return res.status(403).json({ success: false, message: 'You can only delete your own settlements' });
+            }
         }
         await DailySettlement.findByIdAndDelete(req.params.id);
 

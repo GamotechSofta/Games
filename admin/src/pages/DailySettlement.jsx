@@ -13,6 +13,8 @@ import {
     FaTimes,
     FaCheck,
     FaChartBar,
+    FaSearch,
+    FaFilter,
 } from 'react-icons/fa';
 import { getAdminAuthHeaders, clearAdminAuth, API_BASE_URL } from '../utils/api';
 
@@ -60,8 +62,8 @@ const formatDate = (d) => {
 };
 
 const TABS = [
-    { id: 'admin_collects', label: 'Admin Collects', icon: FaHandHoldingUsd, color: 'emerald', desc: 'Bookie requests commission -> Admin pays & clicks Payment Sent -> Bookie confirms I have received (auto-approved)' },
-    { id: 'bookie_collects', label: 'Bookie Collects', icon: FaBuilding, color: 'purple', desc: 'Admin requests platform charge from Bookie. Date-wise table (revenue + amount due per date) -> Create Request -> Bookie pays -> I have paid -> Admin Accept/Reject' },
+    { id: 'admin_collects', label: 'Admin Collects', icon: FaHandHoldingUsd, color: 'emerald', desc: 'Bookie requests → You pay → Bookie confirms' },
+    { id: 'bookie_collects', label: 'Bookie Collects', icon: FaBuilding, color: 'purple', desc: 'You request → Bookie pays → Bookie clicks Payment Sent → You click Yes I have received' },
 ];
 
 const DailySettlement = () => {
@@ -93,6 +95,10 @@ const DailySettlement = () => {
     const [verifyModal, setVerifyModal] = useState(null);
     const [formData, setFormData] = useState({ bookieId: '', settlementDate: '', amount: '', remarks: '' });
     const [submitting, setSubmitting] = useState(false);
+    const [bookieFilter, setBookieFilter] = useState('');
+    const [bookieSearch, setBookieSearch] = useState('');
+    const [bookieCollectsFilter, setBookieCollectsFilter] = useState('');
+    const [bookieCollectsSearch, setBookieCollectsSearch] = useState('');
 
     const applyPreset = (presetId) => {
         const preset = PRESETS.find((p) => p.id === presetId);
@@ -111,6 +117,9 @@ const DailySettlement = () => {
                 startDate: dateRange.startDate,
                 endDate: dateRange.endDate,
             });
+            if (activeTab === 'admin_collects' && bookieFilter) {
+                params.set('bookieId', bookieFilter);
+            }
             const res = await fetch(`${API_BASE_URL}/settlements?${params}`, { headers: getAdminAuthHeaders() });
             const json = await res.json();
             if (json.success) setSettlements(json.data);
@@ -150,7 +159,7 @@ const DailySettlement = () => {
 
     useEffect(() => {
         fetchSettlements();
-    }, [activeTab, dateRange.startDate, dateRange.endDate]);
+    }, [activeTab, dateRange.startDate, dateRange.endDate, bookieFilter]);
 
     const [dailyBreakdown, setDailyBreakdown] = useState([]);
     const [adminCollectsRevenue, setAdminCollectsRevenue] = useState([]);
@@ -193,6 +202,17 @@ const DailySettlement = () => {
         fetchBookies();
     }, [activeTab]);
 
+    useEffect(() => {
+        if (activeTab !== 'admin_collects') {
+            setBookieFilter('');
+            setBookieSearch('');
+        }
+        if (activeTab !== 'bookie_collects') {
+            setBookieCollectsFilter('');
+            setBookieCollectsSearch('');
+        }
+    }, [activeTab]);
+
     const handleAdd = async () => {
         if (!formData.bookieId || !formData.settlementDate || formData.amount === '' || formData.amount < 0) {
             alert('Please fill Bookie, Date and Amount');
@@ -205,7 +225,7 @@ const DailySettlement = () => {
                 headers: getAdminAuthHeaders(),
                 body: JSON.stringify({
                     bookieId: formData.bookieId,
-                    bookieType: activeTab,
+                    bookieType: 'bookie_collects',
                     settlementDate: formData.settlementDate,
                     amount: Number(formData.amount),
                     remarks: formData.remarks || '',
@@ -219,6 +239,31 @@ const DailySettlement = () => {
             } else {
                 alert(json.message || 'Failed');
             }
+        } catch (err) {
+            alert('Network error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleRequestBookieCollects = async (bookieId, date, amount) => {
+        if (!bookieId || !date || amount <= 0) return;
+        setSubmitting(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/settlements`, {
+                method: 'POST',
+                headers: getAdminAuthHeaders(),
+                body: JSON.stringify({
+                    bookieId,
+                    bookieType: 'bookie_collects',
+                    settlementDate: date,
+                    amount: Number(amount),
+                    remarks: '',
+                }),
+            });
+            const json = await res.json();
+            if (json.success) fetchSettlements();
+            else alert(json.message || 'Failed');
         } catch (err) {
             alert('Network error');
         } finally {
@@ -309,15 +354,25 @@ const DailySettlement = () => {
         }
     };
 
+    // Admin Collects: filter by search (bookie name/phone)
+    const adminCollectsFiltered = activeTab === 'admin_collects' && bookieSearch.trim()
+        ? settlements.filter((s) => {
+            const name = (s.bookieId?.username || '').toLowerCase();
+            const phone = String(s.bookieId?.phone || '');
+            const q = bookieSearch.trim().toLowerCase();
+            return name.includes(q) || phone.includes(q);
+        })
+        : settlements;
+
     // Day-wise totals for Admin Collects
     const dayWiseTotals = {};
-    settlements.forEach((s) => {
+    adminCollectsFiltered.forEach((s) => {
         const key = new Date(s.settlementDate).toISOString().slice(0, 10);
         dayWiseTotals[key] = (dayWiseTotals[key] || 0) + (Number(s.amount) || 0);
     });
     const dayWiseList = Object.entries(dayWiseTotals).sort((a, b) => b[0].localeCompare(a[0]));
 
-    const totalAmount = settlements.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const totalAmount = (activeTab === 'admin_collects' ? adminCollectsFiltered : settlements).reduce((s, x) => s + (Number(x.amount) || 0), 0);
     const bookieCollectsBookies = revenueData?.bookies?.filter((b) => b.bookieType === 'bookie_collects') || [];
 
     // Map: bookieId_date -> revenue for Admin Collects table
@@ -363,147 +418,171 @@ const DailySettlement = () => {
 
     return (
         <AdminLayout onLogout={() => { clearAdminAuth(); navigate('/'); }} title="Daily Settlement">
-            <div className="space-y-4 sm:space-y-6">
-                <div>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-                        <FaMoneyBillWave className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500 shrink-0" />
-                        Daily Payment Settlement
+            <div className="space-y-3">
+                {/* Compact header */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        <FaMoneyBillWave className="w-5 h-5 text-amber-500" />
+                        Daily Settlement
                     </h1>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Manage payments Given and Received — separate for Admin Collects and Bookie Collects</p>
+                    <span className="text-xs text-gray-500">{TABS.find((t) => t.id === activeTab)?.desc}</span>
                 </div>
 
-                {/* Date filters */}
-                <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-3 sm:p-5">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <FaCalendarAlt className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span className="text-sm font-medium text-gray-300">Period</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3">
+                {/* All controls in one card */}
+                <div className="bg-gray-800/80 rounded-lg border border-gray-700/80 p-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        {/* Tabs first */}
+                        {TABS.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearchParams({ tab: tab.id }); }}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                        isActive ? (tab.color === 'emerald' ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-purple-600 text-white border-purple-500')
+                                            : 'bg-gray-700/50 text-gray-400 border-gray-600 hover:border-gray-500'
+                                    }`}
+                                >
+                                    <Icon className="w-3.5 h-3.5" />
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                        <span className="hidden sm:inline w-px h-6 bg-gray-600" />
+                        {/* Date presets */}
                         {PRESETS.map((p) => (
                             <button key={p.id} type="button" onClick={() => applyPreset(p.id)}
-                                className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
-                                    activePreset === p.id ? 'bg-amber-500 text-black' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                className={`px-2 py-1 rounded text-xs font-medium ${
+                                    activePreset === p.id ? 'bg-amber-500 text-black' : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600'
                                 }`}
                             >{p.label}</button>
                         ))}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <input type="date" value={dateRange.startDate}
                             onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 w-[130px] sm:w-auto"
+                            className="px-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
                         />
-                        <span className="text-gray-500 text-sm">to</span>
+                        <span className="text-gray-500 text-xs">to</span>
                         <input type="date" value={dateRange.endDate}
                             onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 w-[130px] sm:w-auto"
+                            className="px-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
                         />
                         <button type="button" onClick={() => { fetchSettlements(); if (activeTab === 'bookie_collects') { fetchRevenue(); fetchDailyBreakdown(); } else if (activeTab === 'admin_collects') { fetchAdminCollectsDailyBreakdown(); } }} disabled={loading}
-                            className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors disabled:opacity-50 text-xs sm:text-sm"
+                            className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded text-xs disabled:opacity-50 flex items-center gap-1"
                         >
-                            <FaSyncAlt className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+                            <FaSyncAlt className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
                         </button>
+                        {/* Admin Collects: Bookie filter & search inline */}
+                        {activeTab === 'admin_collects' && (
+                            <>
+                                <span className="hidden sm:inline w-px h-6 bg-gray-600" />
+                                <select value={bookieFilter} onChange={(e) => setBookieFilter(e.target.value)}
+                                    className="px-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs min-w-[120px] focus:ring-1 focus:ring-amber-500"
+                                >
+                                    <option value="">All Bookies</option>
+                                    {bookies.filter((b) => (b.bookieType || 'admin_collects') === 'admin_collects').map((b) => (
+                                        <option key={b._id} value={b._id}>{b.username || '—'}</option>
+                                    ))}
+                                </select>
+                                <div className="relative w-[140px] sm:w-[160px]">
+                                    <FaSearch className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
+                                    <input type="text" value={bookieSearch} onChange={(e) => setBookieSearch(e.target.value)}
+                                        placeholder="Search..." className="w-full pl-7 pr-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs placeholder-gray-500 focus:ring-1 focus:ring-amber-500"
+                                    />
+                                </div>
+                            </>
+                        )}
+                        {activeTab === 'bookie_collects' && (
+                            <>
+                                <span className="hidden sm:inline w-px h-6 bg-gray-600" />
+                                <select value={bookieCollectsFilter} onChange={(e) => setBookieCollectsFilter(e.target.value)}
+                                    className="px-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs min-w-[120px] focus:ring-1 focus:ring-amber-500"
+                                >
+                                    <option value="">All Bookies</option>
+                                    {bookies.filter((b) => b.bookieType === 'bookie_collects').map((b) => (
+                                        <option key={b._id} value={b._id}>{b.username || '—'}</option>
+                                    ))}
+                                </select>
+                                <div className="relative w-[140px] sm:w-[160px]">
+                                    <FaSearch className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
+                                    <input type="text" value={bookieCollectsSearch} onChange={(e) => setBookieCollectsSearch(e.target.value)}
+                                        placeholder="Search bookie..." className="w-full pl-7 pr-2 py-1 bg-gray-700/50 border border-gray-600 rounded text-white text-xs placeholder-gray-500 focus:ring-1 focus:ring-amber-500"
+                                    />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
-
-                {/* Tabs */}
-                <div className="flex flex-wrap gap-2">
-                    {TABS.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        const colorMap = {
-                            emerald: isActive ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
-                            purple: isActive ? 'bg-purple-600 text-white border-purple-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
-                        };
-                        return (
-                            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearchParams({ tab: tab.id }); }}
-                                className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border-2 text-xs sm:text-sm font-semibold transition-all ${colorMap[tab.color]}`}
-                            >
-                                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
-                <p className="text-xs text-gray-500 -mt-2">{TABS.find((t) => t.id === activeTab)?.desc}</p>
 
                 {/* ADMIN COLLECTS TAB */}
                 {activeTab === 'admin_collects' && (
                     <>
-                        {/* Day-wise totals */}
-                        {dayWiseList.length > 0 && (
-                            <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 p-4">
-                                <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                                    <FaChartBar className="w-4 h-4 text-amber-500" /> Day-wise Total
-                                </h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                                    {dayWiseList.map(([date, amt]) => (
-                                        <div key={date} className="bg-gray-700/50 rounded-lg px-3 py-2 border border-gray-600/50">
-                                            <p className="text-xs text-gray-400">{formatDate(date)}</p>
-                                            <p className="text-sm font-bold text-orange-400">{formatCurrency(amt)}</p>
+                        {/* Compact summary row */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            {dayWiseList.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {dayWiseList.slice(0, 6).map(([date, amt]) => (
+                                        <div key={date} className="px-2.5 py-1 rounded bg-gray-700/50 border border-gray-600/50 flex items-center gap-2">
+                                            <span className="text-xs text-gray-400">{formatDate(date)}</span>
+                                            <span className="text-xs font-bold text-orange-400">{formatCurrency(amt)}</span>
                                         </div>
                                     ))}
+                                    {dayWiseList.length > 6 && <span className="text-xs text-gray-500 py-1">+{dayWiseList.length - 6} more</span>}
                                 </div>
-                            </div>
-                        )}
-
-                        <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div className="px-4 py-2 rounded-xl font-bold text-lg bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                            )}
+                            <div className="px-3 py-1.5 rounded-lg font-bold text-base bg-orange-500/20 text-orange-400 border border-orange-500/30">
                                 Total: {formatCurrency(totalAmount)}
                             </div>
                         </div>
 
-                        {/* Settlements table - Bookie requests (admin_collects) */}
-                        <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
+                        {/* Settlements table */}
+                        <div className="bg-gray-800/80 rounded-lg border border-gray-700/80 overflow-hidden">
                             {loading ? (
-                                <div className="p-12 text-center text-gray-400"><div className="animate-spin rounded-full h-8 w-8 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />Loading...</div>
-                            ) : settlements.length === 0 ? (
-                                <div className="p-12 text-center text-gray-500">
-                                    <FaMoneyBillWave className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                                    <p>No requests for this period</p>
-                                    <p className="text-sm mt-1">Bookie creates requests when they need commission</p>
+                                <div className="p-8 text-center text-gray-400 text-sm"><div className="animate-spin rounded-full h-6 w-6 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-2" />Loading...</div>
+                            ) : adminCollectsFiltered.length === 0 ? (
+                                <div className="p-8 text-center text-gray-500 text-sm">
+                                    <p>{settlements.length === 0 ? 'No requests for this period' : 'No matching bookies'}</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="bg-gray-700/40 text-gray-400 text-[11px] uppercase tracking-wider">
-                                                <th className="text-left px-4 py-3 font-medium">Date</th>
-                                                <th className="text-left px-3 py-3 font-medium">Bookie</th>
-                                                <th className="text-right px-3 py-3 font-medium">Revenue</th>
-                                                <th className="text-right px-3 py-3 font-medium">Amount</th>
-                                                <th className="text-left px-3 py-3 font-medium">Status</th>
-                                                <th className="text-left px-3 py-3 font-medium">Remarks</th>
-                                                <th className="text-right px-4 py-3 font-medium">Actions</th>
+                                            <tr className="bg-gray-700/40 text-gray-400 text-[10px] uppercase tracking-wider">
+                                                <th className="text-left px-3 py-2 font-medium">Date</th>
+                                                <th className="text-left px-2 py-2 font-medium">Bookie</th>
+                                                <th className="text-right px-2 py-2 font-medium">Revenue</th>
+                                                <th className="text-right px-2 py-2 font-medium">Amount</th>
+                                                <th className="text-left px-2 py-2 font-medium">Status</th>
+                                                <th className="text-right px-3 py-2 font-medium">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-700/40">
-                                            {settlements.map((s) => {
+                                            {adminCollectsFiltered.map((s) => {
                                                 const dateStr = s.settlementDate ? new Date(s.settlementDate).toISOString().slice(0, 10) : '';
                                                 const bid = s.bookieId?._id?.toString?.() || s.bookieId?.toString?.() || '';
                                                 const revenue = revenueMap[`${bid}_${dateStr}`];
                                                 return (
                                                 <tr key={s._id} className="hover:bg-gray-700/20 transition-colors">
-                                                    <td className="px-4 py-3 text-white">{formatDate(s.settlementDate)}</td>
-                                                    <td className="px-3 py-3">
+                                                    <td className="px-3 py-2 text-white text-xs">{formatDate(s.settlementDate)}</td>
+                                                    <td className="px-2 py-2">
                                                         <div>
-                                                            <span className="font-medium text-white">{s.bookieId?.username || '—'}</span>
-                                                            {s.bookieId?.phone && <p className="text-[11px] text-gray-500">{s.bookieId.phone}</p>}
+                                                            <span className="font-medium text-white text-xs">{s.bookieId?.username || '—'}</span>
+                                                            {s.bookieId?.phone && <p className="text-[10px] text-gray-500">{s.bookieId.phone}</p>}
                                                         </div>
                                                     </td>
-                                                    <td className="px-3 py-3 text-right font-mono text-blue-400">{revenue != null ? formatCurrency(revenue) : '—'}</td>
-                                                    <td className="px-3 py-3 text-right font-mono font-bold text-orange-400">{formatCurrency(s.amount)}</td>
-                                                    <td className="px-3 py-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getStatusBadge(s.status)}`}>
-                                                            {s.status === 'payment_sent' ? 'Awaiting Bookie' : s.status}
+                                                    <td className="px-2 py-2 text-right font-mono text-blue-400 text-xs">{revenue != null ? formatCurrency(revenue) : '—'}</td>
+                                                    <td className="px-2 py-2 text-right font-mono font-bold text-orange-400 text-xs">{formatCurrency(s.amount)}</td>
+                                                    <td className="px-2 py-2">
+                                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border ${getStatusBadge(s.status)}`}>
+                                                            {s.status === 'payment_sent' ? 'Awaiting' : s.status}
                                                         </span>
                                                     </td>
-                                                    <td className="px-3 py-3 text-gray-400 max-w-[120px] truncate">{s.remarks || '—'}</td>
-                                                    <td className="px-4 py-3 text-right">
+                                                    <td className="px-3 py-2 text-right">
                                                         <div className="flex items-center justify-end gap-1">
                                                             {s.status === 'pending' && (
                                                                 <>
-                                                                    <button onClick={() => handlePaymentSent(s._id)} disabled={submitting} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30">Payment Sent</button>
-                                                                    <button onClick={() => setVerifyModal({ _id: s._id, amount: s.amount, bookie: s.bookieId?.username, adminRemarks: 'Declined', action: 'reject' })} className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/30">Decline</button>
+                                                                    <button onClick={() => handlePaymentSent(s._id)} disabled={submitting} className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-medium hover:bg-emerald-500/30">Paid</button>
+                                                                    <button onClick={() => setEditModal({ _id: s._id, amount: s.amount, remarks: s.remarks || '' })} className="p-1.5 rounded hover:bg-gray-600 text-amber-400" title="Edit"><FaEdit className="w-3 h-3" /></button>
+                                                                    <button onClick={() => handleDelete(s._id)} className="p-1.5 rounded hover:bg-red-500/20 text-red-400" title="Delete"><FaTrash className="w-3 h-3" /></button>
+                                                                    <button onClick={() => setVerifyModal({ _id: s._id, amount: s.amount, bookie: s.bookieId?.username, adminRemarks: 'Declined', action: 'reject' })} className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-medium hover:bg-red-500/30">Decline</button>
                                                                 </>
                                                             )}
                                                         </div>
@@ -519,154 +598,107 @@ const DailySettlement = () => {
                     </>
                 )}
 
-                {/* BOOKIE COLLECTS TAB */}
+                {/* BOOKIE COLLECTS TAB - Single table: Date | Bookie | Revenue | Amount | Status | Actions */}
                 {activeTab === 'bookie_collects' && (
                     <>
-                        {/* Date-wise table per bookie: Revenue + Amount to Pay */}
-                        <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
-                            <h3 className="px-4 py-3 border-b border-gray-700/80 text-sm font-semibold text-white flex items-center gap-2">
-                                <FaChartBar className="w-4 h-4 text-purple-400" /> Date-wise — Revenue & Amount to Pay (per bookie)
-                            </h3>
-                            {dailyBreakdown.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No Bookie Collects bookies with data</div>
-                            ) : (
-                                <div className="divide-y divide-gray-700/40">
-                                    {dailyBreakdown.map((b) => (
-                                        <div key={b.bookieId} className="p-4">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <span className="font-semibold text-white">{b.bookieName || '—'}</span>
-                                                <span className="text-xs text-gray-500">Total: {formatCurrency(b.totalRevenue)} | Due: {formatCurrency(b.totalAmountDue)}</span>
-                                            </div>
-                                            <div className="overflow-x-auto">
-                                                <table className="w-full text-sm">
-                                                    <thead>
-                                                        <tr className="text-gray-400 text-[11px] uppercase">
-                                                            <th className="text-left py-2 font-medium">Date</th>
-                                                            <th className="text-right py-2 font-medium">Revenue</th>
-                                                            <th className="text-right py-2 font-medium">Amount to Pay</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-gray-700/30">
-                                                        {b.dailyBreakdown.map((d) => (
-                                                            <tr key={d.date} className="hover:bg-gray-700/20">
-                                                                <td className="py-2 text-white">{formatDate(d.date)}</td>
-                                                                <td className="py-2 text-right font-mono text-blue-400">{formatCurrency(d.revenue)}</td>
-                                                                <td className="py-2 text-right font-mono font-bold text-emerald-400">{formatCurrency(d.amountDue)}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    ))}
+                        <div className="bg-gray-800/80 rounded-lg border border-gray-700/80 overflow-hidden">
+                            {(() => {
+                                const flatRows = [];
+                                dailyBreakdown.forEach((b) => {
+                                    const bid = (b.bookieId?._id || b.bookieId)?.toString?.() || '';
+                                    (b.dailyBreakdown || []).forEach((d) => {
+                                        const s = settlements.find((x) => {
+                                            const sd = new Date(x.settlementDate).toISOString().slice(0, 10);
+                                            const sb = (x.bookieId?._id || x.bookieId)?.toString?.() || '';
+                                            return sd === d.date && sb === bid;
+                                        });
+                                        flatRows.push({ date: d.date, bookieName: b.bookieName, bookiePhone: b.bookiePhone || '', bookieId: bid, revenue: d.revenue, amount: d.amountDue, settlement: s });
+                                    });
+                                });
+                                let filtered = flatRows;
+                                if (bookieCollectsFilter) {
+                                    filtered = filtered.filter((r) => r.bookieId === bookieCollectsFilter);
+                                }
+                                if (bookieCollectsSearch.trim()) {
+                                    const q = bookieCollectsSearch.trim().toLowerCase();
+                                    filtered = filtered.filter((r) =>
+                                        (r.bookieName || '').toLowerCase().includes(q) || String(r.bookiePhone || '').includes(q)
+                                    );
+                                }
+                                filtered.sort((a, b) => (a.bookieName || '').localeCompare(b.bookieName || '') || b.date.localeCompare(a.date));
+                                const filteredTotal = filtered.reduce((s, r) => s + (r.settlement ? Number(r.settlement.amount) || 0 : 0), 0);
+                                return (
+                                <>
+                                <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700/80">
+                                    <span className="text-xs font-semibold text-white">Bookie Collects — Date | Bookie | Revenue | Amount | Status | Actions</span>
+                                    <span className="px-2 py-1 rounded font-bold text-sm bg-purple-500/20 text-purple-400 border border-purple-500/30">Total: {formatCurrency(bookieCollectsFilter || bookieCollectsSearch.trim() ? filteredTotal : totalAmount)}</span>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* Add Settlement + List */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-                            <div className="px-4 py-2 rounded-xl font-bold text-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                Settlements Total: {formatCurrency(totalAmount)}
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => { setFormData({ bookieId: '', settlementDate: dateRange.startDate, amount: '', remarks: '' }); setAddModal(true); }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg transition-colors text-sm"
-                            >
-                                <FaPlus className="w-4 h-4" /> Add Settlement
-                            </button>
-                        </div>
-
-                        <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden mt-4">
-                            <h3 className="px-4 py-3 border-b border-gray-700/80 text-sm font-semibold text-white">Settlement Requests</h3>
-                            {settlements.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">No settlements. Add to send request to bookie.</div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="bg-gray-700/40 text-gray-400 text-[11px] uppercase tracking-wider">
-                                                <th className="text-left px-4 py-3 font-medium">Date</th>
-                                                <th className="text-left px-3 py-3 font-medium">Bookie</th>
-                                                <th className="text-right px-3 py-3 font-medium">Amount</th>
-                                                <th className="text-left px-3 py-3 font-medium">Status</th>
-                                                <th className="text-right px-4 py-3 font-medium">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-700/40">
-                                            {settlements.map((s) => (
-                                                <tr key={s._id} className="hover:bg-gray-700/20">
-                                                    <td className="px-4 py-3 text-white">{formatDate(s.settlementDate)}</td>
-                                                    <td className="px-3 py-3 font-medium text-white">{s.bookieId?.username || '—'}</td>
-                                                    <td className="px-3 py-3 text-right font-mono font-bold text-emerald-400">{formatCurrency(s.amount)}</td>
-                                                    <td className="px-3 py-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${getStatusBadge(s.status)}`}>
-                                                            {s.status === 'bookie_confirmed' ? 'Awaiting Verify' : s.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        {s.status === 'bookie_confirmed' && (
-                                                            <>
-                                                                <button onClick={() => setVerifyModal({ _id: s._id, amount: s.amount, bookie: s.bookieId?.username, adminRemarks: '' })} className="px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-medium mr-1">Accept</button>
-                                                                <button onClick={() => setVerifyModal({ _id: s._id, amount: s.amount, bookie: s.bookieId?.username, adminRemarks: 'Rejected' })} className="px-2 py-1 rounded bg-red-500/20 text-red-400 text-xs font-medium">Reject</button>
-                                                            </>
-                                                        )}
-                                                        {s.status === 'pending' && (
-                                                            <>
-                                                                <button onClick={() => setEditModal({ _id: s._id, amount: s.amount, remarks: s.remarks || '' })} className="p-1.5 rounded-lg hover:bg-gray-600 text-amber-400 mr-1"><FaEdit className="w-3.5 h-3.5" /></button>
-                                                                <button onClick={() => handleDelete(s._id)} className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-400"><FaTrash className="w-3.5 h-3.5" /></button>
-                                                            </>
-                                                        )}
-                                                    </td>
+                                {filtered.length === 0 ? (
+                                    <div className="p-6 text-center text-gray-500 text-sm">{flatRows.length === 0 ? 'No Bookie Collects data for this period' : 'No matching bookies'}</div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-xs">
+                                            <thead>
+                                                <tr className="bg-gray-700/40 text-gray-400 text-[10px] uppercase tracking-wider">
+                                                    <th className="text-left px-3 py-2 font-medium">Date</th>
+                                                    <th className="text-left px-2 py-2 font-medium">Bookie</th>
+                                                    <th className="text-right px-2 py-2 font-medium">Revenue</th>
+                                                    <th className="text-right px-2 py-2 font-medium">Amount</th>
+                                                    <th className="text-left px-2 py-2 font-medium">Status</th>
+                                                    <th className="text-right px-3 py-2 font-medium">Actions</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-700/40">
+                                                {filtered.map((row) => (
+                                                    <tr key={`${row.date}-${row.bookieId}`} className="hover:bg-gray-700/20">
+                                                        <td className="px-3 py-2 text-white">{formatDate(row.date)}</td>
+                                                        <td className="px-2 py-2 font-medium text-white">{row.bookieName || '—'}</td>
+                                                        <td className="px-2 py-2 text-right font-mono text-blue-400">{formatCurrency(row.revenue)}</td>
+                                                        <td className="px-2 py-2 text-right font-mono font-bold text-emerald-400">{formatCurrency(row.amount)}</td>
+                                                        <td className="px-2 py-2">
+                                                            {row.settlement ? (
+                                                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border ${getStatusBadge(row.settlement.status)}`}>
+                                                                    {row.settlement.status === 'bookie_confirmed' ? 'Confirm' : row.settlement.status}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-gray-500">—</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-3 py-2 text-right">
+                                                            {row.settlement ? (
+                                                                <>
+                                                                    {row.settlement.status === 'bookie_confirmed' && (
+                                                                        <>
+                                                                            <button onClick={() => setVerifyModal({ _id: row.settlement._id, amount: row.settlement.amount, bookie: row.settlement.bookieId?.username, adminRemarks: '' })} className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-medium mr-1">Yes I received</button>
+                                                                            <button onClick={() => setVerifyModal({ _id: row.settlement._id, amount: row.settlement.amount, bookie: row.settlement.bookieId?.username, adminRemarks: 'Rejected' })} className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-medium">Decline</button>
+                                                                        </>
+                                                                    )}
+                                                                    {row.settlement.status === 'pending' && (
+                                                                        <>
+                                                                            <button onClick={() => setEditModal({ _id: row.settlement._id, amount: row.settlement.amount, remarks: row.settlement.remarks || '' })} className="p-1.5 rounded hover:bg-gray-600 text-amber-400 mr-1"><FaEdit className="w-3 h-3" /></button>
+                                                                            <button onClick={() => handleDelete(row.settlement._id)} className="p-1.5 rounded hover:bg-red-500/20 text-red-400"><FaTrash className="w-3 h-3" /></button>
+                                                                        </>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <button type="button" onClick={() => handleRequestBookieCollects(row.bookieId, row.date, row.amount)} disabled={submitting || row.amount <= 0}
+                                                                    className="px-1.5 py-0.5 rounded bg-amber-500/80 hover:bg-amber-500 text-black text-[10px] font-semibold disabled:opacity-50"
+                                                                >Request</button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                </>
+                                );
+                            })()}
                         </div>
                     </>
                 )}
             </div>
-
-            {/* Add Modal */}
-            {addModal && (
-                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-md p-6 shadow-xl">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-white">Add Settlement (Request goes to Bookie)</h3>
-                            <button type="button" onClick={() => setAddModal(false)} className="p-2 rounded-lg hover:bg-gray-700 text-gray-400"><FaTimes className="w-5 h-5" /></button>
-                        </div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Bookie *</label>
-                                <select value={formData.bookieId} onChange={(e) => setFormData((f) => ({ ...f, bookieId: e.target.value }))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500">
-                                    <option value="">Select bookie</option>
-                                    {bookies.map((b) => (
-                                        <option key={b._id} value={b._id}>{b.username} {b.phone ? `(${b.phone})` : ''}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Date *</label>
-                                <input type="date" value={formData.settlementDate} onChange={(e) => setFormData((f) => ({ ...f, settlementDate: e.target.value }))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Amount (Rs) *</label>
-                                <input type="number" min="0" step="0.01" value={formData.amount} onChange={(e) => setFormData((f) => ({ ...f, amount: e.target.value }))} placeholder="0" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">Remarks</label>
-                                <input type="text" value={formData.remarks} onChange={(e) => setFormData((f) => ({ ...f, remarks: e.target.value }))} placeholder="Optional" className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500" />
-                            </div>
-                        </div>
-                        <div className="flex gap-3 mt-6">
-                            <button type="button" onClick={() => setAddModal(false)} className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium">Cancel</button>
-                            <button type="button" onClick={handleAdd} disabled={submitting} className="flex-1 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg disabled:opacity-50">{submitting ? 'Saving...' : 'Add'}</button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Edit Modal */}
             {editModal && (
@@ -711,8 +743,8 @@ const DailySettlement = () => {
                             <input type="text" value={verifyModal.adminRemarks} onChange={(e) => setVerifyModal((m) => ({ ...m, adminRemarks: e.target.value }))} className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm" placeholder="Optional notes" />
                         </div>
                         <div className="flex gap-3">
-                            <button type="button" onClick={handleApprove} disabled={submitting} className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"><FaCheck /> Accept</button>
-                            <button type="button" onClick={handleReject} disabled={submitting} className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-semibold rounded-lg disabled:opacity-50">Reject</button>
+                            <button type="button" onClick={handleApprove} disabled={submitting} className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"><FaCheck /> {activeTab === 'bookie_collects' ? 'Yes I received' : 'Accept'}</button>
+                            <button type="button" onClick={handleReject} disabled={submitting} className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-semibold rounded-lg disabled:opacity-50">Decline</button>
                             <button type="button" onClick={() => setVerifyModal(null)} className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg font-medium">Cancel</button>
                         </div>
                     </div>
