@@ -661,7 +661,7 @@ const MarketDetail = () => {
     const isStartline = isStartlineMarket;
     const isKingBazaar = isKingBazaarMarket;
     const timeline = `${formatTime(market.startingTime)} – ${formatTime(market.closingTime)}`;
-    const resultDisplay = market.displayResult || '***-**-***';
+    const resultDisplay = (market.displayResult || '***-**-***').toString().replace(/-/g, '_');
 
     const grandTotalAmount =
         (singleDigit?.totalAmount ?? 0) +

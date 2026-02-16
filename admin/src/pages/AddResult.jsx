@@ -493,7 +493,7 @@ const AddResult = () => {
                                         <tbody>
                                             {starlineMarkets.map((m) => {
                                                 const hasOpen = m.openingNumber && /^\d{3}$/.test(String(m.openingNumber));
-                                                const resultDisplay = m.displayResult || (hasOpen ? '—' : '*** - *');
+                                                const resultDisplay = (m.displayResult || (hasOpen ? '—' : '*** - *')).toString().replace(/-/g, '_');
                                                 const isPending = starlinePendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
                                                 return (
                                                     <tr key={m._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPending ? 'bg-amber-500/5' : ''}`}>
@@ -502,7 +502,7 @@ const AddResult = () => {
                                                             {m.marketName}
                                                         </td>
                                                         <td className="py-2 sm:py-3 px-3 text-gray-300 border-l border-gray-700 whitespace-nowrap">{formatTime(m.closingTime)}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400">{resultDisplay}</td>
+                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400 tracking-widest">{resultDisplay}</td>
                                                         <td className="py-2 sm:py-3 px-3 border-l border-gray-700">
                                                             <button
                                                                 type="button"
@@ -567,7 +567,7 @@ const AddResult = () => {
                                         <tbody>
                                             {kingBazaarMarkets.map((m) => {
                                                 const hasResult = m.openingNumber != null && m.closingNumber != null;
-                                                const resultDisplay = m.displayResult || '**';
+                                                const resultDisplay = (m.displayResult || '**').toString().replace(/-/g, '_');
                                                 const isPending = kingBazaarPendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
                                                 return (
                                                     <tr key={m._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPending ? 'bg-amber-500/5' : ''}`}>
@@ -576,7 +576,7 @@ const AddResult = () => {
                                                             {m.marketName}
                                                         </td>
                                                         <td className="py-2 sm:py-3 px-3 text-gray-300 border-l border-gray-700 whitespace-nowrap">{formatTime(m.closingTime)}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400">{resultDisplay}</td>
+                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400 tracking-widest">{resultDisplay}</td>
                                                         <td className="py-2 sm:py-3 px-3 border-l border-gray-700">
                                                             <button
                                                                 type="button"
@@ -624,7 +624,7 @@ const AddResult = () => {
                                             const isClosed = hasOpen && hasClose;
                                             const isPendingResult = mainPendingList.some((m) => String(m._id) === String(market._id) || m.marketName === market.marketName);
                                             const timeline = `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`;
-                                            const resultDisplay = market.displayResult || '***-**-***';
+                                            const resultDisplay = (market.displayResult || '***-**-***').toString().replace(/-/g, '_');
                                             return (
                                                 <tr key={market._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPendingResult ? 'bg-amber-500/5' : ''}`}>
                                                     <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-medium text-white whitespace-nowrap min-w-0 max-w-[110px] sm:max-w-[180px] md:max-w-none">
@@ -640,7 +640,7 @@ const AddResult = () => {
                                                     <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 text-gray-300 border-l border-gray-700 whitespace-nowrap text-[10px] sm:text-xs md:text-sm">{timeline}</td>
                                                     <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 border-l border-gray-700 min-w-[4rem] sm:min-w-[5rem] md:min-w-[6.5rem]">
                                                         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 sm:gap-x-2">
-                                                            <span className="font-mono text-amber-400 text-[10px] sm:text-xs md:text-sm">{resultDisplay}</span>
+                                                            <span className="font-mono text-amber-400 text-[10px] sm:text-xs md:text-sm tracking-widest">{resultDisplay}</span>
                                                             {isClosed && (
                                                                 <span className="inline-flex shrink-0 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full bg-red-600 text-white">Closed</span>
                                                             )}

@@ -129,13 +129,15 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                                 {status.status === 'running' && 'CLOSED IS RUNNING'}
                                 {status.status === 'closed' && 'CLOSED'}
                             </div>
-                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate" title={market.displayResult || market.winNumber || ''}>
-                                {(() => {
-                                    const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
-                                    if (!raw) return '';
-                                    return String(raw).replace(/-/g, '_');
-                                })()}
-                            </span>
+                            <div className="min-w-0 overflow-hidden flex justify-end">
+                                <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={market.displayResult || market.winNumber || ''}>
+                                    {(() => {
+                                        const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
+                                        if (!raw) return '';
+                                        return String(raw).replace(/-/g, '_');
+                                    })()}
+                                </span>
+                            </div>
                         </div>
 
                         {/* Market Info */}
