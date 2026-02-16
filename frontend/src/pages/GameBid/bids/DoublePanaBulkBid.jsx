@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -52,7 +53,7 @@ const buildDoublePanas = () => {
     return validPanas;
 };
 
-const DoublePanaBulkBid = ({ market, title }) => {
+const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -88,10 +89,11 @@ const DoublePanaBulkBid = ({ market, title }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
     const todayDate = new Date()
         .toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
         .replace(/\//g, '-');
+    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
 
     const doublePanas = useMemo(() => buildDoublePanas(), []);
     const [specialInputs, setSpecialInputs] = useState(() =>
@@ -141,7 +143,9 @@ const DoublePanaBulkBid = ({ market, title }) => {
             amount: Number(r.points) || 0,
             betOn: String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        const result = await placeBet(marketId, payload);
+        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -193,7 +197,7 @@ const DoublePanaBulkBid = ({ market, title }) => {
                 </div>
                 <input
                     type="text"
-                    value={todayDate}
+                    value={formDateDisplay}
                     readOnly
                     className="w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default"
                 />
@@ -253,7 +257,8 @@ const DoublePanaBulkBid = ({ market, title }) => {
             totalPoints={totalPoints}
             session={session}
             setSession={setSession}
-            showDateSession={false}
+            showDateSession={!!scheduleForTomorrow}
+            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
             walletBalance={walletBefore}
             extraHeader={null}
             hideFooter

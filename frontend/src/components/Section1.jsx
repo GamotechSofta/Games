@@ -193,16 +193,13 @@ const Section1 = () => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-[375px]:gap-3 sm:gap-4">
           {markets.map((market) => {
-            // open + running = clickable; closed = not clickable
+            // open + running = clickable for live bet; closed = not clickable for live, but has "Schedule for tomorrow"
             const isClickable = market.status === 'open' || market.status === 'running';
             return (
             <div
               key={market.id}
-              onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
               className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-200 ${
-                isClickable 
-                  ? 'cursor-pointer hover:scale-[1.02]' 
-                  : 'cursor-not-allowed opacity-80'
+                isClickable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default opacity-90'
               }`}
             >
               {/* Status: ***-**-***=Open(green), 156-2*-***=Running(green), 987-45-456=Closed(red) */}
@@ -217,7 +214,11 @@ const Section1 = () => {
               </div>
 
             {/* Card Content – min-heights reduce layout shift when result updates */}
-            <div className="p-2 min-[375px]:p-3 sm:p-4">
+            <div
+              className="p-2 min-[375px]:p-3 sm:p-4"
+              onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
+              role={isClickable ? 'button' : undefined}
+            >
               {/* Time with Clock Icon */}
               <div className="flex items-center gap-1 mb-1.5 min-[375px]:mb-2 min-h-[20px]">
                 <svg
@@ -242,6 +243,20 @@ const Section1 = () => {
                   {market.result}
                 </p>
               </div>
+
+              {/* Closed market only: Schedule Bets For Tomorrow */}
+              {market.status === 'closed' && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
+                  }}
+                  className="mt-2 min-[375px]:mt-3 w-full py-2 px-3 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold hover:bg-amber-500/30 transition-colors"
+                >
+                  Schedule Bets For Tomorrow
+                </button>
+              )}
             </div>
           </div>
             );

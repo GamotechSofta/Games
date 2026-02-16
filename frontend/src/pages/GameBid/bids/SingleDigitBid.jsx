@@ -2,9 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
-const SingleDigitBid = ({ market, title }) => {
+const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
     const location = useLocation();
     const sessionPresetRaw = (location.state?.sessionPreset || '').toString().trim().toUpperCase();
     const sessionPreset = (sessionPresetRaw === 'OPEN' || sessionPresetRaw === 'CLOSE') ? sessionPresetRaw : null;
@@ -87,7 +88,8 @@ const SingleDigitBid = ({ market, title }) => {
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
+    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
     const isRunning = market?.status === 'running'; // "CLOSED IS RUNNING"
 
@@ -143,7 +145,7 @@ const SingleDigitBid = ({ market, title }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <input type="text" value={todayDate} readOnly className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-sm font-bold text-center focus:outline-none" />
+                <input type="text" value={formDateDisplay} readOnly className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-sm font-bold text-center focus:outline-none" />
             </div>
             <div className="relative">
                 <select
@@ -233,7 +235,9 @@ const SingleDigitBid = ({ market, title }) => {
             amount: Number(b.points) || 0,
             betOn: String(b?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        const result = await placeBet(marketId, bets);
+        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const result = await placeBet(marketId, bets, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -251,7 +255,8 @@ const SingleDigitBid = ({ market, title }) => {
             title={title}
             bidsCount={bids.length}
             totalPoints={totalPoints}
-            showDateSession={false}
+            showDateSession={!!scheduleForTomorrow}
+            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
             extraHeader={null}
             session={session}
             setSession={setSession}

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { useScheduling } from '../BettingWindowContext';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -24,25 +26,21 @@ const buildSinglePanas = () =>
         .sort()
         .flatMap((k) => SINGLE_PANA_BY_SUM[k]);
 
-const SinglePanaBulkBid = ({ market, title }) => {
+const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
+    const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(() => {
+        if (scheduleForTomorrow) return getTomorrowIST();
         try {
             const savedDate = localStorage.getItem('betSelectedDate');
             if (savedDate) {
                 const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
+                if (savedDate > today) return savedDate;
             }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        } catch (e) {}
+        return new Date().toISOString().split('T')[0];
     });
     
     // Save to localStorage when date changes
@@ -67,6 +65,10 @@ const SinglePanaBulkBid = ({ market, title }) => {
         if (isRunning) setSession('CLOSE');
     }, [isRunning]);
 
+    useEffect(() => {
+        setSelectedDateIST(selectedDate || null);
+    }, [selectedDate, setSelectedDateIST]);
+
     const walletBefore = useMemo(() => {
         try {
             const u = JSON.parse(localStorage.getItem('user') || 'null');
@@ -86,7 +88,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
 
     const singlePanas = useMemo(() => buildSinglePanas(), []);
     const [specialInputs, setSpecialInputs] = useState(() =>
@@ -141,8 +143,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
         today.setHours(0, 0, 0, 0);
         const selectedDateObj = new Date(selectedDate);
         selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
+        let scheduledDate = selectedDateObj > today ? selectedDate : null;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -189,6 +191,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
             setSession={setSession}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            displayDate={formatDateDisplay(selectedDate)}
             sessionRightSlot={
                 <button
                     type="button"
@@ -209,6 +212,11 @@ const SinglePanaBulkBid = ({ market, title }) => {
             contentPaddingClass="pb-28 md:pb-8"
         >
             <div className="px-3 sm:px-6 py-3">
+                {scheduleForTomorrow && (
+                    <div className="mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-xl px-4 py-2 text-sm">
+                        Scheduling bet for <strong>tomorrow</strong>. Date is set to next day (IST).
+                    </div>
+                )}
                 {warning && (
                     <div className="mb-3 bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
                         {warning}

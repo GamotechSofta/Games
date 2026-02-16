@@ -1,31 +1,29 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { useScheduling } from '../BettingWindowContext';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
-const JodiBulkBid = ({ market, title }) => {
+const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
+    const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState('OPEN');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
     const [selectedDate, setSelectedDate] = useState(() => {
+        if (scheduleForTomorrow) return getTomorrowIST();
         try {
             const savedDate = localStorage.getItem('betSelectedDate');
             if (savedDate) {
                 const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
+                if (savedDate > today) return savedDate;
             }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        } catch (e) {}
+        return new Date().toISOString().split('T')[0];
     });
     
     // Save to localStorage when date changes
@@ -48,6 +46,10 @@ const JodiBulkBid = ({ market, title }) => {
         // Jodi: allow OPEN only (no CLOSE bets)
         if (session !== 'OPEN') setSession('OPEN');
     }, [session]);
+
+    useEffect(() => {
+        setSelectedDateIST(selectedDate || null);
+    }, [selectedDate, setSelectedDateIST]);
 
     // cell values: key "rc" (row digit + col digit) => points string
     const [cells, setCells] = useState(() => {
@@ -77,7 +79,7 @@ const JodiBulkBid = ({ market, title }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+    const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
 
     const rows = useMemo(() => {
         const out = [];
@@ -177,8 +179,8 @@ const JodiBulkBid = ({ market, title }) => {
         today.setHours(0, 0, 0, 0);
         const selectedDateObj = new Date(selectedDate);
         selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
+        let scheduledDate = selectedDateObj > today ? selectedDate : null;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -202,6 +204,7 @@ const JodiBulkBid = ({ market, title }) => {
             dateSessionControlClassName="md:min-h-[52px] md:text-base"
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            displayDate={formatDateDisplay(selectedDate)}
             sessionRightSlot={
                 <button
                     type="button"

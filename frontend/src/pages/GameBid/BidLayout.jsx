@@ -39,6 +39,8 @@ const BidLayout = ({
     hideSessionSelectCaret = false,
     dateSessionControlClassName = '',
     dateSessionGridClassName = '',
+    /** When set (e.g. scheduled for tomorrow), show this date in the date row instead of today */
+    displayDate = null,
     footerRightOnDesktop = false,
     hideFooter = false,
     walletBalance,
@@ -149,19 +151,26 @@ const BidLayout = ({
                     className={`pb-4 pt-2 flex flex-row flex-wrap gap-2 sm:gap-3 overflow-hidden ${dateSessionGridClassName}`}
                     style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
                 >
-                    {/* Static date display (today) – no scheduling */}
-                    <div className="relative flex-1 min-w-0 shrink overflow-hidden">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                            <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                    {/* Date display: tomorrow when scheduling, else today */}
+                    <div className="flex flex-row items-center gap-2 flex-1 min-w-0 shrink overflow-hidden">
+                        <div className="relative flex-1 min-w-0">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                value={displayDate || todayDate}
+                                readOnly
+                                className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${dateSessionControlClassName}`}
+                            />
                         </div>
-                        <input
-                            type="text"
-                            value={todayDate}
-                            readOnly
-                            className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${dateSessionControlClassName}`}
-                        />
+                        {displayDate && displayDate !== todayDate && (
+                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-400/40">
+                                Scheduled
+                            </span>
+                        )}
                     </div>
                     
                     {/* Session Select - hidden on mobile, each bid screen has its own session control */}

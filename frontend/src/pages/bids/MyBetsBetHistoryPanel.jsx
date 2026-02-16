@@ -1,5 +1,16 @@
 import React, { useMemo } from 'react';
 
+const formatScheduledDate = (scheduledDate) => {
+  if (!scheduledDate) return null;
+  try {
+    const d = typeof scheduledDate === 'string' ? new Date(scheduledDate) : scheduledDate;
+    if (Number.isNaN(d?.getTime())) return null;
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/');
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Bet History panel for My Bets (desktop): same card layout as mobile view.
  */
@@ -54,6 +65,8 @@ export default function MyBetsBetHistoryPanel({
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-x-hidden">
             {allBetsNewestFirst.map((row, idx) => {
               const { betId, betValue, gameType, points, session, verdict, createdAt, canCancel } = row;
+              const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
+              const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
               const marketTitle = row.market || row.marketTitle || 'MARKET';
               const status = statusLabel(verdict);
               return (
@@ -82,6 +95,11 @@ export default function MyBetsBetHistoryPanel({
                     <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
                     {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
                   </div>
+                  {isScheduled && (
+                    <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
+                      Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                    </div>
+                  )}
                   <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{String(marketTitle).toUpperCase() || 'MARKET'}</p>
                   <div className="flex justify-between gap-1 text-xs">
                     <span className="text-gray-400 shrink-0">Game</span>

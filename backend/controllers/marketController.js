@@ -37,6 +37,13 @@ const toDateKeyIST = (d = new Date()) => {
     }).format(d); // YYYY-MM-DD
 };
 
+/** Tomorrow's date in IST (YYYY-MM-DD) */
+const getTomorrowKeyIST = (todayKey) => {
+    const [y, m, d] = todayKey.split('-').map(Number);
+    const next = new Date(y, m - 1, d + 1);
+    return toDateKeyIST(next);
+};
+
 const computeDisplayResultFromNumbers = (openingNumber, closingNumber) => {
     const opening = openingNumber && /^\d{3}$/.test(String(openingNumber)) ? String(openingNumber) : null;
     const closing = closingNumber && /^\d{3}$/.test(String(closingNumber)) ? String(closingNumber) : null;
@@ -1123,18 +1130,46 @@ export const getMarketStats = async (req, res) => {
         }
 
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const matchFilter = { marketId, status: { $ne: 'cancelled' } };
+        const baseMatch = { marketId, status: { $ne: 'cancelled' } };
         if (bookieUserIds !== null) {
-            matchFilter.userId = { $in: bookieUserIds };
+            baseMatch.userId = { $in: bookieUserIds };
         }
 
-        // Filter bets by today IST – Market overview shows only today's bets; resets after midnight
         const todayKey = toDateKeyIST(new Date());
+        const tomorrowKey = getTomorrowKeyIST(todayKey);
         const startOfTodayIST = new Date(`${todayKey}T00:00:00+05:30`);
         const endOfTodayIST = new Date(`${todayKey}T23:59:59.999+05:30`);
-        matchFilter.createdAt = { $gte: startOfTodayIST, $lte: endOfTodayIST };
+        const startOfTomorrowIST = new Date(`${tomorrowKey}T00:00:00+05:30`);
+        const endOfTomorrowIST = new Date(`${tomorrowKey}T23:59:59.999+05:30`);
 
-        const bets = await Bet.find(matchFilter).lean();
+        // Fetch bets for today's run OR tomorrow's scheduled run
+        const matchFilter = {
+            ...baseMatch,
+            $or: [
+                { createdAt: { $gte: startOfTodayIST, $lte: endOfTodayIST }, $or: [ { scheduledDate: null }, { scheduledDate: { $exists: false } } ] },
+                { scheduledDate: { $gte: startOfTodayIST, $lte: endOfTodayIST } },
+                { scheduledDate: { $gte: startOfTomorrowIST, $lte: endOfTomorrowIST } },
+            ],
+        };
+        const allBets = await Bet.find(matchFilter).lean();
+
+        const todayBets = allBets.filter((b) => {
+            const sched = b.scheduledDate ? new Date(b.scheduledDate) : null;
+            const schedKey = sched ? toDateKeyIST(sched) : null;
+            if (schedKey === tomorrowKey) return false;
+            if (schedKey === todayKey) return true;
+            if (!b.scheduledDate && !b.isScheduled) {
+                const createdKey = b.createdAt ? toDateKeyIST(new Date(b.createdAt)) : null;
+                return createdKey === todayKey;
+            }
+            return false;
+        });
+        const tomorrowBets = allBets.filter((b) => {
+            const sched = b.scheduledDate ? new Date(b.scheduledDate) : null;
+            return sched ? toDateKeyIST(sched) === tomorrowKey : false;
+        });
+
+        const bets = todayBets;
 
         const makeEmpty = () => ({
             singleDigit: { digits: {}, totalAmount: 0, totalBets: 0 },
@@ -1265,6 +1300,28 @@ export const getMarketStats = async (req, res) => {
 
         const startMin = parseHHMM(market.startingTime);
 
+        const buildSessionStats = (betList) => {
+            const all = makeEmpty();
+            const open = makeEmpty();
+            const close = makeEmpty();
+            for (const b of betList) {
+                applyBet(all, b);
+                const betType = (b?.betType || '').toString().trim().toLowerCase();
+                let session =
+                    (betType === 'jodi' || betType === 'full-sangam')
+                        ? 'close'
+                        : ((b?.betOn === 'close') ? 'close' : (b?.betOn === 'open' ? 'open' : null));
+                if (betType === 'half-sangam') session = 'open';
+                if (!session && startMin != null && b?.createdAt) {
+                    const betMin = minutesIST(b.createdAt);
+                    if (betMin != null) session = betMin < startMin ? 'open' : 'close';
+                }
+                if (!session) session = 'open';
+                applyBet(session === 'close' ? close : open, b);
+            }
+            return { all, open, close };
+        };
+
         for (const b of bets) {
             applyBet(allStats, b);
             const betType = (b?.betType || '').toString().trim().toLowerCase();
@@ -1285,6 +1342,8 @@ export const getMarketStats = async (req, res) => {
             if (!session) session = 'open';
             applyBet(session === 'close' ? closeStats : openStats, b);
         }
+
+        const tomorrowSessionStats = buildSessionStats(tomorrowBets);
 
         // Result-on-patti stats: Total Bet Amount / Win Amount / Players on the declared result (for display in Market Detail).
         // Computed by iterating bets with same session + normalization as previewDeclareOpen/previewDeclareClose so values match.
@@ -1413,6 +1472,18 @@ export const getMarketStats = async (req, res) => {
                     close: closeStats,
                 },
                 resultOnPatti,
+                byDate: {
+                    today: {
+                        ...allStats,
+                        bySession: { open: openStats, close: closeStats },
+                        resultOnPatti,
+                    },
+                    tomorrow: {
+                        ...tomorrowSessionStats.all,
+                        bySession: { open: tomorrowSessionStats.open, close: tomorrowSessionStats.close },
+                        resultOnPatti: null,
+                    },
+                },
             },
         });
     } catch (error) {

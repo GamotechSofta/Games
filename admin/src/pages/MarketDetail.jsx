@@ -516,6 +516,8 @@ const MarketDetail = () => {
     const [singlePattiSummary, setSinglePattiSummary] = useState(null);
     /** 'open' | 'closed' – view only open bets or only closed bets */
     const [statusView, setStatusView] = useState('open');
+    /** 'today' | 'tomorrow' – which day's bets to show in overview */
+    const [dateView, setDateView] = useState('today');
     const initialStatusSetForMarketId = React.useRef(null);
 
     const fetchStats = async () => {
@@ -577,22 +579,24 @@ const MarketDetail = () => {
         navigate('/');
     };
 
-    // Single Patti: grouped by Ank (0–9), same as user side
-    const singlePattiByAnk = useMemo(() => buildSinglePattiByAnk(data?.singlePatti?.items), [data?.singlePatti?.items]);
-    const singlePattiTotals = useMemo(() => getSinglePattiTotalsFromByAnk(singlePattiByAnk), [singlePattiByAnk]);
-    // Double Patti: grouped by Ank (0–9), same as user side
-    const doublePattiByAnk = useMemo(() => buildDoublePattiByAnk(data?.doublePatti?.items), [data?.doublePatti?.items]);
-    const doublePattiTotals = useMemo(() => getDoublePattiTotalsFromByAnk(doublePattiByAnk), [doublePattiByAnk]);
-
-    // Session-aware view stats (new API returns bySession.open/close; fallback to overall stats).
-    const statsOpen = data?.bySession?.open || data;
-    const statsClose = data?.bySession?.close || data;
+    // Date bucket: today (default) or tomorrow (scheduled bets). Fallback to legacy data shape.
+    const baseData = dateView === 'tomorrow' && data?.byDate?.tomorrow
+        ? data.byDate.tomorrow
+        : (data?.byDate?.today != null ? data.byDate.today : data);
+    const statsOpen = baseData?.bySession?.open || baseData;
+    const statsClose = baseData?.bySession?.close || baseData;
     const isStartlineMarket = data?.market?.marketType === 'startline';
     const isKingBazaarMarket = data?.market?.marketType === 'king';
     const viewStats = (isStartlineMarket ? 'open' : statusView) === 'open' ? statsOpen : statsClose;
 
     const viewSinglePattiItems = viewStats?.singlePatti?.items || {};
     const viewDoublePattiItems = viewStats?.doublePatti?.items || {};
+
+    // Single/Double Patti totals for the selected date (Today/Tomorrow) — used for grand total
+    const singlePattiByAnk = useMemo(() => buildSinglePattiByAnk(baseData?.singlePatti?.items), [baseData?.singlePatti?.items]);
+    const singlePattiTotals = useMemo(() => getSinglePattiTotalsFromByAnk(singlePattiByAnk), [singlePattiByAnk]);
+    const doublePattiByAnk = useMemo(() => buildDoublePattiByAnk(baseData?.doublePatti?.items), [baseData?.doublePatti?.items]);
+    const doublePattiTotals = useMemo(() => getDoublePattiTotalsFromByAnk(doublePattiByAnk), [doublePattiByAnk]);
 
     // View-dependent data (Open/Closed): build same user-side grouping, but from view session items
     const singlePattiByAnkForView = useMemo(() => buildSinglePattiByAnk(viewSinglePattiItems), [viewSinglePattiItems]);
@@ -649,7 +653,7 @@ const MarketDetail = () => {
         halfSangam = { items: {}, totalAmount: 0, totalBets: 0 },
         fullSangam = { items: {}, totalAmount: 0, totalBets: 0 },
         resultOnPatti = { open: null, close: null },
-    } = data;
+    } = { ...data, ...baseData };
 
     const hasOpen = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
     const hasClose = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
@@ -738,11 +742,26 @@ const MarketDetail = () => {
                     <FaArrowLeft className="w-4 h-4" /> Markets Management
                 </Link>
 
-                {/* Overview card – updates when Open/Closed view changes (key forces refresh); responsive for mobile */}
-                <div key={`overview-${statusView}`} className="rounded-lg border border-gray-700 bg-gray-800/80 shadow-xl overflow-hidden mb-4 sm:mb-6 min-w-0">
+                {/* Overview card – Today/Tomorrow + Open/Closed; key forces refresh when view changes */}
+                <div key={`overview-${dateView}-${statusView}`} className="rounded-lg border border-gray-700 bg-gray-800/80 shadow-xl overflow-hidden mb-4 sm:mb-6 min-w-0">
                     <div className="bg-gray-800 border-b border-gray-700 px-3 py-2.5">
-                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{market.marketName}</h1>
-                        <p className="text-gray-400 text-xs mt-0.5">Market overview & result</p>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{market.marketName}</h1>
+                                <p className="text-gray-400 text-xs mt-0.5">Market overview & result</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] text-gray-500 uppercase tracking-wider">Bets for</span>
+                                <select
+                                    value={dateView}
+                                    onChange={(e) => setDateView(e.target.value)}
+                                    className="px-2.5 py-1.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-xs font-medium focus:ring-2 focus:ring-yellow-500"
+                                >
+                                    <option value="today">Today</option>
+                                    <option value="tomorrow">Tomorrow</option>
+                                </select>
+                            </div>
+                        </div>
                         {marketId && (
                             <p className="text-[11px] text-gray-500 mt-1 font-mono" title="Same ID as in Add Result → Check">ID: {marketId}</p>
                         )}
@@ -1178,6 +1197,7 @@ const MarketDetail = () => {
                     >
                         <FaArrowLeft /> Back to Markets
                     </Link>
+                    {dateView === 'today' && (
                     <Link
                         to="/add-result"
                         state={{ preselectedMarket: market }}
@@ -1185,6 +1205,7 @@ const MarketDetail = () => {
                     >
                         <FaEdit /> Add Result for {market.marketName}
                     </Link>
+                    )}
                 </div>
             </div>
         </AdminLayout>

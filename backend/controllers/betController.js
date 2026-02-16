@@ -72,13 +72,41 @@ export const placeBet = async (req, res) => {
                 ? 'open'
                 : (market?.openingNumber && THREE_DIGITS.test(String(market.openingNumber)) ? 'close' : 'open');
 
-        const timing = isBettingAllowed(market);
-        if (!timing.allowed) {
-            return res.status(400).json({
-                success: false,
-                message: timing.message || 'Betting is not allowed for this market at this time.',
-                code: 'BETTING_CLOSED',
-            });
+        // If scheduling for a future date (tomorrow or later in IST), skip today's betting-window check
+        let isSchedulingForFuture = false;
+        const todayIST = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        }).format(new Date());
+        if (scheduledDate) {
+            // Prefer string comparison for YYYY-MM-DD to avoid timezone parsing issues
+            const schedStr = String(scheduledDate).trim().slice(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(schedStr) && schedStr > todayIST) {
+                isSchedulingForFuture = true;
+            } else {
+                const sched = new Date(scheduledDate);
+                if (!isNaN(sched.getTime())) {
+                    const schedIST = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'Asia/Kolkata',
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    }).format(sched);
+                    if (schedIST > todayIST) isSchedulingForFuture = true;
+                }
+            }
+        }
+        if (!isSchedulingForFuture) {
+            const timing = isBettingAllowed(market);
+            if (!timing.allowed) {
+                return res.status(400).json({
+                    success: false,
+                    message: timing.message || 'Betting is not allowed for this market at this time.',
+                    code: 'BETTING_CLOSED',
+                });
+            }
         }
 
         const sanitized = [];

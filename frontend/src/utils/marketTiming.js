@@ -62,6 +62,22 @@ export function getTodayIST() {
   }).format(new Date());
 }
 
+/** Tomorrow's date in IST (YYYY-MM-DD) for scheduling bets */
+export function getTomorrowIST() {
+  const todayIST = getTodayIST();
+  const d = new Date(`${todayIST}T12:00:00+05:30`);
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Format YYYY-MM-DD to dd-mm-yyyy for display on game bid screen (matches en-IN style) */
+export function formatDateDisplay(isoDate) {
+  if (!isoDate || typeof isoDate !== 'string') return '';
+  const d = new Date(isoDate + 'T12:00:00');
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+}
+
 function normalizeTimeStr(timeStr) {
   const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
   return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;

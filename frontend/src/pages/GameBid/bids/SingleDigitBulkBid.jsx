@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
-const SingleDigitBulkBid = ({ market, title }) => {
+const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [inputPoints, setInputPoints] = useState('');
     const [bids, setBids] = useState([]);
@@ -37,7 +38,8 @@ const SingleDigitBulkBid = ({ market, title }) => {
     const bulkBidsCount = bids.length;
     const bulkTotalPoints = bids.reduce((sum, b) => sum + Number(b.points || 0), 0);
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
+    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
 
     const walletBefore = useMemo(() => {
@@ -102,7 +104,9 @@ const SingleDigitBulkBid = ({ market, title }) => {
             amount: Number(r.points) || 0,
             betOn: String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        const result = await placeBet(marketId, payload);
+        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -117,7 +121,8 @@ const SingleDigitBulkBid = ({ market, title }) => {
             title={title}
             bidsCount={bulkBidsCount}
             totalPoints={bulkTotalPoints}
-            showDateSession={false}
+            showDateSession={!!scheduleForTomorrow}
+            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
             extraHeader={extraHeader}
             session={session}
             setSession={setSession}
@@ -143,7 +148,7 @@ const SingleDigitBulkBid = ({ market, title }) => {
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     </div>
-                                    <input type="text" value={todayDate} readOnly className="w-full pl-9 py-2 min-h-[36px] bg-[#202124] border border-white/10 rounded-full text-xs font-bold text-center text-white focus:outline-none" />
+                                    <input type="text" value={formDateDisplay} readOnly className="w-full pl-9 py-2 min-h-[36px] bg-[#202124] border border-white/10 rounded-full text-xs font-bold text-center text-white focus:outline-none" />
                                 </div>
                             </div>
                             <div className="flex flex-row items-center gap-2">

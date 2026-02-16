@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BettingWindowProvider } from './BettingWindowContext';
+import { SchedulingProvider, BettingWindowProvider } from './BettingWindowContext';
 import SingleDigitBid from './bids/SingleDigitBid';
 import SingleDigitBulkBid from './bids/SingleDigitBulkBid';
 import JodiBid from './bids/JodiBid';
@@ -32,7 +32,7 @@ const BID_COMPONENTS = {
 const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { market, betType } = location.state || {};
+    const { market, betType, scheduleForTomorrow } = location.state || {};
 
     useEffect(() => {
         if (!market && !location.state?.title) {
@@ -45,9 +45,11 @@ const GameBid = () => {
     const BidComponent = BID_COMPONENTS[key] || SingleDigitBid;
 
     return (
-        <BettingWindowProvider market={market}>
-            <BidComponent market={market} title={title} />
-        </BettingWindowProvider>
+        <SchedulingProvider>
+            <BettingWindowProvider market={market} scheduleForTomorrow={scheduleForTomorrow}>
+                <BidComponent market={market} title={title} scheduleForTomorrow={scheduleForTomorrow} />
+            </BettingWindowProvider>
+        </SchedulingProvider>
     );
 };
 

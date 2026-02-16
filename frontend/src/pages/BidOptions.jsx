@@ -293,6 +293,7 @@ const BidOptions = () => {
                 betType: option.displayTitle || option.title,
                 sessionPreset: option.sessionPreset,
                 gameMode: (option.displayTitle || option.title).toLowerCase().includes('bulk') ? 'bulk' : 'easy',
+                ...(location.state?.scheduleForTomorrow && { scheduleForTomorrow: true }),
                 ...(isKingBazaar && kingBazaarMarketKey != null && {
                   marketType: 'king',
                   kingBazaarMarketKey,

@@ -24,6 +24,18 @@ const formatTxnTime = (iso) => {
   }
 };
 
+/** Format scheduled date for display (e.g. "17/02/2026"). Returns null if not scheduled. */
+const formatScheduledDate = (scheduledDate) => {
+  if (!scheduledDate) return null;
+  try {
+    const d = typeof scheduledDate === 'string' ? new Date(scheduledDate) : scheduledDate;
+    if (Number.isNaN(d?.getTime())) return null;
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/');
+  } catch {
+    return null;
+  }
+};
+
 const renderBetNumber = (val) => {
   const s = (val ?? '').toString().trim();
   if (/^\d{2}$/.test(s)) {
@@ -681,6 +693,8 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
               <div className="md:hidden grid grid-cols-2 gap-3 overflow-x-hidden">
                 {allBetsNewestFirst.map((row, idx) => {
                   const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
+                  const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
+                  const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                   const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
                   const gameType = labelForType(betType);
                   const status = statusLabel(verdict);
@@ -710,6 +724,11 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                         <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
                         {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
                       </div>
+                      {isScheduled && (
+                        <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
+                          Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                        </div>
+                      )}
                       <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{marketTitle?.toUpperCase() || 'MARKET'}</p>
                       <div className="flex justify-between gap-1 text-xs">
                         <span className="text-gray-400 shrink-0">Game</span>
@@ -768,6 +787,8 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                   <tbody>
                     {allBetsNewestFirst.map((row, idx) => {
                       const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
+                      const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
+                      const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                       const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
                       const gameType = labelForType(betType);
                       const status = statusLabel(verdict);
@@ -787,7 +808,14 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                           }`}
                         >
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-sm">{idx + 1}</td>
-                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-white text-sm font-medium truncate max-w-[120px]" title={marketTitle}>{marketTitle?.toUpperCase() || '—'}</td>
+                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-white text-sm font-medium truncate max-w-[120px]" title={marketTitle}>
+                            <span className="block truncate">{marketTitle?.toUpperCase() || '—'}</span>
+                            {isScheduled && (
+                              <span className="inline-block mt-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">
+                                Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                              </span>
+                            )}
+                          </td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-white text-sm font-medium">{gameType}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-white font-semibold">{betValue}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">

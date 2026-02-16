@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const EasyModeBid = ({
@@ -18,6 +19,7 @@ const EasyModeBid = ({
     desktopSplit = false,
     validDoublePanas = [],
     validSinglePanas = [],
+    scheduleForTomorrow,
 }) => {
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
     const lockSessionToOpen = specialModeType === 'jodi';
@@ -318,9 +320,10 @@ const EasyModeBid = ({
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
     const labelKey = label?.split(' ').pop() || 'Number';
-    const dateText = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
     const showInvalidNumberStyle = maxLength === 3; // Pana inputs
     const isNumberComplete = !!inputNumber && (!!maxLength ? String(inputNumber).length === maxLength : true);
     const isNumberInvalid = showInvalidNumberStyle && isNumberComplete && !isValid(inputNumber);
@@ -410,7 +413,7 @@ const EasyModeBid = ({
                     </div>
                     <input
                         type="text"
-                        value={todayDate}
+                        value={formDateDisplay}
                         readOnly
                         className="w-full pl-12 py-3 sm:py-2.5 min-h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-sm font-bold text-center focus:outline-none"
                     />
@@ -536,7 +539,9 @@ const EasyModeBid = ({
             betOn: lockSessionToOpen ? 'open' : (String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open'),
         })).filter((b) => b.betNumber && b.amount > 0);
         if (!payload.length) throw new Error('No valid bets to place');
-        const result = await placeBet(marketId, payload);
+        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
+        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
         setIsReviewOpen(false);
@@ -560,7 +565,8 @@ const EasyModeBid = ({
                 setReviewRows(bids);
                 setIsReviewOpen(true);
             }}
-            showDateSession={false}
+            showDateSession={!!scheduleForTomorrow}
+            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
             extraHeader={null}
         >
             <div className="px-3 sm:px-4 py-4 sm:py-2 md:max-w-7xl md:mx-auto">
