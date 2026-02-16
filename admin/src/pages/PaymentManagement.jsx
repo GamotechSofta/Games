@@ -581,7 +581,7 @@ const PaymentManagement = () => {
             {/* Action Modal */}
             {actionModal.show && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+                    <div className="bg-gray-800 rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 border border-gray-700 shadow-2xl">
                         <div className="flex items-center gap-3 mb-4">
                             {actionModal.action === 'approve' ? (
                                 <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
