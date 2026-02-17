@@ -40,7 +40,7 @@ const GamesSection = () => {
                 }`}
               >
                 <div
-                  className={`game-card relative rounded-xl sm:rounded-2xl aspect-[4/3] min-h-[100px] sm:min-h-[120px] md:min-h-[90px] w-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-200 ${
+                  className={`game-card relative rounded-xl sm:rounded-2xl aspect-square min-h-[100px] sm:min-h-[120px] md:min-h-[90px] w-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-200 ${
                     isUpcoming
                       ? 'bg-gradient-to-br from-slate-800/90 via-amber-950/30 to-slate-900 border border-amber-500/20'
                       : 'bg-[#1a1a1a] border border-white/10'
