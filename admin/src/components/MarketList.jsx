@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 /** Format HH:mm to 12-hour with AM/PM (e.g. "01:00" → "1:00 AM", "13:30" → "1:30 PM") */
 function formatTime12h(timeStr) {
@@ -28,7 +27,6 @@ function isClosingTimePassedIST(closingTime, nowMs = Date.now()) {
 }
 
 const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) => {
-    const navigate = useNavigate();
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -151,13 +149,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                            <button
-                                onClick={() => navigate(`/markets/${market._id}`)}
-                                className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
-                            >
-                                View
-                            </button>
+                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                             <button
                                 onClick={() => onEdit(market)}
                                 className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"

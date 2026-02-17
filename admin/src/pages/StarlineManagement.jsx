@@ -15,6 +15,16 @@ const formatTime = (timeStr) => {
     const m = parts[1] ? String(parseInt(parts[1], 10)).padStart(2, '0') : '00';
     return `${Number.isFinite(h) ? h : ''}:${m}`;
 };
+/** Format HH:mm to 12-hour with AM/PM (same as MarketList) */
+const formatTime12h = (timeStr) => {
+    const s = (timeStr || '').toString().trim().slice(0, 5);
+    const [hh, mm] = s.split(':');
+    const h = parseInt(hh, 10) || 0;
+    const m = parseInt(mm, 10) || 0;
+    const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    const ampm = h < 12 ? 'AM' : 'PM';
+    return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
 
 const to24Hour = (hour12, minute, ampm) => {
     let h = parseInt(hour12, 10) || 12;
@@ -58,6 +68,13 @@ const isSlotClosedTodayIST = (timeHHMM, nowMs) => {
     const targetToday = getTodayTargetMsIST(timeHHMM, nowMs);
     if (targetToday == null) return true;
     return nowMs >= targetToday;
+};
+/** Same status logic as MarketList: open/closed/running */
+const getSlotStatus = (m, nowMs) => {
+    const hasOpen = m.openingNumber && /^\d{3}$/.test(String(m.openingNumber));
+    if (hasOpen) return { status: 'closed', color: 'bg-red-600' };
+    if (isSlotClosedTodayIST(m.closingTime || m.startingTime, nowMs)) return { status: 'closed', color: 'bg-red-600' };
+    return { status: 'open', color: 'bg-green-600' };
 };
 
 const StarlineManagement = ({ embedded = false }) => {
@@ -530,7 +547,7 @@ const StarlineManagement = ({ embedded = false }) => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
                                 {[...starlineGroups]
                                     .sort((a, b) => (safeNum(a.order) - safeNum(b.order)) || (a.label || '').localeCompare(b.label || ''))
                                     .map((g) => {
@@ -538,49 +555,40 @@ const StarlineManagement = ({ embedded = false }) => {
                                         const slotCount = groupSlots.length;
                                         const declaredCount = groupSlots.filter((m) => m.openingNumber && /^\d{3}$/.test(String(m.openingNumber))).length;
                                         const openCount = slotCount - declaredCount;
-                                        const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? `${openCount} open` : 'All declared';
-                                        const statusVariant = slotCount === 0 ? 'gray' : openCount > 0 ? 'emerald' : 'amber';
+                                        const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
+                                        const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
                                         return (
                                             <div
                                                 key={g.key}
-                                                className="group relative bg-gray-800 rounded-2xl border border-gray-700 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/5 transition-all overflow-hidden flex flex-col"
+                                                className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden"
                                             >
-                                                {/* Top accent */}
-                                                <div className="h-1 w-full bg-gradient-to-r from-amber-500/80 to-amber-400/50" />
-                                                <div className="p-5 flex flex-col flex-1 min-h-0">
-                                                    <div className="flex items-start justify-between gap-3 mb-3">
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide ${
-                                                                    statusVariant === 'gray' ? 'bg-gray-700 text-gray-400' :
-                                                                    statusVariant === 'emerald' ? 'bg-emerald-900/60 text-emerald-300' : 'bg-amber-900/50 text-amber-300'
-                                                                }`}>
-                                                                    {statusLabel}
-                                                                </span>
-                                                            </div>
-                                                            <h3 className="text-lg font-bold text-white truncate mt-2" title={g.label}>{g.label}</h3>
-                                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1.5 text-xs text-gray-500">
-                                                                <span className="font-medium text-gray-400">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
-                                                                {slotCount > 0 && openCount > 0 && <span>{openCount} open for bets</span>}
-                                                                {declaredCount > 0 && <span>{declaredCount} declared</span>}
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => { e.stopPropagation(); setDeleteGroupKey(g.key); setShowDeleteGroupModal(true); }}
-                                                            className="p-2 rounded-xl text-gray-400 hover:bg-red-900/30 hover:text-red-400 transition-colors shrink-0"
-                                                            title="Delete this market"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                        </button>
+                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                    <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                                                        {statusLabel}
                                                     </div>
+                                                    <div className="min-w-0 overflow-hidden flex justify-end">
+                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
+                                                    </div>
+                                                </div>
+                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
+                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
+                                                    {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
+                                                    {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                                                     <button
                                                         type="button"
                                                         onClick={() => setActiveTab(g.key)}
-                                                        className="w-full mt-auto px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-md shadow-amber-900/20"
+                                                        className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
                                                     >
-                                                        Manage slots & result
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                                        Manage
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); setDeleteGroupKey(g.key); setShowDeleteGroupModal(true); }}
+                                                        className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
+                                                    >
+                                                        Delete
                                                     </button>
                                                 </div>
                                             </div>
@@ -661,25 +669,37 @@ const StarlineManagement = ({ embedded = false }) => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
                                         {slotsForTab.map((m) => {
-                                            const hasOpen = m.openingNumber && /^\d{3}$/.test(String(m.openingNumber));
-                                            const slotClosedToday = isSlotClosedTodayIST(m.closingTime || m.startingTime, tick);
-                                            const statusLabel = hasOpen ? 'Result declared' : slotClosedToday ? 'Close For Today' : 'Open';
-                                            const statusVariant = hasOpen ? 'red' : slotClosedToday ? 'red' : 'emerald';
+                                            const status = getSlotStatus(m, tick);
+                                            const resultRaw = m.displayResult || m.winNumber || (m.openingNumber ? String(m.openingNumber) : '');
                                             return (
-                                                <div key={m._id} className="bg-gray-800 rounded-xl border border-gray-600 p-4 hover:border-amber-500/40 transition-colors">
-                                                    <div className="flex items-center justify-between gap-2 mb-2">
-                                                        <span className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded ${statusVariant === 'red' ? 'bg-red-900/50 text-red-300' : 'bg-emerald-900/50 text-emerald-300'}`}>
-                                                            {statusLabel}
-                                                        </span>
+                                                <div key={m._id} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
+                                                    {/* Top row: Status (left) + Result (right) - same as MarketList */}
+                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                        <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                                                            {status.status === 'open' && 'OPEN'}
+                                                            {status.status === 'closed' && 'CLOSED'}
+                                                        </div>
+                                                        <div className="min-w-0 overflow-hidden flex justify-end">
+                                                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={resultRaw}>
+                                                                {resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <h3 className="text-sm font-bold text-white truncate mb-1" title={m.marketName}>{m.marketName}</h3>
-                                                    <p className="text-xs text-gray-500 mb-3">Closes {formatTime(m.closingTime)}</p>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <button type="button" onClick={() => navigate(`/markets/${m._id}`)} className="px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium">View details</button>
-                                                        <button type="button" onClick={() => handleEdit(m)} className="px-3 py-1.5 rounded-lg bg-amber-600/80 hover:bg-amber-600 text-black text-xs font-medium">Edit time</button>
-                                                        <button type="button" onClick={() => handleDelete(m)} className="px-3 py-1.5 rounded-lg bg-red-900/60 hover:bg-red-800 text-red-200 text-xs font-medium">Delete</button>
+                                                    {/* Market Info - same as MarketList */}
+                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
+                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
+                                                        <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
+                                                        <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                        {m.betClosureTime != null && m.betClosureTime !== '' && (
+                                                            <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>
+                                                        )}
+                                                    </div>
+                                                    {/* Action Buttons - same as MarketList (Edit, Delete) */}
+                                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                                        <button type="button" onClick={() => handleEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit</button>
+                                                        <button type="button" onClick={() => handleDelete(m)} className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Delete</button>
                                                     </div>
                                                 </div>
                                             );
