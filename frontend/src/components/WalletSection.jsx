@@ -15,8 +15,8 @@ const WalletSection = () => {
       alt: "Black Gold Casino Night Banner"
     },
     {
-      src: "https://res.cloudinary.com/dzd47mpdo/image/upload/v1769775839/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_olvhqm.png",
-      alt: "Casino banner"
+      src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771338484/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1_shojp0.png",
+      alt: "Black Orange Offline Gaming Banner"
     },
   ];
 
