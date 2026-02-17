@@ -134,9 +134,15 @@ const AddResult = () => {
         if (type === 'starline' || type === 'king') setActiveTab(type);
     }, [location.state?.marketType]);
 
+    const fromMarketResult = location.state?.fromMarketResult === true;
+    const backToMarketResultState = fromMarketResult ? {
+        marketType: location.state?.marketType || 'regular',
+        activeGroupKey: location.state?.activeGroupKey || '',
+    } : undefined;
+
     useEffect(() => {
         if (!preselectedFromNav?._id) return;
-        navigate('/add-result', { replace: true, state: {} });
+        navigate('/add-result', { replace: true, state: { fromMarketResult: !!location.state?.fromMarketResult, marketType: location.state?.marketType, activeGroupKey: location.state?.activeGroupKey } });
     }, [preselectedFromNav?._id, navigate]);
 
     useRefreshOnMarketReset(() => {
@@ -172,6 +178,10 @@ const AddResult = () => {
     };
 
     const closePanel = () => {
+        if (fromMarketResult) {
+            navigate('/market-result', { state: backToMarketResultState });
+            return;
+        }
         setIsDirectEditMode(false);
         setSelectedMarket(null);
         setOpenPatti('');
@@ -401,9 +411,121 @@ const AddResult = () => {
 
     const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
+    const showOnlyDeclareScreen = fromMarketResult && selectedMarket;
+
     return (
-        <AdminLayout onLogout={handleLogout} title="Declare Result">
+        <AdminLayout onLogout={handleLogout} title={showOnlyDeclareScreen ? selectedMarket?.marketName || 'Add Result' : 'Declare Result'}>
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8">
+                {showOnlyDeclareScreen ? (
+                    /* When from Market Result: show only the declare panel */
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] py-6">
+                        <div className="w-full max-w-lg">
+                            <Link
+                                to="/market-result"
+                                state={backToMarketResultState}
+                                className="inline-flex items-center gap-2 text-gray-400 hover:text-amber-400 text-sm mb-4 transition-colors"
+                            >
+                                ← Back to Market Result
+                            </Link>
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
+                                    {error}
+                                </div>
+                            )}
+                            {/* Declare panel as main content – same as modal body */}
+                            <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
+                                <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 border-b border-gray-700 bg-gray-800">
+                                    <h2 className="text-base sm:text-lg font-bold text-yellow-500 truncate" title={selectedMarket.marketName}>
+                                        {selectedMarket.marketName}
+                                    </h2>
+                                </div>
+                                <div className="p-4 sm:p-5 md:p-6">
+                                    {getMarketId() && (
+                                        <p className="text-[11px] text-gray-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <span className="font-mono text-gray-400">ID: {getMarketId()}</span>
+                                            <Link to={`/market-result/${getMarketId()}`} className="text-amber-400 hover:underline shrink-0" onClick={(e) => e.stopPropagation()}>View details</Link>
+                                        </p>
+                                    )}
+                                    {selectedMarket.marketType === 'king' ? (
+                                        <div className="mb-4 sm:mb-6">
+                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">King Bazaar Result</h3>
+                                            <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 2-digit Jodi (00-99) → Check (preview) → Declare Result</p>
+                                            <div className="mb-2 sm:mb-3">
+                                                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Jodi (2 digits)</label>
+                                                <input type="text" inputMode="numeric" value={kingBazaarJodi} onChange={(e) => setKingBazaarJodi(e.target.value.replace(/\D/g, '').slice(0, 2))} placeholder="e.g. 56" className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] touch-manipulation" maxLength={2} />
+                                            </div>
+                                            <div className="flex gap-2 mb-2 sm:mb-3">
+                                                <button type="button" onClick={handleCheckKingBazaar} disabled={checkLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2} className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 text-sm">Check</button>
+                                            </div>
+                                            {preview != null && (
+                                                <div className="space-y-1.5 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
+                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(preview.totalBetAmount)}</span></div>
+                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(preview.profit)}</span></div>
+                                                </div>
+                                            )}
+                                            <button type="button" onClick={handleDeclareKingBazaar} disabled={declareLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Result</button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                        <div className="mb-4 sm:mb-6">
+                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Open Result</h3>
+                                            <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
+                                            <div className="mb-2 sm:mb-3">
+                                                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
+                                                <input type="text" inputMode="numeric" value={openPatti} onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="e.g. 156" className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] touch-manipulation" maxLength={3} />
+                                            </div>
+                                            <div className="flex gap-2 mb-2 sm:mb-3">
+                                                <button type="button" onClick={handleCheckOpen} disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3} className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 text-sm">Check</button>
+                                            </div>
+                                            {preview != null && (
+                                                <div className="space-y-1.5 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
+                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(preview.totalBetAmount)}</span></div>
+                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(preview.profit)}</span></div>
+                                                </div>
+                                            )}
+                                            <button type="button" onClick={handleDeclareOpen} disabled={declareLoading || openPatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Open</button>
+                                        </div>
+                                        {selectedMarket.marketType !== 'startline' && selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber) && (
+                                            <div className="mb-4 sm:mb-6">
+                                                <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Close Result</h3>
+                                                <p className="text-[11px] text-gray-500 mb-2">Enter 3 digits → Check → Declare Close</p>
+                                                <div className="mb-2">
+                                                    <label className="block text-xs font-medium text-gray-400 mb-1">Close Patti (3 digits)</label>
+                                                    <input type="text" inputMode="numeric" value={closePatti} onChange={(e) => setClosePatti(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="e.g. 456" className="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white font-mono min-h-[44px]" maxLength={3} />
+                                                </div>
+                                                <div className="flex gap-2 mb-2">
+                                                    <button type="button" onClick={handleCheckClose} disabled={checkCloseLoading || closePatti.replace(/\D/g, '').length !== 3} className="flex-1 px-3 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg disabled:opacity-50 text-sm">Check</button>
+                                                </div>
+                                                {previewClose != null && (
+                                                    <div className="space-y-1.5 mb-2 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5">
+                                                        <div className="flex justify-between"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(previewClose.totalBetAmount)}</span></div>
+                                                        <div className="flex justify-between"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(previewClose.profit)}</span></div>
+                                                    </div>
+                                                )}
+                                                <button type="button" onClick={handleDeclareClose} disabled={declareLoading || closePatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Close</button>
+                                            </div>
+                                        )}
+                                        {((selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber)) || (selectedMarket.closingNumber && /^\d{3}$/.test(selectedMarket.closingNumber))) && (
+                                            <button type="button" onClick={handleClearResult} disabled={clearLoading} className="mt-3 w-full px-4 py-2.5 bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold rounded-lg disabled:opacity-50 text-sm">Clear Result</button>
+                                        )}
+                                        </>
+                                    )}
+                                    <button type="button" onClick={closePanel} className="mt-4 w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                <>
+                {fromMarketResult && (
+                    <Link
+                        to="/market-result"
+                        state={backToMarketResultState}
+                        className="inline-flex items-center gap-2 text-gray-400 hover:text-amber-400 text-sm mb-4 transition-colors"
+                    >
+                        ← Back to Market Result
+                    </Link>
+                )}
                 {error && (
                     <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-xs sm:text-sm md:text-base">
                         {error}
@@ -475,7 +597,7 @@ const AddResult = () => {
                             ) : starlineMarkets.length === 0 ? (
                                 <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
                                     <p className="text-gray-400 text-sm mb-4">No Starline slots yet. Add markets and slots from Markets → Starline Market.</p>
-                                    <Link to="/markets" state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
+                                    <Link to={fromMarketResult ? '/market-result' : '/markets'} state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
                                         <FaStar className="w-4 h-4" /> Go to Starline Market
                                     </Link>
                                 </div>
@@ -549,7 +671,7 @@ const AddResult = () => {
                                         <FaCrown className="w-8 h-8 text-amber-400" />
                                     </div>
                                     <p className="text-gray-400 text-sm mb-4">No King Bazaar slots yet. Add markets and slots from Markets → King Bazaar Market.</p>
-                                    <Link to="/markets" state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
+                                    <Link to={fromMarketResult ? '/market-result' : '/markets'} state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
                                         <FaCrown className="w-4 h-4" /> Go to King Bazaar Market
                                     </Link>
                                 </div>
@@ -844,6 +966,8 @@ const AddResult = () => {
                             </div>
                         </div>
                     </div>
+                )}
+                </>
                 )}
             </div>
         </AdminLayout>

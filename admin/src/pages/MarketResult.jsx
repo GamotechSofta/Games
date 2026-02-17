@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
+import AddResultModal from '../components/AddResultModal';
 import MarketDetail from './MarketDetail';
 import { clearAdminAuth } from '../utils/api';
 import { FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
@@ -72,6 +73,8 @@ const MarketResult = () => {
     const [activeTab, setActiveTab] = useState('regular');
     /** Selected group key for Starline/King - when set, show slots; when empty, show group list */
     const [activeGroupKey, setActiveGroupKey] = useState('');
+    /** Market for Add Result modal - when set, show modal instead of navigating */
+    const [addResultMarket, setAddResultMarket] = useState(null);
 
     useEffect(() => {
         const type = (location.state?.marketType || '').toString().toLowerCase();
@@ -318,7 +321,7 @@ const MarketResult = () => {
                                             </div>
                                             <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                                                 <button onClick={() => navigate(`/market-result/${market._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
-                                                <button onClick={() => navigate('/add-result', { state: { preselectedMarket: market } })} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Add Result</button>
+                                                <button onClick={() => setAddResultMarket(market)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Add Result</button>
                                             </div>
                                         </div>
                                     );
@@ -378,7 +381,7 @@ const MarketResult = () => {
                                             View
                                         </button>
                                         <button
-                                            onClick={() => navigate('/add-result', { state: { preselectedMarket: market } })}
+                                            onClick={() => setAddResultMarket(market)}
                                             className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
                                         >
                                             Add Result
@@ -392,6 +395,13 @@ const MarketResult = () => {
                     </section>
                 )}
             </div>
+            {addResultMarket && (
+                <AddResultModal
+                    market={addResultMarket}
+                    onClose={() => setAddResultMarket(null)}
+                    onSuccess={fetchMarkets}
+                />
+            )}
         </AdminLayout>
     );
 };
