@@ -32,6 +32,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
     const [passwordError, setPasswordError] = useState('');
     const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
     const [marketToDelete, setMarketToDelete] = useState(null);
+    const [marketToEdit, setMarketToEdit] = useState(null);
     const [, setTick] = useState(0);
 
     useEffect(() => {
@@ -80,6 +81,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
     const handleDelete = (marketId) => {
         if (hasSecretDeclarePassword) {
             setMarketToDelete(marketId);
+            setMarketToEdit(null);
             setShowPasswordModal(true);
             setSecretPassword('');
             setPasswordError('');
@@ -88,15 +90,64 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
         }
     };
 
+    const handleEdit = (market) => {
+        if (hasSecretDeclarePassword) {
+            setMarketToEdit(market);
+            setMarketToDelete(null);
+            setShowPasswordModal(true);
+            setSecretPassword('');
+            setPasswordError('');
+        } else {
+            onEdit(market);
+        }
+    };
+
+    const performEditAfterVerify = async (market, val) => {
+        try {
+            const response = await fetch(`${apiBaseUrl}/admin/verify-secret-declare-password`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ secretDeclarePassword: val }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setShowPasswordModal(false);
+                setMarketToEdit(null);
+                setSecretPassword('');
+                setPasswordError('');
+                onEdit(market);
+            } else {
+                if (data.code === 'INVALID_SECRET_DECLARE_PASSWORD') {
+                    setPasswordError(data.message || 'Invalid secret declare password');
+                } else {
+                    setPasswordError(data.message || 'Verification failed');
+                }
+            }
+        } catch (err) {
+            setPasswordError('Network error');
+        }
+    };
+
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
-        if (!marketToDelete) return;
         const val = secretPassword.trim();
         if (hasSecretDeclarePassword && !val) {
             setPasswordError('Please enter the secret declare password');
             return;
         }
-        performDelete(marketToDelete, val, true);
+        if (marketToDelete) {
+            performDelete(marketToDelete, val, true);
+        } else if (marketToEdit) {
+            performEditAfterVerify(marketToEdit, val);
+        }
+    };
+
+    const closePasswordModal = () => {
+        setShowPasswordModal(false);
+        setMarketToDelete(null);
+        setMarketToEdit(null);
+        setSecretPassword('');
+        setPasswordError('');
     };
 
     // Result declared → closed (red). Open declared, close not → running (green). Else: if closing time (IST) passed → closed (red), else open (green).
@@ -151,7 +202,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                         {/* Action Buttons */}
                         <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                             <button
-                                onClick={() => onEdit(market)}
+                                onClick={() => handleEdit(market)}
                                 className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
                             >
                                 Edit
@@ -168,13 +219,15 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
             })}
         </div>
 
-        {/* Secret declare password modal for delete */}
+        {/* Secret declare password modal for delete/edit */}
         {showPasswordModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                 <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-xl max-w-md w-full p-6">
-                    <h3 className="text-lg font-bold text-yellow-500 mb-2">Enter Secret Password to Delete Market</h3>
+                    <h3 className="text-lg font-bold text-yellow-500 mb-2">
+                        {marketToEdit ? 'Enter Secret Password to Edit Market' : 'Enter Secret Password to Delete Market'}
+                    </h3>
                     <p className="text-gray-400 text-sm mb-4">
-                        Please enter the secret password to confirm market deletion.
+                        {marketToEdit ? 'Please enter the secret password to edit the market.' : 'Please enter the secret password to confirm market deletion.'}
                     </p>
                     <form onSubmit={handlePasswordSubmit} className="space-y-4">
                         <input
@@ -189,13 +242,13 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                         <div className="flex gap-3">
                             <button
                                 type="submit"
-                                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg"
+                                className={`flex-1 px-4 py-3 font-semibold rounded-lg ${marketToEdit ? 'bg-yellow-600 hover:bg-yellow-500 text-black' : 'bg-red-600 hover:bg-red-500 text-white'}`}
                             >
-                                Delete Market
+                                {marketToEdit ? 'Edit Market' : 'Delete Market'}
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { setShowPasswordModal(false); setMarketToDelete(null); setSecretPassword(''); setPasswordError(''); }}
+                                onClick={closePasswordModal}
                                 className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600"
                             >
                                 Cancel

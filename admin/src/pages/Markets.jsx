@@ -26,6 +26,10 @@ const Markets = () => {
     const [formDefaultType, setFormDefaultType] = useState('main');
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('regular');
+    const [showAddPasswordModal, setShowAddPasswordModal] = useState(false);
+    const [addSecretPassword, setAddSecretPassword] = useState('');
+    const [addPasswordError, setAddPasswordError] = useState('');
+    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
     const navigate = useNavigate();
 
     const mainMarkets = markets || [];
@@ -68,15 +72,64 @@ const Markets = () => {
 
     useRefreshOnMarketReset(fetchMarkets);
 
+    useEffect(() => {
+        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
+            })
+            .catch(() => setHasSecretDeclarePassword(false));
+    }, []);
+
     const handleLogout = () => {
         clearAdminAuth();
         navigate('/');
     };
 
     const handleCreate = () => {
+        if (hasSecretDeclarePassword) {
+            setShowAddPasswordModal(true);
+            setAddSecretPassword('');
+            setAddPasswordError('');
+        } else {
+            openCreateForm();
+        }
+    };
+
+    const openCreateForm = () => {
         setEditingMarket(null);
         setFormDefaultType('main');
         setShowForm(true);
+    };
+
+    const performCreateAfterVerify = async () => {
+        const val = addSecretPassword.trim();
+        if (!val) {
+            setAddPasswordError('Please enter the secret declare password');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ secretDeclarePassword: val }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                setShowAddPasswordModal(false);
+                setAddSecretPassword('');
+                setAddPasswordError('');
+                openCreateForm();
+            } else {
+                if (data.code === 'INVALID_SECRET_DECLARE_PASSWORD') {
+                    setAddPasswordError(data.message || 'Invalid secret declare password');
+                } else {
+                    setAddPasswordError(data.message || 'Verification failed');
+                }
+            }
+        } catch (err) {
+            setAddPasswordError('Network error');
+        }
     };
 
     const handleEdit = (market) => {
@@ -167,6 +220,7 @@ const Markets = () => {
                                 </h2>
                                 <button
                                     onClick={handleCreate}
+                                    type="button"
                                     className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-xl transition-colors text-sm sm:text-base touch-manipulation"
                                 >
                                     + Add Market
@@ -181,6 +235,50 @@ const Markets = () => {
                             />
                         </section>
                     )
+                )}
+
+                {/* Secret password modal for Add Market */}
+                {showAddPasswordModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+                        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-xl max-w-md w-full p-6">
+                            <h3 className="text-lg font-bold text-yellow-500 mb-2">Enter Secret Password to Add Market</h3>
+                            <p className="text-gray-400 text-sm mb-4">
+                                Please enter the secret password to add a new market.
+                            </p>
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    performCreateAfterVerify();
+                                }}
+                                className="space-y-4"
+                            >
+                                <input
+                                    type="password"
+                                    value={addSecretPassword}
+                                    onChange={(e) => { setAddSecretPassword(e.target.value); setAddPasswordError(''); }}
+                                    placeholder="Secret password"
+                                    autoFocus
+                                    className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                                {addPasswordError && <p className="text-red-400 text-sm">{addPasswordError}</p>}
+                                <div className="flex gap-3">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 px-4 py-3 bg-yellow-600 hover:bg-yellow-500 text-black font-semibold rounded-lg"
+                                    >
+                                        Add Market
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowAddPasswordModal(false); setAddSecretPassword(''); setAddPasswordError(''); }}
+                                        className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 )}
             </div>
         </AdminLayout>

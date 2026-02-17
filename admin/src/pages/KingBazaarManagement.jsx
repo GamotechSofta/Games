@@ -108,6 +108,12 @@ const KingBazaarManagement = ({ embedded = false }) => {
     const [deleteGroupPassword, setDeleteGroupPassword] = useState('');
     const [deleteGroupPasswordError, setDeleteGroupPasswordError] = useState('');
     const [deleteGroupLoading, setDeleteGroupLoading] = useState(false);
+    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const [showActionPasswordModal, setShowActionPasswordModal] = useState(false);
+    const [actionPassword, setActionPassword] = useState('');
+    const [actionPasswordError, setActionPasswordError] = useState('');
+    const [pendingActionType, setPendingActionType] = useState(null);
+    const [pendingEditMarket, setPendingEditMarket] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -285,6 +291,82 @@ const KingBazaarManagement = ({ embedded = false }) => {
         setShowForm(true);
     };
 
+    const openAddMarket = () => {
+        if (hasSecretDeclarePassword) {
+            setPendingActionType('addMarket');
+            setPendingEditMarket(null);
+            setShowActionPasswordModal(true);
+            setActionPassword('');
+            setActionPasswordError('');
+        } else {
+            setShowAddMarket(true);
+            setNewMarketLabel('');
+            setAddMarketError('');
+        }
+    };
+
+    const openAddSlot = () => {
+        if (hasSecretDeclarePassword) {
+            setPendingActionType('addSlot');
+            setPendingEditMarket(null);
+            setShowActionPasswordModal(true);
+            setActionPassword('');
+            setActionPasswordError('');
+        } else {
+            setShowAddSlot(true);
+            setAddError('');
+        }
+    };
+
+    const handleEditClick = (market) => {
+        if (hasSecretDeclarePassword) {
+            setPendingActionType('edit');
+            setPendingEditMarket(market);
+            setShowActionPasswordModal(true);
+            setActionPassword('');
+            setActionPasswordError('');
+        } else {
+            handleEdit(market);
+        }
+    };
+
+    const performActionAfterVerify = async () => {
+        const val = actionPassword.trim();
+        if (!val) {
+            setActionPasswordError('Please enter the secret declare password');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ secretDeclarePassword: val }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setShowActionPasswordModal(false);
+                setActionPassword('');
+                setActionPasswordError('');
+                if (pendingActionType === 'addMarket') {
+                    setShowAddMarket(true);
+                    setNewMarketLabel('');
+                    setAddMarketError('');
+                } else if (pendingActionType === 'addSlot') {
+                    setShowAddSlot(true);
+                    setAddError('');
+                } else if (pendingActionType === 'edit' && pendingEditMarket) {
+                    handleEdit(pendingEditMarket);
+                }
+                setPendingActionType(null);
+                setPendingEditMarket(null);
+            } else {
+                setActionPasswordError(data.message || 'Invalid secret declare password');
+            }
+        } catch {
+            setActionPasswordError('Network error');
+        }
+    };
+
     const handleFormClose = () => {
         setShowForm(false);
         setEditingMarket(null);
@@ -385,7 +467,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                             {!loadingGroups && kingBazaarGroups.length > 0 && (
                                 <button
                                     type="button"
-                                    onClick={() => { setShowAddMarket(true); setNewMarketLabel(''); setAddMarketError(''); }}
+                                    onClick={openAddMarket}
                                     className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30"
                                 >
                                     + Add market
@@ -409,7 +491,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                 <p className="text-gray-500 text-sm mb-5">Add your first market, then add time slots and declare results.</p>
                                 <button
                                     type="button"
-                                    onClick={() => { setShowAddMarket(true); setNewMarketLabel(''); setAddMarketError(''); }}
+                                    onClick={openAddMarket}
                                     className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"
                                 >
                                     + Add King Bazaar market
@@ -520,7 +602,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                     </div>
                                     <button
                                         type="button"
-                                        onClick={() => { setShowAddSlot(true); setAddError(''); }}
+                                        onClick={openAddSlot}
                                         className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"
                                     >
                                         + Add slot
@@ -531,7 +613,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                         <p className="text-gray-400 text-sm mb-4">No time slots yet. Add one to set closing time and accept bets.</p>
                                         <button
                                             type="button"
-                                            onClick={() => { setShowAddSlot(true); setAddError(''); }}
+                                            onClick={openAddSlot}
                                             className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"
                                         >
                                             + Add time slot
@@ -564,7 +646,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                                         )}
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                        <button type="button" onClick={() => handleEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit</button>
+                                                        <button type="button" onClick={() => handleEditClick(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit</button>
                                                         <button type="button" onClick={() => handleDelete(m)} className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Delete</button>
                                                     </div>
                                                 </div>
@@ -662,6 +744,37 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                         {addMarketLoading ? 'Adding...' : 'Add market'}
                                     </button>
                                     <button type="button" onClick={() => { setShowAddMarket(false); setNewMarketLabel(''); setAddMarketError(''); }} disabled={addMarketLoading} className="px-4 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium text-sm">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Action password modal (Add market, Edit, Add slot) */}
+                {showActionPasswordModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+                        <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-xl max-w-md w-full p-6">
+                            <h3 className="text-lg font-bold text-yellow-500 mb-2">
+                                {pendingActionType === 'addMarket' && 'Enter Secret Password to Add King Bazaar Market'}
+                                {pendingActionType === 'edit' && 'Enter Secret Password to Edit'}
+                                {pendingActionType === 'addSlot' && 'Enter Secret Password to Add Time Slot'}
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-4">
+                                Please enter the secret password to continue.
+                            </p>
+                            <form onSubmit={(e) => { e.preventDefault(); performActionAfterVerify(); }} className="space-y-4">
+                                <input
+                                    type="password"
+                                    value={actionPassword}
+                                    onChange={(e) => { setActionPassword(e.target.value); setActionPasswordError(''); }}
+                                    placeholder="Secret password"
+                                    autoFocus
+                                    className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                />
+                                {actionPasswordError && <p className="text-red-400 text-sm">{actionPasswordError}</p>}
+                                <div className="flex gap-3">
+                                    <button type="submit" className="flex-1 px-4 py-3 bg-yellow-600 hover:bg-yellow-500 text-black font-semibold rounded-lg">Continue</button>
+                                    <button type="button" onClick={() => { setShowActionPasswordModal(false); setActionPassword(''); setActionPasswordError(''); setPendingActionType(null); setPendingEditMarket(null); }} className="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600">Cancel</button>
                                 </div>
                             </form>
                         </div>

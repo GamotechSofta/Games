@@ -11,6 +11,7 @@ import {
     toggleBookieStatus,
     getSecretDeclarePasswordStatus,
     setSecretDeclarePassword,
+    verifySecretDeclarePassword,
     getAdminUpi,
     setAdminUpi,
 } from '../../controllers/adminController.js';
@@ -29,6 +30,7 @@ router.patch('/me/upi', verifySuperAdmin, setAdminUpi);
 // Secret declare password (Super Admin only)
 router.get('/me/secret-declare-password-status', verifySuperAdmin, getSecretDeclarePasswordStatus);
 router.patch('/me/secret-declare-password', verifySuperAdmin, setSecretDeclarePassword);
+router.post('/verify-secret-declare-password', verifySuperAdmin, verifySecretDeclarePassword);
 
 // Super Admin management routes (Super Admin only)
 router.get('/super-admins', verifyAdmin, getAllSuperAdmins); // Get all super admins

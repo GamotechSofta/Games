@@ -660,6 +660,34 @@ export const setAdminUpi = async (req, res) => {
 };
 
 /**
+ * POST /admin/verify-secret-declare-password
+ * Super admin only. Verifies the secret declare password. Body: { secretDeclarePassword: string }
+ */
+export const verifySecretDeclarePassword = async (req, res) => {
+    try {
+        const admin = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+        if (!admin) {
+            return res.status(404).json({ success: false, message: 'Admin not found' });
+        }
+        if (!admin.secretDeclarePassword || admin.secretDeclarePassword.length === 0) {
+            return res.status(200).json({ success: true, message: 'No secret password set' });
+        }
+        const provided = (req.body?.secretDeclarePassword ?? '').toString().trim();
+        const isValid = await bcrypt.compare(provided, admin.secretDeclarePassword);
+        if (!isValid) {
+            return res.status(403).json({
+                success: false,
+                message: 'Invalid secret declare password',
+                code: 'INVALID_SECRET_DECLARE_PASSWORD',
+            });
+        }
+        res.status(200).json({ success: true, message: 'Password verified' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * GET /admin/me/secret-declare-password-status
  * Super admin only. Returns whether secret declare password is set.
  */
