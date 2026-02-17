@@ -120,26 +120,26 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
                         key={market._id}
                         className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden"
                     >
-                        {/* Top row: Status (left) + Result (right) */}
+                        {/* Top row: Status only */}
                         <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
                             <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
                                 {status.status === 'open' && 'OPEN'}
                                 {status.status === 'running' && 'CLOSED IS RUNNING'}
                                 {status.status === 'closed' && 'CLOSED'}
                             </div>
-                            <div className="min-w-0 overflow-hidden flex justify-end">
-                                <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={market.displayResult || market.winNumber || ''}>
-                                    {(() => {
-                                        const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
-                                        if (!raw) return '';
-                                        return String(raw).replace(/-/g, '_');
-                                    })()}
-                                </span>
-                            </div>
                         </div>
 
                         {/* Market Info */}
-                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={market.marketName}>{market.marketName}</h3>
+                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-1 truncate" title={market.marketName}>{market.marketName}</h3>
+                        <div className="mb-2 min-w-0 overflow-hidden">
+                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={market.displayResult || market.winNumber || ''}>
+                                {(() => {
+                                    const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
+                                    if (!raw) return '';
+                                    return String(raw).replace(/-/g, '_');
+                                })()}
+                            </span>
+                        </div>
                         <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
                             <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(market.startingTime)}</p>
                             <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(market.closingTime)}</p>
