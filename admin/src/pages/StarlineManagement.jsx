@@ -690,7 +690,6 @@ const StarlineManagement = ({ embedded = false }) => {
                                                     {/* Market Info - same as MarketList */}
                                                     <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
                                                     <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                        <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
                                                         <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
                                                         {m.betClosureTime != null && m.betClosureTime !== '' && (
                                                             <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>
