@@ -28,6 +28,43 @@ const formatTime = (timeStr) => {
     return `${Number.isFinite(h) ? h : ''}:${m}`;
 };
 
+/** Format HH:mm to 12-hour with AM/PM (same as MarketList) */
+const formatTime12h = (timeStr) => {
+    const s = (timeStr || '').toString().trim().slice(0, 5);
+    const [hh, mm] = s.split(':');
+    const h = parseInt(hh, 10) || 0;
+    const m = parseInt(mm, 10) || 0;
+    const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    const ampm = h < 12 ? 'AM' : 'PM';
+    return `${hour12}:${String(m).padStart(2, '0')} ${ampm}`;
+};
+
+function isClosingTimePassedIST(closingTime, nowMs = Date.now()) {
+    const t = (closingTime || '').toString().trim().slice(0, 5);
+    const [hh, mm] = t.split(':');
+    const h = String(Number(hh) || 0).padStart(2, '0');
+    const m = String(Number(mm) || 0).padStart(2, '0');
+    const normalized = `${h}:${m}`;
+    if (!/^\d{2}:\d{2}$/.test(normalized)) return false;
+    const getTodayIST = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    const todayIST = getTodayIST(new Date(nowMs));
+    const dateStr = normalized === '00:00' ? (() => { const b = new Date(`${todayIST}T12:00:00+05:30`); b.setDate(b.getDate() + 1); return getTodayIST(b); })() : todayIST;
+    const targetMs = new Date(`${dateStr}T${normalized}:00+05:30`).getTime();
+    return !Number.isNaN(targetMs) && nowMs >= targetMs;
+}
+
+/** Same status logic as MarketList. Starline: single openingNumber = closed. */
+const getMarketStatus = (market) => {
+    const type = (market.marketType || '').toString().toLowerCase();
+    const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
+    const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
+    if (type === 'startline' && hasOpening) return { status: 'closed', color: 'bg-red-600' };
+    if (hasOpening && hasClosing) return { status: 'closed', color: 'bg-red-600' };
+    if (hasOpening && !hasClosing) return { status: 'running', color: 'bg-green-600' };
+    if (isClosingTimePassedIST(market.closingTime || market.startingTime)) return { status: 'closed', color: 'bg-red-600' };
+    return { status: 'open', color: 'bg-green-600' };
+};
+
 const AddResult = () => {
     const location = useLocation();
     const preselectedFromNav = location.state?.preselectedMarket;
@@ -49,6 +86,10 @@ const AddResult = () => {
     const [activeTab, setActiveTab] = useState('regular');
     const [starlineMarkets, setStarlineMarkets] = useState([]);
     const [kingBazaarMarkets, setKingBazaarMarkets] = useState([]);
+    const [starlineGroups, setStarlineGroups] = useState([]);
+    const [kingBazaarGroups, setKingBazaarGroups] = useState([]);
+    const [loadingGroups, setLoadingGroups] = useState(true);
+    const [activeGroupKey, setActiveGroupKey] = useState('');
     const [kingBazaarJodi, setKingBazaarJodi] = useState('');
     const navigate = useNavigate();
 
@@ -120,6 +161,33 @@ const AddResult = () => {
     };
 
     useEffect(() => {
+        if (activeTab !== 'starline' && activeTab !== 'king') return;
+        const fetchGroups = async () => {
+            try {
+                setLoadingGroups(true);
+                const url = activeTab === 'starline' ? `${API_BASE_URL}/markets/starline-groups` : `${API_BASE_URL}/markets/king-bazaar-groups`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    const list = data.data || [];
+                    if (activeTab === 'starline') setStarlineGroups(list);
+                    else setKingBazaarGroups(list);
+                    if (activeGroupKey && !list.some((g) => (g.key || '').toLowerCase() === activeGroupKey.toLowerCase())) setActiveGroupKey('');
+                } else {
+                    if (activeTab === 'starline') setStarlineGroups([]);
+                    else setKingBazaarGroups([]);
+                }
+            } catch {
+                if (activeTab === 'starline') setStarlineGroups([]);
+                else setKingBazaarGroups([]);
+            } finally {
+                setLoadingGroups(false);
+            }
+        };
+        fetchGroups();
+    }, [activeTab]);
+
+    useEffect(() => {
         const admin = localStorage.getItem('admin');
         if (!admin) {
             navigate('/');
@@ -131,18 +199,32 @@ const AddResult = () => {
 
     useEffect(() => {
         const type = (location.state?.marketType || '').toString().toLowerCase();
-        if (type === 'starline' || type === 'king') setActiveTab(type);
+        if (type === 'starline') { setActiveTab('starline'); setActiveGroupKey(''); }
+        if (type === 'king') { setActiveTab('king'); setActiveGroupKey(''); }
     }, [location.state?.marketType]);
 
-    const fromMarketResult = location.state?.fromMarketResult === true;
-    const backToMarketResultState = fromMarketResult ? {
-        marketType: location.state?.marketType || 'regular',
-        activeGroupKey: location.state?.activeGroupKey || '',
-    } : undefined;
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        setActiveGroupKey('');
+    };
+
+    const safeNumOrder = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+
+    /** Slots for current Starline/King group */
+    const slotsForGroup = useMemo(() => {
+        if ((activeTab !== 'starline' && activeTab !== 'king') || !activeGroupKey) return [];
+        const key = activeGroupKey.toString().trim().toLowerCase();
+        const groupField = activeTab === 'starline' ? 'starlineGroup' : 'kingBazaarGroup';
+        const list = activeTab === 'starline' ? starlineMarkets : kingBazaarMarkets;
+        return (list || []).filter((m) => (m[groupField] || '').toString().trim().toLowerCase() === key)
+            .sort((a, b) => String(a.closingTime || a.startingTime || '').localeCompare(String(b.closingTime || b.startingTime || ''), undefined, { numeric: true }));
+    }, [starlineMarkets, kingBazaarMarkets, activeTab, activeGroupKey]);
+
+    const groups = activeTab === 'starline' ? starlineGroups : kingBazaarGroups;
 
     useEffect(() => {
         if (!preselectedFromNav?._id) return;
-        navigate('/add-result', { replace: true, state: { fromMarketResult: !!location.state?.fromMarketResult, marketType: location.state?.marketType, activeGroupKey: location.state?.activeGroupKey } });
+        navigate('/add-result', { replace: true, state: {} });
     }, [preselectedFromNav?._id, navigate]);
 
     useRefreshOnMarketReset(() => {
@@ -178,10 +260,6 @@ const AddResult = () => {
     };
 
     const closePanel = () => {
-        if (fromMarketResult) {
-            navigate('/market-result', { state: backToMarketResultState });
-            return;
-        }
         setIsDirectEditMode(false);
         setSelectedMarket(null);
         setOpenPatti('');
@@ -411,121 +489,9 @@ const AddResult = () => {
 
     const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
-    const showOnlyDeclareScreen = fromMarketResult && selectedMarket;
-
     return (
-        <AdminLayout onLogout={handleLogout} title={showOnlyDeclareScreen ? selectedMarket?.marketName || 'Add Result' : 'Declare Result'}>
+        <AdminLayout onLogout={handleLogout} title="Declare Result">
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8">
-                {showOnlyDeclareScreen ? (
-                    /* When from Market Result: show only the declare panel */
-                    <div className="flex flex-col items-center justify-center min-h-[60vh] py-6">
-                        <div className="w-full max-w-lg">
-                            <Link
-                                to="/market-result"
-                                state={backToMarketResultState}
-                                className="inline-flex items-center gap-2 text-gray-400 hover:text-amber-400 text-sm mb-4 transition-colors"
-                            >
-                                ← Back to Market Result
-                            </Link>
-                            {error && (
-                                <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">
-                                    {error}
-                                </div>
-                            )}
-                            {/* Declare panel as main content – same as modal body */}
-                            <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden">
-                                <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 border-b border-gray-700 bg-gray-800">
-                                    <h2 className="text-base sm:text-lg font-bold text-yellow-500 truncate" title={selectedMarket.marketName}>
-                                        {selectedMarket.marketName}
-                                    </h2>
-                                </div>
-                                <div className="p-4 sm:p-5 md:p-6">
-                                    {getMarketId() && (
-                                        <p className="text-[11px] text-gray-500 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <span className="font-mono text-gray-400">ID: {getMarketId()}</span>
-                                            <Link to={`/market-result/${getMarketId()}`} className="text-amber-400 hover:underline shrink-0" onClick={(e) => e.stopPropagation()}>View details</Link>
-                                        </p>
-                                    )}
-                                    {selectedMarket.marketType === 'king' ? (
-                                        <div className="mb-4 sm:mb-6">
-                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">King Bazaar Result</h3>
-                                            <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 2-digit Jodi (00-99) → Check (preview) → Declare Result</p>
-                                            <div className="mb-2 sm:mb-3">
-                                                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Jodi (2 digits)</label>
-                                                <input type="text" inputMode="numeric" value={kingBazaarJodi} onChange={(e) => setKingBazaarJodi(e.target.value.replace(/\D/g, '').slice(0, 2))} placeholder="e.g. 56" className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] touch-manipulation" maxLength={2} />
-                                            </div>
-                                            <div className="flex gap-2 mb-2 sm:mb-3">
-                                                <button type="button" onClick={handleCheckKingBazaar} disabled={checkLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2} className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 text-sm">Check</button>
-                                            </div>
-                                            {preview != null && (
-                                                <div className="space-y-1.5 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(preview.totalBetAmount)}</span></div>
-                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(preview.profit)}</span></div>
-                                                </div>
-                                            )}
-                                            <button type="button" onClick={handleDeclareKingBazaar} disabled={declareLoading || kingBazaarJodi.replace(/\D/g, '').length !== 2} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Result</button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                        <div className="mb-4 sm:mb-6">
-                                            <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Open Result</h3>
-                                            <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
-                                            <div className="mb-2 sm:mb-3">
-                                                <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
-                                                <input type="text" inputMode="numeric" value={openPatti} onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="e.g. 156" className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] touch-manipulation" maxLength={3} />
-                                            </div>
-                                            <div className="flex gap-2 mb-2 sm:mb-3">
-                                                <button type="button" onClick={handleCheckOpen} disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3} className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 text-sm">Check</button>
-                                            </div>
-                                            {preview != null && (
-                                                <div className="space-y-1.5 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(preview.totalBetAmount)}</span></div>
-                                                    <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(preview.profit)}</span></div>
-                                                </div>
-                                            )}
-                                            <button type="button" onClick={handleDeclareOpen} disabled={declareLoading || openPatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Open</button>
-                                        </div>
-                                        {selectedMarket.marketType !== 'startline' && selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber) && (
-                                            <div className="mb-4 sm:mb-6">
-                                                <h3 className="text-xs sm:text-sm font-semibold text-gray-400 uppercase tracking-wider mb-1">Close Result</h3>
-                                                <p className="text-[11px] text-gray-500 mb-2">Enter 3 digits → Check → Declare Close</p>
-                                                <div className="mb-2">
-                                                    <label className="block text-xs font-medium text-gray-400 mb-1">Close Patti (3 digits)</label>
-                                                    <input type="text" inputMode="numeric" value={closePatti} onChange={(e) => setClosePatti(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="e.g. 456" className="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white font-mono min-h-[44px]" maxLength={3} />
-                                                </div>
-                                                <div className="flex gap-2 mb-2">
-                                                    <button type="button" onClick={handleCheckClose} disabled={checkCloseLoading || closePatti.replace(/\D/g, '').length !== 3} className="flex-1 px-3 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg disabled:opacity-50 text-sm">Check</button>
-                                                </div>
-                                                {previewClose != null && (
-                                                    <div className="space-y-1.5 mb-2 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5">
-                                                        <div className="flex justify-between"><span className="text-gray-400 text-xs">Total Bet Amount</span><span className="font-mono text-white text-xs">{formatNum(previewClose.totalBetAmount)}</span></div>
-                                                        <div className="flex justify-between"><span className="text-gray-400 text-xs">Total Profit</span><span className="font-mono text-yellow-400 text-xs">{formatNum(previewClose.profit)}</span></div>
-                                                    </div>
-                                                )}
-                                                <button type="button" onClick={handleDeclareClose} disabled={declareLoading || closePatti.replace(/\D/g, '').length !== 3} className="w-full px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-black font-semibold rounded-lg disabled:opacity-50 text-sm">Declare Close</button>
-                                            </div>
-                                        )}
-                                        {((selectedMarket.openingNumber && /^\d{3}$/.test(selectedMarket.openingNumber)) || (selectedMarket.closingNumber && /^\d{3}$/.test(selectedMarket.closingNumber))) && (
-                                            <button type="button" onClick={handleClearResult} disabled={clearLoading} className="mt-3 w-full px-4 py-2.5 bg-red-900/80 hover:bg-red-800 text-red-100 font-semibold rounded-lg disabled:opacity-50 text-sm">Clear Result</button>
-                                        )}
-                                        </>
-                                    )}
-                                    <button type="button" onClick={closePanel} className="mt-4 w-full px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 transition-colors text-sm sm:text-base">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                <>
-                {fromMarketResult && (
-                    <Link
-                        to="/market-result"
-                        state={backToMarketResultState}
-                        className="inline-flex items-center gap-2 text-gray-400 hover:text-amber-400 text-sm mb-4 transition-colors"
-                    >
-                        ← Back to Market Result
-                    </Link>
-                )}
                 {error && (
                     <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-xs sm:text-sm md:text-base">
                         {error}
@@ -575,7 +541,7 @@ const AddResult = () => {
                             <button
                                 key={tab.id}
                                 type="button"
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => handleTabChange(tab.id)}
                                 className={`inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base transition-all ${
                                     isActive
                                         ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
@@ -592,53 +558,85 @@ const AddResult = () => {
                 {activeTab === 'starline' && (
                     <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
                         <div className="flex-1 min-w-0 w-full">
-                            {loading ? (
-                                <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading Starline slots...</div>
-                            ) : starlineMarkets.length === 0 ? (
-                                <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
-                                    <p className="text-gray-400 text-sm mb-4">No Starline slots yet. Add markets and slots from Markets → Starline Market.</p>
-                                    <Link to={fromMarketResult ? '/market-result' : '/markets'} state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
-                                        <FaStar className="w-4 h-4" /> Go to Starline Market
-                                    </Link>
-                                </div>
+                            {activeGroupKey ? (
+                                <>
+                                    <nav className="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                                        <button type="button" onClick={() => setActiveGroupKey('')} className="hover:text-amber-400 transition-colors">Starline</button>
+                                        <span>/</span>
+                                        <span className="text-white font-medium">{groups.find((g) => (g.key || '').toLowerCase() === activeGroupKey.toLowerCase())?.label || activeGroupKey}</span>
+                                    </nav>
+                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                        <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                                            <span className="inline-block w-1 h-6 sm:h-7 bg-gray-500 rounded-full" />
+                                            Time Slots
+                                        </h2>
+                                        <button type="button" onClick={() => setActiveGroupKey('')} className="px-3 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm font-medium">← Back to list</button>
+                                    </div>
+                                </>
+                            ) : null}
+                            {(loading || loadingGroups) ? (
+                                <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading Starline...</div>
+                            ) : !activeGroupKey ? (
+                                groups.length === 0 ? (
+                                    <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
+                                        <p className="text-gray-400 text-sm mb-4">No Starline markets yet. Add from Markets → Starline Market.</p>
+                                        <Link to="/markets" state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaStar className="w-4 h-4" /> Go to Starline Market</Link>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                        {groups.sort((a, b) => (safeNumOrder(a.order) - safeNumOrder(b.order)) || (a.label || '').localeCompare(b.label || '')).map((g) => {
+                                            const groupSlots = (starlineMarkets || []).filter((m) => (m.starlineGroup || '').toString().toLowerCase() === (g.key || '').toLowerCase());
+                                            const slotCount = groupSlots.length;
+                                            const declaredCount = groupSlots.filter((m) => m.openingNumber && /^\d{3}$/.test(String(m.openingNumber))).length;
+                                            const openCount = slotCount - declaredCount;
+                                            const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
+                                            const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
+                                            return (
+                                                <div key={g.key} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
+                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                        <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{statusLabel}</div>
+                                                        <span className="text-amber-400 font-mono text-sm">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
+                                                    </div>
+                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
+                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300">
+                                                        {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
+                                                        {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
+                                                    </div>
+                                                    <button type="button" onClick={() => setActiveGroupKey(g.key)} className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-sm font-semibold">View Slots</button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )
                             ) : (
-                                <div className="overflow-x-auto rounded-lg sm:rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg">
-                                    <table className="w-full border-collapse text-[11px] sm:text-xs md:text-sm min-w-[320px]">
-                                        <thead>
-                                            <tr className="border-b border-gray-700">
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800">Slot</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Closes</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Result</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {starlineMarkets.map((m) => {
-                                                const hasOpen = m.openingNumber && /^\d{3}$/.test(String(m.openingNumber));
-                                                const resultDisplay = (m.displayResult || (hasOpen ? '—' : '*** - *')).toString().replace(/-/g, '_');
-                                                const isPending = starlinePendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
-                                                return (
-                                                    <tr key={m._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPending ? 'bg-amber-500/5' : ''}`}>
-                                                        <td className="py-2 sm:py-3 px-3 font-medium text-white truncate max-w-[180px]">
-                                                            {isPending && <FaExclamationTriangle className="inline w-3.5 h-3.5 text-amber-400 mr-1.5 align-middle" />}
-                                                            {m.marketName}
-                                                        </td>
-                                                        <td className="py-2 sm:py-3 px-3 text-gray-300 border-l border-gray-700 whitespace-nowrap">{formatTime(m.closingTime)}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400 tracking-widest">{resultDisplay}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => openPanelForEdit(m)}
-                                                                className="px-2 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-lg text-xs sm:text-sm"
-                                                            >
-                                                                {hasOpen ? 'Edit result' : 'Add result'}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                    {slotsForGroup.length === 0 ? (
+                                        <div className="col-span-full text-center py-8 sm:py-12 text-gray-500">No slots in this market.</div>
+                                    ) : slotsForGroup.map((m) => {
+                                        const status = getMarketStatus(m);
+                                        const resultRaw = m.displayResult || m.winNumber || (m.openingNumber ? String(m.openingNumber) : '');
+                                        const isPending = starlinePendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
+                                        return (
+                                            <div key={m._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                    <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{status.status === 'open' && 'OPEN'}{status.status === 'closed' && 'CLOSED'}</div>
+                                                    {isPending && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
+                                                    <div className="min-w-0 overflow-hidden flex justify-end">
+                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
+                                                    </div>
+                                                </div>
+                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
+                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
+                                                    <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                    {m.betClosureTime != null && m.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
+                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">{m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'Edit result' : 'Add result'}</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -663,56 +661,92 @@ const AddResult = () => {
                 {activeTab === 'king' && (
                     <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
                         <div className="flex-1 min-w-0 w-full">
-                            {loading ? (
-                                <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading King Bazaar slots...</div>
-                            ) : kingBazaarMarkets.length === 0 ? (
-                                <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
-                                    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                                        <FaCrown className="w-8 h-8 text-amber-400" />
+                            {activeGroupKey ? (
+                                <>
+                                    <nav className="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                                        <button type="button" onClick={() => setActiveGroupKey('')} className="hover:text-amber-400 transition-colors">King Bazaar</button>
+                                        <span>/</span>
+                                        <span className="text-white font-medium">{groups.find((g) => (g.key || '').toLowerCase() === activeGroupKey.toLowerCase())?.label || activeGroupKey}</span>
+                                    </nav>
+                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                        <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                                            <span className="inline-block w-1 h-6 sm:h-7 bg-gray-500 rounded-full" />
+                                            Time Slots
+                                        </h2>
+                                        <button type="button" onClick={() => setActiveGroupKey('')} className="px-3 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm font-medium">← Back to list</button>
                                     </div>
-                                    <p className="text-gray-400 text-sm mb-4">No King Bazaar slots yet. Add markets and slots from Markets → King Bazaar Market.</p>
-                                    <Link to={fromMarketResult ? '/market-result' : '/markets'} state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm">
-                                        <FaCrown className="w-4 h-4" /> Go to King Bazaar Market
-                                    </Link>
-                                </div>
+                                </>
+                            ) : null}
+                            {(loading || loadingGroups) ? (
+                                <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading King Bazaar...</div>
+                            ) : !activeGroupKey ? (
+                                groups.length === 0 ? (
+                                    <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
+                                        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4"><FaCrown className="w-8 h-8 text-amber-400" /></div>
+                                        <p className="text-gray-400 text-sm mb-4">No King Bazaar markets yet. Add from Markets → King Bazaar Market.</p>
+                                        <Link to="/markets" state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaCrown className="w-4 h-4" /> Go to King Bazaar Market</Link>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                        {groups.sort((a, b) => (safeNumOrder(a.order) - safeNumOrder(b.order)) || (a.label || '').localeCompare(b.label || '')).map((g) => {
+                                            const groupSlots = (kingBazaarMarkets || []).filter((m) => (m.kingBazaarGroup || '').toString().toLowerCase() === (g.key || '').toLowerCase());
+                                            const slotCount = groupSlots.length;
+                                            const declaredCount = groupSlots.filter((m) => m.openingNumber != null && m.closingNumber != null).length;
+                                            const openCount = slotCount - declaredCount;
+                                            const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
+                                            const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
+                                            return (
+                                                <div key={g.key} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
+                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                        <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{statusLabel}</div>
+                                                        <span className="text-amber-400 font-mono text-sm">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
+                                                    </div>
+                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
+                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300">
+                                                        {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
+                                                        {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
+                                                    </div>
+                                                    <button type="button" onClick={() => setActiveGroupKey(g.key)} className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-sm font-semibold">View Slots</button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )
                             ) : (
-                                <div className="overflow-x-auto rounded-lg sm:rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg">
-                                    <table className="w-full border-collapse text-[11px] sm:text-xs md:text-sm min-w-[320px]">
-                                        <thead>
-                                            <tr className="border-b border-gray-700">
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800">Slot</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Closes</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Result</th>
-                                                <th className="text-left py-2 sm:py-3 px-3 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {kingBazaarMarkets.map((m) => {
-                                                const hasResult = m.openingNumber != null && m.closingNumber != null;
-                                                const resultDisplay = (m.displayResult || '**').toString().replace(/-/g, '_');
-                                                const isPending = kingBazaarPendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
-                                                return (
-                                                    <tr key={m._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPending ? 'bg-amber-500/5' : ''}`}>
-                                                        <td className="py-2 sm:py-3 px-3 font-medium text-white truncate max-w-[180px]">
-                                                            {isPending && <FaExclamationTriangle className="inline w-3.5 h-3.5 text-amber-400 mr-1.5 align-middle" />}
-                                                            {m.marketName}
-                                                        </td>
-                                                        <td className="py-2 sm:py-3 px-3 text-gray-300 border-l border-gray-700 whitespace-nowrap">{formatTime(m.closingTime)}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700 font-mono text-amber-400 tracking-widest">{resultDisplay}</td>
-                                                        <td className="py-2 sm:py-3 px-3 border-l border-gray-700">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => openPanelForEdit(m)}
-                                                                className="px-2 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-lg text-xs sm:text-sm"
-                                                            >
-                                                                {hasResult ? 'Edit result' : 'Add result'}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                    {slotsForGroup.length === 0 ? (
+                                        <div className="col-span-full text-center py-8 sm:py-12 text-gray-500">No slots in this market.</div>
+                                    ) : slotsForGroup.map((m) => {
+                                        const status = getMarketStatus(m);
+                                        const resultRaw = m.displayResult || m.winNumber || (m.openingNumber != null && m.closingNumber != null ? `${m.openingNumber}-${m.closingNumber}` : '') || (m.openingNumber ? String(m.openingNumber) : '');
+                                        const isPending = kingBazaarPendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
+                                        const hasResult = m.openingNumber != null && m.closingNumber != null;
+                                        return (
+                                            <div key={m._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                    <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                                                        {status.status === 'open' && 'OPEN'}
+                                                        {status.status === 'running' && 'CLOSED IS RUNNING'}
+                                                        {status.status === 'closed' && 'CLOSED'}
+                                                    </div>
+                                                    {isPending && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
+                                                    <div className="min-w-0 overflow-hidden flex justify-end">
+                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
+                                                    </div>
+                                                </div>
+                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
+                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
+                                                    <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
+                                                    <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                    {m.betClosureTime != null && m.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
+                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">{hasResult ? 'Edit result' : 'Add result'}</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
@@ -727,71 +761,40 @@ const AddResult = () => {
                         ) : markets.length === 0 ? (
                             <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm md:text-base rounded-xl border border-gray-700 bg-gray-800/50">No markets found.</div>
                         ) : (
-                            <div className="overflow-x-auto -mx-2 sm:mx-0 rounded-lg sm:rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overscroll-x-contain touch-pan-x">
-                                <table className="w-full border-collapse text-[11px] sm:text-xs md:text-sm lg:text-base min-w-[380px] sm:min-w-[520px]">
-                                    <thead>
-                                        <tr className="border-b border-gray-700">
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 whitespace-nowrap">Market</th>
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700 whitespace-nowrap">Timeline</th>
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700 whitespace-nowrap min-w-[4rem] sm:min-w-[5rem] md:min-w-[6.5rem]">Result</th>
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700 whitespace-nowrap">Opening</th>
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700 whitespace-nowrap">Closing</th>
-                                            <th className="text-left py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-semibold text-yellow-500 bg-gray-800 border-l border-gray-700 whitespace-nowrap min-w-[4.5rem] sm:min-w-[5.5rem] md:min-w-[6.5rem]">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {markets.map((market) => {
-                                            const hasOpen = market.openingNumber && /^\d{3}$/.test(market.openingNumber);
-                                            const hasClose = market.closingNumber && /^\d{3}$/.test(market.closingNumber);
-                                            const isClosed = hasOpen && hasClose;
-                                            const isPendingResult = mainPendingList.some((m) => String(m._id) === String(market._id) || m.marketName === market.marketName);
-                                            const timeline = `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`;
-                                            const resultDisplay = (market.displayResult || '***-**-***').toString().replace(/-/g, '_');
-                                            return (
-                                                <tr key={market._id} className={`border-b border-gray-700 hover:bg-gray-700/50 ${isPendingResult ? 'bg-amber-500/5' : ''}`}>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 font-medium text-white whitespace-nowrap min-w-0 max-w-[110px] sm:max-w-[180px] md:max-w-none">
-                                                        <div className="flex flex-wrap items-center gap-1.5 truncate">
-                                                            {isPendingResult && (
-                                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/30 text-amber-400 shrink-0" title="Result declaration pending">
-                                                                    <FaExclamationTriangle className="w-3 h-3" />
-                                                                </span>
-                                                            )}
-                                                            {market.marketName}
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 text-gray-300 border-l border-gray-700 whitespace-nowrap text-[10px] sm:text-xs md:text-sm">{timeline}</td>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 border-l border-gray-700 min-w-[4rem] sm:min-w-[5rem] md:min-w-[6.5rem]">
-                                                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 sm:gap-x-2">
-                                                            <span className="font-mono text-amber-400 text-[10px] sm:text-xs md:text-sm tracking-widest">{resultDisplay}</span>
-                                                            {isClosed && (
-                                                                <span className="inline-flex shrink-0 px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full bg-red-600 text-white">Closed</span>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 border-l border-gray-700">
-                                                        {hasOpen ? <span className="font-mono text-yellow-400 text-[10px] sm:text-xs md:text-sm">{market.openingNumber}</span> : <span className="text-gray-500">—</span>}
-                                                    </td>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 border-l border-gray-700">
-                                                        {hasClose ? <span className="font-mono text-yellow-400 text-[10px] sm:text-xs md:text-sm">{market.closingNumber}</span> : <span className="text-gray-500">—</span>}
-                                                    </td>
-                                                    <td className="py-2 sm:py-3 px-1.5 sm:px-3 md:px-4 border-l border-gray-700 min-w-[4.5rem] sm:min-w-[5.5rem] md:min-w-[6.5rem]">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openPanelForEdit(market)}
-                                                            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-lg transition-colors text-xs sm:text-sm"
-                                                        >
-                                                            Edit Result
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                {markets.map((market) => {
+                                    const status = getMarketStatus(market);
+                                    const resultRaw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '') || '';
+                                    const isPendingResult = mainPendingList.some((m) => String(m._id) === String(market._id) || m.marketName === market.marketName);
+                                    return (
+                                        <div key={market._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPendingResult ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                            <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+                                                <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                                                    {status.status === 'open' && 'OPEN'}
+                                                    {status.status === 'running' && 'CLOSED IS RUNNING'}
+                                                    {status.status === 'closed' && 'CLOSED'}
+                                                </div>
+                                                {isPendingResult && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
+                                                <div className="min-w-0 overflow-hidden flex justify-end">
+                                                    <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
+                                                </div>
+                                            </div>
+                                            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={market.marketName}>{market.marketName}</h3>
+                                            <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
+                                                <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(market.startingTime)}</p>
+                                                <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(market.closingTime)}</p>
+                                                {market.betClosureTime != null && market.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {market.betClosureTime} sec</p>}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                                <button type="button" onClick={() => navigate(`/add-result/view/${market._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
+                                                <button type="button" onClick={() => openPanelForEdit(market)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit Result</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
-
                 </div>
                 )}
 
@@ -966,8 +969,6 @@ const AddResult = () => {
                             </div>
                         </div>
                     </div>
-                )}
-                </>
                 )}
             </div>
         </AdminLayout>

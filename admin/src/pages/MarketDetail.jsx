@@ -507,10 +507,10 @@ const FullSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
     );
 };
 
-const MarketDetail = ({ isMarketResultView = false }) => {
+const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     const { marketId } = useParams();
     const location = useLocation();
-    const fromMarketResult = isMarketResultView || location.pathname.startsWith('/market-result');
+    const fromAddResult = fromAddResultProp || location.pathname.startsWith('/add-result/view');
     const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -621,7 +621,7 @@ const MarketDetail = ({ isMarketResultView = false }) => {
 
     if (loading) {
         return (
-            <AdminLayout onLogout={handleLogout} title={fromMarketResult ? 'Market Result' : 'Market Detail'}>
+            <AdminLayout onLogout={handleLogout} title={fromAddResult ? 'Add Result - View' : 'Market Detail'}>
                 <div className="flex items-center justify-center py-16">
                     <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-600 border-t-yellow-500" />
                 </div>
@@ -631,15 +631,15 @@ const MarketDetail = ({ isMarketResultView = false }) => {
 
     if (error || !data) {
         return (
-            <AdminLayout onLogout={handleLogout} title={fromMarketResult ? 'Market Result' : 'Market Detail'}>
+            <AdminLayout onLogout={handleLogout} title={fromAddResult ? 'Add Result - View' : 'Market Detail'}>
                 <div className="rounded-xl border border-red-700/60 bg-red-900/20 p-4 text-red-200">
                     {error || 'Market not found'}
                 </div>
                 <Link
-                    to={fromMarketResult ? '/market-result' : '/markets'}
+                    to={fromAddResult ? '/add-result' : '/markets'}
                     className="inline-flex items-center gap-2 mt-4 px-4 py-2.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-black font-semibold transition-colors"
                 >
-                    <FaArrowLeft /> {fromMarketResult ? 'Back to Market Result' : 'Back to Markets'}
+                    <FaArrowLeft /> {fromAddResult ? 'Back to Add Result' : 'Back to Markets'}
                 </Link>
             </AdminLayout>
         );
@@ -735,14 +735,14 @@ const MarketDetail = ({ isMarketResultView = false }) => {
     };
 
     return (
-        <AdminLayout onLogout={handleLogout} title={fromMarketResult ? 'Market Result' : 'Market Detail'}>
+        <AdminLayout onLogout={handleLogout} title={fromAddResult ? 'Add Result - View' : 'Market Detail'}>
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8 overflow-x-hidden">
                 <Link
-                    to={fromMarketResult ? '/market-result' : '/markets'}
-                    state={fromMarketResult && market ? (market.marketType === 'startline' ? { marketType: 'starline' } : market.marketType === 'king' ? { marketType: 'king' } : undefined) : undefined}
+                    to={fromAddResult ? '/add-result' : '/markets'}
+                    state={fromAddResult && market ? (market.marketType === 'startline' ? { marketType: 'starline' } : market.marketType === 'king' ? { marketType: 'king' } : undefined) : undefined}
                     className="inline-flex items-center gap-2 text-gray-400 hover:text-yellow-500 text-sm mb-4 transition-colors"
                 >
-                    <FaArrowLeft className="w-4 h-4" /> {fromMarketResult ? 'Market Result' : 'Markets Management'}
+                    <FaArrowLeft className="w-4 h-4" /> {fromAddResult ? 'Add Result' : 'Markets Management'}
                 </Link>
 
                 {/* Overview card – Today/Tomorrow + Open/Closed; key forces refresh when view changes */}
@@ -1188,9 +1188,9 @@ const MarketDetail = ({ isMarketResultView = false }) => {
 
                 <div className="mt-8 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-3">
                     <Link
-                        to={fromMarketResult ? '/market-result' : '/markets'}
+                        to={fromAddResult ? '/add-result' : '/markets'}
                         state={
-                            fromMarketResult
+                            fromAddResult
                                 ? (market.marketType === 'startline' ? { marketType: 'starline' } : market.marketType === 'king' ? { marketType: 'king' } : undefined)
                                 : (market.marketType === 'startline' 
                                     ? { marketType: 'starline', starlineMarketKey: (market.starlineGroup || '').toString().trim().toLowerCase() } 
@@ -1200,7 +1200,7 @@ const MarketDetail = ({ isMarketResultView = false }) => {
                         }
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold border border-gray-600 transition-colors"
                     >
-                        <FaArrowLeft /> {fromMarketResult ? 'Back to Market Result' : 'Back to Markets'}
+                        <FaArrowLeft /> {fromAddResult ? 'Back to Add Result' : 'Back to Markets'}
                     </Link>
                     {dateView === 'today' && (
                     <Link
