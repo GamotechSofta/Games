@@ -295,6 +295,7 @@ const PHONE_REGEX = /^[6-9]\d{9}$/;
 export const createUser = async (req, res) => {
     try {
         const { username, firstName, lastName, email, password, phone, role, balance, referredBy } = req.body;
+        const initialBalance = typeof balance === 'number' ? balance : (parseFloat(balance) || 0);
 
         // Derive username from firstName + lastName if provided (matches frontend signup flow); otherwise require username
         const derivedUsername = (firstName != null && lastName != null)
@@ -345,6 +346,29 @@ export const createUser = async (req, res) => {
             source = 'bookie';
         }
 
+        // Bookie setting initial balance: require security password if set
+        if (req.admin?.role === 'bookie' && initialBalance > 0) {
+            const selfBookie = await Admin.findById(req.admin._id).select('bookieType securityPassword').select('+securityPassword');
+            if (selfBookie?.bookieType === 'bookie_collects' && selfBookie.securityPassword) {
+                const securityPassword = (req.body.securityPassword || '').trim();
+                if (!securityPassword) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Security password is required to set initial balance',
+                        code: 'SECURITY_PASSWORD_REQUIRED',
+                    });
+                }
+                const valid = await selfBookie.compareSecurityPassword(securityPassword);
+                if (!valid) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Invalid security password',
+                        code: 'SECURITY_PASSWORD_INVALID',
+                    });
+                }
+            }
+        }
+
         // Check existing user by username, email or phone (phone must be unique for login)
         const existingUser = await User.findOne({
             $or: [
@@ -374,7 +398,7 @@ export const createUser = async (req, res) => {
             password: hashedPassword,
             phone: trimmedPhone,
             role: role || 'user',
-            balance: balance || 0,
+            balance: initialBalance,
             isActive: true,
             source,
             referredBy: finalReferredBy || null,
@@ -388,7 +412,7 @@ export const createUser = async (req, res) => {
         // Create wallet for user
         await Wallet.collection.insertOne({
             userId,
-            balance: balance || 0,
+            balance: initialBalance,
             createdAt: new Date(),
             updatedAt: new Date(),
         });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
-import { FaCog, FaCreditCard, FaCheckCircle, FaExclamationCircle, FaSave, FaBuilding, FaHandHoldingUsd, FaShieldAlt } from 'react-icons/fa';
+import { FaCog, FaCreditCard, FaCheckCircle, FaExclamationCircle, FaSave, FaBuilding, FaHandHoldingUsd, FaShieldAlt, FaLock } from 'react-icons/fa';
 
 const Settings = () => {
     const [upiId, setUpiId] = useState('');
@@ -9,6 +9,13 @@ const Settings = () => {
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState({ type: '', text: '' });
     const [currentUpi, setCurrentUpi] = useState('');
+    const [upiSecurityPassword, setUpiSecurityPassword] = useState('');
+
+    // Security password (bookie_collects only)
+    const [securityPasswordSet, setSecurityPasswordSet] = useState(false);
+    const [secPwdLoading, setSecPwdLoading] = useState(false);
+    const [secPwdMsg, setSecPwdMsg] = useState({ type: '', text: '' });
+    const [secPwdForm, setSecPwdForm] = useState({ current: '', new: '', confirm: '' });
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -29,6 +36,20 @@ const Settings = () => {
         fetchSettings();
     }, []);
 
+    useEffect(() => {
+        if (bookieType !== 'bookie_collects') return;
+        const fetchSecPwdStatus = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const json = await res.json();
+                if (json.success && json.data) setSecurityPasswordSet(json.data.isSet === true);
+            } catch (e) {
+                console.error('Failed to fetch security password status:', e);
+            }
+        };
+        fetchSecPwdStatus();
+    }, [bookieType]);
+
     const handleSave = async (e) => {
         e.preventDefault();
         setMsg({ type: '', text: '' });
@@ -38,21 +59,28 @@ const Settings = () => {
             setMsg({ type: 'error', text: 'Please enter a valid UPI ID' });
             return;
         }
+        if (securityPasswordSet && !upiSecurityPassword.trim()) {
+            setMsg({ type: 'error', text: 'Enter security password to confirm UPI ID change' });
+            return;
+        }
 
         setLoading(true);
         try {
+            const body = { upiId: trimmed };
+            if (securityPasswordSet) body.securityPassword = upiSecurityPassword.trim();
             const res = await fetch(`${API_BASE_URL}/bookie/upi`, {
                 method: 'PATCH',
                 headers: {
                     ...getBookieAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ upiId: trimmed }),
+                body: JSON.stringify(body),
             });
             const json = await res.json();
 
             if (json.success) {
                 setCurrentUpi(trimmed);
+                setUpiSecurityPassword('');
                 setMsg({ type: 'success', text: 'UPI ID updated successfully' });
             } else {
                 setMsg({ type: 'error', text: json.message || 'Failed to update UPI ID' });
@@ -64,132 +92,214 @@ const Settings = () => {
         }
     };
 
+    const handleSaveSecurityPassword = async (e) => {
+        e.preventDefault();
+        setSecPwdMsg({ type: '', text: '' });
+        const { current, new: newPwd, confirm } = secPwdForm;
+        if (!newPwd || newPwd.length < 4) {
+            setSecPwdMsg({ type: 'error', text: 'Security password must be at least 4 characters' });
+            return;
+        }
+        if (newPwd !== confirm) {
+            setSecPwdMsg({ type: 'error', text: 'New password and confirm do not match' });
+            return;
+        }
+        if (securityPasswordSet && !current) {
+            setSecPwdMsg({ type: 'error', text: 'Enter current security password to change it' });
+            return;
+        }
+        setSecPwdLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/bookie/security-password`, {
+                method: 'PATCH',
+                headers: { ...getBookieAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword: newPwd, currentPassword: current || undefined }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                setSecurityPasswordSet(true);
+                setSecPwdForm({ current: '', new: '', confirm: '' });
+                setSecPwdMsg({ type: 'success', text: json.message || 'Security password saved' });
+            } else {
+                setSecPwdMsg({ type: 'error', text: json.message || 'Failed to save security password' });
+            }
+        } catch {
+            setSecPwdMsg({ type: 'error', text: 'Network error. Please try again.' });
+        } finally {
+            setSecPwdLoading(false);
+        }
+    };
+
     const isBookieCollects = bookieType === 'bookie_collects';
 
     return (
         <Layout title="Settings">
-            <div className="max-w-2xl mx-auto space-y-8">
+            <div className="max-w-2xl mx-auto space-y-4">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
-                        <FaCog className="w-6 h-6 text-slate-400" />
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                        <FaCog className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white tracking-tight">Account Settings</h1>
-                        <p className="text-slate-400 text-sm mt-1">Manage your account preferences and configurations</p>
+                        <h1 className="text-xl font-bold text-white tracking-tight">Account Settings</h1>
+                        <p className="text-slate-500 text-xs">Preferences and configuration</p>
                     </div>
                 </div>
 
                 {/* Account Type Card */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden">
+                <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
                     <div className={`absolute top-0 left-0 w-1 h-full ${isBookieCollects ? 'bg-purple-500' : 'bg-emerald-500'}`}></div>
-                    <div className="flex items-start gap-4">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'
-                            }`}>
-                            {isBookieCollects ? <FaBuilding className="w-5 h-5 text-purple-400" /> : <FaHandHoldingUsd className="w-5 h-5 text-emerald-400" />}
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'}`}>
+                            {isBookieCollects ? <FaBuilding className="w-4 h-4 text-purple-400" /> : <FaHandHoldingUsd className="w-4 h-4 text-emerald-400" />}
                         </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <div className="min-w-0">
+                            <h2 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
                                 {isBookieCollects ? 'Bookie Collects Account' : 'Admin Collects Account'}
-                                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border font-bold ${isBookieCollects
-                                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                                        : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    }`}>Active</span>
+                                <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border font-bold ${isBookieCollects ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>Active</span>
                             </h2>
-                            <p className="text-slate-400 text-sm mt-2 leading-relaxed">
-                                {isBookieCollects
-                                    ? 'You are responsible for collecting payments from players and managing payouts. You settle platform fees with the admin separately.'
-                                    : 'The admin handles all payment collections and payouts. You receive your commission based on player activity.'}
+                            <p className="text-slate-500 text-xs mt-0.5">
+                                {isBookieCollects ? 'You collect payments and manage payouts; you settle fees with admin.' : 'Admin handles collections; you earn commission on player activity.'}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Payment Settings */}
-                {isBookieCollects ? (
-                    <div className="glass-panel p-8 rounded-2xl border border-white/5 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                            <FaCreditCard className="w-32 h-32 text-slate-400 rotate-12" />
-                        </div>
-
+                {/* Security Password (Bookie Collects only) */}
+                {isBookieCollects && (
+                    <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
                         <div className="relative z-10">
-                            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                                <FaCreditCard className="text-amber-500" />
-                                Payment Configuration
+                            <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                                <FaLock className="w-4 h-4 text-purple-400" />
+                                Security Password
                             </h2>
-
-                            <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                                <p className="text-amber-200 text-sm flex items-start gap-2">
-                                    <FaExclamationCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                                    This UPI ID will be displayed to players when they request a deposit. Ensure it is accurate to receive payments.
-                                </p>
-                            </div>
-
-                            <form onSubmit={handleSave} className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                                        Your UPI ID
-                                    </label>
-                                    <div className="relative">
+                            <p className="text-slate-500 text-xs mb-3">Required for wallet add/deduct and UPI change.</p>
+                            <form onSubmit={handleSaveSecurityPassword} className="space-y-3 max-w-md">
+                                {securityPasswordSet && (
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current</label>
                                         <input
-                                            type="text"
-                                            value={upiId}
-                                            onChange={(e) => { setUpiId(e.target.value); setMsg({ type: '', text: '' }); }}
-                                            placeholder="e.g. username@upi"
-                                            className="w-full px-4 py-3 pl-11 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-mono"
+                                            type="password"
+                                            value={secPwdForm.current}
+                                            onChange={(e) => { setSecPwdForm((f) => ({ ...f, current: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
+                                            placeholder="Current password"
+                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            autoComplete="current-password"
                                         />
-                                        <div className="absolute left-4 top-3.5 text-slate-500">
-                                            <FaCreditCard className="w-4 h-4" />
-                                        </div>
-                                        {currentUpi && upiId === currentUpi && (
-                                            <div className="absolute right-4 top-3.5 text-emerald-400" title="Current Active UPI">
-                                                <FaCheckCircle className="w-4 h-4" />
-                                            </div>
-                                        )}
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{securityPasswordSet ? 'New' : 'Password'}</label>
+                                        <input
+                                            type="password"
+                                            value={secPwdForm.new}
+                                            onChange={(e) => { setSecPwdForm((f) => ({ ...f, new: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
+                                            placeholder="Min 4 characters"
+                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            autoComplete="new-password"
+                                            minLength={4}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Confirm</label>
+                                        <input
+                                            type="password"
+                                            value={secPwdForm.confirm}
+                                            onChange={(e) => { setSecPwdForm((f) => ({ ...f, confirm: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
+                                            placeholder="Confirm"
+                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            autoComplete="new-password"
+                                        />
                                     </div>
                                 </div>
+                                {secPwdMsg.text && (
+                                    <div className={`p-2 rounded-lg text-xs flex items-center gap-2 ${secPwdMsg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                        {secPwdMsg.type === 'success' ? <FaCheckCircle className="w-3.5 h-3.5" /> : <FaExclamationCircle className="w-3.5 h-3.5" />}
+                                        {secPwdMsg.text}
+                                    </div>
+                                )}
+                                <button
+                                    type="submit"
+                                    disabled={secPwdLoading}
+                                    className="px-4 py-2 text-sm font-bold rounded-lg bg-purple-500 hover:bg-purple-400 text-white transition-all disabled:opacity-50 flex items-center gap-2 w-fit"
+                                >
+                                    {secPwdLoading ? <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FaLock className="w-3.5 h-3.5" />}
+                                    {securityPasswordSet ? 'Update' : 'Set'} security password
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
 
+                {/* Payment Settings */}
+                {isBookieCollects ? (
+                    <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                                <FaCreditCard className="text-amber-500 w-4 h-4" />
+                                Payment Configuration
+                            </h2>
+                            <p className="text-slate-500 text-xs mb-3 flex items-center gap-1.5">
+                                <FaExclamationCircle className="w-3.5 h-3.5 shrink-0" />
+                                UPI ID shown to players for deposits—keep it accurate.
+                            </p>
+                            <form onSubmit={handleSave} className="space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                                    <div className="flex-1">
+                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Your UPI ID</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={upiId}
+                                                onChange={(e) => { setUpiId(e.target.value); setMsg({ type: '', text: '' }); }}
+                                                placeholder="e.g. username@upi"
+                                                className="w-full px-3 py-2 pl-9 rounded-lg bg-black/40 border border-white/10 text-white text-sm font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                            />
+                                            <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                                            {currentUpi && upiId === currentUpi && (
+                                                <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" title="Current" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    {securityPasswordSet && (
+                                        <div className="sm:w-44">
+                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><FaLock className="w-3 h-3 text-amber-500" /> Security password</label>
+                                            <input
+                                                type="password"
+                                                value={upiSecurityPassword}
+                                                onChange={(e) => { setUpiSecurityPassword(e.target.value); setMsg({ type: '', text: '' }); }}
+                                                placeholder="Required to save"
+                                                className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                    )}
+                                    <button
+                                        type="submit"
+                                        disabled={loading || (upiId === currentUpi && !msg.text) || (securityPasswordSet && !upiSecurityPassword.trim())}
+                                        className="px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-all disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+                                    >
+                                        {loading ? <span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <FaSave className="w-3.5 h-3.5" />}
+                                        Save
+                                    </button>
+                                </div>
                                 {msg.text && (
-                                    <div className={`p-3 rounded-lg text-sm flex items-center gap-2 ${msg.type === 'success'
-                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                        }`}>
-                                        {msg.type === 'success' ? <FaCheckCircle className="w-4 h-4" /> : <FaExclamationCircle className="w-4 h-4" />}
+                                    <div className={`p-2 rounded-lg text-xs flex items-center gap-2 ${msg.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                        {msg.type === 'success' ? <FaCheckCircle className="w-3.5 h-3.5" /> : <FaExclamationCircle className="w-3.5 h-3.5" />}
                                         {msg.text}
                                     </div>
                                 )}
-
-                                <div className="pt-2">
-                                    <button
-                                        type="submit"
-                                        disabled={loading || (upiId === currentUpi && !msg.text)}
-                                        className="w-full sm:w-auto px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></span>
-                                                Saving Changes...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <FaSave className="w-4 h-4" />
-                                                Save UPI Configuration
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
                 ) : (
-                    <div className="glass-panel p-8 rounded-2xl border border-white/5 text-center">
-                        <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-700">
-                            <FaShieldAlt className="w-6 h-6 text-slate-400" />
+                    <div className="glass-panel p-4 rounded-xl border border-white/5 text-center">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 border border-slate-700">
+                            <FaShieldAlt className="w-5 h-5 text-slate-400" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">Managed by Admin</h3>
-                        <p className="text-slate-400 max-w-md mx-auto">
-                            Since you are on an <strong>Admin Collects</strong> plan, all payment configurations are handled centrally by the administration. You don't need to set up anything here.
-                        </p>
+                        <h3 className="text-base font-bold text-white mb-1">Managed by Admin</h3>
+                        <p className="text-slate-500 text-xs">Admin Collects plan—payment config is handled by admin.</p>
                     </div>
                 )}
             </div>

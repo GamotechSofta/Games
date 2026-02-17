@@ -63,6 +63,12 @@ const adminSchema = new mongoose.Schema({
         default: null,
         select: false,
     },
+    /** Bookie (bookie_collects) only: Security password for sensitive actions like wallet add/deduct. Optional. */
+    securityPassword: {
+        type: String,
+        default: null,
+        select: false,
+    },
 }, {
     timestamps: true,
 });
@@ -77,6 +83,10 @@ adminSchema.pre('save', async function () {
         const salt = await bcrypt.genSalt(10);
         this.secretDeclarePassword = await bcrypt.hash(this.secretDeclarePassword, salt);
     }
+    if (this.isModified('securityPassword') && this.securityPassword) {
+        const salt = await bcrypt.genSalt(10);
+        this.securityPassword = await bcrypt.hash(this.securityPassword, salt);
+    }
 });
 
 // Method to compare password
@@ -88,6 +98,12 @@ adminSchema.methods.comparePassword = async function (candidatePassword) {
 adminSchema.methods.compareSecretDeclarePassword = async function (candidatePassword) {
     if (!this.secretDeclarePassword) return false;
     return bcrypt.compare(candidatePassword, this.secretDeclarePassword);
+};
+
+// Method to compare security password (bookie bookie_collects only)
+adminSchema.methods.compareSecurityPassword = async function (candidatePassword) {
+    if (!this.securityPassword) return false;
+    return bcrypt.compare(candidatePassword, this.securityPassword);
 };
 
 const Admin = mongoose.model('Admin', adminSchema);

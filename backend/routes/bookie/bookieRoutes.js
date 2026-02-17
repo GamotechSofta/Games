@@ -1,5 +1,5 @@
 import express from 'express';
-import { bookieLogin, bookieHeartbeat, getReferralLink, getProfile, updateTheme, getBookieUpi, setBookieUpi } from '../../controllers/bookieController.js';
+import { bookieLogin, bookieHeartbeat, getReferralLink, getProfile, updateTheme, getBookieUpi, setBookieUpi, getSecurityPasswordStatus, setSecurityPassword } from '../../controllers/bookieController.js';
 import { verifyAdmin, requireBookie } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -13,5 +13,9 @@ router.patch('/theme', verifyAdmin, requireBookie, updateTheme);
 // UPI ID management (bookie_collects type only)
 router.get('/upi', verifyAdmin, requireBookie, getBookieUpi);
 router.patch('/upi', verifyAdmin, requireBookie, setBookieUpi);
+
+// Security password (bookie_collects type only) – for sensitive actions like wallet adjust
+router.get('/security-password-status', verifyAdmin, requireBookie, getSecurityPasswordStatus);
+router.patch('/security-password', verifyAdmin, requireBookie, setSecurityPassword);
 
 export default router;

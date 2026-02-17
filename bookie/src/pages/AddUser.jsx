@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { FaLock } from 'react-icons/fa';
 
 const AddUser = () => {
     const [formData, setFormData] = useState({
@@ -14,6 +15,25 @@ const AddUser = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [bookieType, setBookieType] = useState('');
+    const [securityPasswordRequired, setSecurityPasswordRequired] = useState(false);
+    const [securityPassword, setSecurityPassword] = useState('');
+
+    useEffect(() => {
+        const bookie = JSON.parse(localStorage.getItem('bookie') || '{}');
+        setBookieType(bookie.bookieType || 'admin_collects');
+    }, []);
+    useEffect(() => {
+        if (bookieType !== 'bookie_collects') return;
+        const check = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const json = await res.json();
+                if (json.success && json.data) setSecurityPasswordRequired(json.data.isSet === true);
+            } catch (e) { console.error(e); }
+        };
+        check();
+    }, [bookieType]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,21 +43,33 @@ const AddUser = () => {
         });
     };
 
+    const initialBalanceNum = formData.balance === '' ? 0 : Number(formData.balance) || 0;
+    const needsSecurityPassword = securityPasswordRequired && initialBalanceNum > 0;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (needsSecurityPassword && !securityPassword.trim()) {
+            setError('Enter security password to set initial balance.');
+            return;
+        }
         setError('');
         setSuccess('');
         setLoading(true);
         try {
-            const payload = { ...formData, balance: formData.balance === '' ? 0 : Number(formData.balance) };
+            const payload = {
+                ...formData,
+                balance: formData.balance === '' ? 0 : Number(formData.balance),
+            };
+            if (needsSecurityPassword) payload.securityPassword = securityPassword.trim();
             const response = await fetch(`${API_BASE_URL}/users/create`, {
                 method: 'POST',
-                headers: getBookieAuthHeaders(),
+                headers: { ...getBookieAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
             const data = await response.json();
             if (data.success) {
                 setSuccess('Player created successfully! Player is now linked to your account.');
+                setSecurityPassword('');
                 setFormData({
                     username: '',
                     email: '',
@@ -172,12 +204,29 @@ const AddUser = () => {
                                     />
                                 </div>
                             </div>
+
+                            {needsSecurityPassword && (
+                                <div className="md:col-span-2 space-y-2">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                        <FaLock className="w-3.5 h-3.5 text-amber-500" />
+                                        Security password <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={securityPassword}
+                                        onChange={(e) => { setSecurityPassword(e.target.value); setError(''); }}
+                                        placeholder="Enter security password to set initial balance"
+                                        className="w-full max-w-xs px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors"
+                                        autoComplete="off"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-4 flex justify-end">
                             <button
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || (needsSecurityPassword && !securityPassword.trim())}
                                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-bold shadow-lg shadow-amber-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (

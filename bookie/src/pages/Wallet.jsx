@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
-import { FaWallet, FaPlus, FaMinus, FaExchangeAlt, FaBuilding, FaHandHoldingUsd, FaSearch, FaTimes, FaCoins, FaHistory } from 'react-icons/fa';
+import { FaWallet, FaPlus, FaMinus, FaBuilding, FaHandHoldingUsd, FaSearch, FaTimes, FaCoins, FaHistory, FaLock } from 'react-icons/fa';
 
 const Wallet = () => {
     const [wallets, setWallets] = useState([]);
@@ -14,12 +14,28 @@ const Wallet = () => {
     // Adjust modal
     const [adjustModal, setAdjustModal] = useState({ show: false, wallet: null, type: '' });
     const [adjustAmount, setAdjustAmount] = useState('');
+    const [adjustSecurityPassword, setAdjustSecurityPassword] = useState('');
     const [adjusting, setAdjusting] = useState(false);
+    const [securityPasswordRequired, setSecurityPasswordRequired] = useState(false);
 
     useEffect(() => {
         const bookie = JSON.parse(localStorage.getItem('bookie') || '{}');
         setBookieType(bookie.bookieType || 'admin_collects');
     }, []);
+
+    useEffect(() => {
+        if (bookieType !== 'bookie_collects') return;
+        const check = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const json = await res.json();
+                if (json.success && json.data) setSecurityPasswordRequired(json.data.isSet === true);
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        check();
+    }, [bookieType]);
 
     useEffect(() => {
         if (activeTab === 'wallets') fetchWallets();
@@ -57,28 +73,36 @@ const Wallet = () => {
     const openAdjust = (wallet, type) => {
         setAdjustModal({ show: true, wallet, type });
         setAdjustAmount('');
+        setAdjustSecurityPassword('');
     };
 
     const closeAdjust = () => {
         setAdjustModal({ show: false, wallet: null, type: '' });
         setAdjustAmount('');
+        setAdjustSecurityPassword('');
     };
 
     const handleAdjust = async () => {
         if (!adjustModal.wallet || !adjustAmount) return;
         const amount = parseFloat(adjustAmount);
         if (!amount || amount <= 0) return alert('Enter a valid amount');
+        if (securityPasswordRequired && !(adjustSecurityPassword || '').trim()) {
+            alert('Please enter your security password to confirm this action.');
+            return;
+        }
 
         setAdjusting(true);
         try {
             const userId = adjustModal.wallet.userId?._id || adjustModal.wallet.userId;
+            const body = { userId, amount, type: adjustModal.type };
+            if (securityPasswordRequired) body.securityPassword = adjustSecurityPassword.trim();
             const response = await fetch(`${API_BASE_URL}/wallet/adjust`, {
                 method: 'POST',
                 headers: {
                     ...getBookieAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId, amount, type: adjustModal.type }),
+                body: JSON.stringify(body),
             });
             const data = await response.json();
             if (data.success) {
@@ -395,6 +419,23 @@ const Wallet = () => {
                                 </div>
                             )}
 
+                            {securityPasswordRequired && (
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <FaLock className="w-3.5 h-3.5 text-purple-400" />
+                                        Security password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        value={adjustSecurityPassword}
+                                        onChange={(e) => setAdjustSecurityPassword(e.target.value)}
+                                        placeholder="Enter security password to confirm"
+                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                        autoComplete="off"
+                                    />
+                                </div>
+                            )}
+
                             <div className="flex gap-3">
                                 <button
                                     onClick={closeAdjust}
@@ -404,7 +445,7 @@ const Wallet = () => {
                                 </button>
                                 <button
                                     onClick={handleAdjust}
-                                    disabled={adjusting || !adjustAmount || Number(adjustAmount) <= 0}
+                                    disabled={adjusting || !adjustAmount || Number(adjustAmount) <= 0 || (securityPasswordRequired && !adjustSecurityPassword.trim())}
                                     className={`flex-1 px-4 py-3.5 rounded-xl text-black font-bold transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${adjustModal.type === 'credit'
                                         ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/20'
                                         : 'bg-red-500 hover:bg-red-400 shadow-red-500/20'

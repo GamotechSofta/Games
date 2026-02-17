@@ -201,16 +201,36 @@ export const getBookieUpi = async (req, res) => {
 
 /**
  * PATCH /bookie/upi - Set/update bookie's UPI ID (only for bookie_collects type)
- * Body: { upiId: string }
+ * Body: { upiId: string, securityPassword?: string } - securityPassword required if bookie has set one
  */
 export const setBookieUpi = async (req, res) => {
     try {
-        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' });
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' })
+            .select('bookieType upiId securityPassword')
+            .select('+securityPassword');
         if (!bookie) {
             return res.status(403).json({ success: false, message: 'Bookie access required' });
         }
         if (bookie.bookieType !== 'bookie_collects') {
             return res.status(400).json({ success: false, message: 'UPI management is only available for "Bookie Collects" type accounts' });
+        }
+        if (bookie.securityPassword) {
+            const securityPassword = (req.body.securityPassword || '').trim();
+            if (!securityPassword) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Security password is required to change UPI ID',
+                    code: 'SECURITY_PASSWORD_REQUIRED',
+                });
+            }
+            const valid = await bookie.compareSecurityPassword(securityPassword);
+            if (!valid) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Invalid security password',
+                    code: 'SECURITY_PASSWORD_INVALID',
+                });
+            }
         }
         const { upiId } = req.body;
         const trimmed = (upiId || '').trim();
@@ -228,6 +248,76 @@ export const setBookieUpi = async (req, res) => {
         });
 
         res.status(200).json({ success: true, message: 'UPI ID updated successfully', data: { upiId: trimmed } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /bookie/security-password-status - Whether bookie has set a security password (bookie_collects only)
+ */
+export const getSecurityPasswordStatus = async (req, res) => {
+    try {
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' })
+            .select('bookieType securityPassword')
+            .select('+securityPassword')
+            .lean();
+        if (!bookie) {
+            return res.status(403).json({ success: false, message: 'Bookie access required' });
+        }
+        if (bookie.bookieType !== 'bookie_collects') {
+            return res.status(200).json({ success: true, data: { isSet: false } });
+        }
+        res.status(200).json({ success: true, data: { isSet: !!bookie.securityPassword } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * PATCH /bookie/security-password - Set or change security password (bookie_collects only)
+ * Body: { newPassword, currentPassword? } - currentPassword required when changing existing password
+ */
+export const setSecurityPassword = async (req, res) => {
+    try {
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' })
+            .select('bookieType securityPassword')
+            .select('+securityPassword');
+        if (!bookie) {
+            return res.status(403).json({ success: false, message: 'Bookie access required' });
+        }
+        if (bookie.bookieType !== 'bookie_collects') {
+            return res.status(400).json({ success: false, message: 'Security password is only available for Bookie Collects accounts' });
+        }
+        const { newPassword, currentPassword } = req.body;
+        const newPwd = (newPassword || '').trim();
+        if (newPwd.length < 4) {
+            return res.status(400).json({ success: false, message: 'Security password must be at least 4 characters' });
+        }
+        if (bookie.securityPassword) {
+            if (!(currentPassword || '').trim()) {
+                return res.status(400).json({ success: false, message: 'Current security password is required to change it' });
+            }
+            const valid = await bookie.compareSecurityPassword(currentPassword.trim());
+            if (!valid) {
+                return res.status(401).json({ success: false, message: 'Current security password is incorrect' });
+            }
+        }
+        const wasAlreadySet = !!bookie.securityPassword;
+        bookie.securityPassword = newPwd;
+        await bookie.save({ validateBeforeSave: false });
+
+        await logActivity({
+            action: 'bookie_security_password_update',
+            performedBy: bookie.username,
+            performedByType: 'bookie',
+            targetType: 'admin',
+            targetId: bookie._id.toString(),
+            details: `Bookie "${bookie.username}" ${wasAlreadySet ? 'updated' : 'set'} security password`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({ success: true, message: 'Security password saved successfully' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -177,14 +177,32 @@ export const adjustBalance = async (req, res) => {
             }
         }
 
-        // Bookie can only adjust if they are bookie_collects type
+        // Bookie can only adjust if they are bookie_collects type; require security password if set
         if (req.admin?.role === 'bookie') {
-            const selfBookie = await Admin.findById(req.admin._id).select('bookieType').lean();
+            const selfBookie = await Admin.findById(req.admin._id).select('bookieType securityPassword').select('+securityPassword');
             if (!selfBookie || selfBookie.bookieType !== 'bookie_collects') {
                 return res.status(403).json({
                     success: false,
                     message: 'Only Bookie Collects type bookies can adjust user wallets. Admin manages wallets for your users.',
                 });
+            }
+            if (selfBookie.securityPassword) {
+                const securityPassword = (req.body.securityPassword || '').trim();
+                if (!securityPassword) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Security password is required for this action',
+                        code: 'SECURITY_PASSWORD_REQUIRED',
+                    });
+                }
+                const valid = await selfBookie.compareSecurityPassword(securityPassword);
+                if (!valid) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Invalid security password',
+                        code: 'SECURITY_PASSWORD_INVALID',
+                    });
+                }
             }
         }
 
