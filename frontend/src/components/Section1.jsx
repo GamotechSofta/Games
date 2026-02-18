@@ -208,54 +208,51 @@ const Section1 = () => {
               } py-1.5 min-[375px]:py-2 px-2 min-[375px]:px-3 text-center min-h-[32px] flex items-center justify-center`}>
                 <p className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold leading-tight">
                   {market.status === 'open' && 'MARKET IS OPEN'}
-                  {market.status === 'running' && 'CLOSED IS RUNNING'}
+                  {market.status === 'running' && 'CLOSING IS RUNNING'}
                   {market.status === 'closed' && 'MARKET CLOSED'}
                 </p>
               </div>
 
             {/* Card Content – min-heights reduce layout shift when result updates */}
             <div
-              className="p-2 min-[375px]:p-3 sm:p-4"
+              className="flex flex-col p-2 min-[375px]:p-3 sm:p-4 min-h-[140px]"
               onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
               role={isClickable ? 'button' : undefined}
             >
-              {/* Time with Clock Icon */}
-              <div className="flex items-center gap-1 mb-1.5 min-[375px]:mb-2 min-h-[20px]">
-                <svg
-                  className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-gray-400 text-[10px] min-[375px]:text-xs sm:text-sm truncate">{market.timeRange}</p>
+              {/* Top: Time + Game Name – grouped */}
+              <div className="space-y-1 min-[375px]:space-y-1.5 mb-2 min-[375px]:mb-3">
+                <div className="flex items-center gap-1.5 min-h-[18px] min-[375px]:min-h-[20px]">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-amber-500/90 text-[10px] min-[375px]:text-xs sm:text-sm font-medium truncate">{market.timeRange}</span>
+                </div>
+                <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold font-serif leading-tight truncate min-h-[1.25em]">
+                  {market.gameName}
+                </h3>
               </div>
 
-              {/* Game Name */}
-              <h3 className="text-white text-xs min-[375px]:text-sm sm:text-base md:text-lg font-semibold mb-2 min-[375px]:mb-3 truncate min-h-[1.25em]">
-                {market.gameName}
-              </h3>
-
-              {/* Result – fixed min-height so ***-**-*** and 123-45-678 don't shift layout */}
-              <div className="min-h-[28px] min-[375px]:min-h-[32px] sm:min-h-[36px] md:min-h-[40px] flex items-end">
-                <p className="text-yellow-400 text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-bold leading-tight transition-opacity duration-150">
+              {/* Middle: Result – prominent, fixed height */}
+              <div className="flex-1 min-h-[28px] min-[375px]:min-h-[32px] sm:min-h-[36px] flex items-center">
+                <p className="text-amber-400 text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wider leading-tight">
                   {market.result}
                 </p>
               </div>
 
-              {/* Closed market only: Schedule Bets For Tomorrow */}
-              {market.status === 'closed' && (
+              {/* Bottom: Schedule button – only for closed markets */}
+              {market.status === 'closed' ? (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
                   }}
-                  className="mt-2 min-[375px]:mt-3 w-full py-2 px-3 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold hover:bg-amber-500/30 transition-colors"
+                  className="mt-auto w-full py-2 px-3 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] min-[375px]:text-[10px] sm:text-sm font-semibold sm:whitespace-normal whitespace-nowrap hover:bg-amber-500/25 transition-colors"
                 >
                   Schedule Bets For Tomorrow
                 </button>
+              ) : (
+                <div className="mt-auto pt-1" aria-hidden />
               )}
             </div>
           </div>
