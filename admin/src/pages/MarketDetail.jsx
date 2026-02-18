@@ -801,15 +801,15 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                             <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
                                                 <p className="text-gray-500 font-medium mb-1">Open</p>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Bet Amount on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Bet Amount</span>
                                                     <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Amount on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Win Amount</span>
                                                     <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Players Bet on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Win Players</span>
                                                     <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
                                                 </div>
                                             </div>
@@ -818,15 +818,15 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                             <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
                                                 <p className="text-gray-500 font-medium mb-1">Close</p>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Bet Amount on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Bet Amount</span>
                                                     <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Amount on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Win Amount</span>
                                                     <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
                                                 </div>
                                                 <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Players Bet on Patti</span>
+                                                    <span className="text-gray-400 min-w-0">Total Win Players</span>
                                                     <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
                                                 </div>
                                             </div>
@@ -840,7 +840,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                 <FaChartBar className="text-yellow-500 w-4 h-4" />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="text-[11px] text-gray-400 uppercase tracking-wider">Total Bet Amount</p>
+                                <p className="text-[11px] text-gray-400 uppercase tracking-wider">Total Amount</p>
                                 <p className="font-mono text-base sm:text-lg font-semibold text-white">₹{formatNum(displayAmount)}</p>
                                 <p className="text-[11px] text-gray-500">{formatNum(displayBets)} bets</p>
                                 <p className="text-[10px] text-gray-500">({isKingBazaar ? 'All bets' : (effectiveView === 'open' ? 'Open bets only' : 'Closed bets only')})</p>
