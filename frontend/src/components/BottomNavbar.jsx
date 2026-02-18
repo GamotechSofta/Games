@@ -205,13 +205,13 @@ const BottomNavbar = ({ inline = false }) => {
     </div>
   );
 
-  // When inline: navbar is a flex child, no portal. Otherwise portal to body (desktop/fallback)
-  if (inline) return navEl;
   try {
     if (typeof document !== 'undefined' && document.body) {
       return createPortal(navEl, document.body);
     }
-  } catch (_) {}
+  } catch (_) {
+    // fallback if portal fails (e.g. in some SSR or test envs)
+  }
   return navEl;
 };
 

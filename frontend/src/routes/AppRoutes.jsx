@@ -120,8 +120,6 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Same header (logoipsum, Download App, bell) for all pages - mobile-style
-  // Mobile: flex layout so bottom nav stays at viewport bottom (avoids iOS fixed bug)
   if (isHomePage) {
     return (
       <div className="flex flex-col h-[100dvh] min-h-[100vh] min-h-[-webkit-fill-available] md:min-h-screen md:h-auto md:pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full overflow-hidden md:overflow-visible">
