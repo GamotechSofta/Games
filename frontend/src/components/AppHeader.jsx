@@ -137,7 +137,7 @@ const AppHeader = () => {
   return (
     <>
       <div
-        className="fixed top-0 left-0 right-0 z-50 w-full bg-gradient-to-b from-black to-[#0a0a0a] border-b border-white/5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1.25rem,env(safe-area-inset-left))] md:pr-[max(1.25rem,env(safe-area-inset-right))] py-1.5 sm:py-1 md:py-1.5 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(0.375rem+env(safe-area-inset-top,0px))] md:pt-[calc(0.5rem+env(safe-area-inset-top,0px))]"
+        className="fixed top-0 left-0 right-0 z-50 w-full bg-black border-b border-white/5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1.25rem,env(safe-area-inset-left))] md:pr-[max(1.25rem,env(safe-area-inset-right))] py-1.5 sm:py-1 md:py-1.5 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(0.375rem+env(safe-area-inset-top,0px))] md:pt-[calc(0.5rem+env(safe-area-inset-top,0px))]"
       >
         <div className="flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2">
           {/* Hamburger Menu and Logo together on the left */}

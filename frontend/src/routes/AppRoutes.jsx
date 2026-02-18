@@ -120,6 +120,7 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
+  // Same header (logoipsum, Download App, bell) for all pages - mobile-style
   if (isHomePage) {
     return (
       <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
