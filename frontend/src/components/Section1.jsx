@@ -213,33 +213,33 @@ const Section1 = () => {
                 </p>
               </div>
 
-            {/* Card Content – min-heights reduce layout shift when result updates */}
+            {/* Card Content */}
             <div
-              className="flex flex-col p-2 min-[375px]:p-3 sm:p-4 min-h-[140px]"
+              className="flex flex-col p-3 min-[375px]:p-3.5 sm:p-4 border-t border-white/5"
               onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
               role={isClickable ? 'button' : undefined}
             >
-              {/* Top: Time + Game Name – grouped */}
-              <div className="space-y-1 min-[375px]:space-y-1.5 mb-2 min-[375px]:mb-3">
-                <div className="flex items-center gap-1.5 min-h-[18px] min-[375px]:min-h-[20px]">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-amber-500/90 text-[10px] min-[375px]:text-xs sm:text-sm font-medium truncate">{market.timeRange}</span>
-                </div>
-                <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold font-serif leading-tight truncate min-h-[1.25em]">
-                  {market.gameName}
-                </h3>
+              {/* Time row */}
+              <div className="flex items-center gap-1.5 mb-1.5 min-[375px]:mb-2">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-amber-500/90 text-[10px] min-[375px]:text-xs sm:text-sm font-medium truncate">{market.timeRange}</span>
               </div>
 
-              {/* Middle: Result – prominent, fixed height */}
-              <div className="flex-1 min-h-[28px] min-[375px]:min-h-[32px] sm:min-h-[36px] flex items-center">
-                <p className="text-amber-400 text-lg min-[375px]:text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wider leading-tight">
+              {/* Game Name */}
+              <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight truncate mb-2 min-[375px]:mb-2.5">
+                {market.gameName}
+              </h3>
+
+              {/* Result */}
+              <div className="mb-2 min-[375px]:mb-2.5">
+                <p className="text-amber-400 text-base min-[375px]:text-lg sm:text-xl md:text-2xl font-extrabold tracking-wider leading-tight">
                   {market.result}
                 </p>
               </div>
 
-              {/* Bottom: Schedule button – only for closed markets */}
+              {/* Action text */}
               {market.status === 'closed' ? (
                 <button
                   type="button"
@@ -247,13 +247,14 @@ const Section1 = () => {
                     e.stopPropagation();
                     navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
                   }}
-                  className="mt-auto w-full py-2 px-2 sm:px-3 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold hover:bg-amber-500/25 transition-colors text-center"
+                  className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center hover:text-amber-300 w-full"
                 >
-                  <span className="sm:hidden">Schedule Tomorrow</span>
-                  <span className="hidden sm:inline">Schedule Bets For Tomorrow</span>
+                  Running for tomorrow
                 </button>
               ) : (
-                <div className="mt-auto pt-1" aria-hidden />
+                <p className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center">
+                  Tap to Play
+                </p>
               )}
             </div>
           </div>
