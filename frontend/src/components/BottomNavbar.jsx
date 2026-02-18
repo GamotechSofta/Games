@@ -2,14 +2,12 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const BottomNavbar = ({ inline = false }) => {
+const BottomNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const scrollToTopSmooth = () => {
     try {
-      const mainScroll = document.getElementById('main-scroll');
-      if (mainScroll) mainScroll.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       if (document.documentElement) document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       if (document.body) document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -100,7 +98,7 @@ const BottomNavbar = ({ inline = false }) => {
       id="app-bottom-nav"
       role="navigation"
       aria-label="Main navigation"
-      className={inline ? 'app-bottom-nav-inline md:hidden' : 'app-bottom-nav-fixed md:hidden'}
+      className="app-bottom-nav-fixed md:hidden"
       style={{
         paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
