@@ -47,7 +47,7 @@ const SubHeader = () => {
 
   return (
     <div
-      className="fixed left-0 right-0 z-40 w-full bg-black border-t border-amber-500/60"
+      className="fixed left-0 right-0 z-40 w-full bg-black border-t border-amber-500/60 md:hidden"
       style={{ top: headerHeight }}
     >
       <div className="flex flex-nowrap items-center justify-between gap-2 sm:gap-4 px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:px-4 md:px-6 h-10 sm:h-11 py-1.5">
