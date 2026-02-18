@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'r
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import AppHeader from '../components/AppHeader';
+import SubHeader from '../components/SubHeader';
 import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
 import BidOptions from '../pages/BidOptions';
@@ -124,7 +125,8 @@ const Layout = ({ children }) => {
     return (
       <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
         <AppHeader />
-        <div className="pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(52px+env(safe-area-inset-top,0px))] md:pt-[calc(56px+env(safe-area-inset-top,0px))]">
+        <SubHeader />
+        <div className="pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(80px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]">
           {children}
         </div>
         <BottomNavbar />
@@ -170,21 +172,27 @@ const Layout = ({ children }) => {
       {hideTopNavMobileOnly ? (
         <div className="hidden md:block">
           <AppHeader />
+          <SubHeader />
         </div>
       ) : (
-        !hideTopNavOnMobile && <AppHeader />
+        !hideTopNavOnMobile && (
+          <>
+            <AppHeader />
+            <SubHeader />
+          </>
+        )
       )}
       <div
         className={
           hideTopNavMobileOnly
-            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
+            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
             : hideTopNavOnMobile
               ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
               : isBidPage
-                ? 'pt-[calc(52px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(70px+env(safe-area-inset-top,0px))]'
+                ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
                 : (isBetsPage || isHistoryPage)
-                  ? 'pt-[calc(72px+env(safe-area-inset-top,0px))] sm:pt-[calc(76px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]'
-                  : 'pt-[calc(56px+env(safe-area-inset-top,0px))] sm:pt-[calc(68px+env(safe-area-inset-top,0px))] md:pt-[calc(72px+env(safe-area-inset-top,0px))]'
+                  ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
+                  : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
         }
       >
         {children}
