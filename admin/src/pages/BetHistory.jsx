@@ -6,6 +6,7 @@ import { clearAdminAuth } from '../utils/api';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
 const RANGES = [
+    { id: 'all', label: 'All' },
     { id: 'today', label: 'Today' },
     { id: 'yesterday', label: 'Yesterday' },
     { id: 'this_week', label: 'This Week' },
@@ -22,6 +23,9 @@ function getDateRange(rangeId, customStart = '', customEnd = '') {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    if (rangeId === 'all') {
+        return { startDate: '', endDate: '', label: 'All' };
+    }
     if (rangeId === 'custom') {
         if (customStart && customEnd) {
             const end = new Date(customEnd);
@@ -68,6 +72,21 @@ function getDateRange(rangeId, customStart = '', customEnd = '') {
     }
 }
 
+const FILTERS = [
+    { id: 'all', label: 'All' },
+    { id: 'open', label: 'Open Bets' },
+    { id: 'close', label: 'Close Bets' },
+    { id: 'startline', label: 'Startline' },
+    { id: 'king', label: 'King Bazaar' },
+];
+
+const getBetCategory = (bet) => {
+    const mt = bet.marketId?.marketType || 'main';
+    if (mt === 'startline') return 'startline';
+    if (mt === 'king') return 'king';
+    return bet.betOn === 'close' ? 'close' : 'open';
+};
+
 const BetHistory = () => {
     const navigate = useNavigate();
     const [bets, setBets] = useState([]);
@@ -75,8 +94,21 @@ const BetHistory = () => {
     const [dateRange, setDateRange] = useState('today');
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
+    const [filter, setFilter] = useState('all');
 
     const { startDate, endDate, label } = getDateRange(dateRange, customStart, customEnd);
+
+    const filteredBets = filter === 'all'
+        ? bets
+        : bets.filter((b) => getBetCategory(b) === filter);
+
+    const sortedBets = [...filteredBets].sort((a, b) => {
+        const catA = getBetCategory(a);
+        const catB = getBetCategory(b);
+        const order = { open: 1, close: 2, startline: 3, king: 4 };
+        if (order[catA] !== order[catB]) return (order[catA] || 0) - (order[catB] || 0);
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
     useEffect(() => {
         fetchBets();
@@ -160,6 +192,27 @@ const BetHistory = () => {
                         </p>
                     </div>
 
+                    {/* Filter tabs */}
+                    <div className="bg-gray-800 rounded-lg p-4 mb-4 sm:mb-6 border border-gray-700">
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Filter by market</p>
+                        <div className="flex flex-wrap gap-2">
+                            {FILTERS.map((f) => (
+                                <button
+                                    key={f.id}
+                                    type="button"
+                                    onClick={() => setFilter(f.id)}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                        filter === f.id
+                                            ? 'bg-orange-500 text-white'
+                                            : 'bg-gray-700 text-white hover:bg-gray-600'
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Bet Table */}
                     {loading ? (
                         <div className="text-center py-12">
@@ -171,6 +224,7 @@ const BetHistory = () => {
                             <table className="w-full text-sm sm:text-base">
                                 <thead className="bg-gray-700">
                                     <tr>
+                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Category</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">ID</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Player</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Market</th>
@@ -181,15 +235,26 @@ const BetHistory = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-700">
-                                    {bets.length === 0 ? (
+                                    {sortedBets.length === 0 ? (
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-4 text-center text-gray-400">
+                                            <td colSpan="8" className="px-6 py-4 text-center text-gray-400">
                                                 No bets found
                                             </td>
                                         </tr>
                                     ) : (
-                                        bets.map((bet) => (
+                                        sortedBets.map((bet) => {
+                                            const cat = getBetCategory(bet);
+                                            const catLabel = cat === 'open' ? 'Open' : cat === 'close' ? 'Close' : cat === 'startline' ? 'Startline' : 'King Bazaar';
+                                            return (
                                             <tr key={bet._id} className="hover:bg-gray-700">
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">
+                                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                                        cat === 'open' ? 'bg-blue-600/80' :
+                                                        cat === 'close' ? 'bg-purple-600/80' :
+                                                        cat === 'startline' ? 'bg-amber-600/80' :
+                                                        'bg-teal-600/80'
+                                                    }`}>{catLabel}</span>
+                                                </td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet._id.slice(-8)}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet.userId?.username || bet.userId}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet.marketId?.marketName || bet.marketId}</td>
@@ -210,7 +275,8 @@ const BetHistory = () => {
                                                     {new Date(bet.createdAt).toLocaleString()}
                                                 </td>
                                             </tr>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>

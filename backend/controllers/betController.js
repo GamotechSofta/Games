@@ -313,7 +313,7 @@ export const getBetHistory = async (req, res) => {
 
         const bets = await Bet.find(query)
             .populate('userId', 'username email')
-            .populate({ path: 'marketId', select: 'marketName', model: Market })
+            .populate({ path: 'marketId', select: 'marketName marketType', model: Market })
             .sort({ createdAt: -1 })
             .limit(1000);
 
