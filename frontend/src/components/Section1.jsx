@@ -247,12 +247,12 @@ const Section1 = () => {
                     e.stopPropagation();
                     navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
                   }}
-                  className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center hover:text-amber-300 w-full"
+                  className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center hover:text-amber-300 w-full animate-pulse"
                 >
                   Running for tomorrow
                 </button>
               ) : (
-                <p className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center">
+                <p className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center animate-pulse">
                   Tap to Play
                 </p>
               )}
