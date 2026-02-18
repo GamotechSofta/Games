@@ -152,8 +152,8 @@ body {
   position: relative;
 }
 
-/* Bottom navbar: force fixed to viewport bottom on iOS (portaled to body) */
-#app-bottom-nav,
+/* Bottom navbar: fixed when portaled (fallback); inline = flex child, no fixed */
+#app-bottom-nav.app-bottom-nav-fixed,
 .app-bottom-nav-fixed {
   position: fixed !important;
   top: auto !important;
@@ -162,19 +162,13 @@ body {
   right: 0 !important;
   width: 100% !important;
   z-index: 9999 !important;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 }
 
-/* iOS Safari: reinforce fixed positioning (overflow-x: clip on html/body also helps) */
-@supports (-webkit-touch-callout: none) {
-  #app-bottom-nav,
-  .app-bottom-nav-fixed {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-  }
+/* Inline mode: flex child at bottom, no position:fixed (iOS Safari workaround) */
+.app-bottom-nav-inline {
+  flex-shrink: 0;
+  width: 100%;
+  background: #000;
 }
 
 #root {

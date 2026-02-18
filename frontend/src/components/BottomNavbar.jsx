@@ -2,12 +2,14 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const BottomNavbar = () => {
+const BottomNavbar = ({ inline = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const scrollToTopSmooth = () => {
     try {
+      const mainScroll = document.getElementById('main-scroll');
+      if (mainScroll) mainScroll.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       if (document.documentElement) document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       if (document.body) document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -98,7 +100,7 @@ const BottomNavbar = () => {
       id="app-bottom-nav"
       role="navigation"
       aria-label="Main navigation"
-      className="app-bottom-nav-fixed md:hidden"
+      className={inline ? 'app-bottom-nav-inline md:hidden' : 'app-bottom-nav-fixed md:hidden'}
       style={{
         paddingBottom: 'max(0.375rem, env(safe-area-inset-bottom, 0px))',
         paddingLeft: 'max(0.5rem, env(safe-area-inset-left))',
@@ -203,14 +205,13 @@ const BottomNavbar = () => {
     </div>
   );
 
-  // Portal to document.body so no parent (e.g. overflow-x-hidden layout) breaks position:fixed on iOS
+  // When inline: navbar is a flex child, no portal. Otherwise portal to body (desktop/fallback)
+  if (inline) return navEl;
   try {
     if (typeof document !== 'undefined' && document.body) {
       return createPortal(navEl, document.body);
     }
-  } catch (_) {
-    // fallback if portal fails (e.g. in some SSR or test envs)
-  }
+  } catch (_) {}
   return navEl;
 };
 

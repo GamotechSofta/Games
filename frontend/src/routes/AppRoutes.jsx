@@ -44,15 +44,15 @@ const ScrollToTop = () => {
     prevPathRef.current = pathname;
 
     const scrollToTop = () => {
+      const mainScroll = document.getElementById('main-scroll');
+      if (mainScroll) mainScroll.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       if (document.documentElement) document.documentElement.scrollTop = 0;
       if (document.body) document.body.scrollTop = 0;
-      // Mobile: scrollIntoView helps iOS Safari and Chrome Android
       try {
         document.body.scrollIntoView?.({ behavior: 'instant', block: 'start' });
         document.documentElement?.scrollIntoView?.({ behavior: 'instant', block: 'start' });
       } catch (_) {}
-      // Scroll main scrollable containers (window + overflow divs) – same for mobile and desktop
       try {
         const scrollables = document.querySelectorAll(
           '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"], [class*="ios-scroll-touch"]'
@@ -121,15 +121,24 @@ const Layout = ({ children }) => {
   }
 
   // Same header (logoipsum, Download App, bell) for all pages - mobile-style
+  // Mobile: flex layout so bottom nav stays at viewport bottom (avoids iOS fixed bug)
   if (isHomePage) {
     return (
-      <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
+      <div className="flex flex-col h-[100dvh] min-h-[100vh] min-h-[-webkit-fill-available] md:min-h-screen md:h-auto md:pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full overflow-hidden md:overflow-visible">
         <AppHeader />
         <SubHeader />
-        <div className="pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(80px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]">
-          {children}
+        <main
+          id="main-scroll"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain md:overflow-visible ios-scroll-touch"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div className="pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(80px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+            {children}
+          </div>
+        </main>
+        <div className="flex-shrink-0 md:hidden">
+          <BottomNavbar inline />
         </div>
-        <BottomNavbar />
       </div>
     );
   }
@@ -160,12 +169,17 @@ const Layout = ({ children }) => {
   const isHistoryPage =
     location.pathname === '/bet-history' || location.pathname === '/market-result-history';
 
+  // Mobile with bottom nav: flex layout so nav stays at viewport bottom (iOS Safari fix)
+  const useMobileFlexLayout = !hideBottomNavOnMobile && !isDesktop;
+
   return (
     <div
       className={
-        hideBottomNavOnMobile
-          ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
-          : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
+        useMobileFlexLayout
+          ? 'flex flex-col h-[100dvh] min-h-[100vh] min-h-[-webkit-fill-available] md:flex-initial md:h-auto md:min-h-screen min-h-ios-screen md:pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-hidden md:overflow-x-hidden bg-black'
+          : hideBottomNavOnMobile
+            ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
+            : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
       }
     >
       {/* My Bets, Bet History, Game Results etc.: hide top nav on mobile only via CSS */}
@@ -182,22 +196,46 @@ const Layout = ({ children }) => {
           </>
         )
       )}
-      <div
-        className={
-          hideTopNavMobileOnly
-            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
-            : hideTopNavOnMobile
-              ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
-              : isBidPage
-                ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
-                : (isBetsPage || isHistoryPage)
-                  ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
-                  : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
-        }
-      >
-        {children}
-      </div>
-      {!hideBottomNavOnMobile && <BottomNavbar />}
+      {useMobileFlexLayout ? (
+        <main
+          id="main-scroll"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain ios-scroll-touch"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div
+            className={
+              hideTopNavMobileOnly
+                ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))]'
+                : hideTopNavOnMobile
+                  ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))]'
+                  : isBidPage
+                    ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))]'
+                    : (isBetsPage || isHistoryPage)
+                      ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))]'
+                      : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))] pb-[calc(4rem+env(safe-area-inset-bottom,0px))]'
+            }
+          >
+            {children}
+          </div>
+        </main>
+      ) : (
+        <div
+          className={
+            hideTopNavMobileOnly
+              ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
+              : hideTopNavOnMobile
+                ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
+                : isBidPage
+                  ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
+                  : (isBetsPage || isHistoryPage)
+                    ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
+                    : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
+          }
+        >
+          {children}
+        </div>
+      )}
+      {!hideBottomNavOnMobile && <BottomNavbar inline={useMobileFlexLayout} />}
     </div>
   );
 };
