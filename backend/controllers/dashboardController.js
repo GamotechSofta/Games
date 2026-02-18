@@ -148,6 +148,31 @@ export const getDashboardStats = async (req, res) => {
         const netProfit = revenue - payouts;
         const winRate = totalBets > 0 ? ((winningBets / totalBets) * 100).toFixed(2) : 0;
 
+        // Calculate bookie share based on bookie type (for bookie users only)
+        let bookieShare = null;
+        let bookieNetProfit = null;
+        let netProfitPercentage = null;
+        if (req.admin?.role === 'bookie') {
+            const bookieType = req.admin.bookieType || 'admin_collects';
+            const commPct = req.admin.commissionPercentage || 0;
+            
+            if (bookieType === 'bookie_collects') {
+                // Bookie collects all, pays admin platform charge
+                const platformCharge = Math.round((revenue * commPct / 100) * 100) / 100;
+                bookieShare = Math.round((revenue - platformCharge) * 100) / 100;
+                bookieNetProfit = Math.round((bookieShare - payouts) * 100) / 100;
+            } else {
+                // Admin collects all, pays bookie commission
+                bookieShare = Math.round((revenue * commPct / 100) * 100) / 100;
+                bookieNetProfit = bookieShare; // bookie's net is just the commission (admin handles payouts)
+            }
+            
+            // Calculate net profit percentage: (bookieNetProfit / revenue) * 100
+            if (revenue > 0) {
+                netProfitPercentage = Math.round((bookieNetProfit / revenue) * 100 * 100) / 100;
+            }
+        }
+
         res.status(200).json({
             success: true,
             data: {
@@ -174,6 +199,9 @@ export const getDashboardStats = async (req, res) => {
                     thisMonth: revenue,
                     payouts: payouts,
                     netProfit: netProfit,
+                    bookieShare: bookieShare,
+                    bookieNetProfit: bookieNetProfit,
+                    netProfitPercentage: netProfitPercentage,
                 },
                 bets: {
                     total: totalBets,

@@ -216,8 +216,13 @@ const Dashboard = () => {
 
     const { bookie } = useAuth();
     const commissionPercent = Number(bookie?.commissionPercentage) || 0;
+    const bookieType = bookie?.bookieType || 'admin_collects';
     const netProfit = Number(stats?.revenue?.netProfit) || 0;
-    const bookieShareFromNetProfit = (commissionPercent / 100) * netProfit;
+    const bookieNetProfit = Number(stats?.revenue?.bookieNetProfit) ?? null;
+    const netProfitPercentage = Number(stats?.revenue?.netProfitPercentage) ?? null;
+    
+    // Use bookieNetProfit from backend if available, otherwise fallback to old calculation (for backward compatibility)
+    const displayBookieShare = bookieNetProfit !== null ? bookieNetProfit : (commissionPercent > 0 ? (commissionPercent / 100) * netProfit : 0);
 
     const pendingPayments = stats?.payments?.pending || 0;
     const pendingDeposits = stats?.payments?.pendingDeposits ?? stats?.payments?.pending ?? 0;
@@ -415,14 +420,26 @@ const Dashboard = () => {
                         <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                         Net Profit
                     </p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{formatCurrency(stats?.revenue?.netProfit)}</p>
-                    {commissionPercent > 0 && (
-                        <p className="mt-2 text-sm text-amber-400 font-semibold">
-                            Your share ({commissionPercent}%): <span className="font-mono text-amber-300">{formatCurrency(bookieShareFromNetProfit)}</span>
-                        </p>
+                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{formatCurrency(bookieNetProfit !== null ? bookieNetProfit : netProfit)}</p>
+                    {bookieNetProfit !== null && (
+                        <>
+                            <p className="mt-2 text-xs text-slate-400 font-medium">
+                                {bookieType === 'bookie_collects' 
+                                    ? `After platform charge (${commissionPercent}%) & payouts`
+                                    : `Commission (${commissionPercent}% of revenue)`}
+                            </p>
+                            {netProfitPercentage !== null && (
+                                <p className="mt-1 text-sm text-amber-400 font-semibold">
+                                    Net Profit: <span className="font-mono text-amber-300">{netProfitPercentage.toFixed(2)}%</span>
+                                </p>
+                            )}
+                        </>
                     )}
                     <div className="mt-4 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 w-3/5"></div>
+                        <div 
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500" 
+                            style={{ width: `${netProfitPercentage !== null ? Math.min(netProfitPercentage, 100) : 60}%` }}
+                        ></div>
                     </div>
                 </div>
 
@@ -465,9 +482,22 @@ const Dashboard = () => {
                 <SectionCard title="Revenue & Payouts" description="Financial breakdown" icon={FaMoneyBillWave} linkTo="/reports" linkLabel="Full Report">
                     <StatRow label="Total Revenue" value={formatCurrency(stats?.revenue?.total)} colorClass="text-emerald-400" />
                     <StatRow label="Total Payouts" value={formatCurrency(stats?.revenue?.payouts)} colorClass="text-red-400" />
-                    <StatRow label="Net Profit" value={formatCurrency(stats?.revenue?.netProfit)} colorClass="text-blue-400" />
-                    {commissionPercent > 0 && (
-                        <StatRow label={`Your share (${commissionPercent}%)`} value={formatCurrency(bookieShareFromNetProfit)} colorClass="text-amber-400" subValue="of net profit" />
+                    <StatRow label="Net Profit" value={formatCurrency(bookieNetProfit !== null ? bookieNetProfit : stats?.revenue?.netProfit)} colorClass="text-blue-400" />
+                    {bookieNetProfit !== null && netProfitPercentage !== null && (
+                        <StatRow 
+                            label="Net Profit %" 
+                            value={`${netProfitPercentage.toFixed(2)}%`} 
+                            colorClass="text-amber-400" 
+                            subValue={bookieType === 'bookie_collects' ? 'of revenue (after platform charge & payouts)' : 'of revenue (commission only)'}
+                        />
+                    )}
+                    {bookieNetProfit !== null && (
+                        <StatRow 
+                            label={`Your ${bookieType === 'bookie_collects' ? 'Net Profit' : 'Commission'}`} 
+                            value={formatCurrency(bookieNetProfit)} 
+                            colorClass="text-amber-400" 
+                            subValue={bookieType === 'bookie_collects' ? 'After platform charge & payouts' : `${commissionPercent}% of revenue`}
+                        />
                     )}
                 </SectionCard>
 
