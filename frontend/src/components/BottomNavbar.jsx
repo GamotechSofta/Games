@@ -12,10 +12,10 @@ const BottomNavbar = () => {
       if (document.documentElement) document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       if (document.body) document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
       setTimeout(() => {
-        const scrollableElements = document.querySelectorAll(
+        const scrollables = document.querySelectorAll(
           '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"], [class*="ios-scroll-touch"]'
         );
-        scrollableElements.forEach((el) => {
+        scrollables.forEach((el) => {
           if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         });
       }, 50);
@@ -203,14 +203,11 @@ const BottomNavbar = () => {
     </div>
   );
 
-  // Portal to document.body so no parent (e.g. overflow-x-hidden layout) breaks position:fixed on iOS
   try {
     if (typeof document !== 'undefined' && document.body) {
       return createPortal(navEl, document.body);
     }
-  } catch (_) {
-    // fallback if portal fails (e.g. in some SSR or test envs)
-  }
+  } catch (_) {}
   return navEl;
 };
 

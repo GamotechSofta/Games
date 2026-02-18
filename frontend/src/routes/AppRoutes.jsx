@@ -120,7 +120,6 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Same header (logoipsum, Download App, bell) for all pages - mobile-style
   if (isHomePage) {
     return (
       <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
@@ -168,7 +167,6 @@ const Layout = ({ children }) => {
           : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
       }
     >
-      {/* My Bets, Bet History, Game Results etc.: hide top nav on mobile only via CSS */}
       {hideTopNavMobileOnly ? (
         <div className="hidden md:block">
           <AppHeader />
