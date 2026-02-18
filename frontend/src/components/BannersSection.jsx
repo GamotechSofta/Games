@@ -24,8 +24,8 @@ const BannersSection = () => {
   }, []);
 
   return (
-    <div className="mt-5 sm:hidden">
-      <div className="relative rounded-2xl overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
+    <div className="mt-2 sm:hidden">
+      <div className="relative overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
         <div
           className="flex will-change-transform"
           style={{
