@@ -135,6 +135,7 @@ input[type="date"]::-webkit-clear-button {
 html {
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
+  overflow-x: clip; /* clip doesn't break position:fixed on iOS (unlike hidden) */
   background: #000;
   height: 100%;
   min-height: 100dvh;
@@ -143,6 +144,7 @@ html {
 
 body {
   overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
   padding-bottom: env(safe-area-inset-bottom, 0);
@@ -154,6 +156,7 @@ body {
 #app-bottom-nav,
 .app-bottom-nav-fixed {
   position: fixed !important;
+  top: auto !important;
   bottom: 0 !important;
   left: 0 !important;
   right: 0 !important;
@@ -161,8 +164,17 @@ body {
   z-index: 9999 !important;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+}
+
+/* iOS Safari: reinforce fixed positioning (overflow-x: clip on html/body also helps) */
+@supports (-webkit-touch-callout: none) {
+  #app-bottom-nav,
+  .app-bottom-nav-fixed {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
 }
 
 #root {
