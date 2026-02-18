@@ -58,7 +58,7 @@ export const getReport = async (req, res) => {
         const commissionPercentage = admin.role === 'bookie' ? (admin.commissionPercentage || 0) : undefined;
 
         // For bookie: calculate their share based on type
-        let bookieShare, platformCharge, bookieNetProfit;
+        let bookieShare, platformCharge, bookieNetProfit, netProfitPercentage;
         if (admin.role === 'bookie') {
             const commPct = admin.commissionPercentage || 0;
             if (bookieType === 'bookie_collects') {
@@ -71,6 +71,11 @@ export const getReport = async (req, res) => {
                 bookieShare = Math.round((revenue * commPct / 100) * 100) / 100;
                 platformCharge = 0;
                 bookieNetProfit = bookieShare; // bookie's net is just the commission (admin handles payouts)
+            }
+            
+            // Calculate net profit percentage: (bookieNetProfit / revenue) * 100
+            if (revenue > 0) {
+                netProfitPercentage = Math.round((bookieNetProfit / revenue) * 100 * 100) / 100;
             }
         }
 
@@ -91,6 +96,7 @@ export const getReport = async (req, res) => {
                     bookieShare,
                     platformCharge,
                     bookieNetProfit,
+                    netProfitPercentage,
                 }),
             },
         });

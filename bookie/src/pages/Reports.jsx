@@ -251,14 +251,19 @@ const Reports = () => {
                                         icon={report.bookieNetProfit >= 0 ? FaArrowUp : FaArrowDown}
                                         iconBg={report.bookieNetProfit >= 0 ? 'bg-emerald-500/10' : 'bg-red-500/10'}
                                         iconColor={report.bookieNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}
-                                        sub="After platform & payouts" />
+                                        sub={report.netProfitPercentage !== null && report.netProfitPercentage !== undefined 
+                                            ? `After platform & payouts (${report.netProfitPercentage.toFixed(2)}% of revenue)`
+                                            : "After platform & payouts"} />
                                 </>
                             ) : (
                                 <>
                                     <SummaryCard label="Bet Volume" value={formatCurrency(report.totalRevenue)}
                                         icon={FaChartBar} iconBg="bg-blue-500/10" iconColor="text-blue-400" sub="Total bets placed" />
                                     <SummaryCard label="Your Commission" value={formatCurrency(report.bookieShare)}
-                                        icon={FaHandHoldingUsd} iconBg="bg-emerald-500/10" iconColor="text-emerald-400" sub={`${report.commissionPercentage}% of volume`} />
+                                        icon={FaHandHoldingUsd} iconBg="bg-emerald-500/10" iconColor="text-emerald-400" 
+                                        sub={report.netProfitPercentage !== null && report.netProfitPercentage !== undefined 
+                                            ? `${report.commissionPercentage}% of volume (${report.netProfitPercentage.toFixed(2)}% net profit)`
+                                            : `${report.commissionPercentage}% of volume`} />
                                     <SummaryCard label="Payouts" value={formatCurrency(report.totalPayouts)}
                                         icon={FaCoins} iconBg="bg-red-500/10" iconColor="text-red-400" sub="Handled by admin" />
                                     <SummaryCard label="House Edge" value={formatCurrency(report.netProfit)}
@@ -330,7 +335,14 @@ const Reports = () => {
                                                 <span className="font-bold text-red-400">−{formatCurrency(report.totalPayouts)}</span>
                                             </div>
                                             <div className={`flex justify-between items-center py-4 px-4 rounded-xl border-t-2 mt-4 ${report.bookieNetProfit >= 0 ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-red-500/50 bg-red-500/5'}`}>
-                                                <span className="font-bold text-slate-300 font-sans uppercase tracking-wider text-xs">Your Net Profit</span>
+                                                <div>
+                                                    <span className="font-bold text-slate-300 font-sans uppercase tracking-wider text-xs block">Your Net Profit</span>
+                                                    {report.netProfitPercentage !== null && report.netProfitPercentage !== undefined && (
+                                                        <span className="text-xs text-slate-500 font-sans mt-1 block">
+                                                            {report.netProfitPercentage.toFixed(2)}% of revenue
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className={`text-xl font-bold ${report.bookieNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(report.bookieNetProfit)}</span>
                                             </div>
                                         </>
@@ -345,7 +357,14 @@ const Reports = () => {
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-500/20 text-amber-400 font-sans">{report.commissionPercentage}%</span>
                                             </div>
                                             <div className="flex justify-between items-center py-4 px-4 rounded-xl border-t-2 border-emerald-500/50 bg-emerald-500/5 mt-4">
-                                                <span className="font-bold text-slate-300 font-sans uppercase tracking-wider text-xs">Your Commission</span>
+                                                <div>
+                                                    <span className="font-bold text-slate-300 font-sans uppercase tracking-wider text-xs block">Your Commission</span>
+                                                    {report.netProfitPercentage !== null && report.netProfitPercentage !== undefined && (
+                                                        <span className="text-xs text-slate-500 font-sans mt-1 block">
+                                                            {report.netProfitPercentage.toFixed(2)}% of revenue
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-xl font-bold text-emerald-400">{formatCurrency(report.bookieShare)}</span>
                                             </div>
                                             <div className="mt-4 pt-4 border-t border-white/5">
@@ -439,11 +458,21 @@ const Reports = () => {
                             {isBookieCollects ? (
                                 <>
                                     <tr><td className="py-3 px-3 border-b">Platform Charge ({report.commissionPercentage}%)</td><td className="py-3 px-3 border-b text-right font-mono">{formatCurrency(report.platformCharge)}</td></tr>
-                                    <tr className="bg-gray-50 font-bold"><td className="py-3 px-3 border-b">Your Net Profit</td><td className="py-3 px-3 border-b text-right font-mono">{formatCurrency(report.bookieNetProfit)}</td></tr>
+                                    <tr className="bg-gray-50 font-bold">
+                                        <td className="py-3 px-3 border-b">
+                                            Your Net Profit{report.netProfitPercentage !== null && report.netProfitPercentage !== undefined ? ` (${report.netProfitPercentage.toFixed(2)}%)` : ''}
+                                        </td>
+                                        <td className="py-3 px-3 border-b text-right font-mono">{formatCurrency(report.bookieNetProfit)}</td>
+                                    </tr>
                                 </>
                             ) : (
                                 <>
-                                    <tr className="bg-gray-50 font-bold"><td className="py-3 px-3 border-b">Your Commission ({report.commissionPercentage}%)</td><td className="py-3 px-3 border-b text-right font-mono">{formatCurrency(report.bookieShare)}</td></tr>
+                                    <tr className="bg-gray-50 font-bold">
+                                        <td className="py-3 px-3 border-b">
+                                            Your Commission ({report.commissionPercentage}%){report.netProfitPercentage !== null && report.netProfitPercentage !== undefined ? ` - ${report.netProfitPercentage.toFixed(2)}% net profit` : ''}
+                                        </td>
+                                        <td className="py-3 px-3 border-b text-right font-mono">{formatCurrency(report.bookieShare)}</td>
+                                    </tr>
                                 </>
                             )}
                         </tbody>
