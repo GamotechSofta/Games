@@ -135,6 +135,7 @@ const StarlineMarket = () => {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [tick, setTick] = useState(() => Date.now());
+  const [showClosedModal, setShowClosedModal] = useState(false);
 
   useEffect(() => {
     const t = window.setInterval(() => setTick(Date.now()), 1000);
@@ -269,10 +270,14 @@ const StarlineMarket = () => {
           </div>
         )}
 
-        <div className="mt-4 md:mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5">
+        <div className="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-2.5 min-[375px]:gap-3 sm:gap-4">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[225px] md:h-[285px] rounded-2xl md:rounded-3xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-gray-800 rounded-lg shadow-lg p-2.5 min-[375px]:p-3 sm:p-4 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 border border-white/5 skeleton-shimmer">
+                <div className="w-14 min-[375px]:w-16 sm:w-20 h-10 min-[375px]:h-12 sm:h-14 rounded bg-white/10" />
+                <div className="flex-1 h-10 min-[375px]:h-12 sm:h-14 rounded-full bg-white/10" />
+                <div className="w-20 min-[375px]:w-24 sm:w-28 h-9 min-[375px]:h-10 sm:h-12 rounded-full bg-white/10" />
+              </div>
             ))
           ) : (
             items.map((m, idx) => {
@@ -281,96 +286,150 @@ const StarlineMarket = () => {
               const hasDeclaredOpen =
                 m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
               const isClosedForToday = slotClosed || hasDeclaredOpen;
-              const statusText = isClosedForToday ? 'Close For Today' : 'Open';
               const pill = `${hasDeclaredOpen ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
               const canOpen = !isClosedForToday;
-              const countdown = formatCountdown(msUntilNextIST(m.startingTime, tick));
-              const imageUrl = STARLINE_MARKET_IMAGE_OVERRIDES[idx % STARLINE_MARKET_IMAGE_OVERRIDES.length] || STARLINE_MARKET_IMAGE_URL;
-              const isFourteenthImage = imageUrl === STARLINE_MARKET_FOURTEENTH_IMAGE_URL;
+              const marketStatus = isClosedForToday ? 'closed' : 'open';
+              const isClickable = canOpen;
 
               return (
-                <button
+                <div
                   key={m.id}
-                  type="button"
-                  disabled={!canOpen}
-                  onClick={() => {
-                    if (!canOpen) return;
-                    navigate('/bidoptions', {
-                      state: {
-                        marketType: 'starline',
-                        market: {
-                          _id: m.id,
-                          marketName: m.marketName,
-                          gameName: m.marketName,
-                          startingTime: m.startingTime,
-                          closingTime: m.closingTime,
-                          openingNumber: m.openingNumber,
-                          closingNumber: m.closingNumber,
-                          status: m.status === 'running' ? 'running' : 'open',
-                        },
-                        starlineMarketKey: marketKey,
-                        starlineMarketLabel: marketLabel || 'Starline',
+                  className={`bg-gray-800 rounded-lg shadow-lg transform transition-all duration-200 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 p-2.5 min-[375px]:p-3 sm:p-4 border border-white/5 ${
+                    isClickable ? 'cursor-pointer hover:scale-[1.02] hover:border-white/10' : 'cursor-default opacity-90'
+                  }`}
+                  onClick={() => isClickable && navigate('/bidoptions', {
+                    state: {
+                      marketType: 'starline',
+                      market: {
+                        _id: m.id,
+                        marketName: m.marketName,
+                        gameName: m.marketName,
+                        startingTime: m.startingTime,
+                        closingTime: m.closingTime,
+                        openingNumber: m.openingNumber,
+                        closingNumber: m.closingNumber,
+                        status: marketStatus,
                       },
-                    });
-                  }}
-                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${canOpen
-                      ? 'border-white/10 hover:border-[#d4af37]/40 active:scale-[0.99] cursor-pointer'
-                      : 'border-white/10 opacity-95 cursor-not-allowed'
-                    }`}
+                      starlineMarketKey: marketKey,
+                      starlineMarketLabel: marketLabel || 'Starline',
+                    },
+                  })}
+                  role={isClickable ? 'button' : undefined}
                 >
-                  {/* Top image area (photo-style) */}
-                  <div className="relative h-[150px] md:h-[190px] overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#15171b] to-[#050505]">
-                    <img
-                      src={imageUrl}
-                      alt="Starline Market"
-                      className={`absolute inset-0 w-full h-full object-contain p-0 ${isFourteenthImage ? 'scale-125' : ''} ${canOpen ? '' : 'opacity-70 md:grayscale'
-                        }`}
-                      loading="lazy"
-                      draggable="false"
-                    />
+                  {/* Left: Time + Status */}
+                  <div className="flex flex-col shrink-0 min-w-0">
+                    <div className="text-white text-base min-[375px]:text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">
+                      {timeLabel}
+                    </div>
+                    {marketStatus === 'closed' && (
+                      <div className="text-red-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold mt-0.5 truncate">
+                        Close for today
+                      </div>
+                    )}
                   </div>
 
-                  {/* Bottom info area */}
-                  <div className="bg-[#202124] border-t border-white/10 px-3 py-2.5 md:px-4 md:py-3.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-[12px] md:text-sm font-extrabold text-[#d4af37] truncate">
-                        {countdown}
-                      </div>
-                      <div className="text-[13px] md:text-sm font-extrabold text-white/90 whitespace-nowrap">{timeLabel}</div>
-                    </div>
-
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <div
-                        className={`font-extrabold text-[#d4af37] tracking-wide ${isKalyanStarline
-                            ? (String(pill).includes('*') ? 'text-[18px] md:text-[22px] leading-none' : 'text-[16px] md:text-[18px]')
-                            : 'text-[14px] md:text-[16px]'
-                          }`}
-                      >
+                  {/* Center: Result in black pill */}
+                  <div className="flex-1 flex justify-center min-w-0">
+                    <div className="bg-black rounded-full px-2.5 min-[375px]:px-3 sm:px-4 md:px-6 py-1.5 min-[375px]:py-2 sm:py-2.5 md:py-3 border border-white/10">
+                      <p className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap">
                         {pill}
-                      </div>
-                      <svg className="w-4 h-4 text-white/55 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-
-                    <div
-                      className={`mt-1 text-center text-[12px] font-semibold ${statusText === 'Close For Today'
-                          ? 'text-red-400'
-                          : statusText === 'Open'
-                            ? 'text-emerald-400'
-                            : 'text-white/80'
-                        }`}
-                    >
-                      {statusText}
+                      </p>
                     </div>
                   </div>
-                </button>
+
+                  {/* Right: Play Game button - show on all cards */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (marketStatus === 'closed') {
+                        setShowClosedModal(true);
+                      } else {
+                        navigate('/bidoptions', {
+                          state: {
+                            marketType: 'starline',
+                            market: {
+                              _id: m.id,
+                              marketName: m.marketName,
+                              gameName: m.marketName,
+                              startingTime: m.startingTime,
+                              closingTime: m.closingTime,
+                              openingNumber: m.openingNumber,
+                              closingNumber: m.closingNumber,
+                              status: marketStatus,
+                            },
+                            starlineMarketKey: marketKey,
+                            starlineMarketLabel: marketLabel || 'Starline',
+                          },
+                        });
+                      }
+                    }}
+                    className={`shrink-0 border rounded-full px-2 min-[375px]:px-2.5 sm:px-3 md:px-4 py-1.5 min-[375px]:py-2 sm:py-2.5 flex items-center gap-1 min-[375px]:gap-1.5 sm:gap-2 transition-colors ${
+                      isClickable
+                        ? 'bg-gray-700 border-white/10 hover:bg-gray-600 hover:border-white/20'
+                        : 'bg-gray-700/50 border-white/5 opacity-70'
+                    }`}
+                  >
+                    <svg className="w-2.5 h-2.5 min-[375px]:w-3 min-[375px]:h-3 sm:w-4 sm:h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">Play Game</span>
+                  </button>
+                </div>
               );
             })
           )}
         </div>
       </div>
+
+      {/* Closed Market Modal */}
+      {showClosedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full relative border border-white/10">
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setShowClosedModal(false)}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Content */}
+            <div className="px-6 py-8 text-center">
+              {/* Red X icon in dark red circle */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center border border-red-500/30">
+                  <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Sorry title */}
+              <h2 className="text-red-400 text-xl font-bold mb-3">Sorry !</h2>
+
+              {/* Message */}
+              <div className="text-white/90 text-sm leading-relaxed mb-6">
+                <p className="mb-2">Betting is Closed for today.</p>
+                <p>Please come next day to play.</p>
+              </div>
+
+              {/* OK button */}
+              <button
+                type="button"
+                onClick={() => setShowClosedModal(false)}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
