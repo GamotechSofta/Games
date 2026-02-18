@@ -247,9 +247,10 @@ const Section1 = () => {
                     e.stopPropagation();
                     navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
                   }}
-                  className="mt-auto w-full py-2 px-3 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] min-[375px]:text-[10px] sm:text-sm font-semibold sm:whitespace-normal whitespace-nowrap hover:bg-amber-500/25 transition-colors"
+                  className="mt-auto w-full py-2 px-2 sm:px-3 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold hover:bg-amber-500/25 transition-colors text-center"
                 >
-                  Schedule Bets For Tomorrow
+                  <span className="sm:hidden">Schedule Tomorrow</span>
+                  <span className="hidden sm:inline">Schedule Bets For Tomorrow</span>
                 </button>
               ) : (
                 <div className="mt-auto pt-1" aria-hidden />
