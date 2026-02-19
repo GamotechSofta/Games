@@ -33,14 +33,8 @@ const GamesSection = () => {
         </div>
 
         <div
-          className="overflow-x-auto overflow-y-hidden pb-2 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6 scroll-smooth scrollbar-hidden"
-          style={{
-            display: 'grid',
-            gridTemplateRows: 'repeat(2, 1fr)',
-            gridAutoFlow: 'column',
-            gridAutoColumns: 'minmax(120px, 150px)',
-            gap: '0.5rem',
-          }}
+          className="grid grid-rows-2 grid-flow-col overflow-x-auto md:overflow-visible pb-2 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 scroll-smooth scrollbar-hidden md:grid-flow-row md:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
+          style={{ gridAutoColumns: 'minmax(120px, 150px)' }}
         >
           {gamesToShow.map((game) => {
             const isUpcoming = game.upcoming || !game.url;
@@ -59,7 +53,7 @@ const GamesSection = () => {
                 <div
                   className={`game-card relative rounded-xl overflow-hidden h-[56px] min-[375px]:h-[64px] sm:h-[80px] w-full border-2 border-white transition-all duration-200 ${
                     isUpcoming
-                      ? 'bg-gradient-to-br from-slate-800/90 via-amber-950/30 to-slate-900'
+                      ? 'bg-black'
                       : 'bg-[#1a1a1a]'
                   }`}
                 >
@@ -75,7 +69,7 @@ const GamesSection = () => {
                       <div
                         className={`w-full h-full flex flex-col items-center justify-center ${
                           isUpcoming
-                            ? 'bg-gradient-to-br from-slate-800 via-amber-950/40 to-slate-900'
+                            ? 'bg-black'
                             : 'bg-gradient-to-br from-slate-800 to-slate-900'
                         }`}
                       >
@@ -92,7 +86,7 @@ const GamesSection = () => {
 
                   {/* Bottom gradient overlay + title (like reference cards) */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pt-14 pb-2.5 px-2.5 sm:px-3">
-                    <p className="text-amber-400 sm:text-yellow-400 text-xs sm:text-sm font-bold uppercase leading-tight tracking-wide line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                    <p className="text-white text-xs sm:text-sm font-bold uppercase leading-tight tracking-wide line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                       {isUpcoming ? t('games.comingSoon') : game.name}
                     </p>
                   </div>
