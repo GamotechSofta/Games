@@ -133,9 +133,15 @@ const BidLayout = ({
                 <h1 className="text-xs sm:text-base md:text-lg font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 text-white min-w-0">
                     {market?.gameName ? `${market.gameName} - ${title}` : title}
                 </h1>
-                <div className="bg-[#f2c14e] text-[#4b3608] px-2 sm:px-3 py-1 rounded-full flex items-center gap-1.5 text-[11px] sm:text-sm font-bold shadow-md shrink-0">
-                    <div className="w-5 h-5 bg-[#4b3608] rounded flex items-center justify-center text-[#f2c14e] text-xs font-bold">₹</div>
-                    {wallet.toFixed(1)}
+                <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
+                    <img
+                        src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
+                        alt="Wallet"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                    />
+                    <span className="font-bold text-white text-[11px] sm:text-sm">
+                        {wallet.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 })}
+                    </span>
                 </div>
             </div>
 
