@@ -12,7 +12,7 @@ const computeIsOnline = (item) => {
     return lastActive > 0 && Date.now() - lastActive < ONLINE_THRESHOLD_MS;
 };
 
-const TABS = [
+const ALL_TABS = [
     { id: 'all', label: 'All Players', value: 'all' },
     { id: 'super_admins', label: 'All Super Admins', value: 'super_admins' },
     { id: 'all_bookies', label: 'All Bookies', value: 'all_bookies' },
@@ -41,6 +41,15 @@ const AllUsers = () => {
     const [passwordError, setPasswordError] = useState('');
     const [pendingAction, setPendingAction] = useState(null);
 
+    const getAdminRole = () => {
+        try {
+            const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+            return admin.role || 'super_admin';
+        } catch {
+            return 'super_admin';
+        }
+    };
+
     const getAuthHeaders = () => {
         const admin = JSON.parse(localStorage.getItem('admin'));
         const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
@@ -51,26 +60,34 @@ const AllUsers = () => {
     };
 
     const fetchData = async (showLoader = true) => {
+        const isSuperAdmin = getAdminRole() === 'super_admin';
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const [allRes, superAdminRes, bookieRes, bookiesRes, adminsRes] = await Promise.all([
+            const fetches = [
                 fetch(`${API_BASE_URL}/users`, { headers: getAuthHeaders() }),
                 fetch(`${API_BASE_URL}/users?filter=super_admin`, { headers: getAuthHeaders() }),
                 fetch(`${API_BASE_URL}/users?filter=bookie`, { headers: getAuthHeaders() }),
-                fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAuthHeaders() }),
-                fetch(`${API_BASE_URL}/admin/super-admins`, { headers: getAuthHeaders() }),
-            ]);
-            const allData = await allRes.json();
-            const superAdminData = await superAdminRes.json();
-            const bookieData = await bookieRes.json();
-            const bookiesData = await bookiesRes.json();
-            const adminsData = await adminsRes.json();
+            ];
+            if (isSuperAdmin) {
+                fetches.push(
+                    fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAuthHeaders() }),
+                    fetch(`${API_BASE_URL}/admin/super-admins`, { headers: getAuthHeaders() })
+                );
+            }
+            const results = await Promise.all(fetches);
+            const allData = await results[0].json();
+            const superAdminData = await results[1].json();
+            const bookieData = await results[2].json();
             if (allData.success) setAllUsers(allData.data || []);
             if (superAdminData.success) setSuperAdminUsersList(superAdminData.data || []);
             if (bookieData.success) setBookieUsersList(bookieData.data || []);
-            if (bookiesData.success) setAllBookies(bookiesData.data || []);
-            if (adminsData.success) setSuperAdminsList(adminsData.data || []);
+            if (isSuperAdmin && results.length >= 5) {
+                const bookiesData = await results[3].json();
+                const adminsData = await results[4].json();
+                if (bookiesData.success) setAllBookies(bookiesData.data || []);
+                if (adminsData.success) setSuperAdminsList(adminsData.data || []);
+            }
         } catch (err) {
             if (showLoader) setError('Failed to fetch data');
         } finally {
@@ -260,22 +277,24 @@ const AllUsers = () => {
                 </div>
             )}
 
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-2 mb-4">
-                {TABS.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base ${
-                            activeTab === tab.id
-                                ? 'bg-yellow-500 text-black'
-                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            {/* Tabs: super_admin sees all tabs; specific_admin sees only All Players (no redundant tab row when single tab) */}
+            {getAdminRole() === 'super_admin' && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                    {ALL_TABS.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base ${
+                                activeTab === tab.id
+                                    ? 'bg-yellow-500 text-black'
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Search */}
             <div className="mb-4 sm:mb-6">
@@ -309,7 +328,7 @@ const AllUsers = () => {
                     </div>
                 ) : list.length === 0 ? (
                     <div className="p-8 text-center text-gray-400">
-                        No {TABS.find(t => t.id === activeTab)?.label?.toLowerCase()} found.
+                        No {ALL_TABS.find(t => t.id === activeTab)?.label?.toLowerCase()} found.
                     </div>
                 ) : filteredList.length === 0 ? (
                     <div className="p-8 text-center text-gray-400">
@@ -703,7 +722,7 @@ const AllUsers = () => {
 
             {!loading && list.length > 0 && (
                 <p className="mt-4 text-gray-400 text-sm">
-                    Showing {filteredList.length} {TABS.find(t => t.id === activeTab)?.label?.toLowerCase()}
+                    Showing {filteredList.length} {ALL_TABS.find(t => t.id === activeTab)?.label?.toLowerCase()}
                     {searchQuery && filteredList.length !== list.length && (
                         <span> (filtered from {list.length})</span>
                     )}

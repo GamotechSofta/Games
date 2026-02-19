@@ -42,24 +42,29 @@ export const adminLogin = async (req, res) => {
             });
         }
 
+        const performedByType = admin.role === 'super_admin' ? 'super_admin' : (admin.role === 'specific_admin' ? 'specific_admin' : 'bookie');
         await logActivity({
             action: 'admin_login',
             performedBy: admin.username,
-            performedByType: admin.role === 'super_admin' ? 'super_admin' : 'bookie',
+            performedByType,
             targetType: 'admin',
             targetId: admin._id.toString(),
-            details: `${admin.username} logged in (${admin.role === 'super_admin' ? 'Admin Panel' : 'Bookie Panel'})`,
+            details: `${admin.username} logged in (${admin.role === 'super_admin' ? 'Admin Panel' : admin.role === 'specific_admin' ? 'Specific Admin Panel' : 'Bookie Panel'})`,
             ip: getClientIp(req),
         });
 
+        const data = {
+            id: admin._id,
+            username: admin.username,
+            role: admin.role,
+        };
+        if (admin.role === 'specific_admin' && Array.isArray(admin.allowedTabs)) {
+            data.allowedTabs = admin.allowedTabs;
+        }
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            data: {
-                id: admin._id,
-                username: admin.username,
-                role: admin.role,
-            },
+            data,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -281,6 +286,225 @@ export const getAllSuperAdmins = async (req, res) => {
             success: true,
             count: admins.length,
             data: admins,
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Tab options that can be assigned to a specific admin */
+const SPECIFIC_ADMIN_TABS = [
+    '/dashboard', '/all-users', '/markets', '/add-result', '/update-rate', '/bet-history',
+    '/reports', '/revenue', '/payment-management', '/daily-settlement', '/wallet', '/help-desk', '/logs',
+];
+
+/**
+ * Create specific admin (login number + password + allowed tabs + optional secret password)
+ * Only super_admin can create. Body: { username, password, allowedTabs[], secretDeclarePassword? }
+ */
+export const createSpecificAdmin = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can create specific admins',
+            });
+        }
+        const { username, password, allowedTabs, secretDeclarePassword } = req.body;
+        const loginNumber = (username || '').toString().trim();
+        if (!loginNumber) {
+            return res.status(400).json({
+                success: false,
+                message: 'Login number (username) is required',
+            });
+        }
+        if (!password || password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password is required and must be at least 6 characters',
+            });
+        }
+        const secretVal = (secretDeclarePassword ?? '').toString().trim();
+        if (!secretVal || secretVal.length < 4) {
+            return res.status(400).json({
+                success: false,
+                message: 'Secret password is required (min 4 characters)',
+            });
+        }
+        const validTabs = Array.isArray(allowedTabs)
+            ? allowedTabs.filter((t) => typeof t === 'string' && SPECIFIC_ADMIN_TABS.includes(t.trim()))
+            : [];
+        const admin = new Admin({
+            username: loginNumber,
+            password,
+            role: 'specific_admin',
+            allowedTabs: validTabs,
+            secretDeclarePassword: secretVal,
+        });
+        await admin.save();
+
+        await logActivity({
+            action: 'create_specific_admin',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: admin._id.toString(),
+            details: `Specific admin "${loginNumber}" created with ${validTabs.length} tab(s)`,
+            ip: getClientIp(req),
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Specific admin created successfully',
+            data: {
+                id: admin._id,
+                username: admin.username,
+                role: admin.role,
+                allowedTabs: admin.allowedTabs,
+            },
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: 'A user with this login number already exists',
+            });
+        }
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Get all specific admins (no passwords, includes hasSecretDeclarePassword flag)
+ * Only super_admin can access
+ */
+export const getAllSpecificAdmins = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can view specific admins',
+            });
+        }
+        const admins = await Admin.find({ role: 'specific_admin' })
+            .select('-password +secretDeclarePassword')
+            .sort({ createdAt: -1 })
+            .lean();
+        const data = admins.map((a) => {
+            const hasSecret = !!(a.secretDeclarePassword && String(a.secretDeclarePassword).length > 0);
+            const { secretDeclarePassword, ...rest } = a;
+            return { ...rest, hasSecretDeclarePassword: hasSecret };
+        });
+        res.status(200).json({
+            success: true,
+            count: data.length,
+            data,
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Update specific admin (allowedTabs, password, and/or secretDeclarePassword)
+ * Only super_admin. Body: { allowedTabs?, password?, secretDeclarePassword? } – pass '' or null to clear secret
+ */
+export const updateSpecificAdmin = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can update specific admins',
+            });
+        }
+        const { id } = req.params;
+        const { allowedTabs, password, secretDeclarePassword } = req.body;
+        const specific = await Admin.findOne({ _id: id, role: 'specific_admin' }).select('+secretDeclarePassword');
+        if (!specific) {
+            return res.status(404).json({
+                success: false,
+                message: 'Specific admin not found',
+            });
+        }
+        if (Array.isArray(allowedTabs)) {
+            specific.allowedTabs = allowedTabs.filter((t) => typeof t === 'string' && SPECIFIC_ADMIN_TABS.includes(t.trim()));
+        }
+        if (password != null && String(password).length >= 6) {
+            specific.password = password;
+        }
+        if (secretDeclarePassword !== undefined) {
+            const secretVal = (secretDeclarePassword ?? '').toString().trim();
+            if (secretVal.length > 0 && secretVal.length < 4) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Secret password must be at least 4 characters if set',
+                });
+            }
+            specific.secretDeclarePassword = secretVal.length > 0 ? secretVal : null;
+        }
+        await specific.save();
+
+        await logActivity({
+            action: 'update_specific_admin',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: specific._id.toString(),
+            details: `Specific admin "${specific.username}" updated`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Specific admin updated',
+            data: {
+                id: specific._id,
+                username: specific.username,
+                role: specific.role,
+                allowedTabs: specific.allowedTabs,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Delete specific admin
+ * Only super_admin
+ */
+export const deleteSpecificAdmin = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can delete specific admins',
+            });
+        }
+        const { id } = req.params;
+        const specific = await Admin.findOne({ _id: id, role: 'specific_admin' });
+        if (!specific) {
+            return res.status(404).json({
+                success: false,
+                message: 'Specific admin not found',
+            });
+        }
+        const username = specific.username;
+        await Admin.deleteOne({ _id: id, role: 'specific_admin' });
+
+        await logActivity({
+            action: 'delete_specific_admin',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: id,
+            details: `Specific admin "${username}" deleted`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Specific admin deleted',
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
@@ -689,11 +913,11 @@ export const verifySecretDeclarePassword = async (req, res) => {
 
 /**
  * GET /admin/me/secret-declare-password-status
- * Super admin only. Returns whether secret declare password is set.
+ * Any admin (super_admin or specific_admin). Returns whether logged-in admin has secret declare password set.
  */
 export const getSecretDeclarePasswordStatus = async (req, res) => {
     try {
-        const admin = await Admin.findById(req.admin._id).select('secretDeclarePassword').lean();
+        const admin = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
         }

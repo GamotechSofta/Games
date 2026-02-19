@@ -26,6 +26,7 @@ import UpdateRate from './pages/UpdateRate';
 import MarketDetail from './pages/MarketDetail';
 import Settings from './pages/Settings';
 import TopWinners from './pages/TopWinners';
+import SpecificAdminManagement from './pages/SpecificAdminManagement';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -257,6 +258,14 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <Settings />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/specific-admin"
+                    element={
+                        <PrivateRoute>
+                            <SpecificAdminManagement />
                         </PrivateRoute>
                     }
                 />

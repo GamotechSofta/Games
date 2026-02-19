@@ -12,7 +12,7 @@ import {
     rejectPayment,
     updatePaymentStatus,
 } from '../../controllers/paymentController.js';
-import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
+import { verifyAdmin } from '../../middleware/adminAuth.js';
 
 // Configure multer with memory storage for Cloudinary uploads
 const storage = multer.memoryStorage();
@@ -48,6 +48,6 @@ router.get('/', verifyAdmin, getPayments);
 router.get('/pending-count', verifyAdmin, getPendingCount);
 router.post('/:id/approve', verifyAdmin, approvePayment);
 router.post('/:id/reject', verifyAdmin, rejectPayment);
-router.patch('/:id/status', verifySuperAdmin, updatePaymentStatus);
+router.patch('/:id/status', verifyAdmin, updatePaymentStatus);
 
 export default router;

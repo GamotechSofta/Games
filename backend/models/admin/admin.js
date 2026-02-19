@@ -16,8 +16,13 @@ const adminSchema = new mongoose.Schema({
     role: {
         type: String,
         default: 'super_admin',
-        enum: ['super_admin', 'bookie'],
+        enum: ['super_admin', 'bookie', 'specific_admin'],
     },
+    /** specific_admin only: list of sidebar paths this admin can access (e.g. /dashboard, /markets) */
+    allowedTabs: [{
+        type: String,
+        trim: true,
+    }],
     status: {
         type: String,
         default: 'active',

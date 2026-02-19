@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.get('/current', getRatesCurrent);
 router.get('/', verifyAdmin, getRates);
-router.patch('/:gameType', verifySuperAdmin, updateRate);
+router.patch('/:gameType', verifyAdmin, updateRate);
 
 export default router;

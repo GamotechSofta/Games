@@ -24,7 +24,7 @@ import {
 } from '../../controllers/marketController.js';
 import { getStarlineGroups, createStarlineGroup, deleteStarlineGroup } from '../../controllers/starlineGroupController.js';
 import { getKingBazaarGroups, createKingBazaarGroup, deleteKingBazaarGroup } from '../../controllers/kingBazaarGroupController.js';
-import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
+import { verifyAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
 
@@ -40,29 +40,29 @@ router.get('/get-market-stats/:id', verifyAdmin, getMarketStats);
 router.get('/get-single-patti-summary/:id', verifyAdmin, getSinglePattiSummary);
 
 // Super admin: declare result (preview, declare open, declare close)
-router.get('/preview-declare-open/:id', verifySuperAdmin, previewDeclareOpenResult);
-router.get('/preview-declare-close/:id', verifySuperAdmin, previewDeclareCloseResult);
-router.get('/winning-bets-preview/:id', verifySuperAdmin, getWinningBetsPreview);
-router.get('/winning-bets-preview-king-bazaar/:id', verifySuperAdmin, getWinningBetsPreviewKingBazaar);
-router.post('/declare-open/:id', verifySuperAdmin, declareOpenResult);
-router.post('/declare-close/:id', verifySuperAdmin, declareCloseResult);
-router.post('/clear-result/:id', verifySuperAdmin, clearResult);
+router.get('/preview-declare-open/:id', verifyAdmin, previewDeclareOpenResult);
+router.get('/preview-declare-close/:id', verifyAdmin, previewDeclareCloseResult);
+router.get('/winning-bets-preview/:id', verifyAdmin, getWinningBetsPreview);
+router.get('/winning-bets-preview-king-bazaar/:id', verifyAdmin, getWinningBetsPreviewKingBazaar);
+router.post('/declare-open/:id', verifyAdmin, declareOpenResult);
+router.post('/declare-close/:id', verifyAdmin, declareCloseResult);
+router.post('/clear-result/:id', verifyAdmin, clearResult);
 
-// Super admin: King Bazaar specific declare result (with first + second digit)
-router.get('/preview-declare-king-bazaar/:id', verifySuperAdmin, previewDeclareKingBazaar);
-router.post('/declare-king-bazaar/:id', verifySuperAdmin, declareKingBazaar);
+// King Bazaar specific declare result (super_admin + specific_admin when they have Add Result tab)
+router.get('/preview-declare-king-bazaar/:id', verifyAdmin, previewDeclareKingBazaar);
+router.post('/declare-king-bazaar/:id', verifyAdmin, declareKingBazaar);
 
-// Super admin only - market management
-router.post('/create-market', verifySuperAdmin, createMarket);
-router.post('/seed-startline', verifySuperAdmin, seedStartlineMarkets);
-router.patch('/update-market/:id', verifySuperAdmin, updateMarket);
-router.patch('/set-opening-number/:id', verifySuperAdmin, setOpeningNumber);
-router.patch('/set-closing-number/:id', verifySuperAdmin, setClosingNumber);
-router.patch('/set-win-number/:id', verifySuperAdmin, setWinNumber);
-router.delete('/delete-market/:id', verifySuperAdmin, deleteMarket);
-router.post('/starline-groups', verifySuperAdmin, createStarlineGroup);
-router.delete('/starline-groups/:key', verifySuperAdmin, deleteStarlineGroup);
-router.post('/king-bazaar-groups', verifySuperAdmin, createKingBazaarGroup);
-router.delete('/king-bazaar-groups/:key', verifySuperAdmin, deleteKingBazaarGroup);
+// Market management (super_admin + specific_admin when they have Markets tab)
+router.post('/create-market', verifyAdmin, createMarket);
+router.post('/seed-startline', verifyAdmin, seedStartlineMarkets);
+router.patch('/update-market/:id', verifyAdmin, updateMarket);
+router.patch('/set-opening-number/:id', verifyAdmin, setOpeningNumber);
+router.patch('/set-closing-number/:id', verifyAdmin, setClosingNumber);
+router.patch('/set-win-number/:id', verifyAdmin, setWinNumber);
+router.delete('/delete-market/:id', verifyAdmin, deleteMarket);
+router.post('/starline-groups', verifyAdmin, createStarlineGroup);
+router.delete('/starline-groups/:key', verifyAdmin, deleteStarlineGroup);
+router.post('/king-bazaar-groups', verifyAdmin, createKingBazaarGroup);
+router.delete('/king-bazaar-groups/:key', verifyAdmin, deleteKingBazaarGroup);
 
 export default router;

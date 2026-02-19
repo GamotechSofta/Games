@@ -17,12 +17,52 @@ import {
     FaCoins,
     FaCog,
     FaMoneyBillWave,
+    FaUserShield,
 } from 'react-icons/fa';
+
+const ALL_MENU_ITEMS = [
+    { path: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
+    { path: '/all-users', label: 'All Players', icon: FaUserFriends },
+    { path: '/bookie-management', label: 'Bookie Accounts', icon: FaUsers },
+    { path: '/markets', label: 'Markets', icon: FaChartBar },
+    { path: '/add-result', label: 'Add Result', icon: FaEdit },
+    { path: '/update-rate', label: 'Update Rate', icon: FaCoins },
+    { path: '/bet-history', label: 'Bet History', icon: FaHistory },
+    { path: '/reports', label: 'Report', icon: FaChartLine },
+    { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
+    { path: '/payment-management', label: 'Payments', icon: FaCreditCard },
+    { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
+    { path: '/wallet', label: 'Wallet', icon: FaWallet },
+    { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },
+    { path: '/logs', label: 'Logs', icon: FaClipboardList },
+    { path: '/settings', label: 'Settings', icon: FaCog },
+];
 
 const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const navRef = useRef(null);
+
+    const admin = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('admin') || '{}');
+        } catch {
+            return {};
+        }
+    })();
+    const role = admin.role || 'super_admin';
+    const allowedTabs = Array.isArray(admin.allowedTabs) ? admin.allowedTabs : [];
+
+    const menuItems = (() => {
+        if (role === 'specific_admin') {
+            return ALL_MENU_ITEMS.filter((item) => allowedTabs.includes(item.path));
+        }
+        const items = [...ALL_MENU_ITEMS];
+        if (role === 'super_admin') {
+            items.push({ path: '/specific-admin', label: 'Specific Admin', icon: FaUserShield });
+        }
+        return items;
+    })();
 
     // Restore scroll position on mount
     useEffect(() => {
@@ -36,25 +76,10 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
         sessionStorage.setItem('admin-sidebar-scroll', e.target.scrollTop);
     };
 
-    const menuItems = [
-        { path: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
-        { path: '/all-users', label: 'All Players', icon: FaUserFriends },
-        { path: '/bookie-management', label: 'Bookie Accounts', icon: FaUsers },
-        { path: '/markets', label: 'Markets', icon: FaChartBar },
-        { path: '/add-result', label: 'Add Result', icon: FaEdit },
-        { path: '/update-rate', label: 'Update Rate', icon: FaCoins },
-        { path: '/bet-history', label: 'Bet History', icon: FaHistory },
-        { path: '/reports', label: 'Report', icon: FaChartLine },
-        { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
-        { path: '/payment-management', label: 'Payments', icon: FaCreditCard },
-        { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
-        { path: '/wallet', label: 'Wallet', icon: FaWallet },
-        { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },
-        { path: '/logs', label: 'Logs', icon: FaClipboardList },
-        { path: '/settings', label: 'Settings', icon: FaCog },
-    ];
-
     const isActive = (path) => {
+        if (path === '/specific-admin') {
+            return location.pathname === path;
+        }
         if (path === '/all-users' || path === '/markets') {
             return location.pathname === path || location.pathname.startsWith(path + '/');
         }
@@ -89,7 +114,9 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
         >
             {/* Logo + Close (mobile) */}
             <div className="p-3 sm:p-4 border-b border-gray-700 shrink-0 flex items-center justify-between">
-                <h2 className="text-base sm:text-lg font-bold text-yellow-500">Super Admin</h2>
+                <h2 className="text-base sm:text-lg font-bold text-yellow-500">
+                    {role === 'specific_admin' ? 'Specific Admin' : 'Super Admin'}
+                </h2>
                 <button
                     type="button"
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose?.(); }}

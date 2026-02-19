@@ -1,9 +1,29 @@
 import React, { useState } from 'react';
+import { useLocation, Navigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { FaBars, FaSignOutAlt } from 'react-icons/fa';
 
 const AdminLayout = ({ children, onLogout, title }) => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const location = useLocation();
+    const pathname = location.pathname || '';
+
+    const admin = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('admin') || '{}');
+        } catch {
+            return {};
+        }
+    })();
+    const role = admin.role || 'super_admin';
+    const allowedTabs = Array.isArray(admin.allowedTabs) ? admin.allowedTabs : [];
+
+    const isAllowedPath = allowedTabs.some((t) => pathname === t || pathname.startsWith(t + '/'))
+        || (allowedTabs.includes('/add-result') && (pathname === '/declare-confirm' || pathname === '/declare-success'));
+    if (role === 'specific_admin' && allowedTabs.length > 0 && !isAllowedPath) {
+        const first = allowedTabs[0];
+        return <Navigate to={first || '/dashboard'} replace />;
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950 text-white">

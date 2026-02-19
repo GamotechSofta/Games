@@ -14,6 +14,10 @@ import {
     verifySecretDeclarePassword,
     getAdminUpi,
     setAdminUpi,
+    createSpecificAdmin,
+    getAllSpecificAdmins,
+    updateSpecificAdmin,
+    deleteSpecificAdmin,
 } from '../../controllers/adminController.js';
 import { getLogs, deleteLogs } from '../../controllers/activityLogController.js';
 import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
@@ -27,15 +31,21 @@ router.post('/create', createAdmin); // For initial admin setup
 router.get('/me/upi', verifySuperAdmin, getAdminUpi);
 router.patch('/me/upi', verifySuperAdmin, setAdminUpi);
 
-// Secret declare password (Super Admin only)
-router.get('/me/secret-declare-password-status', verifySuperAdmin, getSecretDeclarePasswordStatus);
+// Secret declare password: status/verify for any admin (super_admin + specific_admin); set own only for super_admin
+router.get('/me/secret-declare-password-status', verifyAdmin, getSecretDeclarePasswordStatus);
 router.patch('/me/secret-declare-password', verifySuperAdmin, setSecretDeclarePassword);
-router.post('/verify-secret-declare-password', verifySuperAdmin, verifySecretDeclarePassword);
+router.post('/verify-secret-declare-password', verifyAdmin, verifySecretDeclarePassword);
 
 // Super Admin management routes (Super Admin only)
 router.get('/super-admins', verifyAdmin, getAllSuperAdmins); // Get all super admins
 router.get('/logs', verifyAdmin, getLogs); // Get activity logs
 router.delete('/logs', verifyAdmin, deleteLogs); // Delete activity logs (super_admin only)
+
+// Specific admin management (Super Admin only): create admins with limited tab access
+router.get('/specific-admins', verifyAdmin, getAllSpecificAdmins);
+router.post('/specific-admins', verifyAdmin, createSpecificAdmin);
+router.put('/specific-admins/:id', verifyAdmin, updateSpecificAdmin);
+router.delete('/specific-admins/:id', verifyAdmin, deleteSpecificAdmin);
 
 // Bookie management routes (Super Admin only)
 router.post('/bookies', verifyAdmin, createBookie); // Create new bookie
