@@ -14,6 +14,9 @@ const BANNERS = [
 const BannersSection = () => {
   const [bannerIdx, setBannerIdx] = useState(0);
   const bannerTimerRef = useRef(null);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
+  const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
     if (BANNERS.length <= 1) return;
@@ -23,9 +26,31 @@ const BannersSection = () => {
     return () => clearInterval(bannerTimerRef.current);
   }, []);
 
+  const handleTouchStart = (e) => {
+    touchStartRef.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = () => {
+    const diff = touchStartRef.current - touchEndRef.current;
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        setBannerIdx((i) => (i + 1) % BANNERS.length);
+      } else {
+        setBannerIdx((i) => (i - 1 + BANNERS.length) % BANNERS.length);
+      }
+    }
+  };
+  const handleTouchMove = (e) => {
+    touchEndRef.current = e.touches[0].clientX;
+  };
+
   return (
     <div className="mt-2 sm:hidden">
-      <div className="relative overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)]">
+      <div
+        className="relative overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)] touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           className="flex will-change-transform"
           style={{

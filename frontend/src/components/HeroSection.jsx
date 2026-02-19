@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const desktopBanners = [
   {
@@ -13,6 +13,9 @@ const desktopBanners = [
 
 const HeroSection = () => {
   const [bannerIdx, setBannerIdx] = useState(0);
+  const touchStartRef = useRef(0);
+  const touchEndRef = useRef(0);
+  const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
     if (desktopBanners.length <= 1) return;
@@ -22,11 +25,33 @@ const HeroSection = () => {
     return () => clearInterval(id);
   }, []);
 
+  const handleTouchStart = (e) => {
+    touchStartRef.current = e.touches[0].clientX;
+  };
+  const handleTouchMove = (e) => {
+    touchEndRef.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = () => {
+    const diff = touchStartRef.current - touchEndRef.current;
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        setBannerIdx((i) => (i + 1) % desktopBanners.length);
+      } else {
+        setBannerIdx((i) => (i - 1 + desktopBanners.length) % desktopBanners.length);
+      }
+    }
+  };
+
   return (
     <section className="w-full bg-black">
       {/* Desktop Banner - carousel */}
       <div className="hidden md:block">
-        <div className="relative overflow-hidden leading-[0]">
+        <div
+          className="relative overflow-hidden leading-[0] touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div
             className="flex will-change-transform"
             style={{
