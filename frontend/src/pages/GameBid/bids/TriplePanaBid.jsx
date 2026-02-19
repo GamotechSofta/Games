@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
@@ -11,6 +12,7 @@ const isValidTriplePana = (n) => {
 };
 
 const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [bids, setBids] = useState([]);
@@ -98,16 +100,16 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
     const handleAddBid = () => {
         const pts = Number(inputPoints);
         if (!pts || pts <= 0) {
-            showWarning('Please enter points.');
+            showWarning(t('gameBid.pleaseEnterPoints'));
             return;
         }
         const n = inputNumber?.toString().trim() || '';
         if (!n) {
-            showWarning('Please enter triple pana (000-999).');
+            showWarning(t('gameBid.pleaseEnterTriplePana'));
             return;
         }
         if (!isValidTriplePana(n)) {
-            showWarning('Invalid triple pana. Use 000, 111, 222 ... 999.');
+            showWarning(t('gameBid.invalidTriplePana'));
             return;
         }
 
@@ -124,7 +126,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
             .map(([num, pts]) => ({ id: Date.now() + Number(num[0]), number: num, points: String(pts), type: session }));
 
         if (!toAdd.length) {
-            showWarning('Please enter points for at least one triple pana (000-999).');
+            showWarning(t('gameBid.pleaseEnterPointsForTriplePana'));
             return;
         }
 
@@ -175,7 +177,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                         : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
                 }`}
             >
-                EASY MODE
+                {t('gameBid.easyMode')}
             </button>
             <button
                 type="button"
@@ -186,7 +188,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                         : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
                 }`}
             >
-                SPECIAL MODE
+                {t('gameBid.specialMode')}
             </button>
         </div>
     );
@@ -214,11 +216,11 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                     className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
                 >
                     {isRunning ? (
-                        <option value="CLOSE">CLOSE</option>
+                        <option value="CLOSE">{t('gameBid.close')}</option>
                     ) : (
                         <>
-                            <option value="OPEN">OPEN</option>
-                            <option value="CLOSE">CLOSE</option>
+                            <option value="OPEN">{t('gameBid.open')}</option>
+                            <option value="CLOSE">{t('gameBid.close')}</option>
                         </>
                     )}
                 </select>
@@ -279,7 +281,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                     />
                                 </div>
                                 <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Points:</label>
+                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
                                     <input
                                         ref={pointsInputRef}
                                         type="text"
@@ -310,7 +312,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            placeholder="Pts"
+                                            placeholder={t('gameBid.pts')}
                                             value={specialInputs[num] || ''}
                                             onChange={(e) =>
                                                 setSpecialInputs((p) => ({
@@ -328,7 +330,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                 onClick={handleAddSpecialModeBids}
                                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3 rounded-md shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all"
                             >
-                                Add to List
+                                {t('gameBid.addToList')}
                             </button>
                         </>
                     )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import ResultDatePicker from '../components/ResultDatePicker';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -27,6 +28,7 @@ const formatDateLabel = (d) => {
 
 const MarketResultHistory = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [results, setResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -101,7 +103,7 @@ const MarketResultHistory = () => {
             value={selectedDate}
             onChange={setSelectedDate}
             maxDate={new Date()}
-            label="Select Date"
+            label={t('bids.selectDate')}
             buttonClassName="px-4 py-2 rounded-full bg-black/40 border border-white/10 text-white font-bold text-sm shadow-sm hover:border-[#d4af37]/40 transition-colors"
           />
         </div>
@@ -119,7 +121,7 @@ const MarketResultHistory = () => {
             </>
           ) : rows.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
-              No markets found.
+              {t('bids.noMarketsFound')}
             </div>
           ) : (
             rows.map((r) => (

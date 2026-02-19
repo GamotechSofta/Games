@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
 const AddFundHistory = () => {
+    const { t } = useTranslation();
     const [deposits, setDeposits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -97,7 +99,7 @@ const AddFundHistory = () => {
                 <>
             {/* Total Deposits */}
             <div className="bg-gradient-to-r from-green-900/40 to-green-800/30 rounded-2xl p-5 border border-green-500/30">
-                <p className="text-gray-400 text-sm">Total Added Funds</p>
+                <p className="text-gray-400 text-sm">{t('funds.totalAddedFunds')}</p>
                 <p className="text-3xl font-bold text-white">₹{totalDeposits.toLocaleString()}</p>
             </div>
 
@@ -113,7 +115,7 @@ const AddFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-white">{stats.total}</p>
-                    <p className="text-xs text-gray-400">Total</p>
+                    <p className="text-xs text-gray-400">{t('funds.total')}</p>
                 </div>
                 <div 
                     role="button"
@@ -125,7 +127,7 @@ const AddFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-yellow-400">{stats.pending}</p>
-                    <p className="text-xs text-gray-400">Pending</p>
+                    <p className="text-xs text-gray-400">{t('funds.pending')}</p>
                 </div>
                 <div 
                     role="button"
@@ -137,7 +139,7 @@ const AddFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-green-400">{stats.approved}</p>
-                    <p className="text-xs text-gray-400">Approved</p>
+                    <p className="text-xs text-gray-400">{t('funds.approved')}</p>
                 </div>
                 <div 
                     role="button"
@@ -149,7 +151,7 @@ const AddFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-red-400">{stats.rejected}</p>
-                    <p className="text-xs text-gray-400">Rejected</p>
+                    <p className="text-xs text-gray-400">{t('funds.rejected')}</p>
                 </div>
             </div>
 
@@ -159,13 +161,13 @@ const AddFundHistory = () => {
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <p className="text-gray-400">No deposit history found</p>
+                    <p className="text-gray-400">{t('funds.noDepositHistoryFound')}</p>
                     {filter !== 'all' && (
                         <button
                             onClick={() => setFilter('all')}
                             className="mt-2 text-blue-400 text-sm hover:text-blue-300"
                         >
-                            View all deposits
+                            {t('funds.viewAllDeposits')}
                         </button>
                     )}
                 </div>
@@ -197,7 +199,7 @@ const AddFundHistory = () => {
                                         )}
                                     </div>
                                     <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${getStatusBadge(deposit.status)}`}>
-                                        {deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
+                                        {deposit.status === 'pending' ? t('funds.pending') : deposit.status === 'approved' ? t('funds.approved') : deposit.status === 'rejected' ? t('funds.rejected') : deposit.status.charAt(0).toUpperCase() + deposit.status.slice(1)}
                                     </span>
                                 </div>
                                 <div>
@@ -220,7 +222,7 @@ const AddFundHistory = () => {
                                 )}
                                 {deposit.processedAt && (
                                     <p className="text-gray-500 text-[10px] sm:text-xs">
-                                        Processed: {formatDate(deposit.processedAt)}
+                                        {t('funds.processed')}: {formatDate(deposit.processedAt)}
                                     </p>
                                 )}
                             </div>
@@ -237,7 +239,7 @@ const AddFundHistory = () => {
                                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
-                                        View Screenshot
+                                        {t('funds.viewScreenshot')}
                                     </a>
                                 </div>
                             )}

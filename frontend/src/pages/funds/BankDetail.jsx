@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
 const BankDetail = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [bankAccounts, setBankAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -39,7 +41,7 @@ const BankDetail = () => {
                 setBankAccounts(data.data || []);
             }
         } catch (err) {
-            setError('Failed to fetch bank accounts');
+            setError(t('funds.failedToFetchBankAccounts'));
         } finally {
             setLoading(false);
         }
@@ -110,12 +112,12 @@ const BankDetail = () => {
         setSuccess('');
 
         if (!formData.accountHolderName) {
-            setError('Account holder name is required');
+            setError(t('funds.accountHolderNameRequired'));
             return;
         }
 
         if (!formData.accountNumber || !formData.ifscCode) {
-            setError('Account number and IFSC code are required');
+            setError(t('funds.accountNumberAndIFSCRequired'));
             return;
         }
 
@@ -140,26 +142,26 @@ const BankDetail = () => {
             const data = await res.json();
             if (data.success) {
                 setSuccessMessage({
-                    title: editingId ? 'Bank Detail Updated!' : 'Bank Detail Added!',
+                    title: editingId ? t('funds.bankAccountUpdated') : t('funds.bankAccountAdded'),
                     subtitle: editingId 
-                        ? 'Your bank account details have been updated successfully.'
-                        : 'Your bank account has been added successfully. You can now use it for withdrawals.'
+                        ? t('funds.bankAccountUpdatedSubtitle')
+                        : t('funds.bankAccountAddedSubtitle')
                 });
                 setShowSuccessModal(true);
                 resetForm();
                 fetchBankAccounts();
             } else {
-                setError(data.message || 'Failed to save');
+                setError(data.message || t('funds.failedToSave'));
             }
         } catch (err) {
-            setError('Network error. Please try again.');
+            setError(t('funds.networkError'));
         } finally {
             setSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this bank account?')) return;
+        if (!confirm(t('funds.confirmDeleteBankAccount'))) return;
 
         try {
             const res = await fetch(`${API_BASE_URL}/bank-details/${id}`, {
@@ -170,13 +172,13 @@ const BankDetail = () => {
 
             const data = await res.json();
             if (data.success) {
-                setSuccess('Bank account deleted');
+                setSuccess(t('funds.bankAccountDeleted'));
                 fetchBankAccounts();
             } else {
-                setError(data.message || 'Failed to delete');
+                setError(data.message || t('funds.failedToDelete'));
             }
         } catch (err) {
-            setError('Network error');
+            setError(t('funds.networkError'));
         }
     };
 
@@ -190,11 +192,11 @@ const BankDetail = () => {
 
             const data = await res.json();
             if (data.success) {
-                setSuccess('Default account updated');
+                setSuccess(t('funds.bankAccountSetAsDefault'));
                 fetchBankAccounts();
             }
         } catch (err) {
-            setError('Failed to set default');
+            setError(t('funds.failedToSetDefault'));
         }
     };
 
@@ -203,15 +205,15 @@ const BankDetail = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-bold text-white">Bank Accounts</h3>
-                    <p className="text-gray-400 text-sm">{bankAccounts.length}/1 account added</p>
+                    <h3 className="text-lg font-bold text-white">{t('funds.bankDetails')}</h3>
+                    <p className="text-gray-400 text-sm">{bankAccounts.length}/1 {t('funds.accountAdded')}</p>
                 </div>
                 {bankAccounts.length < 1 && !showForm && (
                     <button
                         onClick={() => setShowForm(true)}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
                     >
-                        + Add Account
+                        + {t('funds.addBankAccount')}
                     </button>
                 )}
             </div>
@@ -232,56 +234,56 @@ const BankDetail = () => {
             {showForm && (
                 <div className="bg-[#1a1a1a] rounded-xl p-5 border border-blue-500/30">
                     <h4 className="text-white font-semibold mb-4">
-                        {editingId ? 'Edit Bank Account' : 'Add New Bank Account'}
+                        {editingId ? t('funds.editBankAccount') : t('funds.addBankAccount')}
                     </h4>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-gray-300 text-sm mb-1">
-                                Account Holder Name <span className="text-red-400">*</span>
+                                {t('funds.accountHolderName')} <span className="text-red-400">*</span>
                             </label>
                             <input
                                 type="text"
                                 value={formData.accountHolderName}
                                 onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Name as per bank"
+                                placeholder={t('funds.nameAsPerBank')}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 text-sm mb-1">Bank Account Number</label>
+                            <label className="block text-gray-300 text-sm mb-1">{t('funds.accountNumber')}</label>
                             <input
                                 type="text"
                                 value={formData.accountNumber}
                                 onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter account number"
+                                placeholder={t('funds.enterAccountNumber')}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 text-sm mb-1">IFSC Code</label>
+                            <label className="block text-gray-300 text-sm mb-1">{t('funds.ifscCode')}</label>
                             <input
                                 type="text"
                                 value={formData.ifscCode}
                                 onChange={handleIFSCChange}
                                 maxLength="11"
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., HDFC0001234"
+                                placeholder={t('funds.ifscPlaceholder')}
                             />
                             {fetchingBankName && (
-                                <p className="text-blue-400 text-xs mt-1">Fetching bank name...</p>
+                                <p className="text-blue-400 text-xs mt-1">{t('funds.fetchingBankName')}</p>
                             )}
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 text-sm mb-1">Bank Name</label>
+                            <label className="block text-gray-300 text-sm mb-1">{t('funds.bankName')}</label>
                             <input
                                 type="text"
                                 value={formData.bankName}
                                 onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                                 className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., HDFC Bank"
+                                placeholder={t('funds.bankNamePlaceholder')}
                             />
                         </div>
 
@@ -291,14 +293,14 @@ const BankDetail = () => {
                                 onClick={resetForm}
                                 className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={submitting}
                                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50"
                             >
-                                {submitting ? 'Saving...' : (editingId ? 'Update' : 'Add Account')}
+                                {submitting ? t('common.saving') : (editingId ? t('common.update') : t('funds.addAccount'))}
                             </button>
                         </div>
                     </form>
@@ -323,8 +325,8 @@ const BankDetail = () => {
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M4 10l8-4 8 4" />
                     </svg>
-                    <p className="text-gray-400">No bank accounts added yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Add a bank account to withdraw funds</p>
+                    <p className="text-gray-400">{t('funds.noBankAccounts')}</p>
+                    <p className="text-gray-500 text-sm mt-1">{t('funds.addYourFirstBankAccount')}</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -347,7 +349,7 @@ const BankDetail = () => {
                                             <p className="text-white font-semibold">{acc.accountHolderName}</p>
                                             {acc.isDefault && (
                                                 <span className="px-2 py-0.5 bg-yellow-600/30 text-yellow-400 text-xs rounded-full">
-                                                    Default
+                                                    {t('funds.default')}
                                                 </span>
                                             )}
                                         </div>
@@ -356,7 +358,7 @@ const BankDetail = () => {
                                         )}
                                         {acc.accountNumber && (
                                             <p className="text-gray-500 text-sm">
-                                                A/C: ****{acc.accountNumber.slice(-4)} | IFSC: {acc.ifscCode}
+                                                {t('funds.accountNumber')}: ****{acc.accountNumber.slice(-4)} | {t('funds.ifscCode')}: {acc.ifscCode}
                                             </p>
                                         )}
                                         {acc.upiId && (
@@ -372,20 +374,20 @@ const BankDetail = () => {
                                         onClick={() => handleSetDefault(acc._id)}
                                         className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-400 rounded-lg text-xs"
                                     >
-                                        Set Default
+                                        {t('funds.setAsDefault')}
                                     </button>
                                 )}
                                 <button
                                     onClick={() => handleEdit(acc)}
                                     className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg text-xs"
                                 >
-                                    Update
+                                    {t('common.edit')}
                                 </button>
                                 <button
                                     onClick={() => handleDelete(acc._id)}
                                     className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-xs"
                                 >
-                                    Delete
+                                    {t('common.delete')}
                                 </button>
                             </div>
                         </div>
@@ -421,7 +423,7 @@ const BankDetail = () => {
                                 onClick={() => setShowSuccessModal(false)}
                                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
                             >
-                                Done
+                                {t('common.done')}
                             </button>
                             <button
                                 onClick={() => {
@@ -430,7 +432,7 @@ const BankDetail = () => {
                                 }}
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                             >
-                                Go to Withdraw
+                                {t('funds.goToWithdraw')}
                             </button>
                         </div>
                     </div>

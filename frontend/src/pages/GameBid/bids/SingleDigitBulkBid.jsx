@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [inputPoints, setInputPoints] = useState('');
     const [bids, setBids] = useState([]);
@@ -170,7 +172,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                 </select>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">Enter Points:</label>
+                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">{t('gameBid.enterPoints')}:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"

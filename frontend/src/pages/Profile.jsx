@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
 
 const readUserFromStorage = () => {
@@ -109,6 +110,7 @@ const IconCopy = () => (
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(() => readUserFromStorage());
   const [profileLoading, setProfileLoading] = useState(true);
   const [toast, setToast] = useState('');
@@ -252,31 +254,31 @@ const Profile = () => {
 
   const userId = user?.id || user?._id || 'N/A';
   const memberSince = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(user.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
   /* ───────── Quick action buttons ───────── */
   const quickActions = [
-    { icon: <IconAddFund />, label: 'Add Fund', path: '/funds?tab=add-fund', color: 'from-emerald-500 to-emerald-600' },
-    { icon: <IconWithdraw />, label: 'Withdraw', path: '/funds?tab=withdraw-fund', color: 'from-blue-500 to-blue-600' },
-    { icon: <IconPassbook />, label: 'Passbook', path: '/passbook', color: 'from-purple-500 to-purple-600' },
-    { icon: <IconHistory />, label: 'History', path: '/bet-history', color: 'from-orange-500 to-orange-600' },
+    { icon: <IconAddFund />, label: t('funds.addFund'), path: '/funds?tab=add-fund', color: 'from-emerald-500 to-emerald-600' },
+    { icon: <IconWithdraw />, label: t('funds.withdrawFund'), path: '/funds?tab=withdraw-fund', color: 'from-blue-500 to-blue-600' },
+    { icon: <IconPassbook />, label: t('passbook.title'), path: '/passbook', color: 'from-purple-500 to-purple-600' },
+    { icon: <IconHistory />, label: t('bids.betHistory'), path: '/bet-history', color: 'from-orange-500 to-orange-600' },
   ];
 
   /* ───────── Menu items ───────── */
   const menuItems = [
-    { icon: <IconBank />, label: 'Bank Details', desc: 'Manage payment methods', path: '/bank', color: 'text-blue-400' },
-    { icon: <IconId />, label: 'KYC Verification', desc: 'Verify your identity', action: () => showToast('KYC coming soon'), color: 'text-emerald-400' },
-    { icon: <IconShield />, label: 'Security', desc: 'Password & security settings', action: () => showToast('Security settings coming soon'), color: 'text-purple-400' },
-    { icon: <IconSupport />, label: 'Help & Support', desc: 'Get help with your account', path: '/support', color: 'text-amber-400' },
+    { icon: <IconBank />, label: t('funds.bankDetails'), desc: t('profile.managePaymentMethods'), path: '/bank', color: 'text-blue-400' },
+    { icon: <IconId />, label: t('profile.kycVerification'), desc: t('profile.verifyYourIdentity'), action: () => showToast(t('profile.kycComingSoon')), color: 'text-emerald-400' },
+    { icon: <IconShield />, label: t('profile.security'), desc: t('profile.passwordSecuritySettings'), action: () => showToast(t('profile.securitySettingsComingSoon')), color: 'text-purple-400' },
+    { icon: <IconSupport />, label: t('header.helpDesk'), desc: t('profile.getHelpWithAccount'), path: '/support', color: 'text-amber-400' },
   ];
 
   /* ───────── Info field data ───────── */
   const infoFields = [
-    { icon: <IconUser />, label: 'Username', value: form.username || 'Not set', color: 'text-blue-400', copyable: true },
-    { icon: <IconMail />, label: 'Email', value: form.email || 'Not set', color: 'text-purple-400', copyable: true },
-    { icon: <IconPhone />, label: 'Phone', value: form.phone || 'Not set', color: 'text-emerald-400', copyable: true },
-    { icon: <IconShield />, label: 'Role', value: form.role || 'User', color: 'text-amber-400', capitalize: true },
+    { icon: <IconUser />, label: t('profile.username'), value: form.username || t('profile.notSet'), color: 'text-blue-400', copyable: true },
+    { icon: <IconMail />, label: t('profile.email'), value: form.email || t('profile.notSet'), color: 'text-purple-400', copyable: true },
+    { icon: <IconPhone />, label: t('profile.phone'), value: form.phone || t('profile.notSet'), color: 'text-emerald-400', copyable: true },
+    { icon: <IconShield />, label: t('profile.role'), value: form.role || t('profile.user'), color: 'text-amber-400', capitalize: true },
   ];
 
   /* ── Reusable blocks (rendered in both mobile & desktop layouts) ── */
@@ -293,15 +295,15 @@ const Profile = () => {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-bold text-lg md:text-xl truncate leading-tight">
-              {form.username || 'User'}
+              {form.username || t('profile.user')}
             </h3>
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">Active</span>
+                <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">{t('profile.active')}</span>
               </div>
               {form.role && (
                 <div className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30">
-                  <span className="text-blue-400 text-[10px] font-semibold uppercase tracking-wider capitalize">{form.role}</span>
+                  <span className="text-blue-400 text-[10px] font-semibold uppercase tracking-wider capitalize">{form.role === 'User' || form.role === 'user' ? t('profile.user') : form.role}</span>
                 </div>
               )}
             </div>
@@ -310,7 +312,7 @@ const Profile = () => {
         <div className="rounded-2xl bg-[#1a1a1a] border border-white/5 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Wallet Balance</p>
+              <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{t('profile.walletBalance')}</p>
               <p className="text-[#f2c14e] text-2xl md:text-3xl font-extrabold tracking-tight">
                 ₹{walletValue !== null ? walletValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
               </p>
@@ -327,7 +329,7 @@ const Profile = () => {
           className="w-full flex items-center justify-center gap-2.5 py-3 mt-4 rounded-2xl bg-[#141416] border border-white/10 text-red-400 font-semibold hover:bg-white/[0.03] hover:border-white/15 active:scale-[0.98] transition-all"
         >
           <IconLogout />
-          <span>Sign Out</span>
+          <span>{t('header.logout')}</span>
         </button>
       </div>
     </div>
@@ -355,11 +357,11 @@ const Profile = () => {
     <button
       type="button"
       onClick={() => handleCopy(
-        label === 'User ID' ? userId : infoFields.find(f => f.label === label)?.value,
+        label === t('profile.userId') ? userId : infoFields.find(f => f.label === label)?.value,
         label
       )}
       className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-300 transition-colors"
-      title={`Copy ${label}`}
+      title={t('common.copy')}
     >
       {copiedField === label ? (
         <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -374,7 +376,8 @@ const Profile = () => {
   const accountInfoBlock = (
     <div className="overflow-hidden">
       <div className="px-5 pt-5 pb-3">
-        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Account Information</h3>
+        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('profile.accountInformation')}</h3>
+        <p className="text-gray-500 text-xs mt-1 md:hidden">{t('profile.accountInformationSubtitle')}</p>
       </div>
       <div className="px-4 pb-2">
         {/* User ID */}
@@ -383,10 +386,10 @@ const Profile = () => {
             <IconId />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">User ID</p>
+            <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.userId')}</p>
             <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
           </div>
-          {renderCopyBtn('User ID')}
+          {renderCopyBtn(t('profile.userId'))}
         </div>
 
         {/* Info fields */}
@@ -401,7 +404,7 @@ const Profile = () => {
                 {field.value}
               </p>
             </div>
-            {field.copyable && field.value !== 'Not set' && renderCopyBtn(field.label)}
+            {field.copyable && field.value !== t('profile.notSet') && renderCopyBtn(field.label)}
           </div>
         ))}
 
@@ -412,7 +415,7 @@ const Profile = () => {
               <IconCalendar />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Member Since</p>
+              <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.memberSince')}</p>
               <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
             </div>
           </div>
@@ -424,7 +427,7 @@ const Profile = () => {
   const settingsBlock = (
     <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
       <div className="px-5 pt-5 pb-2">
-        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Settings</h3>
+        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('profile.settings')}</h3>
       </div>
       <div className="px-3 pb-3">
         {menuItems.map((item) => (
@@ -455,7 +458,7 @@ const Profile = () => {
       className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-red-500/8 border border-red-500/15 text-red-400 font-semibold hover:bg-red-500/12 active:scale-[0.98] transition-all"
     >
       <IconLogout />
-      <span>Sign Out</span>
+      <span>{t('profile.signOut')}</span>
     </button>
   );
 
@@ -496,7 +499,7 @@ const Profile = () => {
           >
             <IconBack />
           </button>
-          <h2 className="text-base md:text-lg font-semibold tracking-wide flex-1">My Profile</h2>
+          <h2 className="text-base md:text-lg font-semibold tracking-wide flex-1">{t('profile.title')}</h2>
         </div>
       </div>
 
@@ -515,8 +518,8 @@ const Profile = () => {
             <div className="hidden md:block space-y-5">
               <div className="overflow-hidden">
                 <div className="px-6 pt-6 pb-4 border-b border-white/5">
-                  <h3 className="text-white font-semibold text-base uppercase tracking-wider">Account Information</h3>
-                  <p className="text-gray-500 text-sm mt-1">Your personal details and account data</p>
+                  <h3 className="text-white font-semibold text-base uppercase tracking-wider">{t('profile.accountInformation')}</h3>
+                  <p className="text-gray-500 text-sm mt-1">{t('profile.accountInformationSubtitle')}</p>
                 </div>
                 <div className="p-5 grid grid-cols-2 gap-4">
                   <div className="col-span-2 group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
@@ -524,10 +527,10 @@ const Profile = () => {
                       <IconId />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">User ID</p>
+                      <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.userId')}</p>
                       <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
                     </div>
-                    {renderCopyBtn('User ID')}
+                    {renderCopyBtn(t('profile.userId'))}
                   </div>
                   {infoFields.map((field) => (
                     <div key={field.label} className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
@@ -540,7 +543,7 @@ const Profile = () => {
                           {field.value}
                         </p>
                       </div>
-                      {field.copyable && field.value !== 'Not set' && renderCopyBtn(field.label)}
+                      {field.copyable && field.value !== t('profile.notSet') && renderCopyBtn(field.label)}
                     </div>
                   ))}
                   {memberSince && (
@@ -549,7 +552,7 @@ const Profile = () => {
                         <IconCalendar />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">Member Since</p>
+                        <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.memberSince')}</p>
                         <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
                       </div>
                     </div>

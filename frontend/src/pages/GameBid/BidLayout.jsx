@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 
 const getWalletFromStorage = () => {
@@ -51,6 +52,7 @@ const BidLayout = ({
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t } = useTranslation();
     const contentRef = useRef(null);
     const { allowed: bettingAllowed, message: bettingMessage } = useBettingWindow();
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
@@ -122,7 +124,7 @@ const BidLayout = ({
                       navigate('/bidoptions', { state });
                     }}
                     className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full active:scale-95 transition-colors touch-manipulation"
-                    aria-label="Back"
+                    aria-label={t('common.back')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -168,7 +170,7 @@ const BidLayout = ({
                         </div>
                         {displayDate && displayDate !== todayDate && (
                             <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-400/40">
-                                Scheduled
+                                {t('gameBid.scheduled')}
                             </span>
                         )}
                     </div>
@@ -183,7 +185,7 @@ const BidLayout = ({
                         >
                             {sessionOptions.map((opt) => (
                                 <option key={opt} value={opt}>
-                                    {opt}
+                                    {opt === 'OPEN' ? t('gameBid.open') : opt === 'CLOSE' ? t('gameBid.close') : opt}
                                 </option>
                             ))}
                         </select>
@@ -231,11 +233,11 @@ const BidLayout = ({
                         {showFooterStats && (
                             <div className="flex items-center gap-6 sm:gap-8 shrink-0">
                                 <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">Bets</div>
+                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.bets')}</div>
                                     <div className="text-base sm:text-lg font-bold text-[#f2c14e]">{bidsCount}</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">Points</div>
+                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.points')}</div>
                                     <div className="text-base sm:text-lg font-bold text-[#f2c14e]">{totalPoints}</div>
                                 </div>
                             </div>
@@ -250,7 +252,7 @@ const BidLayout = ({
                                     : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
                             }`}
                         >
-                            {submitLabel}
+                            {submitLabel === 'Submit Bets' ? t('gameBid.submitBets') : submitLabel}
                         </button>
                     </div>
                 </div>

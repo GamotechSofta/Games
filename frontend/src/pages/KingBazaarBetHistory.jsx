@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import BetHistory from './BetHistory';
 
 const KingBazaarBetHistory = () => {
-  return <BetHistory pageTitle="King Bazaar Bet History" marketScope="king" />;
+  const { t } = useTranslation();
+  return <BetHistory pageTitle={t('bids.kingBazaarBetHistory')} marketScope="king" />;
 };
 
 export default KingBazaarBetHistory;

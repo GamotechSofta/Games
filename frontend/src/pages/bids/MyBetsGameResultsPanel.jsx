@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import ResultDatePicker from '../../components/ResultDatePicker';
 
 /**
@@ -9,11 +10,12 @@ export default function MyBetsGameResultsPanel({
   onResultsDateChange,
   resultsRows = [],
 }) {
+  const { t } = useTranslation();
   return (
     <div className="mt-3">
       <div className="mb-3 rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-[#d4af37] text-xs font-semibold uppercase tracking-wider">Results for</p>
+          <p className="text-[#d4af37] text-xs font-semibold uppercase tracking-wider">{t('bids.resultsFor')}</p>
           <p className="text-white font-bold text-sm sm:text-base mt-0.5">
             {resultsDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
           </p>
@@ -23,7 +25,7 @@ export default function MyBetsGameResultsPanel({
             value={resultsDate}
             onChange={onResultsDateChange}
             maxDate={new Date()}
-            label="Date"
+            label={t('bids.date')}
             buttonClassName="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white font-semibold text-xs hover:border-[#d4af37]/40 transition-colors"
           />
         </div>
@@ -31,7 +33,7 @@ export default function MyBetsGameResultsPanel({
       <div className="max-h-[calc(100vh-300px)] overflow-y-auto hide-scrollbar">
         {resultsRows.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
-            No results for this date.
+            {t('bids.noResultsForDate')}
           </div>
         ) : (
           <>
@@ -44,10 +46,10 @@ export default function MyBetsGameResultsPanel({
                         #
                       </th>
                       <th className="text-left py-2.5 px-3 text-[#d4af37] font-bold text-xs uppercase tracking-wider">
-                        Market
+                        {t('bids.market')}
                       </th>
                       <th className="text-right py-2.5 px-3 text-[#d4af37] font-bold text-xs uppercase tracking-wider">
-                        Result
+                        {t('bids.result')}
                       </th>
                     </tr>
                   </thead>

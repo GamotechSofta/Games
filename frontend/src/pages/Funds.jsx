@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { AddFund, WithdrawFund, BankDetail, AddFundHistory, WithdrawFundHistory } from './funds/index';
@@ -8,21 +9,22 @@ import FundsContentArea from './funds/FundsContentArea';
 
 const Funds = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const items = useMemo(() => ([
     {
       key: 'add-fund',
-      title: 'Add Fund',
-      subtitle: 'You can add fund to your wallet',
+      title: t('funds.addFund'),
+      subtitle: t('funds.addFundSubtitle'),
       color: '#34a853',
       icon: <span className="text-3xl font-extrabold text-black leading-none">₹</span>,
       component: AddFund,
     },
     {
       key: 'withdraw-fund',
-      title: 'Withdraw Fund',
-      subtitle: 'You can withdraw winnings',
+      title: t('funds.withdrawFund'),
+      subtitle: t('funds.withdrawFundSubtitle'),
       color: '#ef4444',
       icon: (
         <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -33,8 +35,8 @@ const Funds = () => {
     },
     {
       key: 'bank-detail',
-      title: 'Bank Detail',
-      subtitle: 'Add your bank detail for withdrawals',
+      title: t('funds.bankDetail'),
+      subtitle: t('funds.bankDetailSubtitle'),
       color: '#3b82f6',
       icon: (
         <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -45,8 +47,8 @@ const Funds = () => {
     },
     {
       key: 'add-fund-history',
-      title: 'Add Fund History',
-      subtitle: 'You can check your add point history',
+      title: t('funds.addFundHistory'),
+      subtitle: t('funds.addFundHistorySubtitle'),
       color: '#1e3a8a',
       icon: (
         <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -58,8 +60,8 @@ const Funds = () => {
     },
     {
       key: 'withdraw-fund-history',
-      title: 'Withdraw Fund History',
-      subtitle: 'You can check your Withdraw point history',
+      title: t('funds.withdrawFundHistory'),
+      subtitle: t('funds.withdrawFundHistorySubtitle'),
       color: '#f59e0b',
       icon: (
         <svg className="w-7 h-7 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -69,7 +71,7 @@ const Funds = () => {
       ),
       component: WithdrawFundHistory,
     },
-  ]), []);
+  ]), [t]);
 
   const { isDesktop } = useBreakpoint();
   const tabParam = searchParams.get('tab');
@@ -201,14 +203,14 @@ const Funds = () => {
               type="button"
               onClick={handleBack}
               className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
-              aria-label="Back"
+              aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <h1 className="text-xl sm:text-2xl font-bold">
-              {showContent && !isDesktop ? (mobileDetailItem || activeItem)?.title : 'Funds'}
+              {showContent && !isDesktop ? (mobileDetailItem || activeItem)?.title : t('funds.fundsTitle')}
             </h1>
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 
 /* ───────── Icons ───────── */
@@ -67,6 +68,7 @@ const SkeletonRow = () => (
 
 const Passbook = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -131,9 +133,9 @@ const Passbook = () => {
   }, [filtered]);
 
   const filters = [
-    { key: 'all', label: 'All', count: transactions.length },
-    { key: 'credit', label: 'Credited', count: stats.creditCount },
-    { key: 'debit', label: 'Withdrawn', count: stats.debitCount },
+    { key: 'all', label: t('common.all'), count: transactions.length },
+    { key: 'credit', label: t('passbook.credited'), count: stats.creditCount },
+    { key: 'debit', label: t('passbook.withdrawn'), count: stats.debitCount },
   ];
 
   const handleBack = () => {
@@ -167,13 +169,13 @@ const Passbook = () => {
           >
             <IconBack />
           </button>
-          <h2 className="text-base font-semibold tracking-wide flex-1">Passbook</h2>
+          <h2 className="text-base font-semibold tracking-wide flex-1">{t('passbook.title')}</h2>
           <button
             type="button"
             onClick={() => fetchData(true)}
             disabled={refreshing}
             className={`w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all ${refreshing ? 'animate-spin' : ''}`}
-            aria-label="Refresh"
+            aria-label={t('common.refresh')}
           >
             <IconRefresh />
           </button>
@@ -190,7 +192,7 @@ const Passbook = () => {
           <div className="relative p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">Current Balance</p>
+                <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{t('passbook.currentBalance')}</p>
                 <p className="text-[#f2c14e] text-3xl font-extrabold tracking-tight">
                   ₹{balance !== null ? formatAmount(balance) : '---'}
                 </p>
@@ -209,7 +211,7 @@ const Passbook = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m0 0l6.75-6.75M12 19.5l-6.75-6.75" />
                     </svg>
                   </div>
-                  <span className="text-emerald-400/70 text-[10px] font-semibold uppercase tracking-wider">Credited</span>
+                  <span className="text-emerald-400/70 text-[10px] font-semibold uppercase tracking-wider">{t('passbook.credited')}</span>
                 </div>
                 <p className="text-emerald-400 text-lg font-bold">₹{formatAmount(stats.totalCredit)}</p>
               </div>
@@ -220,7 +222,7 @@ const Passbook = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 19.5V4.5m0 0L5.25 11.25M12 4.5l6.75 6.75" />
                     </svg>
                   </div>
-                  <span className="text-red-400/70 text-[10px] font-semibold uppercase tracking-wider">Withdrawn</span>
+                  <span className="text-red-400/70 text-[10px] font-semibold uppercase tracking-wider">{t('passbook.withdrawn')}</span>
                 </div>
                 <p className="text-red-400 text-lg font-bold">₹{formatAmount(stats.totalDebit)}</p>
               </div>
@@ -257,7 +259,7 @@ const Passbook = () => {
         {/* ── Transaction History ── */}
         <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
           <div className="px-5 pt-5 pb-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider">Transaction History</h3>
+            <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('passbook.transactionHistory')}</h3>
           </div>
 
           {loading ? (
@@ -268,11 +270,11 @@ const Passbook = () => {
             /* Empty state */
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <IconEmpty />
-              <p className="text-gray-400 font-semibold mt-4 text-sm">No transactions found</p>
+              <p className="text-gray-400 font-semibold mt-4 text-sm">{t('passbook.noTransactions')}</p>
               <p className="text-gray-600 text-xs mt-1 text-center">
                 {filter === 'all'
-                  ? 'Your transaction history will appear here'
-                  : `No ${filter === 'credit' ? 'credit' : 'withdrawal'} transactions yet`}
+                  ? t('passbook.noTransactionsDesc')
+                  : filter === 'credit' ? t('passbook.noCreditTransactions') : t('passbook.noDebitTransactions')}
               </p>
             </div>
           ) : (

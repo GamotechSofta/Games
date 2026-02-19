@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const formatScheduledDate = (scheduledDate) => {
   if (!scheduledDate) return null;
@@ -22,6 +23,7 @@ export default function MyBetsBetHistoryPanel({
   cancellingBetId,
   formatTxnTime,
 }) {
+  const { t } = useTranslation();
   const allBetsNewestFirst = useMemo(() => {
     const flat = [];
     for (const { bets } of groupedDesktopByMarket || []) {
@@ -32,10 +34,10 @@ export default function MyBetsBetHistoryPanel({
 
   const statusLabel = (verdict) => {
     if (!verdict) return { text: '—', className: 'text-gray-500' };
-    if (verdict.state === 'won') return { text: 'Won', className: 'text-[#43b36a] font-semibold' };
-    if (verdict.state === 'lost') return { text: 'Lost', className: 'text-red-400 font-semibold' };
-    if (verdict.state === 'cancelled') return { text: 'Cancelled', className: 'text-orange-400 font-semibold' };
-    return { text: 'Pending', className: 'text-amber-400/90 font-medium' };
+    if (verdict.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
+    if (verdict.state === 'lost') return { text: t('bids.status.lost'), className: 'text-red-400 font-semibold' };
+    if (verdict.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-400 font-semibold' };
+    return { text: t('bids.status.pending'), className: 'text-amber-400/90 font-medium' };
   };
 
   return (
@@ -55,11 +57,11 @@ export default function MyBetsBetHistoryPanel({
       <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
         {!desktopBetHistoryUid ? (
           <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
-            Please login to see your bet history.
+            {t('bids.loginToSeeHistory')}
           </div>
         ) : allBetsNewestFirst.length === 0 ? (
           <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
-            No bets found.
+            {t('bids.noBetsFound')}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-x-hidden">
@@ -97,28 +99,28 @@ export default function MyBetsBetHistoryPanel({
                   </div>
                   {isScheduled && (
                     <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
-                      Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                      {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                     </div>
                   )}
                   <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{String(marketTitle).toUpperCase() || 'MARKET'}</p>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">Game</span>
+                    <span className="text-gray-400 shrink-0">{t('bids.gameLabel')}</span>
                     <span className="text-white font-medium truncate">{gameType}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">Bet</span>
+                    <span className="text-gray-400 shrink-0">{t('bids.betLabel')}</span>
                     <span className="text-white font-bold truncate">{betValue}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">Points</span>
+                    <span className="text-gray-400 shrink-0">{t('bids.pointsLabel')}</span>
                     <span className="text-white font-semibold">{points}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs items-center min-w-0">
-                    <span className="text-gray-400 shrink-0">Status</span>
+                    <span className="text-gray-400 shrink-0">{t('bids.statusLabel')}</span>
                     <span className={`${status.className} truncate text-[10px]`}>{status.text}{verdict?.state === 'won' && verdict?.payout > 0 ? ` ₹${Number(verdict.payout).toLocaleString('en-IN')}` : ''}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-[10px]">
-                    <span className="text-gray-400 shrink-0">Time</span>
+                    <span className="text-gray-400 shrink-0">{t('bids.timeLabel')}</span>
                     <span className="text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                   </div>
                   {verdict?.state === 'pending' && canCancel?.canCancel && (
@@ -127,7 +129,7 @@ export default function MyBetsBetHistoryPanel({
                         type="button"
                         onClick={() => onCancelBetClick(betId)}
                         disabled={cancellingBetId === betId}
-                        title="Cancel & refund"
+                        title={t('bids.cancelAndRefund')}
                         className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
                       >
                         {cancellingBetId === betId ? (
@@ -136,14 +138,14 @@ export default function MyBetsBetHistoryPanel({
                               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                             </svg>
-                            Cancelling...
+                            {t('bids.cancelling')}
                           </>
                         ) : (
                           <>
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Cancel & refund
+                            {t('bids.cancelAndRefund')}
                           </>
                         )}
                       </button>

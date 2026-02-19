@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { SchedulingProvider, BettingWindowProvider } from './BettingWindowContext';
 import SingleDigitBid from './bids/SingleDigitBid';
 import SingleDigitBulkBid from './bids/SingleDigitBulkBid';
@@ -32,6 +33,7 @@ const BID_COMPONENTS = {
 const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t } = useTranslation();
     const { market, betType, scheduleForTomorrow } = location.state || {};
 
     useEffect(() => {
@@ -40,7 +42,7 @@ const GameBid = () => {
         }
     }, [market, location.state?.title, navigate]);
 
-    const title = betType || location.state?.title || 'Select Bet Type';
+    const title = betType || location.state?.title || t('gameBid.selectBetType');
     const key = title.toLowerCase().trim();
     const BidComponent = BID_COMPONENTS[key] || SingleDigitBid;
 

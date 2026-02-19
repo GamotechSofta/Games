@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useScheduling } from '../BettingWindowContext';
@@ -28,6 +29,7 @@ const getTomorrowIST = () => {
 const FullSangamBid = ({ market, title, scheduleForTomorrow }) => {
     const { setSelectedDateIST } = useScheduling();
     // Full Sangam: force OPEN only (no CLOSE selection)
+    const { t } = useTranslation();
     const [session, setSession] = useState('OPEN');
     const [openPana, setOpenPana] = useState('');
     const [closePana, setClosePana] = useState('');
@@ -289,7 +291,7 @@ const FullSangamBid = ({ market, title, scheduleForTomorrow }) => {
                                 onClick={handleAdd}
                                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
                             >
-                                Add to List
+                                {t('gameBid.addToList')}
                             </button>
 
                             <button

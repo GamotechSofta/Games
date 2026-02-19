@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const KingBazaarCard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <button
@@ -16,9 +18,9 @@ const KingBazaarCard = () => {
           </div>
           <div className="flex flex-col min-w-0">
             <p className="text-white text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold leading-tight whitespace-normal break-words">
-              KING BAZAAR
+              {t('markets.kingBazaar')}
             </p>
-            <p className="text-[#f2c14e] text-[9px] min-[375px]:text-[10px] sm:text-xs font-semibold animate-pulse drop-shadow-[0_0_6px_rgba(242,193,78,0.6)] mt-0.5">Tap to Play</p>
+            <p className="text-[#f2c14e] text-[9px] min-[375px]:text-[10px] sm:text-xs font-semibold animate-pulse drop-shadow-[0_0_6px_rgba(242,193,78,0.6)] mt-0.5">{t('markets.tapToPlay')}</p>
           </div>
         </div>
         <span className="text-white/30 text-lg sm:text-xl group-hover:text-purple-500/60 transition-colors shrink-0">›</span>

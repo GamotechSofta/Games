@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useScheduling } from '../BettingWindowContext';
@@ -17,6 +18,7 @@ const getTomorrowIST = () => {
 
 // Half Sangam (C): Open Ank (1 digit) + Close Pana (3 digits)
 const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState('CLOSE');
     const [openAnk, setOpenAnk] = useState('');
@@ -274,7 +276,7 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
                                 onClick={handleAdd}
                                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
                             >
-                                Add to List
+                                {t('gameBid.addToList')}
                             </button>
 
                             <button

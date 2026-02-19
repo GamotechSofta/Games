@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
 const WithdrawFund = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [config, setConfig] = useState(null);
     const [bankAccounts, setBankAccounts] = useState([]);
     const [walletBalance, setWalletBalance] = useState(0);
@@ -89,7 +91,7 @@ const WithdrawFund = () => {
         setSuccess('');
 
         if (!user.id) {
-            setError('Please login to withdraw funds');
+            setError(t('funds.loginRequiredWithdraw'));
             return;
         }
 
@@ -98,12 +100,12 @@ const WithdrawFund = () => {
         const maxWithdraw = config?.maxWithdrawal || 25000;
 
         if (!numAmount || numAmount < minWithdraw || numAmount > maxWithdraw) {
-            setError(`Amount must be between ₹${minWithdraw} and ₹${maxWithdraw}`);
+            setError(t('funds.amountRequiredWithdraw', { min: minWithdraw, max: maxWithdraw }));
             return;
         }
 
         if (numAmount > walletBalance) {
-            setError('Insufficient wallet balance');
+            setError(t('funds.insufficientBalanceWithdraw'));
             return;
         }
 
@@ -115,7 +117,7 @@ const WithdrawFund = () => {
             } else if (bankAccounts.length > 0) {
                 setSelectedBankId(bankAccounts[0]._id);
             } else {
-                setError('Please add a bank account first');
+                setError(t('funds.addBankAccountFirst'));
                 return;
             }
         }
@@ -134,7 +136,7 @@ const WithdrawFund = () => {
         const finalBankId = selectedBankId || bankAccounts.find(acc => acc.isDefault)?._id || bankAccounts[0]?._id;
 
         if (!finalBankId) {
-            setError('Please select a bank account');
+            setError(t('funds.selectBankAccountError'));
             setLoading(false);
             return;
         }
@@ -159,10 +161,10 @@ const WithdrawFund = () => {
                 setUserNote('');
                 fetchWalletBalance();
             } else {
-                setError(data.message || 'Failed to submit request');
+                setError(data.message || t('funds.failedToSubmitWithdraw'));
             }
         } catch (err) {
-            setError('Network error. Please try again.');
+            setError(t('funds.networkErrorWithdraw'));
         } finally {
             setLoading(false);
         }
@@ -205,7 +207,7 @@ const WithdrawFund = () => {
                             </div>
                         </div>
                         <div className="min-w-0">
-                            <div className="text-[11px] font-semibold text-black/70 leading-none">Available Balance</div>
+                            <div className="text-[11px] font-semibold text-black/70 leading-none">{t('funds.availableBalance')}</div>
                             <div className="text-black font-extrabold text-lg sm:text-xl leading-tight truncate">
                                 ₹ {Number(walletBalance || 0).toLocaleString('en-IN')}
                             </div>
@@ -238,8 +240,8 @@ const WithdrawFund = () => {
             {/* No Bank Account Warning */}
             {bankAccounts.length === 0 && (
                 <div className="p-3 bg-yellow-900/30 border border-yellow-600/50 rounded-xl text-yellow-300 text-xs sm:text-sm">
-                    <p className="font-medium">No bank account added!</p>
-                    <p className="text-yellow-400/80 mt-1 leading-snug">Please add a bank account first from the "Bank Detail" section to withdraw funds.</p>
+                    <p className="font-medium">{t('funds.noBankAccount')}</p>
+                    <p className="text-yellow-400/80 mt-1 leading-snug">{t('funds.noBankAccountMessage')}</p>
                 </div>
             )}
 
@@ -249,20 +251,20 @@ const WithdrawFund = () => {
                 {/* Amount Input */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="text-gray-300 text-sm font-medium">Amount (₹)</label>
+                        <label className="text-gray-300 text-sm font-medium">{t('funds.amount')} (₹)</label>
                         <button
                             type="button"
                             onClick={() => setAmount(Math.min(walletBalance, config?.maxWithdrawal || 25000).toString())}
                             className="text-red-400 text-sm hover:text-red-300"
                         >
-                            Withdraw Max (₹{Math.min(walletBalance, config?.maxWithdrawal || 25000).toLocaleString()})
+                            {t('funds.withdrawMax')} (₹{Math.min(walletBalance, config?.maxWithdrawal || 25000).toLocaleString()})
                         </button>
                     </div>
                     <input
                         type="text"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
-                        placeholder="Enter Withdraw Amount"
+                        placeholder={t('funds.enterWithdrawAmount')}
                         inputMode="numeric"
                         onWheel={(e) => e.target.blur()}
                         className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -275,7 +277,7 @@ const WithdrawFund = () => {
                     disabled={loading || bankAccounts.length === 0}
                     className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl transition-all disabled:opacity-50"
                 >
-                    {loading ? 'Submitting...' : 'Submit Withdrawal Request'}
+                    {loading ? t('funds.submittingWithdraw') : t('funds.submitWithdrawRequest')}
                 </button>
                 </form>
             </div>
@@ -283,12 +285,12 @@ const WithdrawFund = () => {
             {/* Info */}
             <div className="px-4 sm:px-6">
                 <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10">
-                <h4 className="text-yellow-400 font-semibold mb-2">Withdrawal Info:</h4>
+                <h4 className="text-yellow-400 font-semibold mb-2">{t('funds.withdrawalInfo')}:</h4>
                 <ul className="text-gray-400 text-sm space-y-1">
-                    <li>• Withdrawals are processed within 24 hours</li>
-                    <li>• Ensure your bank details are correct</li>
-                    <li>• Minimum withdrawal: ₹{config?.minWithdrawal || 500}</li>
-                    <li>• Maximum withdrawal: ₹{config?.maxWithdrawal || 25000}</li>
+                    <li>• {t('funds.withdrawalsProcessed24h')}</li>
+                    <li>• {t('funds.ensureBankDetailsCorrect')}</li>
+                    <li>• {t('funds.minimumWithdrawal')}: ₹{config?.minWithdrawal || 500}</li>
+                    <li>• {t('funds.maximumWithdrawal')}: ₹{config?.maxWithdrawal || 25000}</li>
                 </ul>
                 </div>
             </div>
@@ -306,10 +308,10 @@ const WithdrawFund = () => {
                             </svg>
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-2">No bank account added!</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{t('funds.noBankAccount')}</h3>
                         
                         <p className="text-gray-400 text-sm mb-6">
-                            Please add a bank account first from the "Bank Detail" section to withdraw funds.
+                            {t('funds.noBankAccountMessage')}
                         </p>
 
                         <div className="space-y-3">
@@ -320,13 +322,13 @@ const WithdrawFund = () => {
                                 }}
                                 className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-xl transition-colors"
                             >
-                                Add Bank Account
+                                {t('funds.addBankAccountNow')}
                             </button>
                             <button
                                 onClick={() => setShowNoBankAccountModal(false)}
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                         </div>
                     </div>
@@ -346,27 +348,27 @@ const WithdrawFund = () => {
                                 </svg>
                             </div>
 
-                            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center">Confirm Withdrawal</h3>
+                            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center">{t('funds.confirmWithdrawal')}</h3>
                             
                             {/* Amount */}
                             <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-                                <p className="text-gray-400 text-xs sm:text-sm mb-1">Withdrawal Amount</p>
+                                <p className="text-gray-400 text-xs sm:text-sm mb-1">{t('funds.withdrawAmount')}</p>
                                 <p className="text-xl sm:text-2xl font-bold text-red-400">₹{Number(amount || 0).toLocaleString('en-IN')}</p>
                             </div>
 
                             {/* Bank Details */}
                             <div className="bg-blue-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-                                <p className="text-gray-400 text-xs sm:text-sm mb-2">Bank Account Details</p>
+                                <p className="text-gray-400 text-xs sm:text-sm mb-2">{t('funds.bankAccountDetails')}</p>
                                 <div className="space-y-1 text-xs sm:text-sm">
                                     <p className="text-white font-medium">{selectedBank.accountHolderName}</p>
                                     {selectedBank.bankName && (
-                                        <p className="text-gray-300">Bank: {selectedBank.bankName}</p>
+                                        <p className="text-gray-300">{t('funds.bankName')}: {selectedBank.bankName}</p>
                                     )}
                                     {selectedBank.accountNumber && (
-                                        <p className="text-gray-300">A/C: ****{selectedBank.accountNumber.slice(-4)}</p>
+                                        <p className="text-gray-300">{t('funds.accountNumber')}: ****{selectedBank.accountNumber.slice(-4)}</p>
                                     )}
                                     {selectedBank.ifscCode && (
-                                        <p className="text-gray-300">IFSC: {selectedBank.ifscCode}</p>
+                                        <p className="text-gray-300">{t('funds.ifscCode')}: {selectedBank.ifscCode}</p>
                                     )}
                                     {selectedBank.upiId && (
                                         <p className="text-gray-300">UPI: {selectedBank.upiId}</p>
@@ -379,13 +381,13 @@ const WithdrawFund = () => {
                                     onClick={confirmWithdrawal}
                                     className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors text-sm sm:text-base"
                                 >
-                                    Confirm Withdrawal
+                                    {t('funds.confirmWithdrawButton')}
                                 </button>
                                 <button
                                     onClick={() => setShowConfirmationModal(false)}
                                     className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </button>
                             </div>
                         </div>
@@ -404,16 +406,15 @@ const WithdrawFund = () => {
                             </svg>
                         </div>
 
-                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Withdrawal Request Submitted!</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{t('funds.withdrawSuccess')}</h3>
                         
                         <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
-                            <p className="text-gray-400 text-xs sm:text-sm">Amount</p>
+                            <p className="text-gray-400 text-xs sm:text-sm">{t('funds.amount')}</p>
                             <p className="text-xl sm:text-2xl font-bold text-red-400">₹{submittedAmount.toLocaleString()}</p>
                         </div>
 
                         <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6">
-                            Your withdrawal request has been submitted successfully. 
-                            Amount will be transferred to your bank account after admin approval within 24 hours.
+                            {t('funds.withdrawNoteText')}
                         </p>
 
                         <div className="space-y-2 sm:space-y-3">
@@ -421,7 +422,7 @@ const WithdrawFund = () => {
                                 onClick={() => setShowSuccessModal(false)}
                                 className="w-full py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors text-sm sm:text-base"
                             >
-                                Done
+                                {t('common.done')}
                             </button>
                             <button
                                 onClick={() => {
@@ -430,7 +431,7 @@ const WithdrawFund = () => {
                                 }}
                                 className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
                             >
-                                View History
+                                {t('funds.viewHistory')}
                             </button>
                         </div>
                     </div>

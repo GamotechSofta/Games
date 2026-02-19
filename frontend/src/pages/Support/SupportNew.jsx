@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
 const SupportNew = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [subject, setSubject] = useState('');
@@ -43,7 +45,7 @@ const SupportNew = () => {
     if (!files?.length) return;
     const list = Array.from(files).filter((f) => f.type.startsWith('image/'));
     if (list.length !== files.length) {
-      setMessage({ type: 'error', text: 'Only images (PNG, JPG) allowed.' });
+      setMessage({ type: 'error', text: t('support.onlyImagesAllowed') });
     }
     setScreenshots(list.length ? list : []);
   };
@@ -51,11 +53,11 @@ const SupportNew = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userId) {
-      setMessage({ type: 'error', text: 'Please login first.' });
+      setMessage({ type: 'error', text: t('support.loginRequired') });
       return;
     }
     if (!description.trim()) {
-      setMessage({ type: 'error', text: 'Please describe your issue.' });
+      setMessage({ type: 'error', text: t('support.descriptionRequired') });
       return;
     }
     setMessage({ type: '', text: '' });
@@ -74,17 +76,17 @@ const SupportNew = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage({ type: 'success', text: 'Request sent. We’ll reply within 24 hours.' });
+        setMessage({ type: 'success', text: t('support.requestSent') });
         setSubject('');
         setDescription('');
         setScreenshots([]);
         const input = document.getElementById('support-screenshots');
         if (input) input.value = '';
       } else {
-        setMessage({ type: 'error', text: data.message || 'Something went wrong. Try again.' });
+        setMessage({ type: 'error', text: data.message || t('support.somethingWentWrong') });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Network error. Try again.' });
+      setMessage({ type: 'error', text: t('support.networkError') });
     } finally {
       setLoading(false);
     }
@@ -117,8 +119,8 @@ const SupportNew = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-white">Support</h1>
-            <p className="text-xs text-gray-500">We reply within 24 hours</p>
+            <h1 className="text-lg font-bold text-white">{t('support.title')}</h1>
+            <p className="text-xs text-gray-500">{t('support.subtitle')}</p>
           </div>
         </div>
 
@@ -140,34 +142,34 @@ const SupportNew = () => {
           </div>
         ) : !userId ? (
           <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
-            Please log in to send a request.
+            {t('support.loginRequired')}
           </div>
         ) : (
           <>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="support-subject" className="block text-sm text-gray-400 mb-1.5">
-                  What’s it about?
+                  {t('support.subjectLabel')}
                 </label>
                 <input
                   id="support-subject"
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="e.g. Payment, Game, Account"
+                  placeholder={t('support.subjectPlaceholder')}
                   className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
                 />
               </div>
 
               <div>
                 <label htmlFor="support-description" className="block text-sm text-gray-400 mb-1.5">
-                  What happened? <span className="text-amber-400">*</span>
+                  {t('support.descriptionLabel')} <span className="text-amber-400">*</span>
                 </label>
                 <textarea
                   id="support-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe your issue in a few lines..."
+                  placeholder={t('support.descriptionPlaceholder')}
                   rows={4}
                   className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none"
                 />
@@ -175,19 +177,27 @@ const SupportNew = () => {
 
               <div>
                 <label htmlFor="support-screenshots" className="block text-sm text-gray-400 mb-1.5">
-                  Add photos (optional)
+                  {t('support.photosLabel')}
                 </label>
-                <input
-                  id="support-screenshots"
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/gif"
-                  multiple
-                  onChange={handleFileChange}
-                  className="w-full text-sm text-gray-500 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-amber-500 file:text-black file:font-medium file:cursor-pointer"
-                />
-                {screenshots.length > 0 && (
-                  <p className="mt-1.5 text-xs text-gray-500">{screenshots.length} photo(s) added</p>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    id="support-screenshots"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
+                    multiple
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="support-screenshots"
+                    className="inline-flex py-2 px-3 rounded-lg bg-amber-500 text-black font-medium cursor-pointer text-sm hover:bg-amber-400 transition"
+                  >
+                    {t('support.chooseFiles')}
+                  </label>
+                  <span className="text-sm text-gray-500">
+                    {screenshots.length > 0 ? t('support.photosAdded', { count: screenshots.length }) : t('support.noFileChosen')}
+                  </span>
+                </div>
               </div>
 
               {message.text && (
@@ -207,7 +217,7 @@ const SupportNew = () => {
                 disabled={loading}
                 className="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-semibold transition"
               >
-                {loading ? 'Sending...' : 'Send request'}
+                {loading ? t('support.sending') : t('support.sendRequest')}
               </button>
             </form>
 
@@ -217,7 +227,7 @@ const SupportNew = () => {
                 onClick={() => navigate('/support/status')}
                 className="text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2"
               >
-                View my tickets
+                {t('support.viewTickets')}
               </button>
             </p>
           </>

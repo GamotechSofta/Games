@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 
 const Section1 = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
   const isInitialLoad = useRef(true);
@@ -109,8 +111,8 @@ const Section1 = () => {
               </svg>
             </div>
             <div className="text-left">
-              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">STARLINE</h3>
-              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">Tap to Play</p>
+              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">{t('markets.starline')}</h3>
+              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">{t('markets.tapToPlay')}</p>
             </div>
             <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -125,7 +127,7 @@ const Section1 = () => {
         {/* ── MARKETS center ── */}
         <div className="flex items-center gap-2 shrink-0">
           <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
-          <h2 className="text-white text-lg font-bold tracking-[0.15em] uppercase">Markets</h2>
+          <h2 className="text-white text-lg font-bold tracking-[0.15em] uppercase">{t('markets.markets')}</h2>
           <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
         </div>
 
@@ -144,8 +146,8 @@ const Section1 = () => {
               <span className="text-xl leading-none">🎲</span>
             </div>
             <div className="text-left">
-              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">KING BAZAAR</h3>
-              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">Tap to Play</p>
+              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">{t('markets.kingBazaar')}</h3>
+              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">{t('markets.tapToPlay')}</p>
             </div>
             <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -164,7 +166,7 @@ const Section1 = () => {
             <path d="M0 39 H26 L40 2 H200 L214 39 H240" stroke="#d4af37" strokeWidth="2" />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center pt-2 sm:pt-3">
-            <h2 className="text-white text-sm min-[375px]:text-base sm:text-xl font-bold tracking-wider">MARKETS</h2>
+            <h2 className="text-white text-sm min-[375px]:text-base sm:text-xl font-bold tracking-wider">{t('markets.markets').toUpperCase()}</h2>
           </div>
         </div>
         <div className="flex-1 h-[2px] bg-[#d4af37] shrink min-w-0" />
@@ -188,7 +190,7 @@ const Section1 = () => {
         </div>
       ) : markets.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-400">No markets available</p>
+          <p className="text-gray-400">{t('markets.noMarketsAvailable')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-[375px]:gap-3 sm:gap-4">
@@ -207,9 +209,9 @@ const Section1 = () => {
                 market.status === 'closed' ? 'bg-red-600' : 'bg-green-600'
               } py-1.5 min-[375px]:py-2 px-2 min-[375px]:px-3 text-center min-h-[32px] flex items-center justify-center`}>
                 <p className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold leading-tight">
-                  {market.status === 'open' && 'MARKET IS OPEN'}
-                  {market.status === 'running' && 'CLOSING IS RUNNING'}
-                  {market.status === 'closed' && 'MARKET CLOSED'}
+                  {market.status === 'open' && t('markets.marketIsOpen')}
+                  {market.status === 'running' && t('markets.closingIsRunning')}
+                  {market.status === 'closed' && t('markets.marketClosed')}
                 </p>
               </div>
 
@@ -249,11 +251,11 @@ const Section1 = () => {
                   }}
                   className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center hover:text-amber-300 w-full animate-pulse"
                 >
-                  Running for tomorrow
+                  {t('markets.runningForTomorrow')}
                 </button>
               ) : (
                 <p className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center animate-pulse">
-                  Tap to Play
+                  {t('markets.tapToPlay')}
                 </p>
               )}
             </div>

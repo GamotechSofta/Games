@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getRatesCurrent } from '../api/bets';
 
-const GAME_LABELS = [
-  { key: 'single', label: 'Single Digit' },
-  { key: 'jodi', label: 'Jodi' },
-  { key: 'singlePatti', label: 'Single Patti' },
-  { key: 'doublePatti', label: 'Double Patti' },
-  { key: 'triplePatti', label: 'Triple Patti' },
-  { key: 'halfSangam', label: 'Half Sangam' },
-  { key: 'fullSangam', label: 'Full Sangam' },
+const getGameLabels = (t) => [
+  { key: 'single', label: t('gameRate.singleDigit') },
+  { key: 'jodi', label: t('gameRate.jodi') },
+  { key: 'singlePatti', label: t('gameRate.singlePatti') },
+  { key: 'doublePatti', label: t('gameRate.doublePatti') },
+  { key: 'triplePatti', label: t('gameRate.triplePatti') },
+  { key: 'halfSangam', label: t('gameRate.halfSangam') },
+  { key: 'fullSangam', label: t('gameRate.fullSangam') },
 ];
 
 const DEFAULT_RATES = {
@@ -24,6 +25,7 @@ const DEFAULT_RATES = {
 
 const GameRate = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [rates, setRates] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,6 +51,7 @@ const GameRate = () => {
   }, []);
 
   const rateMap = rates || DEFAULT_RATES;
+  const GAME_LABELS = getGameLabels(t);
   const rows = GAME_LABELS.map((g, idx) => ({
     srNo: idx + 1,
     game: g.label,
@@ -63,14 +66,14 @@ const GameRate = () => {
             type="button"
             onClick={() => navigate(-1)}
             className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
-            aria-label="Back"
+            aria-label={t('common.back')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Update Rate</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{t('header.updateRate')}</h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Payout rate per 1 unit bet (1 =)</p>
           </div>
         </div>

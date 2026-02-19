@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const BidOptions = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const location = useLocation();
   const market = location.state?.market;
   const marketType = (location.state?.marketType || '').toString().trim().toLowerCase();
@@ -40,15 +42,32 @@ const BidOptions = () => {
     }
   }, [market, navigate]);
 
+  const getGameTitle = (key) => {
+    const map = {
+      'Single Digit': t('gameRate.singleDigit'),
+      'Single Digit Bulk': t('gameRate.singleDigitBulk'),
+      'Jodi': t('gameRate.jodi'),
+      'Jodi Bulk': t('gameRate.jodiBulk'),
+      'Single Pana': t('gameRate.singlePana'),
+      'Single Pana Bulk': t('gameRate.singlePanaBulk'),
+      'Double Pana': t('gameRate.doublePana'),
+      'Double Pana Bulk': t('gameRate.doublePanaBulk'),
+      'Triple Pana': t('gameRate.triplePana'),
+      'Full Sangam': t('gameRate.fullSangam'),
+      'Half Sangam (O)': t('gameRate.halfSangamOpen'),
+    };
+    return map[key] || key;
+  };
+
   const options = [
     {
       id: 1,
       title: 'Single Digit',
-      displayTitle: 'Single Digit',
+      displayTitle: getGameTitle('Single Digit'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
-          alt="Single Digit"
+          alt={getGameTitle('Single Digit')}
           className="w-full h-full object-contain"
         />
       ),
@@ -56,11 +75,11 @@ const BidOptions = () => {
     {
       id: 2,
       title: 'Single Digit Bulk',
-      displayTitle: 'Single Digit Bulk',
+      displayTitle: getGameTitle('Single Digit Bulk'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
-          alt="Single Digit"
+          alt={getGameTitle('Single Digit Bulk')}
           className="w-full h-full object-contain"
         />
       ),
@@ -68,11 +87,11 @@ const BidOptions = () => {
     {
       id: 3,
       title: 'Jodi',
-      displayTitle: 'Jodi',
+      displayTitle: getGameTitle('Jodi'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
-          alt="Jodi"
+          alt={getGameTitle('Jodi')}
           className="w-full h-full object-contain"
         />
       ),
@@ -80,11 +99,11 @@ const BidOptions = () => {
     {
       id: 4,
       title: 'Jodi Bulk',
-      displayTitle: 'Jodi Bulk',
+      displayTitle: getGameTitle('Jodi Bulk'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
-          alt="Jodi Bulk"
+          alt={getGameTitle('Jodi Bulk')}
           className="w-full h-full object-contain"
         />
       ),
@@ -92,11 +111,11 @@ const BidOptions = () => {
     {
       id: 5,
       title: 'Single Pana',
-      displayTitle: 'Single Pana',
+      displayTitle: getGameTitle('Single Pana'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
-          alt="Single Pana"
+          alt={getGameTitle('Single Pana')}
           className="w-full h-full object-contain"
         />
       ),
@@ -104,11 +123,11 @@ const BidOptions = () => {
     {
       id: 6,
       title: 'Single Pana Bulk',
-      displayTitle: 'Single Pana Bulk',
+      displayTitle: getGameTitle('Single Pana Bulk'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
-          alt="Single Pana Bulk"
+          alt={getGameTitle('Single Pana Bulk')}
           className="w-full h-full object-contain"
         />
       ),
@@ -116,11 +135,11 @@ const BidOptions = () => {
     {
       id: 7,
       title: 'Double Pana',
-      displayTitle: 'Double Pana',
+      displayTitle: getGameTitle('Double Pana'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
-          alt="Double Pana"
+          alt={getGameTitle('Double Pana')}
           className="w-full h-full object-contain"
         />
       ),
@@ -128,11 +147,11 @@ const BidOptions = () => {
     {
       id: 8,
       title: 'Double Pana Bulk',
-      displayTitle: 'Double Pana Bulk',
+      displayTitle: getGameTitle('Double Pana Bulk'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
-          alt="Double Pana Bulk"
+          alt={getGameTitle('Double Pana Bulk')}
           className="w-full h-full object-contain"
         />
       ),
@@ -140,11 +159,11 @@ const BidOptions = () => {
     {
       id: 9,
       title: 'Triple Pana',
-      displayTitle: 'Triple Pana',
+      displayTitle: getGameTitle('Triple Pana'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714392/Untitled_1080_x_1080_px_1080_x_1080_px_9_ugcdef.svg"
-          alt="Triple Pana"
+          alt={getGameTitle('Triple Pana')}
           className="w-full h-full object-contain"
         />
       ),
@@ -152,11 +171,11 @@ const BidOptions = () => {
     {
       id: 10,
       title: 'Full Sangam',
-      displayTitle: 'Full Sangam',
+      displayTitle: getGameTitle('Full Sangam'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033671/Untitled_design_2_kr1imj.svg"
-          alt="Triple Pana"
+          alt={getGameTitle('Full Sangam')}
           className="w-full h-full object-contain"
         />
       ),
@@ -164,11 +183,11 @@ const BidOptions = () => {
     {
       id: 11,
       title: 'Half Sangam (O)',
-      displayTitle: 'Half Sangam (O)',
+      displayTitle: getGameTitle('Half Sangam (O)'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
-          alt="Half Sangam (O)"
+          alt={getGameTitle('Half Sangam (O)')}
           className="w-full h-full object-contain"
         />
       ),
@@ -186,27 +205,27 @@ const BidOptions = () => {
         {
           id: 'king-single-open',
           title: 'Single Digit',
-          displayTitle: 'First Digit',
+          displayTitle: t('bidOptions.firstDigit'),
           sessionPreset: 'OPEN',
           icon: options.find((o) => o.title === 'Single Digit')?.icon,
         },
         {
           id: 'king-single-close',
           title: 'Single Digit',
-          displayTitle: 'Second Digit',
+          displayTitle: t('bidOptions.secondDigit'),
           sessionPreset: 'CLOSE',
           icon: options.find((o) => o.title === 'Single Digit')?.icon,
         },
         {
           id: 'king-jodi',
           title: 'Jodi',
-          displayTitle: 'Jodi',
+          displayTitle: getGameTitle('Jodi'),
           icon: options.find((o) => o.title === 'Jodi')?.icon,
         },
         {
           id: 'king-jodi-bulk',
           title: 'Jodi Bulk',
-          displayTitle: 'Jodi Bulk',
+          displayTitle: getGameTitle('Jodi Bulk'),
           icon: options.find((o) => o.title === 'Jodi Bulk')?.icon,
         },
       ]
@@ -263,7 +282,7 @@ const BidOptions = () => {
             }
           }}
           className="absolute left-3 sm:left-4 flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 text-gray-400 hover:text-white active:scale-95 touch-manipulation"
-          aria-label="Back"
+          aria-label={t('common.back')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -272,11 +291,11 @@ const BidOptions = () => {
         <div className="w-full text-center pr-12 pl-12 min-w-0">
           {/* Dynamic market name from selected market */}
           <h1 className="text-white font-bold text-base sm:text-lg tracking-wider uppercase inline-block border-b-2 border-yellow-500 pb-1 px-2 py-1 truncate max-w-full">
-            {market?.gameName || 'SELECT MARKET'}
+            {market?.gameName || t('bidOptions.selectMarket')}
           </h1>
           {isStarline ? (
             <div className="mt-2 text-xs font-extrabold tracking-[0.22em] text-[#d4af37] uppercase">
-              STARLINE MARKET
+              {t('bidOptions.starlineMarket')}
             </div>
           ) : null}
         </div>

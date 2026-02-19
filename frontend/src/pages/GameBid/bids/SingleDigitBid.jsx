@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const location = useLocation();
     const sessionPresetRaw = (location.state?.sessionPreset || '').toString().trim().toUpperCase();
     const sessionPreset = (sessionPresetRaw === 'OPEN' || sessionPresetRaw === 'CLOSE') ? sessionPresetRaw : null;
@@ -42,16 +44,16 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
     const handleAddBid = () => {
         const pts = Number(inputPoints);
         if (!pts || pts <= 0) {
-            showWarning('Please enter points.');
+            showWarning(t('gameBid.pleaseEnterPoints'));
             return;
         }
         const n = inputNumber.toString().trim();
         if (!n) {
-            showWarning('Please enter digit (0-9).');
+            showWarning(t('gameBid.pleaseEnterDigit'));
             return;
         }
         if (!/^[0-9]$/.test(n)) {
-            showWarning('Invalid digit. Use 0-9.');
+            showWarning(t('gameBid.invalidDigit'));
             return;
         }
         const next = [...bids, { id: Date.now(), number: n, points: inputPoints, type: session }];
@@ -77,7 +79,7 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
             .filter(([, pts]) => Number(pts) > 0)
             .map(([num, pts]) => ({ id: Date.now() + parseInt(num, 10), number: num, points: String(pts), type: session }));
         if (toAdd.length === 0) {
-            showWarning('Please enter points for at least one digit (0-9).');
+            showWarning(t('gameBid.pleaseEnterPointsForDigit'));
             return;
         }
         const next = [...bids, ...toAdd];
@@ -126,13 +128,13 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                 onClick={() => setActiveTab('special')}
                 className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${activeTab === 'special' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'}`}
             >
-                SPECIAL MODE
+                {t('gameBid.specialMode')}
             </button>
             <button
                 onClick={() => setActiveTab('easy')}
                 className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${activeTab === 'easy' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'}`}
             >
-                EASY MODE
+                {t('gameBid.easyMode')}
             </button>
         </div>
     );
@@ -155,13 +157,13 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                     className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
                 >
                     {effectiveSessionPreset ? (
-                        <option value={effectiveSessionPreset}>{effectiveSessionPreset}</option>
+                        <option value={effectiveSessionPreset}>{effectiveSessionPreset === 'OPEN' ? t('gameBid.open') : effectiveSessionPreset === 'CLOSE' ? t('gameBid.close') : effectiveSessionPreset}</option>
                     ) : isRunning ? (
-                            <option value="CLOSE">CLOSE</option>
+                            <option value="CLOSE">{t('gameBid.close')}</option>
                         ) : (
                             <>
-                                <option value="OPEN">OPEN</option>
-                                <option value="CLOSE">CLOSE</option>
+                                <option value="OPEN">{t('gameBid.open')}</option>
+                                <option value="CLOSE">{t('gameBid.close')}</option>
                             </>
                         )}
                 </select>
@@ -187,27 +189,27 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                 <>
                     <div className="flex flex-col gap-3">
                         <div className="flex flex-row items-center gap-2">
-                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Select Game Type:</label>
-                            <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">{session}</div>
+                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
+                            <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">{session === 'OPEN' ? t('gameBid.open') : session === 'CLOSE' ? t('gameBid.close') : session}</div>
                         </div>
                         <div className="flex flex-row items-center gap-2">
-                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Single Digit:</label>
-                            <input type="text" inputMode="numeric" value={inputNumber} onChange={handleNumberInputChange} placeholder="Digit" maxLength={1} className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none" />
+                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterSingleDigit')}:</label>
+                            <input type="text" inputMode="numeric" value={inputNumber} onChange={handleNumberInputChange} placeholder={t('gameBid.digit')} maxLength={1} className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none" />
                         </div>
                         <div className="flex flex-row items-center gap-2">
-                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Points:</label>
+                            <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
                             <input
                                 ref={pointsInputRef}
                                 type="text"
                                 inputMode="numeric"
                                 value={inputPoints}
                                 onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                placeholder="Point"
+                                placeholder={t('gameBid.point')}
                                 className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                             />
                         </div>
                     </div>
-                    <button onClick={handleAddBid} className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]">Add</button>
+                    <button onClick={handleAddBid} className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]">{t('gameBid.add')}</button>
                 </>
             ) : (
                 <>
@@ -215,11 +217,11 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                             <div key={num} className="flex items-center gap-2">
                                 <div className="w-10 h-10 bg-[#202124] border border-white/10 text-[#f2c14e] flex items-center justify-center rounded-l-md font-bold text-sm shrink-0">{num}</div>
-                                <input type="number" min="0" placeholder="Pts" value={specialModeInputs[num]} onChange={(e) => setSpecialModeInputs((p) => ({ ...p, [num]: e.target.value }))} className="w-full h-10 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-[#d4af37] px-3 text-sm font-semibold" />
+                                <input type="number" min="0" placeholder={t('gameBid.pts')} value={specialModeInputs[num]} onChange={(e) => setSpecialModeInputs((p) => ({ ...p, [num]: e.target.value }))} className="w-full h-10 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-[#d4af37] px-3 text-sm font-semibold" />
                             </div>
                         ))}
                     </div>
-                    <button onClick={handleAddSpecialModeBids} className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3 rounded-md shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all">Add to List</button>
+                    <button onClick={handleAddSpecialModeBids} className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3 rounded-md shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all">{t('gameBid.addToList')}</button>
                 </>
             )}
 

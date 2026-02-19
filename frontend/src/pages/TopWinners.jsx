@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 
 const INR = (n) => {
@@ -8,11 +9,11 @@ const INR = (n) => {
   return safe.toLocaleString('en-IN');
 };
 
-const timeRanges = [
-  { key: 'today', label: 'Today' },
-  { key: 'week', label: '7 Days' },
-  { key: 'month', label: '30 Days' },
-  { key: 'all', label: 'All' },
+const getTimeRanges = (t) => [
+  { key: 'today', label: t('notifications.today') },
+  { key: 'week', label: t('topWinners.7Days') },
+  { key: 'month', label: t('topWinners.30Days') },
+  { key: 'all', label: t('common.all') },
 ];
 
 const medalBg = (rank) => {
@@ -24,12 +25,14 @@ const medalBg = (rank) => {
 
 const TopWinners = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState('today');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [rows, setRows] = useState([]);
 
-  const title = 'Top Winners';
+  const title = t('topWinners.title');
+  const timeRanges = getTimeRanges(t);
 
   const fetchWinners = async (range) => {
     setLoading(true);
@@ -39,12 +42,12 @@ const TopWinners = () => {
       const res = await fetch(`${API_BASE_URL}/bets/public/top-winners${qs}`);
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        throw new Error(data?.message || 'Failed to load top winners');
+        throw new Error(data?.message || t('topWinners.failedToLoad'));
       }
       setRows(Array.isArray(data.data) ? data.data : []);
     } catch (e) {
       setRows([]);
-      setError(e?.message || 'Failed to load top winners');
+      setError(e?.message || t('topWinners.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +88,7 @@ const TopWinners = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{t('topWinners.title')}</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -122,7 +125,7 @@ const TopWinners = () => {
           </div>
         ) : normalized.length === 0 ? (
           <div className="bg-[#202124] border border-white/10 rounded-2xl p-6 text-center text-gray-400 text-sm">
-            No winners found.
+            {t('topWinners.noWinners')}
           </div>
         ) : (
           <div className="space-y-3">
@@ -144,8 +147,8 @@ const TopWinners = () => {
                     <div className="text-[#d4af37] font-extrabold shrink-0">₹ {INR(r.totalWinnings)}</div>
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">
-                    <span className="shrink-0">Wins: {INR(r.totalWins)}</span>
-                    {r.winRate ? <span className="shrink-0">Win rate: {r.winRate}%</span> : null}
+                    <span className="shrink-0">{t('topWinners.wins')}: {INR(r.totalWins)}</span>
+                    {r.winRate ? <span className="shrink-0">{t('topWinners.winRate')}: {r.winRate}%</span> : null}
                   </div>
                 </div>
               </div>

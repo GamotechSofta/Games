@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
 const WithdrawFundHistory = () => {
+    const { t } = useTranslation();
     const [withdrawals, setWithdrawals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -97,7 +99,7 @@ const WithdrawFundHistory = () => {
                 <>
             {/* Total Withdrawn */}
             <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/30 rounded-2xl p-5 border border-purple-500/30">
-                <p className="text-gray-400 text-sm">Total Withdrawn</p>
+                <p className="text-gray-400 text-sm">{t('funds.totalWithdrawn')}</p>
                 <p className="text-3xl font-bold text-white">₹{totalWithdrawn.toLocaleString()}</p>
             </div>
 
@@ -113,7 +115,7 @@ const WithdrawFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-white">{stats.total}</p>
-                    <p className="text-xs text-gray-400">Total</p>
+                    <p className="text-xs text-gray-400">{t('funds.total')}</p>
                 </div>
                 <div 
                     role="button"
@@ -125,7 +127,7 @@ const WithdrawFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-yellow-400">{stats.pending}</p>
-                    <p className="text-xs text-gray-400">Pending</p>
+                    <p className="text-xs text-gray-400">{t('funds.pending')}</p>
                 </div>
                 <div 
                     role="button"
@@ -137,7 +139,7 @@ const WithdrawFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-green-400">{stats.approved}</p>
-                    <p className="text-xs text-gray-400">Approved</p>
+                    <p className="text-xs text-gray-400">{t('funds.approved')}</p>
                 </div>
                 <div 
                     role="button"
@@ -149,7 +151,7 @@ const WithdrawFundHistory = () => {
                     }`}
                 >
                     <p className="text-lg font-bold text-red-400">{stats.rejected}</p>
-                    <p className="text-xs text-gray-400">Rejected</p>
+                    <p className="text-xs text-gray-400">{t('funds.rejected')}</p>
                 </div>
             </div>
 
@@ -159,13 +161,13 @@ const WithdrawFundHistory = () => {
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    <p className="text-gray-400">No withdrawal history found</p>
+                    <p className="text-gray-400">{t('funds.noWithdrawalHistoryFound')}</p>
                     {filter !== 'all' && (
                         <button
                             onClick={() => setFilter('all')}
                             className="mt-2 text-blue-400 text-sm hover:text-blue-300"
                         >
-                            View all withdrawals
+                            {t('funds.viewAllWithdrawals')}
                         </button>
                     )}
                 </div>
@@ -197,7 +199,7 @@ const WithdrawFundHistory = () => {
                                         )}
                                     </div>
                                     <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${getStatusBadge(withdrawal.status)}`}>
-                                        {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                                        {withdrawal.status === 'pending' ? t('funds.pending') : withdrawal.status === 'approved' ? t('funds.approved') : withdrawal.status === 'rejected' ? t('funds.rejected') : withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
                                     </span>
                                 </div>
                                 <div>

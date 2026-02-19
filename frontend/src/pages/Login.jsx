@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const refParam = searchParams.get('ref');
   const [isLogin, setIsLogin] = useState(!refParam);
@@ -41,32 +43,32 @@ const Login = () => {
     setError('');
 
     if (!isAbove18) {
-      setError('You must be above 18 years to continue');
+      setError(t('login.mustBeAbove18'));
       return;
     }
 
     if (isLogin) {
       // Login validation
       if (!formData.phone) {
-        setError('Phone number is required');
+        setError(t('login.phoneRequired'));
         return;
       }
       if (!formData.password) {
-        setError('Password is required');
+        setError(t('login.passwordRequired'));
         return;
       }
     } else {
       // Signup validation
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
-        setError('All fields are required');
+        setError(t('login.allFieldsRequired'));
         return;
       }
       if (formData.password.length < 6) {
-        setError('Password must be at least 6 characters');
+        setError(t('login.passwordMinLength'));
         return;
       }
       if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
+        setError(t('login.passwordsDoNotMatch'));
         return;
       }
     }
@@ -148,10 +150,10 @@ const Login = () => {
         // Redirect to home after login/signup
         navigate('/');
       } else {
-        setError(data.message || 'Something went wrong');
+        setError(data.message || (isLogin ? t('login.loginFailed') : t('login.signupFailed')));
       }
     } catch (err) {
-      setError('Network error. Please check if the server is running.');
+      setError(t('login.networkError'));
     } finally {
       setLoading(false);
     }
@@ -190,10 +192,10 @@ const Login = () => {
             {/* Title Section */}
             <div className={`w-full ${isLogin ? 'mb-4 lg:mb-5' : 'mb-2'}`}>
               <h1 className={`${isLogin ? 'text-2xl lg:text-3xl mb-1.5' : 'text-xl lg:text-2xl mb-1'} font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent`}>
-                {isLogin ? 'Welcome Back' : 'Create Account'}
+                {isLogin ? t('login.title') : t('login.createAccount')}
               </h1>
               <p className={`text-gray-400 ${isLogin ? 'text-sm lg:text-base' : 'text-xs lg:text-sm'}`}>
-                {isLogin ? 'Sign in to continue' : 'Join us and start winning'}
+                {isLogin ? t('login.subtitle') : 'Join us and start winning'}
               </p>
             </div>
 
@@ -213,7 +215,7 @@ const Login = () => {
                       : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                   }`}
                 >
-                  Login
+                  {t('login.login')}
                 </button>
                 <button
                   type="button"
@@ -227,7 +229,7 @@ const Login = () => {
                       : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                   }`}
                 >
-                  Sign Up
+                  {t('login.signUp')}
                 </button>
               </div>
 
@@ -248,7 +250,7 @@ const Login = () => {
                   <>
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1.5">
-                        Phone Number <span className="text-yellow-500">*</span>
+                        {t('login.phoneNumber')} <span className="text-yellow-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -263,7 +265,7 @@ const Login = () => {
                           onChange={handleChange}
                           maxLength="10"
                           className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-10 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                          placeholder="10-digit phone number"
+                          placeholder={t('login.phonePlaceholder')}
                           required
                         />
                       </div>
@@ -271,7 +273,7 @@ const Login = () => {
 
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1.5">
-                        Password <span className="text-yellow-500">*</span>
+                        {t('login.password')} <span className="text-yellow-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -285,7 +287,7 @@ const Login = () => {
                           value={formData.password}
                           onChange={handleChange}
                           className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-10 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                          placeholder="Enter your password"
+                          placeholder={t('login.passwordPlaceholder')}
                           required
                         />
                       </div>
@@ -298,7 +300,7 @@ const Login = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1">
-                        First Name <span className="text-yellow-500">*</span>
+                        {t('login.firstName')} <span className="text-yellow-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -306,13 +308,13 @@ const Login = () => {
                         value={formData.firstName}
                         onChange={handleChange}
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                        placeholder="First Name"
+                        placeholder={t('login.firstName')}
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1">
-                        Last Name <span className="text-yellow-500">*</span>
+                        {t('login.lastName')} <span className="text-yellow-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -320,7 +322,7 @@ const Login = () => {
                         value={formData.lastName}
                         onChange={handleChange}
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                        placeholder="Last Name"
+                        placeholder={t('login.lastName')}
                         required
                       />
                     </div>
@@ -331,7 +333,7 @@ const Login = () => {
                 {!isLogin && (
                   <div>
                     <label className="block text-gray-300 text-xs font-medium mb-1">
-                      Email Address <span className="text-yellow-500">*</span>
+                      {t('login.emailAddress')} <span className="text-yellow-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -345,7 +347,7 @@ const Login = () => {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                        placeholder="your.email@example.com"
+                        placeholder={t('login.emailPlaceholder')}
                         required
                       />
                     </div>
@@ -356,7 +358,7 @@ const Login = () => {
                 {!isLogin && (
                   <div>
                     <label className="block text-gray-300 text-xs font-medium mb-1">
-                      Phone Number <span className="text-yellow-500">*</span>
+                      {t('login.phoneNumber')} <span className="text-yellow-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -371,7 +373,7 @@ const Login = () => {
                         onChange={handleChange}
                         maxLength="10"
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                        placeholder="10-digit phone number"
+                        placeholder={t('login.phonePlaceholder')}
                         required
                       />
                     </div>
@@ -383,7 +385,7 @@ const Login = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1">
-                        Password <span className="text-yellow-500">*</span>
+                        {t('login.password')} <span className="text-yellow-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -397,14 +399,14 @@ const Login = () => {
                           value={formData.password}
                           onChange={handleChange}
                           className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                          placeholder="Create password"
+                          placeholder={t('login.createPasswordPlaceholder')}
                           required
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1">
-                        Confirm Password <span className="text-yellow-500">*</span>
+                        {t('login.confirmPassword')} <span className="text-yellow-500">*</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -418,7 +420,7 @@ const Login = () => {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                          placeholder="Confirm password"
+                          placeholder={t('login.confirmPasswordPlaceholder')}
                           required
                         />
                       </div>
@@ -449,9 +451,9 @@ const Login = () => {
                       </div>
                     </div>
                     <span className={`text-gray-300 ${isLogin ? 'text-xs' : 'text-[10px]'} leading-tight flex-1`}>
-                      I confirm that I am above 18 years of age and agree to the{' '}
-                      <span className="text-yellow-500 underline">Terms of Use</span> and{' '}
-                      <span className="text-yellow-500 underline">Privacy Policy</span>
+                      {t('login.above18')}{' '}
+                      <span className="text-yellow-500 underline">{t('login.termsOfUse')}</span> {t('login.and')}{' '}
+                      <span className="text-yellow-500 underline">{t('login.privacyPolicy')}</span>
                     </span>
                   </label>
                 </div>
@@ -468,10 +470,10 @@ const Login = () => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Please wait...
+                      {t('common.pleaseWait')}
                     </span>
                   ) : (
-                    isLogin ? 'Sign In' : 'Create Account'
+                    isLogin ? t('login.signIn') : t('login.createAccount')
                   )}
                 </button>
               </form>
@@ -480,10 +482,10 @@ const Login = () => {
               {/* Bottom Legal Text */}
               <div className={`${isLogin ? 'mt-4' : 'mt-2'} text-center w-full`}>
                 <p className={`text-gray-400 ${isLogin ? 'text-xs' : 'text-[10px]'} leading-tight`}>
-                  By continuing, you agree to our{' '}
-                  <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">Terms of Use</span>
-                  {' '}and{' '}
-                  <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">Privacy Policy</span>
+                  {t('login.byContinuing')}{' '}
+                  <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">{t('login.termsOfUse')}</span>
+                  {' '}{t('login.and')}{' '}
+                  <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">{t('login.privacyPolicy')}</span>
                 </p>
               </div>
             </div>
@@ -506,10 +508,10 @@ const Login = () => {
           {/* Title Section */}
           <div className="w-full mb-4 sm:mb-5">
             <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-              {isLogin ? 'Welcome Back' : 'Create Account'}
+              {isLogin ? t('login.title') : t('login.createAccount')}
             </h1>
             <p className="text-gray-400 text-sm sm:text-base text-center">
-              {isLogin ? 'Sign in to continue' : 'Join us and start winning'}
+              {isLogin ? t('login.subtitle') : 'Join us and start winning'}
             </p>
           </div>
 
@@ -529,7 +531,7 @@ const Login = () => {
                     : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                 }`}
               >
-                Login
+                {t('login.login')}
               </button>
               <button
                 type="button"
@@ -543,7 +545,7 @@ const Login = () => {
                     : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                 }`}
               >
-                Sign Up
+                {t('login.signUp')}
               </button>
             </div>
 
@@ -564,7 +566,7 @@ const Login = () => {
                 <>
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                      Phone Number <span className="text-yellow-500">*</span>
+                      {t('login.phoneNumber')} <span className="text-yellow-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -579,7 +581,7 @@ const Login = () => {
                         onChange={handleChange}
                         maxLength="10"
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                        placeholder="10-digit phone number"
+                        placeholder={t('login.phonePlaceholder')}
                         required
                       />
                     </div>
@@ -587,7 +589,7 @@ const Login = () => {
 
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                      Password <span className="text-yellow-500">*</span>
+                      {t('login.password')} <span className="text-yellow-500">*</span>
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -601,7 +603,7 @@ const Login = () => {
                         value={formData.password}
                         onChange={handleChange}
                         className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                        placeholder="Enter your password"
+                        placeholder={t('login.passwordPlaceholder')}
                         required
                       />
                     </div>
@@ -614,7 +616,7 @@ const Login = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                      First Name <span className="text-yellow-500">*</span>
+                      {t('login.firstName')} <span className="text-yellow-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -622,13 +624,13 @@ const Login = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="First Name"
+                      placeholder={t('login.firstName')}
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                      Last Name <span className="text-yellow-500">*</span>
+                      {t('login.lastName')} <span className="text-yellow-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -636,7 +638,7 @@ const Login = () => {
                       value={formData.lastName}
                       onChange={handleChange}
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="Last Name"
+                      placeholder={t('login.lastName')}
                       required
                     />
                   </div>
@@ -647,7 +649,7 @@ const Login = () => {
               {!isLogin && (
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                    Email Address <span className="text-yellow-500">*</span>
+                    {t('login.emailAddress')} <span className="text-yellow-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -661,7 +663,7 @@ const Login = () => {
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="your.email@example.com"
+                      placeholder={t('login.emailPlaceholder')}
                       required
                     />
                   </div>
@@ -672,7 +674,7 @@ const Login = () => {
               {!isLogin && (
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                    Phone Number <span className="text-yellow-500">*</span>
+                    {t('login.phoneNumber')} <span className="text-yellow-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -687,7 +689,7 @@ const Login = () => {
                       onChange={handleChange}
                       maxLength="10"
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="10-digit phone number"
+                      placeholder={t('login.phonePlaceholder')}
                       required
                     />
                   </div>
@@ -698,7 +700,7 @@ const Login = () => {
               {!isLogin && (
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                    Password <span className="text-yellow-500">*</span>
+                    {t('login.password')} <span className="text-yellow-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -712,7 +714,7 @@ const Login = () => {
                       value={formData.password}
                       onChange={handleChange}
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="Create a strong password"
+                      placeholder={t('login.createPasswordPlaceholder')}
                       required
                     />
                   </div>
@@ -723,7 +725,7 @@ const Login = () => {
               {!isLogin && (
                 <div>
                   <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                    Confirm Password <span className="text-yellow-500">*</span>
+                    {t('login.confirmPassword')} <span className="text-yellow-500">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -737,7 +739,7 @@ const Login = () => {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder="Re-enter your password"
+                      placeholder={t('login.confirmPasswordPlaceholder')}
                       required
                     />
                   </div>
@@ -767,9 +769,9 @@ const Login = () => {
                     </div>
                   </div>
                   <span className="text-gray-300 text-sm leading-relaxed flex-1">
-                    I confirm that I am above 18 years of age and agree to the{' '}
-                    <span className="text-yellow-500 underline">Terms of Use</span> and{' '}
-                    <span className="text-yellow-500 underline">Privacy Policy</span>
+                    {t('login.above18')}{' '}
+                    <span className="text-yellow-500 underline">{t('login.termsOfUse')}</span> {t('login.and')}{' '}
+                    <span className="text-yellow-500 underline">{t('login.privacyPolicy')}</span>
                   </span>
                 </label>
               </div>
@@ -786,10 +788,10 @@ const Login = () => {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Please wait...
+                    {t('common.pleaseWait')}
                   </span>
                 ) : (
-                  isLogin ? 'Sign In' : 'Create Account'
+                  isLogin ? t('login.signIn') : t('login.createAccount')
                 )}
               </button>
             </form>
@@ -797,10 +799,10 @@ const Login = () => {
             {/* Bottom Legal Text */}
             <div className="mt-6 sm:mt-8 pb-4 text-center w-full">
               <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
-                By continuing, you agree to our{' '}
-                <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">Terms of Use</span>
-                {' '}and{' '}
-                <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">Privacy Policy</span>
+                {t('login.byContinuing')}{' '}
+                <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">{t('login.termsOfUse')}</span>
+                {' '}{t('login.and')}{' '}
+                <span className="text-yellow-500 hover:text-yellow-400 underline cursor-pointer transition-colors">{t('login.privacyPolicy')}</span>
               </p>
             </div>
           </div>

@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
 import { clearUserAuth } from '../utils/auth';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
@@ -17,15 +20,15 @@ const AppHeader = () => {
   }, []);
 
   const menuItems = [
-    { label: 'My Bets', path: '/bids' },
-    { label: 'Funds', path: '/funds' },
-    { label: 'Update Rate', path: '/game-rate' },
-    { label: 'Top Winners', path: '/top-winners' },
-    { label: 'Telegram Channel', path: '/support' },
-    { label: 'Notification', path: '/notifications' },
-    { label: 'Help Desk', path: '/support' },
-    { label: 'Share App', path: '/support' },
-    { label: 'Logout', path: '/login' }
+    { key: 'myBets', label: t('header.myBets'), path: '/bids' },
+    { key: 'funds', label: t('header.funds'), path: '/funds' },
+    { key: 'updateRate', label: t('header.updateRate'), path: '/game-rate' },
+    { key: 'topWinners', label: t('header.topWinners'), path: '/top-winners' },
+    { key: 'telegramChannel', label: t('header.telegramChannel'), path: '/support' },
+    { key: 'notification', label: t('header.notification'), path: '/notifications' },
+    { key: 'helpDesk', label: t('header.helpDesk'), path: '/support' },
+    { key: 'shareApp', label: t('header.shareApp'), path: '/support' },
+    { key: 'logout', label: t('header.logout'), path: '/login' }
   ];
 
   const loadStoredBalance = () => {
@@ -110,7 +113,7 @@ const AppHeader = () => {
     clearUserAuth();
   };
 
-  const displayName = user?.username || 'Sign In';
+  const displayName = user?.username || t('header.signIn');
   const displayPhone =
     user?.phone ||
     user?.mobile ||
@@ -170,6 +173,9 @@ const AppHeader = () => {
 
         {/* Right side buttons - Download App, Wallet, Profile */}
         <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher />
+
           {/* Download App - icon only on mobile, text on larger screens */}
           <button
             onClick={() => navigate('/download')}
@@ -178,8 +184,7 @@ const AppHeader = () => {
             <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span className="hidden sm:inline">Download</span>
-            <span className="hidden md:inline"> App</span>
+            <span className="hidden sm:inline">{t('header.downloadApp')}</span>
           </button>
 
           {/* Notification - mobile and desktop (laptop) */}
@@ -219,7 +224,7 @@ const AppHeader = () => {
             className={`hidden md:flex w-8 h-8 md:w-9 md:h-9 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 ${
               user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
             }`}
-            title={user ? `${user.username} - View Profile` : 'Sign In / Sign Up'}
+            title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / Sign Up`}
             aria-label="Profile"
           >
             <svg
@@ -300,7 +305,7 @@ const AppHeader = () => {
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    if (item.label === 'Logout') {
+                    if (item.key === 'logout') {
                       handleLogout();
                     } else {
                       navigate(item.path);
@@ -310,53 +315,53 @@ const AppHeader = () => {
                 >
                   {/* Icon Container */}
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
-                    {item.label === 'Top Winners' ? (
+                    {item.key === 'topWinners' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797561/podium_swqjij.png"
                         alt={item.label}
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Telegram Channel' ? (
+                    ) : item.key === 'telegramChannel' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797952/telegram_yw9hf1.png"
                         alt="Telegram"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'My Bets' ? (
+                    ) : item.key === 'myBets' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
                         alt="My Bets"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Funds' ? (
+                    ) : item.key === 'funds' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
                         alt="Funds"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Update Rate' ? (
+                    ) : item.key === 'updateRate' ? (
                       <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                    ) : item.label === 'Notification' ? (
+                    ) : item.key === 'notification' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798359/notification_1_pflwit.png"
                         alt="Notification"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Help Desk' ? (
+                    ) : item.key === 'helpDesk' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777618/customer-support_du0zcj.png"
                         alt="Help Desk"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Share App' ? (
+                    ) : item.key === 'shareApp' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798998/share_a6shgt.png"
                         alt="Share App"
                         className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
                       />
-                    ) : item.label === 'Logout' ? (
+                    ) : item.key === 'logout' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798997/logout_mttqvy.png"
                         alt="Logout"
@@ -371,7 +376,7 @@ const AppHeader = () => {
                   <span className="text-sm sm:text-base font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
                     {item.label}
                   </span>
-                  {item.label === 'Notification' && notificationCount > 0 && (
+                  {item.key === 'notification' && notificationCount > 0 && (
                     <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>

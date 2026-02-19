@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { GAMES } from '../config/games';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 
 const GamesSection = () => {
+  const { t } = useTranslation();
   const { isDesktop } = useBreakpoint();
   const gamesToShow = isDesktop ? GAMES : GAMES.filter((g) => !g.desktopOnly);
 
@@ -20,7 +22,7 @@ const GamesSection = () => {
         <div className="flex items-center gap-2 mb-4 sm:mb-5">
           <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37]/50 to-transparent" />
           <h2 className="text-white text-base sm:text-lg font-bold tracking-wider uppercase shrink-0">
-            Other Games
+            {t('games.otherGames')}
           </h2>
           <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent via-[#d4af37]/50 to-transparent" />
         </div>
@@ -68,7 +70,7 @@ const GamesSection = () => {
                         </span>
                         {isUpcoming && (
                           <span className="text-amber-400/90 text-[10px] sm:text-xs font-semibold tracking-wider uppercase">
-                            Coming Soon
+                            {t('games.comingSoon')}
                           </span>
                         )}
                       </div>
@@ -76,7 +78,7 @@ const GamesSection = () => {
                   </div>
                 </div>
                 {!isUpcoming && (
-                  <p className="text-amber-400 text-[11px] sm:text-sm font-semibold mt-1.5 sm:mt-2 text-center w-full">Tap to Play</p>
+                  <p className="text-amber-400 text-[11px] sm:text-sm font-semibold mt-1.5 sm:mt-2 text-center w-full">{t('games.tapToPlay')}</p>
                 )}
               </button>
             );

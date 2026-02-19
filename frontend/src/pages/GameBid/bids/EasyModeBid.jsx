@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
@@ -21,6 +22,7 @@ const EasyModeBid = ({
     validSinglePanas = [],
     scheduleForTomorrow,
 }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
     const lockSessionToOpen = specialModeType === 'jodi';
     const [session, setSession] = useState(() => (lockSessionToOpen ? 'OPEN' : (market?.status === 'running' ? 'CLOSE' : 'OPEN')));
@@ -818,7 +820,7 @@ const EasyModeBid = ({
                                             onClick={handleAddBid}
                                             className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
                                         >
-                                            Add to List
+                                            {t('gameBid.addToList')}
                                         </button>
                                         <button
                                             type="button"
@@ -826,7 +828,7 @@ const EasyModeBid = ({
                                             onClick={() => { setReviewRows(bids); setIsReviewOpen(true); }}
                                             className={submitBtnClass(!!bids.length)}
                                         >
-                                            Submit Bet
+                                            {t('gameBid.submitBet')}
                                         </button>
                                     </div>
                                 ) : (
@@ -835,7 +837,7 @@ const EasyModeBid = ({
                                         onClick={handleAddBid}
                                         className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98] mb-5 sm:mb-6"
                                     >
-                                        Add to List
+                                        {t('gameBid.addToList')}
                                     </button>
                                 )}
 

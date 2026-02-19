@@ -1,10 +1,12 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const BottomNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const scrollToTopSmooth = () => {
     try {
@@ -25,36 +27,36 @@ const BottomNavbar = () => {
   const navItems = [
     {
       id: 'my-bids',
-      label: 'My Bets',
+      label: t('navigation.myBets'),
       path: '/bids',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
-          alt="My Bets"
+          alt={t('navigation.myBets')}
           className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
     {
       id: 'funds',
-      label: 'Funds',
+      label: t('navigation.funds'),
       path: '/funds',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
-          alt="Funds"
+          alt={t('navigation.funds')}
           className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
     {
       id: 'home',
-      label: 'Home',
+      label: t('navigation.home'),
       path: '/',
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777716/home_pvawyw.png"
-          alt="Home"
+          alt={t('navigation.home')}
           className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       ),
@@ -62,24 +64,24 @@ const BottomNavbar = () => {
     },
     {
       id: 'support',
-      label: 'Support',
+      label: t('navigation.support'),
       path: '/support',
       icon: (
         <img
           src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900219/customer-support_1_bibfxx.png"
-          alt="Support"
+          alt={t('navigation.support')}
           className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )
     },
     {
       id: 'profile',
-      label: 'Profile',
+      label: t('navigation.profile'),
       path: '/profile',
       icon: (
         <img
           src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900013/user_bsay8i.png"
-          alt="Profile"
+          alt={t('navigation.profile')}
           className="w-5 h-5 object-contain [image-rendering:-webkit-optimize-contrast]"
         />
       )

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -149,8 +150,10 @@ const evaluateBet = ({ market, betNumberRaw, amount, session, ratesMap }) => {
   return { state: 'won', kind, payout };
 };
 
-const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
+const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const displayTitle = pageTitle ?? t('bids.betHistory');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedSessions, setSelectedSessions] = useState([]); // ['OPEN','CLOSE']
   const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending','Cancelled']
@@ -605,17 +608,17 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold truncate">{pageTitle}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{displayTitle}</h1>
           </div>
 
           <button
             type="button"
             onClick={() => setIsFilterOpen(true)}
             className="shrink-0 flex items-center gap-2 text-[#d4af37] hover:text-[#f3b61b] transition-colors"
-            aria-label="Filter"
-            title="Filter"
+            aria-label={t('bids.filterBy')}
+            title={t('bids.filterBy')}
           >
-            <span className="text-sm font-semibold">Filter By</span>
+            <span className="text-sm font-semibold">{t('bids.filterBy')}</span>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z" />
             </svg>
@@ -681,11 +684,11 @@ const BetHistory = ({ pageTitle = 'Bet History', marketScope = null } = {}) => {
             </div>
           ) : !userId ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
-              Please login to see your bet history.
+              {t('bids.loginToSeeHistory')}
             </div>
           ) : allBetsNewestFirst.length === 0 ? (
             <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300">
-              No bets found.
+              {t('bids.noBetsFound')}
             </div>
           ) : (
             <>

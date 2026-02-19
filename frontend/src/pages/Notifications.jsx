@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { markNotificationsSeen, getNotificationsClearedAt, setNotificationsClearedAt, NOTIFICATIONS_CLEARED_AT_KEY } from '../utils/notificationCount';
 
@@ -17,7 +18,7 @@ const toDateKeyIST = (d) => {
 };
 
 /** Relative time for list (e.g. "Just now", "2h ago") */
-const formatNotificationTime = (dateStr) => {
+const formatNotificationTime = (dateStr, t) => {
   try {
     const d = new Date(dateStr);
     if (Number.isNaN(d.getTime())) return '';
@@ -26,10 +27,10 @@ const formatNotificationTime = (dateStr) => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffMins < 1) return t('notifications.justNow');
+    if (diffMins < 60) return t('notifications.minutesAgo', { count: diffMins });
+    if (diffHours < 24) return t('notifications.hoursAgo', { count: diffHours });
+    if (diffDays < 7) return t('notifications.daysAgo', { count: diffDays });
     return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   } catch {
     return '';
@@ -37,23 +38,23 @@ const formatNotificationTime = (dateStr) => {
 };
 
 /** Section label for grouping: Today, Yesterday, This week, Older */
-const getDateSection = (dateStr) => {
+const getDateSection = (dateStr, t) => {
   try {
     const d = new Date(dateStr);
-    if (Number.isNaN(d.getTime())) return 'Older';
+    if (Number.isNaN(d.getTime())) return t('notifications.older');
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterdayStart = new Date(todayStart);
     yesterdayStart.setDate(yesterdayStart.getDate() - 1);
     const weekStart = new Date(todayStart);
     weekStart.setDate(weekStart.getDate() - 7);
-    const t = d.getTime();
-    if (t >= todayStart.getTime()) return 'Today';
-    if (t >= yesterdayStart.getTime()) return 'Yesterday';
-    if (t >= weekStart.getTime()) return 'This week';
-    return 'Older';
+    const t_time = d.getTime();
+    if (t_time >= todayStart.getTime()) return t('notifications.today');
+    if (t_time >= yesterdayStart.getTime()) return t('notifications.yesterday');
+    if (t_time >= weekStart.getTime()) return t('notifications.thisWeek');
+    return t('notifications.older');
   } catch {
-    return 'Older';
+    return t('notifications.older');
   }
 };
 
@@ -70,6 +71,7 @@ const formatFullDate = (dateStr) => {
 
 const Notifications = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all' | 'payment' | 'result' | 'support'
@@ -244,7 +246,7 @@ const Notifications = () => {
     setClearedAt(now);
     setNotificationsClearedAt(now);
     markNotificationsSeen();
-    setToast('Notifications cleared');
+    setToast(t('notifications.notificationsCleared'));
     setTimeout(() => setToast(''), 2000);
   };
 
@@ -306,16 +308,16 @@ const Notifications = () => {
 
   /** Group by date section for clear sections: Today, Yesterday, This week, Older */
   const sections = useMemo(() => {
-    const order = ['Today', 'Yesterday', 'This week', 'Older'];
+    const order = [t('notifications.today'), t('notifications.yesterday'), t('notifications.thisWeek'), t('notifications.older')];
     const map = new Map();
     order.forEach((s) => map.set(s, []));
     filtered.forEach((item) => {
-      const section = getDateSection(item.time);
+      const section = getDateSection(item.time, t);
       if (!map.has(section)) map.set(section, []);
       map.get(section).push(item);
     });
     return order.map((key) => ({ label: key, items: map.get(key) || [] })).filter((s) => s.items.length > 0);
-  }, [filtered]);
+  }, [filtered, t]);
 
   const handleBack = () => {
     try {
@@ -329,7 +331,7 @@ const Notifications = () => {
   };
 
   const typeLabel = (type) => {
-    const map = { payment: 'Payment', result: 'Market & Result', support: 'Support' };
+    const map = { payment: t('notifications.payment'), result: t('notifications.result'), support: t('notifications.support') };
     return map[type] || type;
   };
 
@@ -368,8 +370,8 @@ const Notifications = () => {
                 </svg>
               </button>
               <div className="min-w-0">
-                <h1 className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-white">Notifications</h1>
-                <p className="text-xs md:text-sm lg:text-base text-gray-500">Payment, market results & support</p>
+                <h1 className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-white">{t('notifications.title')}</h1>
+                <p className="text-xs md:text-sm lg:text-base text-gray-500">{t('notifications.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -379,7 +381,7 @@ const Notifications = () => {
                   onClick={handleClearAll}
                   className="min-h-[44px] md:min-h-[40px] px-3 md:px-4 rounded-full bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white text-xs md:text-sm font-semibold touch-manipulation transition-colors"
                 >
-                  Clear all
+                  {t('notifications.clearAll')}
                 </button>
               )}
               <button
@@ -387,7 +389,7 @@ const Notifications = () => {
                 onClick={handleRefresh}
                 disabled={loading || refreshing}
                 className="min-w-[44px] min-h-[44px] md:min-w-[40px] md:min-h-[40px] rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/15 disabled:opacity-50 touch-manipulation transition-colors"
-                aria-label="Refresh"
+                aria-label={t('common.refresh')}
               >
                 <svg
                   className={`w-5 h-5 md:w-4 md:h-4 ${refreshing ? 'animate-spin' : ''}`}
@@ -415,7 +417,7 @@ const Notifications = () => {
                     : 'bg-[#1a1a1a] text-gray-400 border border-white/10 hover:border-[#d4af37]/40'
                 }`}
               >
-                {key === 'all' ? 'All' : typeLabel(key)}
+                {key === 'all' ? t('common.all') : typeLabel(key)}
               </button>
             ))}
           </div>
@@ -442,8 +444,8 @@ const Notifications = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </div>
-              <p className="text-gray-400 text-sm md:text-base">No notifications yet</p>
-              <p className="text-gray-500 text-xs md:text-sm mt-1">Deposits, withdrawals, results and support updates will appear here.</p>
+              <p className="text-gray-400 text-sm md:text-base">{t('notifications.noNotifications')}</p>
+              <p className="text-gray-500 text-xs md:text-sm mt-1">{t('notifications.noNotificationsDesc')}</p>
             </div>
           ) : (
             <div className="space-y-6 md:space-y-8">
@@ -465,7 +467,7 @@ const Notifications = () => {
                             {typeLabel(item.type)}
                           </span>
                           <span className="text-xs md:text-sm text-gray-500 shrink-0 text-right">
-                            {getDateSection(item.time) === 'Older' ? formatFullDate(item.time) : formatNotificationTime(item.time)}
+                            {getDateSection(item.time, t) === t('notifications.older') ? formatFullDate(item.time) : formatNotificationTime(item.time, t)}
                           </span>
                         </div>
                         <p className="font-semibold text-white text-sm md:text-base leading-snug">{item.title}</p>

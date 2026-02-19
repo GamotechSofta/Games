@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import ResultDatePicker from '../components/ResultDatePicker';
@@ -151,6 +152,7 @@ const evaluateBet = ({ market, betNumberRaw, amount, session, ratesMap }) => {
 
 const Bids = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const myBetsSubPaths = ['/bids', '/bet-history', '/market-result-history', '/starline-bet-history', '/king-bazaar-bet-history'];
@@ -176,51 +178,51 @@ const Bids = () => {
 
   const items = useMemo(() => ([
     {
-      title: 'Bet History',
-      subtitle: 'You can view your market bet history',
+      title: t('bids.betHistory'),
+      subtitle: t('bids.betHistorySubtitle'),
       color: '#f3b61b'
     },
     {
-      title: 'Game Results',
-      subtitle: 'You can view your market result history',
+      title: t('bids.gameResults'),
+      subtitle: t('bids.gameResultsSubtitle'),
       color: '#25d366',
       iconUrl: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769799295/result_ekwn16.png'
     },
     {
-      title: 'Starline Bet History',
-      subtitle: 'You can view starline history',
+      title: t('bids.starlineBetHistory'),
+      subtitle: t('bids.starlineBetHistorySubtitle'),
       color: '#ef4444'
     },
     {
-      title: 'King Bazaar Bet History',
-      subtitle: 'You can view starline result',
+      title: t('bids.kingBazaarBetHistory'),
+      subtitle: t('bids.kingBazaarBetHistorySubtitle'),
       color: '#3b82f6'
     },
     
-  ]), []);
+  ]), [t]);
 
   const TAB_TO_TITLE = useMemo(() => ({
-    'bet-history': 'Bet History',
-    'game-results': 'Game Results',
-    'starline-bet-history': 'Starline Bet History',
-    'king-bazaar-bet-history': 'King Bazaar Bet History',
-  }), []);
+    'bet-history': t('bids.betHistory'),
+    'game-results': t('bids.gameResults'),
+    'starline-bet-history': t('bids.starlineBetHistory'),
+    'king-bazaar-bet-history': t('bids.kingBazaarBetHistory'),
+  }), [t]);
   const TITLE_TO_TAB = useMemo(() => ({
-    'Bet History': 'bet-history',
-    'Game Results': 'game-results',
-    'Starline Bet History': 'starline-bet-history',
-    'King Bazaar Bet History': 'king-bazaar-bet-history',
-  }), []);
+    [t('bids.betHistory')]: 'bet-history',
+    [t('bids.gameResults')]: 'game-results',
+    [t('bids.starlineBetHistory')]: 'starline-bet-history',
+    [t('bids.kingBazaarBetHistory')]: 'king-bazaar-bet-history',
+  }), [t]);
 
   const tabParam = (searchParams.get('tab') || '').toString();
-  const initialTitle = TAB_TO_TITLE[tabParam] || (items[0]?.title || 'Bet History');
+  const initialTitle = TAB_TO_TITLE[tabParam] || (items[0]?.title || t('bids.betHistory'));
   const [activeTitle, setActiveTitle] = useState(initialTitle);
   const activeItem = items.find((i) => i.title === activeTitle) || items[0];
-  const isBetHistoryPanel = activeTitle === 'Bet History';
-  const isStarlineBetHistoryPanel = activeTitle === 'Starline Bet History';
-  const isKingBazaarBetHistoryPanel = activeTitle === 'King Bazaar Bet History';
-  const isGameResultsPanel = activeTitle === 'Game Results';
-  const rightPanelTitle = activeTitle === 'Game Results' ? 'Market Result History' : activeTitle;
+  const isBetHistoryPanel = activeTitle === t('bids.betHistory');
+  const isStarlineBetHistoryPanel = activeTitle === t('bids.starlineBetHistory');
+  const isKingBazaarBetHistoryPanel = activeTitle === t('bids.kingBazaarBetHistory');
+  const isGameResultsPanel = activeTitle === t('bids.gameResults');
+  const rightPanelTitle = activeTitle === t('bids.gameResults') ? t('bids.marketResultHistory') : activeTitle;
   const historyScope = isStarlineBetHistoryPanel ? 'starline' : isKingBazaarBetHistoryPanel ? 'king' : 'main';
   const isAnyHistoryPanel = isBetHistoryPanel || isStarlineBetHistoryPanel || isKingBazaarBetHistoryPanel;
 
@@ -267,19 +269,19 @@ const Bids = () => {
       setActiveTitle(item?.title ?? activeTitle);
       return;
     }
-    if (item?.title === 'Bet History') {
+    if (item?.title === t('bids.betHistory')) {
       navigate('/bet-history');
       return;
     }
-    if (item?.title === 'Game Results') {
+    if (item?.title === t('bids.gameResults')) {
       navigate('/market-result-history');
       return;
     }
-    if (item?.title === 'Starline Bet History') {
+    if (item?.title === t('bids.starlineBetHistory')) {
       navigate('/starline-bet-history');
       return;
     }
-    if (item?.title === 'King Bazaar Bet History') {
+    if (item?.title === t('bids.kingBazaarBetHistory')) {
       navigate('/king-bazaar-bet-history');
       return;
     }
@@ -405,7 +407,7 @@ const Bids = () => {
 
     const market = bet.marketId;
     if (!market) {
-      return { canCancel: false, reason: 'Market not found' };
+      return { canCancel: false, reason: t('bids.marketNotFound') };
     }
 
     const now = new Date();
@@ -413,14 +415,14 @@ const Bids = () => {
     const timeSinceBetPlaced = (now - betPlacedAt) / 1000 / 60; // minutes
 
     // Rule 1: Check if within 30 minutes of placing bet
-    if (timeSinceBetPlaced > 30) {
-      return { canCancel: false, reason: 'Can only cancel within 30 minutes of placing' };
-    }
+      if (timeSinceBetPlaced > 30) {
+        return { canCancel: false, reason: t('bids.canOnlyCancelWithin30Min') };
+      }
 
     // Rule 2: Check if at least 30 minutes before market closing
     const closeStr = (market?.closingTime || '').toString().trim();
     if (!closeStr) {
-      return { canCancel: false, reason: 'Market timing not configured' };
+      return { canCancel: false, reason: t('bids.marketTimingNotConfigured') };
     }
 
     try {
@@ -462,7 +464,7 @@ const Bids = () => {
       const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60; // minutes
 
       if (timeUntilClosing < 30) {
-        return { canCancel: false, reason: 'Cannot cancel within 30 minutes of market closing' };
+        return { canCancel: false, reason: t('bids.cannotCancelWithin30MinOfClosing') };
       }
 
       return { canCancel: true, reason: '' };
@@ -502,7 +504,7 @@ const Bids = () => {
         // Show success message
         setCancelMessage({
           type: 'success',
-          text: `Bet cancelled successfully. ₹${result.data?.refundedAmount || 0} refunded to your wallet.`
+          text: t('bids.cancelBetSuccess', { amount: result.data?.refundedAmount || 0 })
         });
         
         // Refresh bet list
@@ -516,7 +518,7 @@ const Bids = () => {
         // Show error message
         setCancelMessage({
           type: 'error',
-          text: result.message || 'Failed to cancel bet'
+          text: result.message || t('bids.cancelBetFailed')
         });
         
         setTimeout(() => {
@@ -526,7 +528,7 @@ const Bids = () => {
     } catch (error) {
       setCancelMessage({
         type: 'error',
-        text: error.message || 'Failed to cancel bet'
+        text: error.message || t('bids.cancelBetFailed')
       });
       
       setTimeout(() => {
@@ -567,14 +569,14 @@ const Bids = () => {
   const desktopRows = useMemo(() => {
     return (desktopBetHistory.items || []).map((bet) => {
       const betValue = bet?.betNumber != null ? renderBetNumber(bet.betNumber) : '-';
-      const labelForType = (t) => {
-        const s = String(t || '').toLowerCase();
-        if (s === 'single') return 'Single Ank';
-        if (s === 'jodi') return 'Digit';
-        if (s === 'panna') return 'Panna';
-        if (s === 'half-sangam') return 'Half Sangam';
-        if (s === 'full-sangam') return 'Full Sangam';
-        return 'Bet';
+      const labelForType = (type) => {
+        const s = String(type || '').toLowerCase();
+        if (s === 'single') return t('bids.gameType.singleAnk');
+        if (s === 'jodi') return t('bids.gameType.digit');
+        if (s === 'panna') return t('bids.gameType.panna');
+        if (s === 'half-sangam') return t('bids.gameType.halfSangam');
+        if (s === 'full-sangam') return t('bids.gameType.fullSangam');
+        return t('bids.gameType.bet');
       };
       const gameType = labelForType(bet.betType);
       const points = Number(bet?.amount || 0) || 0;
@@ -601,10 +603,10 @@ const Bids = () => {
         });
       }
       
-      const statusLabel = verdict.state === 'won' ? 'Win' 
-        : verdict.state === 'lost' ? 'Loose'
-        : verdict.state === 'cancelled' ? 'Cancelled'
-        : 'Pending';
+      const statusLabel = verdict.state === 'won' ? t('bids.status.win')
+        : verdict.state === 'lost' ? t('bids.status.lost')
+        : verdict.state === 'cancelled' ? t('bids.status.cancelled')
+        : t('bids.status.pending');
       const marketType = m?.marketType || null;
       
       return { 
@@ -680,7 +682,12 @@ const Bids = () => {
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
       if (effectiveSelectedMarkets.length > 0 && !effectiveSelectedMarkets.includes(row.marketKey)) return false;
       if (selectedStatuses.length > 0) {
-        const statusMap = { 'Win': 'Win', 'Loose': 'Loose', 'Pending': 'Pending', 'Cancelled': 'Cancelled' };
+        const statusMap = { 
+          [t('bids.status.win')]: t('bids.status.win'), 
+          [t('bids.status.lost')]: t('bids.status.lost'), 
+          [t('bids.status.pending')]: t('bids.status.pending'), 
+          [t('bids.status.cancelled')]: t('bids.status.cancelled') 
+        };
         const mappedStatus = statusMap[row.statusLabel] || row.statusLabel;
         if (!selectedStatuses.includes(mappedStatus)) return false;
       }
@@ -744,13 +751,13 @@ const Bids = () => {
             <button
               onClick={handleBack}
               className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition"
-              aria-label="Back"
+              aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold">My Bets</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">{t('bids.myBets')}</h1>
           </div>
 
           <div className="hidden md:flex items-center justify-between gap-4 px-1">
@@ -761,7 +768,7 @@ const Bids = () => {
                   value={resultsDate}
                   onChange={setResultsDate}
                   maxDate={new Date()}
-                  label="Select Date"
+                  label={t('bids.selectDate')}
                   buttonClassName="px-4 py-2 rounded-full bg-black/40 border border-white/10 text-white font-bold text-sm shadow-sm hover:border-[#d4af37]/40 transition-colors"
                 />
               </div>
@@ -770,10 +777,10 @@ const Bids = () => {
                 type="button"
                 onClick={() => setIsDesktopFilterOpen(true)}
                 className="px-4 py-2 rounded-full bg-black/40 border border-white/10 text-[#d4af37] font-bold text-sm shadow-sm hover:border-[#d4af37]/40 transition-colors"
-                aria-label="Filter By"
-                title="Filter By"
+                aria-label={t('bids.filterBy')}
+                title={t('bids.filterBy')}
               >
-                Filter By
+                {t('bids.filterBy')}
               </button>
             ) : null}
           </div>
@@ -846,7 +853,7 @@ const Bids = () => {
                   formatTxnTime={formatTxnTime}
                 />
               )
-            ) : activeTitle === 'Game Results' ? (
+            ) : activeTitle === t('bids.gameResults') ? (
               resultsLoading ? (
                 <div className="mt-3 max-h-[calc(100vh-300px)] overflow-hidden space-y-3">
                   <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 skeleton-shimmer">
@@ -869,7 +876,7 @@ const Bids = () => {
               )
             ) : (
               <div className="mt-6 text-gray-300 text-sm">
-                Select an item from the left menu. We will add the actual pages/content here next.
+                {t('bids.selectItemFromLeftMenu')}
               </div>
             )}
           </main>
