@@ -126,8 +126,8 @@ const AppHeader = () => {
   const sinceDateRaw = user?.createdAt || user?.created_at || user?.createdOn;
   const sinceDate = sinceDateRaw ? new Date(sinceDateRaw) : null;
   const sinceText = sinceDate && !Number.isNaN(sinceDate.getTime())
-    ? `Since ${sinceDate.toLocaleDateString('en-GB')}`
-    : 'Since -';
+    ? `${t('header.since')} ${sinceDate.toLocaleDateString('en-GB')}`
+    : `${t('header.since')} -`;
   const avatarInitial = displayName ? displayName.charAt(0).toUpperCase() : 'U';
 
   const handleProfileClick = () => {
@@ -149,7 +149,7 @@ const AppHeader = () => {
               type="button"
               onClick={() => setIsMenuOpen(true)}
               className="w-8 h-8 sm:w-8 sm:h-8 md:w-9 md:h-9 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 flex items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-700/50 transition-all duration-200"
-              aria-label="Open menu"
+              aria-label={t('header.openMenu')}
             >
             <div className="flex flex-col gap-1 sm:gap-1">
               <div className="w-4 sm:w-4 md:w-4 h-[2px] bg-white rounded-full"></div>
@@ -224,7 +224,7 @@ const AppHeader = () => {
             className={`hidden md:flex w-8 h-8 md:w-9 md:h-9 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 ${
               user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
             }`}
-            title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / Sign Up`}
+            title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
             aria-label="Profile"
           >
             <svg
@@ -389,7 +389,7 @@ const AppHeader = () => {
               ))}
               
               {/* Version Footer */}
-              <div className="text-center text-xs text-gray-600 pt-4 pb-2">Version: 1.0.0</div>
+              <div className="text-center text-xs text-gray-600 pt-4 pb-2">{t('header.version')}</div>
             </div>
           </aside>
         </div>

@@ -212,12 +212,12 @@ const AddFundHistory = () => {
                             <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
                                 {deposit.upiTransactionId && (
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
-                                        <span className="text-gray-500">UTR:</span> {deposit.upiTransactionId}
+                                        <span className="text-gray-500">{t('funds.utrLabel')}</span> {deposit.upiTransactionId}
                                     </p>
                                 )}
                                 {deposit.adminRemarks && (
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
-                                        <span className="text-gray-500">Admin:</span> {deposit.adminRemarks}
+                                        <span className="text-gray-500">{t('funds.adminLabel')}</span> {deposit.adminRemarks}
                                     </p>
                                 )}
                                 {deposit.processedAt && (

@@ -1,14 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const SupportLanding = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const options = [
     {
       id: 'new',
-      title: 'Raise help ticket',
-      subtitle: 'Submit a new problem with description and screenshots.',
+      title: t('support.raiseHelpTicket'),
+      subtitle: t('support.submitNewProblem'),
       path: '/support/new',
       icon: (
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -21,8 +23,8 @@ const SupportLanding = () => {
     },
     {
       id: 'status',
-      title: 'Check previous problem status',
-      subtitle: 'See status and reply for your submitted tickets.',
+      title: t('support.checkPreviousStatus'),
+      subtitle: t('support.seeStatusAndReply'),
       path: '/support/status',
       icon: (
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -51,8 +53,8 @@ const SupportLanding = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Help Desk</h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Choose an option below</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{t('support.helpDesk')}</h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('support.chooseOptionBelow')}</p>
           </div>
         </div>
 
@@ -91,7 +93,7 @@ const SupportLanding = () => {
 
         {/* Footer hint */}
         <p className="mt-8 text-center text-xs text-gray-600">
-          We typically respond within 24 hours
+          {t('support.responseWithin24h')}
         </p>
       </div>
     </div>

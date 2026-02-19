@@ -640,9 +640,9 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         {confirmCancelBetId && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#202124] shadow-2xl p-5 space-y-4">
-              <h3 className="text-lg font-bold text-white">Cancel bet?</h3>
+              <h3 className="text-lg font-bold text-white">{t('bids.cancelBetTitle')}</h3>
               <p className="text-gray-300 text-sm">
-                Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
+                {t('bids.cancelBetConfirm')}
               </p>
               <div className="flex gap-3 pt-2">
                 <button
@@ -650,14 +650,14 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   onClick={() => setConfirmCancelBetId(null)}
                   className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
                 >
-                  No, keep bet
+                  {t('bids.noKeepBet')}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
                   className="flex-1 py-3 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
                 >
-                  Yes, cancel
+                  {t('bids.yesCancel')}
                 </button>
               </div>
             </div>

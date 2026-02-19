@@ -180,7 +180,7 @@ const Profile = () => {
   };
 
   const handleCopy = (text, label) => {
-    if (!text || text === 'Not set' || text === 'N/A') return;
+    if (!text || text === t('profile.notSet') || text === t('profile.na')) return;
     navigator.clipboard?.writeText(String(text)).then(() => {
       setCopiedField(label);
       setTimeout(() => setCopiedField(''), 1500);
@@ -252,7 +252,7 @@ const Profile = () => {
 
   if (!user) return null;
 
-  const userId = user?.id || user?._id || 'N/A';
+  const userId = user?.id || user?._id || t('profile.na');
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : i18n.language, { year: 'numeric', month: 'long', day: 'numeric' })
     : null;

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const toDateKeyIST = (d) => {
   try {
@@ -41,9 +42,11 @@ export default function ResultDatePicker({
   value,
   onChange,
   maxDate,
-  label = 'Select Date',
+  label,
   buttonClassName = '',
 }) {
+  const { t } = useTranslation();
+  const displayLabelProp = label ?? t('common.selectDate');
   const max = useMemo(() => maxDate || new Date(), [maxDate]);
   const safeValue = useMemo(() => clampToMax(value || new Date(), max), [value, max]);
   const [open, setOpen] = useState(false);
@@ -122,7 +125,7 @@ export default function ResultDatePicker({
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <div className="text-white/80 text-base sm:text-lg">{label}</div>
+        <div className="text-white/80 text-base sm:text-lg">{displayLabelProp}</div>
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -130,7 +133,7 @@ export default function ResultDatePicker({
             buttonClassName ||
             'px-5 py-2.5 rounded-full bg-black/40 border border-white/10 text-white font-bold shadow-sm hover:border-[#d4af37]/40 transition-colors'
           }
-          aria-label="Open calendar"
+          aria-label={t('datePicker.openCalendar')}
         >
           {displayLabel}
         </button>
@@ -141,14 +144,14 @@ export default function ResultDatePicker({
           <button
             type="button"
             className="absolute inset-0 bg-black/60"
-            aria-label="Close calendar overlay"
+            aria-label={t('datePicker.closeOverlay')}
             onClick={() => setOpen(false)}
           />
 
           <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.65)] bg-[#202124]">
             {/* Header */}
             <div className="bg-[#0b2b55] px-6 py-5 border-b border-white/10">
-              <div className="text-white/80 text-sm tracking-widest font-semibold">SELECT DATE</div>
+              <div className="text-white/80 text-sm tracking-widest font-semibold">{t('datePicker.selectDate')}</div>
               <div className="mt-2 flex items-center justify-between gap-4">
                 <div className="text-white text-3xl sm:text-4xl font-light">
                   {draft.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -169,7 +172,7 @@ export default function ResultDatePicker({
                   type="button"
                   onClick={handlePrev}
                   className="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center"
-                  aria-label="Previous month"
+                  aria-label={t('datePicker.previousMonth')}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
@@ -183,7 +186,7 @@ export default function ResultDatePicker({
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     canGoNext ? 'hover:bg-black/5' : 'opacity-30 cursor-not-allowed'
                   }`}
-                  aria-label="Next month"
+                  aria-label={t('datePicker.nextMonth')}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
@@ -233,7 +236,7 @@ export default function ResultDatePicker({
                 onClick={() => setOpen(false)}
                 className="text-[#0b2b55] font-semibold tracking-wide"
               >
-                CANCEL
+                {t('datePicker.cancel')}
               </button>
               <button
                 type="button"
@@ -244,7 +247,7 @@ export default function ResultDatePicker({
                 }}
                 className="text-[#0b2b55] font-semibold tracking-wide"
               >
-                OK
+                {t('common.ok')}
               </button>
             </div>
           </div>

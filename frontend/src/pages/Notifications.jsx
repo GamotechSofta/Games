@@ -136,8 +136,8 @@ const Notifications = () => {
       (depData?.data || []).slice(0, 25).forEach((d) => {
         const status = (d.status || '').toLowerCase();
         const amount = `₹${Number(d.amount || 0).toLocaleString('en-IN')}`;
-        const title = status === 'approved' ? `Add fund ${amount} approved` : status === 'rejected' ? `Add fund ${amount} rejected` : `Add fund ${amount} pending`;
-        const msg = (d.adminRemarks && String(d.adminRemarks).trim()) || (d.upiTransactionId ? `UTR: ${d.upiTransactionId}` : 'View Add Fund History for details.');
+        const title = status === 'approved' ? t('notifications.addFundApproved', { amount }) : status === 'rejected' ? t('notifications.addFundRejected', { amount }) : t('notifications.addFundPending', { amount });
+        const msg = (d.adminRemarks && String(d.adminRemarks).trim()) || (d.upiTransactionId ? `${t('funds.utrLabel')} ${d.upiTransactionId}` : t('notifications.viewAddFundHistory'));
         list.push({
           id: `dep-${d._id}`,
           type: 'payment',
@@ -154,8 +154,8 @@ const Notifications = () => {
       (withData?.data || []).slice(0, 25).forEach((w) => {
         const status = (w.status || '').toLowerCase();
         const amount = `₹${Number(w.amount || 0).toLocaleString('en-IN')}`;
-        const title = status === 'approved' ? `Withdrawal ${amount} approved` : status === 'rejected' ? `Withdrawal ${amount} rejected` : `Withdrawal ${amount} pending`;
-        const msg = (w.adminRemarks && String(w.adminRemarks).trim()) || 'View Withdraw Fund History for details.';
+        const title = status === 'approved' ? t('notifications.withdrawalApproved', { amount }) : status === 'rejected' ? t('notifications.withdrawalRejected', { amount }) : t('notifications.withdrawalPending', { amount });
+        const msg = (w.adminRemarks && String(w.adminRemarks).trim()) || t('notifications.viewWithdrawFundHistory');
         list.push({
           id: `with-${w._id}`,
           type: 'payment',
@@ -169,23 +169,23 @@ const Notifications = () => {
       });
 
       // Support – real subject, status, and reply preview
-      const statusLabel = (s) => ({ open: 'Open', 'in-progress': 'In progress', resolved: 'Resolved', closed: 'Closed' }[s] || s);
-      (ticketsData?.data || []).slice(0, 20).forEach((t) => {
-        const hasReply = !!t.adminResponse;
-        const subject = (t.subject || 'Support request').trim();
-        const title = hasReply ? `Reply: ${subject}` : `Ticket: ${subject}`;
-        const statusText = statusLabel(t.status) || t.status;
+      const statusLabel = (s) => ({ open: t('notifications.statusOpen'), 'in-progress': t('notifications.statusInProgress'), resolved: t('notifications.statusResolved'), closed: t('notifications.statusClosed') }[s] || s);
+      (ticketsData?.data || []).slice(0, 20).forEach((ticket) => {
+        const hasReply = !!ticket.adminResponse;
+        const subject = (ticket.subject || t('notifications.supportRequest')).trim();
+        const title = hasReply ? t('notifications.replyPrefix', { subject }) : t('notifications.ticketPrefix', { subject });
+        const statusText = statusLabel(ticket.status) || ticket.status;
         const msg = hasReply
-          ? (t.adminResponse || '').toString().trim().slice(0, 120) + ((t.adminResponse || '').length > 120 ? '…' : '')
-          : `Status: ${statusText}. We'll reply within 24 hours.`;
-        list.push({
-          id: `ticket-${t._id}`,
+          ? (ticket.adminResponse || '').toString().trim().slice(0, 120) + ((ticket.adminResponse || '').length > 120 ? '…' : '')
+          : t('notifications.statusPrefixReply', { status: statusText });
+list.push({
+            id: `ticket-${ticket._id}`,
           type: 'support',
           subtype: 'ticket',
           title,
           message: msg,
-          time: t.updatedAt || t.createdAt,
-          status: t.status,
+          time: ticket.updatedAt || ticket.createdAt,
+          status: ticket.status,
           link: '/support/status',
         });
       });
@@ -214,8 +214,8 @@ const Notifications = () => {
             id: `result-${dateKey}-${marketIdStr}-${name}`,
             type: 'result',
             subtype: 'market',
-            title: result === '***-**-***' ? 'Market result pending' : 'Market result declared',
-            message: `${dateLabel} • ${name} — ${result === '***-**-***' ? 'Result not yet declared' : `Result: ${result}`}`,
+            title: result === '***-**-***' ? t('notifications.marketResultPending') : t('notifications.marketResultDeclared'),
+            message: `${dateLabel} • ${name} — ${result === '***-**-***' ? t('notifications.resultNotYetDeclared') : t('notifications.resultPrefix', { result })}`,
             time: r.updatedAt || r.createdAt || timeForSort,
             dateKey,
             link: '/market-result-history',
@@ -235,7 +235,7 @@ const Notifications = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [userId]);
+  }, [userId, t]);
 
   const handleRefresh = () => {
     fetchAll(false);

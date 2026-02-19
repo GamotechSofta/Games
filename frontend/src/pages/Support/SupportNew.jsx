@@ -65,7 +65,7 @@ const SupportNew = () => {
     try {
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('subject', (subject.trim() || 'Support Request'));
+      formData.append('subject', (subject.trim() || t('support.supportRequestDefault')));
       formData.append('description', description.trim());
       screenshots.forEach((file) => formData.append('screenshots', file));
 

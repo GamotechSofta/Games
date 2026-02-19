@@ -306,7 +306,7 @@ const Passbook = () => {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm font-medium truncate">
-                            {tx.description || (isCredit ? 'Amount Credited' : 'Amount Withdrawn')}
+                            {tx.description || (isCredit ? t('passbook.amountCredited') : t('passbook.amountWithdrawn'))}
                           </p>
                           <p className="text-gray-500 text-xs mt-0.5">{formatTime(tx.createdAt)}</p>
                         </div>

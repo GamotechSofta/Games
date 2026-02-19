@@ -212,7 +212,7 @@ const WithdrawFundHistory = () => {
                             {withdrawal.bankDetailId && (
                                 <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
-                                        <span className="text-gray-500">To:</span> {withdrawal.bankDetailId.accountHolderName}
+                                        <span className="text-gray-500">{t('funds.toLabel')}</span> {withdrawal.bankDetailId.accountHolderName}
                                     </p>
                                     {withdrawal.bankDetailId.bankName && (
                                         <p className="text-gray-500 text-[10px] sm:text-xs break-all">
@@ -221,7 +221,7 @@ const WithdrawFundHistory = () => {
                                     )}
                                     {withdrawal.bankDetailId.upiId && (
                                         <p className="text-gray-500 text-[10px] sm:text-xs break-all">
-                                            UPI: {withdrawal.bankDetailId.upiId}
+                                            {t('funds.upiLabel')} {withdrawal.bankDetailId.upiId}
                                         </p>
                                     )}
                                 </div>
@@ -232,7 +232,7 @@ const WithdrawFundHistory = () => {
                                 <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
                                     {withdrawal.adminRemarks && (
                                         <p className="text-gray-400 text-[10px] sm:text-xs break-all">
-                                            <span className="text-gray-500">Admin:</span> {withdrawal.adminRemarks}
+                                            <span className="text-gray-500">{t('funds.adminLabel')}</span> {withdrawal.adminRemarks}
                                         </p>
                                     )}
                                     {withdrawal.processedAt && (

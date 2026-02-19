@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
-const statusLabel = (status) => {
-  const map = { open: 'Open', 'in-progress': 'In progress', resolved: 'Resolved', closed: 'Closed' };
-  return map[status] || status;
+const getStatusLabelKey = (status) => {
+  const map = { open: 'statusOpen', 'in-progress': 'statusInProgress', resolved: 'statusResolved', closed: 'statusClosed' };
+  return map[status] || null;
 };
 
 const statusColor = (status) => {
@@ -19,6 +20,7 @@ const statusColor = (status) => {
 
 const SupportStatus = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [myTickets, setMyTickets] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -83,14 +85,14 @@ const SupportStatus = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-white">My tickets</h1>
-            <p className="text-xs text-gray-500">Status and replies</p>
+            <h1 className="text-lg font-bold text-white">{t('support.myTickets')}</h1>
+            <p className="text-xs text-gray-500">{t('support.statusAndReplies')}</p>
           </div>
         </div>
 
         {!userId ? (
           <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
-            Please log in to see your tickets.
+            {t('support.loginRequiredForTickets')}
           </div>
         ) : loading ? (
           <div className="space-y-3">
@@ -108,14 +110,14 @@ const SupportStatus = () => {
           </div>
         ) : myTickets.length === 0 ? (
           <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-8 text-center">
-            <p className="text-gray-400 text-sm">No tickets yet.</p>
-            <p className="text-gray-500 text-xs mt-1">Send a request from Support and it will show here.</p>
+            <p className="text-gray-400 text-sm">{t('support.noTicketsYet')}</p>
+            <p className="text-gray-500 text-xs mt-1">{t('support.sendRequestFromSupport')}</p>
             <button
               type="button"
               onClick={() => navigate('/support')}
               className="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition"
             >
-              Ask for help
+              {t('support.askForHelp')}
             </button>
           </div>
         ) : (
@@ -128,7 +130,7 @@ const SupportStatus = () => {
                 <div className="flex justify-between items-start gap-2">
                   <p className="font-medium text-white text-sm truncate flex-1">{t.subject}</p>
                   <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(t.status)}`}>
-                    {statusLabel(t.status)}
+                    {getStatusLabelKey(t.status) ? t(`support.${getStatusLabelKey(t.status)}`) : t.status}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
@@ -137,7 +139,7 @@ const SupportStatus = () => {
                 <p className="text-sm text-gray-400 mt-2 line-clamp-2">{t.description}</p>
                 {t.adminResponse && (
                   <div className="mt-3 pt-3 border-t border-white/10">
-                    <p className="text-xs text-gray-500 mb-1">Reply from support</p>
+                    <p className="text-xs text-gray-500 mb-1">{t('support.replyFromSupport')}</p>
                     <p className="text-sm text-green-300/90 whitespace-pre-wrap">{t.adminResponse}</p>
                   </div>
                 )}

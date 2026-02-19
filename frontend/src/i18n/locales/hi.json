@@ -30,7 +30,19 @@
     "retry": "पुनः प्रयास करें",
     "pleaseWait": "कृपया प्रतीक्षा करें...",
     "noData": "कोई डेटा उपलब्ध नहीं",
-    "all": "सभी"
+    "all": "सभी",
+    "comingSoon": "जल्द आ रहा है...",
+    "openMenu": "मेनू खोलें",
+    "closeMenu": "मेनू बंद करें",
+    "selectDate": "तारीख चुनें"
+  },
+  "datePicker": {
+    "selectDate": "तारीख चुनें",
+    "cancel": "रद्द करें",
+    "openCalendar": "कैलेंडर खोलें",
+    "closeOverlay": "कैलेंडर ओवरले बंद करें",
+    "previousMonth": "पिछला महीना",
+    "nextMonth": "अगला महीना"
   },
   "header": {
     "myBets": "मेरे बेट",
@@ -44,7 +56,11 @@
     "logout": "लॉगआउट",
     "signIn": "साइन इन",
     "downloadApp": "ऐप डाउनलोड करें",
-    "language": "भाषा"
+    "language": "भाषा",
+    "since": "से",
+    "signUp": "साइन अप",
+    "version": "वर्जन: 1.0.0",
+    "openMenu": "मेनू खोलें"
   },
   "navigation": {
     "home": "होम",
@@ -105,7 +121,26 @@
     "descriptionRequired": "कृपया अपनी समस्या बताएं।",
     "onlyImagesAllowed": "केवल छवियां (PNG, JPG) अनुमत हैं।",
     "somethingWentWrong": "कुछ गलत हो गया। पुनः प्रयास करें।",
-    "networkError": "नेटवर्क त्रुटि। पुनः प्रयास करें।"
+    "networkError": "नेटवर्क त्रुटि। पुनः प्रयास करें।",
+    "raiseHelpTicket": "सहायता टिकट बनाएं",
+    "submitNewProblem": "विवरण और स्क्रीनशॉट के साथ नई समस्या जमा करें।",
+    "checkPreviousStatus": "पिछली समस्या की स्थिति देखें",
+    "seeStatusAndReply": "अपने जमा किए गए टिकटों की स्थिति और जवाब देखें।",
+    "helpDesk": "हेल्प डेस्क",
+    "chooseOptionBelow": "नीचे से एक विकल्प चुनें",
+    "responseWithin24h": "हम आमतौर पर 24 घंटे के भीतर जवाब देते हैं",
+    "myTickets": "मेरे टिकट",
+    "statusAndReplies": "स्थिति और जवाब",
+    "loginRequiredForTickets": "अपने टिकट देखने के लिए कृपया लॉग इन करें।",
+    "noTicketsYet": "अभी तक कोई टिकट नहीं।",
+    "sendRequestFromSupport": "सहायता से अनुरोध भेजें और यह यहाँ दिखाई देगा।",
+    "askForHelp": "सहायता के लिए पूछें",
+    "replyFromSupport": "सहायता से जवाब",
+    "statusOpen": "खुला",
+    "statusInProgress": "प्रगति में",
+    "statusResolved": "हल हो गया",
+    "statusClosed": "बंद",
+    "supportRequestDefault": "सहायता अनुरोध"
   },
   "funds": {
     "addFund": "फंड जोड़ें",
@@ -172,7 +207,11 @@
     "viewAllDeposits": "सभी जमा देखें",
     "viewAllWithdrawals": "सभी निकासी देखें",
     "viewScreenshot": "स्क्रीनशॉट देखें",
-    "processed": "संसाधित"
+    "processed": "संसाधित",
+    "utrLabel": "UTR:",
+    "adminLabel": "Admin:",
+    "toLabel": "To:",
+    "upiLabel": "UPI:"
   },
   "bids": {
     "myBets": "मेरे बेट",
@@ -206,6 +245,10 @@
     "reviewBet": "बेट की समीक्षा करें",
     "confirmBet": "बेट की पुष्टि करें",
     "cancelBet": "बेट रद्द करें",
+    "cancelBetTitle": "बेट रद्द करें?",
+    "cancelBetConfirm": "क्या आप वाकई इस बेट को रद्द करना चाहते हैं? राशि आपके वॉलेट में वापस कर दी जाएगी।",
+    "noKeepBet": "नहीं, बेट रखें",
+    "yesCancel": "हाँ, रद्द करें",
     "noBetsFound": "कोई बेट नहीं मिला।",
     "loginToSeeHistory": "अपना बेट इतिहास देखने के लिए लॉग इन करें।"
   },
@@ -229,6 +272,7 @@
     "accountInformationSubtitle": "आपकी व्यक्तिगत जानकारी और खाता डेटा",
     "settings": "सेटिंग्स",
     "notSet": "सेट नहीं किया गया",
+    "na": "उपलब्ध नहीं",
     "signOut": "साइन आउट",
     "managePaymentMethods": "भुगतान विधियों को प्रबंधित करें",
     "kycVerification": "KYC सत्यापन",
@@ -258,7 +302,27 @@
     "notificationsCleared": "सूचनाएं साफ हो गईं",
     "payment": "भुगतान",
     "result": "बाज़ार और परिणाम",
-    "support": "सहायता"
+    "support": "सहायता",
+    "addFundApproved": "फंड जोड़ें {{amount}} स्वीकृत",
+    "addFundRejected": "फंड जोड़ें {{amount}} अस्वीकृत",
+    "addFundPending": "फंड जोड़ें {{amount}} लंबित",
+    "viewAddFundHistory": "विवरण के लिए एड फंड हिस्ट्री देखें।",
+    "withdrawalApproved": "निकासी {{amount}} स्वीकृत",
+    "withdrawalRejected": "निकासी {{amount}} अस्वीकृत",
+    "withdrawalPending": "निकासी {{amount}} लंबित",
+    "viewWithdrawFundHistory": "विवरण के लिए विदड्रॉ फंड हिस्ट्री देखें।",
+    "statusOpen": "खुला",
+    "statusInProgress": "प्रगति में",
+    "statusResolved": "हल",
+    "statusClosed": "बंद",
+    "supportRequest": "सहायता अनुरोध",
+    "replyPrefix": "जवाब: {{subject}}",
+    "ticketPrefix": "टिकट: {{subject}}",
+    "statusPrefixReply": "स्थिति: {{status}}. हम 24 घंटे के भीतर जवाब देंगे।",
+    "marketResultPending": "बाज़ार परिणाम लंबित",
+    "marketResultDeclared": "बाज़ार परिणाम घोषित",
+    "resultNotYetDeclared": "परिणाम अभी घोषित नहीं",
+    "resultPrefix": "परिणाम: {{result}}"
   },
   "gameRate": {
     "title": "गेम दरें",
