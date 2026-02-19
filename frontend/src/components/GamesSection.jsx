@@ -17,16 +17,15 @@ const GamesSection = () => {
   return (
     <section className="w-full bg-black pt-2 pb-6 sm:pt-3 sm:pb-8 max-w-full overflow-x-hidden">
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
-        {/* Section header - Indian Games style: orange-yellow banner with angled right cut */}
-        <div className="mb-3 sm:mb-4">
-          <div
-            className="inline-block bg-amber-400 pl-2 pr-6 sm:pl-3 sm:pr-8 py-1.5 sm:py-2 rounded-sm shadow-[0_2px_8px_rgba(251,191,36,0.25)]"
-            style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%)' }}
-          >
-            <h2 className="text-amber-900/90 text-sm sm:text-base font-medium tracking-wider uppercase text-left">
-              {t('games.otherGames')}
-            </h2>
+        {/* Section header - MARKETS style: golden line with centered text and star icons */}
+        <div className="flex items-center gap-2 mb-4 sm:mb-5">
+          <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 via-white/50 to-white/70 min-w-[20px]" />
+          <div className="flex items-center gap-2 shrink-0">
+            <svg className="w-2.5 h-2.5 text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
+            <h2 className="text-white text-base sm:text-lg font-bold tracking-[0.15em] uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{t('games.otherGames')}</h2>
+            <svg className="w-2.5 h-2.5 text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
           </div>
+          <div className="flex-1 h-[1px] bg-gradient-to-l from-white/10 via-white/50 to-white/70 min-w-[20px]" />
         </div>
 
         <div
