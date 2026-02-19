@@ -22,7 +22,6 @@ export const GAMES = [
     external: false,
     upcoming: true,
   },
-  // Desktop-only upcoming cards (hidden on mobile)
   {
     id: 'upcoming-2',
     name: 'Coming Soon',
@@ -31,7 +30,6 @@ export const GAMES = [
     url: null,
     external: false,
     upcoming: true,
-    desktopOnly: true,
   },
   {
     id: 'upcoming-3',
@@ -41,7 +39,6 @@ export const GAMES = [
     url: null,
     external: false,
     upcoming: true,
-    desktopOnly: true,
   },
   {
     id: 'upcoming-4',
@@ -51,7 +48,6 @@ export const GAMES = [
     url: null,
     external: false,
     upcoming: true,
-    desktopOnly: true,
   },
   {
     id: 'upcoming-5',
@@ -61,6 +57,50 @@ export const GAMES = [
     url: null,
     external: false,
     upcoming: true,
-    desktopOnly: true,
+  },
+  {
+    id: 'upcoming-6',
+    name: 'Coming Soon',
+    description: 'New game',
+    icon: '🎲',
+    url: null,
+    external: false,
+    upcoming: true,
+  },
+  {
+    id: 'upcoming-7',
+    name: 'Coming Soon',
+    description: 'New game',
+    icon: '🃏',
+    url: null,
+    external: false,
+    upcoming: true,
+  },
+  {
+    id: 'upcoming-8',
+    name: 'Coming Soon',
+    description: 'New game',
+    icon: '♠️',
+    url: null,
+    external: false,
+    upcoming: true,
+  },
+  {
+    id: 'upcoming-9',
+    name: 'Coming Soon',
+    description: 'New game',
+    icon: '🃏',
+    url: null,
+    external: false,
+    upcoming: true,
+  },
+  {
+    id: 'upcoming-10',
+    name: 'Coming Soon',
+    description: 'New game',
+    icon: '🎴',
+    url: null,
+    external: false,
+    upcoming: true,
   },
 ];
