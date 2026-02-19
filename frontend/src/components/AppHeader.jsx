@@ -252,22 +252,22 @@ const AppHeader = () => {
             onClick={() => setIsMenuOpen(false)}
             aria-label="Close menu overlay"
           />
-          <aside className="relative h-full w-[86%] max-w-[360px] sm:w-[70%] sm:max-w-[380px] md:w-[420px] md:max-w-none bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] shadow-[6px_0_24px_rgba(0,0,0,0.8)] border-r border-white/5">
+          <aside className="relative h-full w-[75%] max-w-[260px] sm:w-[60%] sm:max-w-[280px] md:w-[300px] md:max-w-none bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] shadow-[6px_0_24px_rgba(0,0,0,0.8)] border-r border-white/5">
             {/* User Profile Section */}
-            <div className="px-5 sm:px-6 pt-6 pb-5 border-b border-white/10 bg-gradient-to-b from-[#1a1a1a]/50 to-transparent">
-              <div className="flex items-start justify-between gap-3">
+            <div className="px-5 sm:px-6 pt-4 pb-3 border-b border-white/10 bg-gradient-to-b from-[#1a1a1a]/50 to-transparent">
+              <div className="flex items-start justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setIsMenuOpen(false);
                     handleProfileClick();
                   }}
-                  className="flex items-center gap-4 flex-1 min-w-0 text-left group"
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left group"
                   aria-label="Open profile"
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] border-2 border-yellow-500/30 flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-[0_4px_12px_rgba(212,175,55,0.3)]">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] border-2 border-yellow-500/30 flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-[0_4px_12px_rgba(212,175,55,0.3)]">
                       {avatarInitial}
                     </div>
                     {user && (
@@ -277,9 +277,9 @@ const AppHeader = () => {
                   
                   {/* User Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-base sm:text-lg font-bold text-white truncate">{displayName}</div>
-                    <div className="text-xs sm:text-sm text-gray-400 mt-0.5 truncate">{displayPhone}</div>
-                    <div className="text-xs sm:text-sm text-gray-500 mt-0.5">{sinceText}</div>
+                    <div className="text-sm sm:text-base font-bold text-white truncate">{displayName}</div>
+                    <div className="text-[11px] sm:text-xs text-gray-400 mt-0.5 truncate">{displayPhone}</div>
+                    <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5">{sinceText}</div>
                   </div>
                 </button>
                 
@@ -287,10 +287,10 @@ const AppHeader = () => {
                 <button
                   type="button"
                   onClick={() => setIsMenuOpen(false)}
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#222] hover:border-white/20 active:scale-95 transition-all duration-200 shrink-0"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#222] hover:border-white/20 active:scale-95 transition-all duration-200 shrink-0"
                   aria-label="Close menu"
                 >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -298,7 +298,7 @@ const AppHeader = () => {
             </div>
 
             {/* Menu Items */}
-            <div className="px-4 sm:px-5 py-4 space-y-2.5 overflow-y-auto h-[calc(100%-140px)] scrollbar-hidden">
+            <div className="px-4 sm:px-5 py-3 space-y-1.5 overflow-y-auto h-[calc(100%-120px)] scrollbar-hidden">
               {menuItems.map((item) => (
                 <button
                   key={item.label}
@@ -311,69 +311,69 @@ const AppHeader = () => {
                       navigate(item.path);
                     }
                   }}
-                  className="group w-full bg-gradient-to-r from-[#1a1a1a] to-[#1e1e1e] rounded-xl sm:rounded-2xl px-4 py-3.5 sm:py-4 flex items-center gap-4 border border-white/5 hover:border-yellow-500/30 hover:from-[#222] hover:to-[#252525] hover:shadow-[0_4px_16px_rgba(212,175,55,0.15)] active:scale-[0.98] transition-all duration-200"
+                  className="group w-full bg-gradient-to-r from-[#1a1a1a] to-[#1e1e1e] rounded-xl sm:rounded-2xl px-3 py-2.5 sm:py-3 flex items-center gap-3 border border-white/5 hover:border-yellow-500/30 hover:from-[#222] hover:to-[#252525] hover:shadow-[0_4px_16px_rgba(212,175,55,0.15)] active:scale-[0.98] transition-all duration-200"
                 >
                   {/* Icon Container */}
-                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
                     {item.key === 'topWinners' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797561/podium_swqjij.png"
                         alt={item.label}
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'telegramChannel' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797952/telegram_yw9hf1.png"
                         alt="Telegram"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'myBets' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
                         alt="My Bets"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'funds' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
                         alt="Funds"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'updateRate' ? (
-                      <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     ) : item.key === 'notification' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798359/notification_1_pflwit.png"
                         alt="Notification"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'helpDesk' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777618/customer-support_du0zcj.png"
                         alt="Help Desk"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'shareApp' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798998/share_a6shgt.png"
                         alt="Share App"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : item.key === 'logout' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798997/logout_mttqvy.png"
                         alt="Logout"
-                        className="w-6 h-6 sm:w-7 sm:h-7 object-contain"
+                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
                     ) : (
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-white/40"></div>
+                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white/40"></div>
                     )}
                   </div>
                   
                   {/* Menu Text */}
-                  <span className="text-sm sm:text-base font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
+                  <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
                     {item.label}
                   </span>
                   {item.key === 'notification' && notificationCount > 0 && (
@@ -382,14 +382,14 @@ const AppHeader = () => {
                     </span>
                   )}
                   {/* Arrow Indicator */}
-                  <svg className="w-5 h-5 text-white/20 group-hover:text-yellow-500/60 group-hover:translate-x-1 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <svg className="w-4 h-4 text-white/20 group-hover:text-yellow-500/60 group-hover:translate-x-1 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
               ))}
               
               {/* Version Footer */}
-              <div className="text-center text-xs text-gray-600 pt-4 pb-2">{t('header.version')}</div>
+              <div className="text-center text-[10px] text-gray-600 pt-2 pb-1">{t('header.version')}</div>
             </div>
           </aside>
         </div>

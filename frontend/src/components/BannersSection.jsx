@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const BANNERS = [
   {
-    src: "https://res.cloudinary.com/dzd47mpdo/image/upload/v1770623700/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_ufrc1r.png",
+    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png",
     alt: "Black Gold Casino Night Banner"
   },
   {
