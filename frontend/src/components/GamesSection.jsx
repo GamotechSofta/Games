@@ -20,10 +20,10 @@ const GamesSection = () => {
         {/* Section header - Indian Games style: orange-yellow banner with angled right cut */}
         <div className="mb-3 sm:mb-4">
           <div
-            className="inline-block bg-amber-400 px-6 sm:px-8 py-1.5 sm:py-2 rounded-sm shadow-[0_2px_8px_rgba(251,191,36,0.25)]"
+            className="inline-block bg-amber-400 pl-2 pr-6 sm:pl-3 sm:pr-8 py-1.5 sm:py-2 rounded-sm shadow-[0_2px_8px_rgba(251,191,36,0.25)]"
             style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%)' }}
           >
-            <h2 className="text-amber-900/90 text-sm sm:text-base font-medium tracking-wider uppercase">
+            <h2 className="text-amber-900/90 text-sm sm:text-base font-medium tracking-wider uppercase text-left">
               {t('games.otherGames')}
             </h2>
           </div>
