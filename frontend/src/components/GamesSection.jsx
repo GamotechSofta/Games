@@ -38,7 +38,7 @@ const GamesSection = () => {
             display: 'grid',
             gridTemplateRows: 'repeat(2, 1fr)',
             gridAutoFlow: 'column',
-            gridAutoColumns: 'minmax(100px, 120px)',
+            gridAutoColumns: 'minmax(120px, 150px)',
             gap: '0.5rem',
           }}
         >
