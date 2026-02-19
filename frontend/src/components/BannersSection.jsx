@@ -71,19 +71,6 @@ const BannersSection = () => {
           ))}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute bottom-2.5 left-0 right-0 flex items-center justify-center gap-1.5 z-10">
-          {BANNERS.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setBannerIdx(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === bannerIdx ? 'w-5 bg-amber-500' : 'w-1.5 bg-white/40'
-              }`}
-              aria-label={`Banner ${i + 1}`}
-            />
-          ))}
-        </div>
       </div>
     </div>
   );
