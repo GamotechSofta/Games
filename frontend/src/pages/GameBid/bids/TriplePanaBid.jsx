@@ -261,19 +261,19 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                         <>
                             <div className="flex flex-col gap-3">
                                 <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Select Game Type:</label>
+                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
                                     <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
                                         {session}
                                     </div>
                                 </div>
                                 <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Pana:</label>
+                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPana')}:</label>
                                     <input
                                         type="text"
                                         inputMode="numeric"
                                         value={inputNumber}
                                         onChange={handleNumberInputChange}
-                                        placeholder="Pana"
+                                        placeholder={t('gameBid.pana')}
                                         maxLength={3}
                                         className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
                                             isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
@@ -288,7 +288,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                         inputMode="numeric"
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        placeholder="Point"
+                                        placeholder={t('gameBid.point')}
                                         className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                     />
                                 </div>
@@ -298,7 +298,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                 onClick={handleAddBid}
                                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
                             >
-                                Add
+                                {t('gameBid.add')}
                             </button>
                         </>
                     ) : (
@@ -343,7 +343,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey="Pana"
+                labelKey={t('gameBid.pana')}
                 rows={bids}
                 walletBefore={walletBefore}
                 totalBids={bids.length}

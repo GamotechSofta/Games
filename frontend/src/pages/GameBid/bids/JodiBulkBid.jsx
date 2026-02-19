@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useScheduling } from '../BettingWindowContext';
@@ -10,6 +11,7 @@ const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
 const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState('OPEN');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -216,7 +218,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
                     }`}
                 >
-                    Submit Bet
+                    {t('gameBid.submitBet')}
                 </button>
             }
             walletBalance={walletBefore}
@@ -253,12 +255,8 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
 
                             {/* Column bulk inputs */}
                             <div className="h-6 md:h-7 w-full flex items-center justify-center text-[9px] md:text-xs text-gray-400 font-semibold px-1">
-                                <span className="md:hidden leading-[10px] text-center">
-                                    Enter
-                                    <br />
-                                    Points
-                                </span>
-                                <span className="hidden md:inline">Enter Points</span>
+                                <span className="md:hidden leading-[10px] text-center">{t('gameBid.enterPoints')}</span>
+                                <span className="hidden md:inline">{t('gameBid.enterPoints')}</span>
                             </div>
                             <div className="h-6 md:h-7" />
                             {DIGITS.map((c) => (
@@ -266,7 +264,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     key={`col-${c}`}
                                     type="text"
                                     inputMode="numeric"
-                                    placeholder="Pts"
+                                    placeholder={t('gameBid.pts')}
                                     value={colBulk[c]}
                                     onChange={(e) => setColBulk((p) => ({ ...p, [c]: sanitizePoints(e.target.value) }))}
                                     onBlur={() => {
@@ -290,7 +288,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            placeholder="Pts"
+                                            placeholder={t('gameBid.pts')}
                                             value={rowBulk[r]}
                                             onChange={(e) => setRowBulk((p) => ({ ...p, [r]: sanitizePoints(e.target.value) }))}
                                             onBlur={() => {
@@ -333,7 +331,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 </div>
             </div>
 
-            {/* Sticky Submit Bet button above mobile navbar */}
+            {/* Sticky {t('gameBid.submitBet')} button above mobile navbar */}
             <div className="fixed left-0 right-0 bottom-[88px] z-20 px-3 sm:px-4 md:hidden">
                 <div className="flex">
                     <button
@@ -346,7 +344,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                 : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
                         }`}
                     >
-                        Submit Bet
+                        {t('gameBid.submitBet')}
                     </button>
                 </div>
             </div>

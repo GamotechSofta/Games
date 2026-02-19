@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from '../BettingWindowContext';
 
 const formatMoney = (v) => {
@@ -47,6 +48,7 @@ const BidReviewModal = ({
   totalBids = 0,
   totalAmount = 0
 }) => {
+  const { t } = useTranslation();
   const { allowed: bettingAllowed, message: bettingMessage } = useBettingWindow();
   const [stage, setStage] = useState('review'); // 'review' | 'success'
   const [submitting, setSubmitting] = useState(false);
@@ -152,7 +154,7 @@ const BidReviewModal = ({
               </div>
               <div className="mt-6 text-center">
                 <div className="text-[#43b36a] font-semibold text-base sm:text-lg">
-                  Your Bet Placed Sucessfully
+                  {t('gameBid.betPlacedSuccessfully')}
                 </div>
               </div>
             </div>
@@ -165,7 +167,7 @@ const BidReviewModal = ({
                 }}
                 className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 rounded-lg shadow-md active:scale-[0.99] transition-transform hover:from-[#e5c04a] hover:to-[#d4af37]"
               >
-                OK
+                {t('gameBid.ok')}
               </button>
             </div>
           </div>
@@ -185,8 +187,8 @@ const BidReviewModal = ({
               <div className="flex-1 overflow-y-auto overscroll-contain ios-scroll-touch px-3 sm:px-4 pt-3 sm:pt-4 min-h-0">
                 <div className="grid grid-cols-3 text-center font-semibold text-[#d4af37] text-[11px] sm:text-base">
                   <div className="truncate">{labelKey}</div>
-                  <div className="truncate">Points</div>
-                  <div className="truncate">Type</div>
+                  <div className="truncate">{t('gameBid.points')}</div>
+                  <div className="truncate">{t('gameBid.type')}</div>
                 </div>
                 <div className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-3">
                   {rows.map((r) => (
@@ -271,10 +273,10 @@ const BidReviewModal = ({
                 {submitting ? (
                   <>
                     <span className="w-4 h-4 border-2 border-[#4b3608]/30 border-t-[#4b3608] rounded-full animate-spin" />
-                    Placing...
+                    {t('gameBid.placing')}
                   </>
                 ) : (
-                  'Submit Bet'
+                  t('gameBid.submitBet')
                 )}
               </button>
             </div>

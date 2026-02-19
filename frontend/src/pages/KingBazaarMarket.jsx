@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 
@@ -120,6 +121,7 @@ const DEMO_SLOTS = [
 const KingBazaarMarket = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'King Bazaar').toString();
 
@@ -267,36 +269,36 @@ const KingBazaarMarket = () => {
             type="button"
             onClick={() => navigate('/')}
             className="w-11 h-11 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition shrink-0"
-            aria-label="Back"
+            aria-label={t('common.back')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-sm text-white/60 leading-none">King Bazaar Market</div>
+            <div className="text-sm text-white/60 leading-none">{t('kingBazaarMarket.pageTitle')}</div>
             <div className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide truncate">{title}</div>
             <div className="hidden sm:block mt-1 text-xs text-white/50">
-              Select a time slot to place bets. Green = open, red = closed for today.
+              {t('kingBazaarMarket.selectTimeSlot')}
             </div>
           </div>
 
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400/90 shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
-              Open
+              {t('kingBazaarMarket.open')}
             </div>
             <div className="flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-400/90 shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
-              Closed
+              {t('kingBazaarMarket.closed')}
             </div>
           </div>
         </div>
 
         {!loading && items.length === 0 && (
           <div className="mt-4 md:mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm">
-            <p className="font-medium">No time slots for {title} yet.</p>
-            <p className="mt-1 text-amber-200/90">Slots are added in <strong>Admin → Markets → King Bazaar Market</strong>. Once added, they will appear here.</p>
+            <p className="font-medium">{t('kingBazaarMarket.noTimeSlots', { title })}</p>
+            <p className="mt-1 text-amber-200/90">{t('kingBazaarMarket.slotsAddedIn')}</p>
           </div>
         )}
 
@@ -341,7 +343,7 @@ const KingBazaarMarket = () => {
                   <div className="flex flex-col shrink-0 min-w-0">
                     <div className="text-white text-base min-[375px]:text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">{timeLabel}</div>
                     {marketStatus === 'closed' && (
-                      <div className="text-red-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold mt-0.5 truncate">Close for today</div>
+                      <div className="text-red-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold mt-0.5 truncate">{t('kingBazaarMarket.closeForToday')}</div>
                     )}
                   </div>
                   <div className="flex-1 flex justify-center min-w-0">
@@ -363,7 +365,7 @@ const KingBazaarMarket = () => {
                     <svg className="w-2.5 h-2.5 min-[375px]:w-3 min-[375px]:h-3 sm:w-4 sm:h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
-                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">Play Game</span>
+                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">{t('kingBazaarMarket.playGame')}</span>
                   </button>
                 </div>
               );
@@ -380,7 +382,7 @@ const KingBazaarMarket = () => {
               type="button"
               onClick={() => setShowClosedModal(false)}
               className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
-              aria-label="Close"
+              aria-label={t('common.close')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -394,17 +396,17 @@ const KingBazaarMarket = () => {
                   </svg>
                 </div>
               </div>
-              <h2 className="text-red-400 text-xl font-bold mb-3">Sorry !</h2>
+              <h2 className="text-red-400 text-xl font-bold mb-3">{t('kingBazaarMarket.sorry')}</h2>
               <div className="text-white/90 text-sm leading-relaxed mb-6">
-                <p className="mb-2">Betting is Closed for today.</p>
-                <p>Please come next day to play.</p>
+                <p className="mb-2">{t('kingBazaarMarket.bettingClosed')}</p>
+                <p>{t('kingBazaarMarket.comeNextDay')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowClosedModal(false)}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-6 rounded-lg transition-colors"
               >
-                OK
+                {t('kingBazaarMarket.ok')}
               </button>
             </div>
           </div>

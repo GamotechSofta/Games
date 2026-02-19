@@ -309,9 +309,9 @@ const BidOptions = () => {
             onClick={() => navigate('/game-bid', {
               state: {
                 market,
-                betType: option.displayTitle || option.title,
+                betType: option.title,
                 sessionPreset: option.sessionPreset,
-                gameMode: (option.displayTitle || option.title).toLowerCase().includes('bulk') ? 'bulk' : 'easy',
+                gameMode: (option.title || '').toLowerCase().includes('bulk') ? 'bulk' : 'easy',
                 ...(location.state?.scheduleForTomorrow && { scheduleForTomorrow: true }),
                 ...(isKingBazaar && kingBazaarMarketKey != null && {
                   marketType: 'king',

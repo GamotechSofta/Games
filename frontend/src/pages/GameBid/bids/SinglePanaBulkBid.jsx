@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useScheduling } from '../BettingWindowContext';
@@ -27,6 +28,7 @@ const buildSinglePanas = () =>
         .flatMap((k) => SINGLE_PANA_BY_SUM[k]);
 
 const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
+    const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
@@ -203,7 +205,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
                     }`}
                 >
-                    Submit Bet
+                    {t('gameBid.submitBet')}
                 </button>
             }
             walletBalance={walletBefore}
@@ -267,7 +269,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && groupBulk[groupKey]) applyGroup(groupBulk[groupKey]);
                                         }}
-                                        placeholder="All pts"
+                                        placeholder={t('gameBid.allPts')}
                                         className="no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
                                     />
                                     <button
@@ -279,9 +281,9 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                                 ? 'bg-[#202124] border-[#d4af37]/40 text-[#f2c14e] hover:border-[#d4af37]'
                                                 : 'bg-[#202124] border-white/10 text-gray-500 cursor-not-allowed'
                                         }`}
-                                        title="Apply points to all numbers in this group"
+                                        title={t('gameBid.applyPointsToAll')}
                                     >
-                                        Apply
+                                        {t('gameBid.apply')}
                                     </button>
                                     <button
                                         type="button"
@@ -296,9 +298,9 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
                                         }}
                                         className="h-9 px-3 rounded-md font-bold text-xs border bg-[#202124] border-red-500/40 text-red-400 hover:border-red-500 transition-colors"
-                                        title="Clear all points in this group"
+                                        title={t('gameBid.clearAllPoints')}
                                     >
-                                        Clear
+                                        {t('gameBid.clear')}
                                     </button>
                                 </div>
 
@@ -312,7 +314,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
-                                                placeholder="Pts"
+                                                placeholder={t('gameBid.pts')}
                                                 value={specialInputs[num]}
                                                 onChange={(e) =>
                                                     setSpecialInputs((p) => ({
@@ -331,10 +333,10 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 </div>
             </div>
 
-            {/* Submit Bet: match Jodi Special Mode (mobile sticky, desktop inline) */}
+            {/* {t('gameBid.submitBet')}: match Jodi Special Mode (mobile sticky, desktop inline) */}
             <div className="md:hidden fixed left-0 right-0 bottom-[88px] z-20 px-3">
                 <button type="button" onClick={openReview} disabled={!canSubmit} className={submitBtnClass(canSubmit)}>
-                    Submit Bet
+                    {t('gameBid.submitBet')}
                 </button>
             </div>
 
@@ -344,7 +346,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 onSubmit={handleSubmit}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey="Pana"
+                labelKey={t('gameBid.pana')}
                 rows={reviewRows}
                 walletBefore={walletBefore}
                 totalBids={reviewRows.length}

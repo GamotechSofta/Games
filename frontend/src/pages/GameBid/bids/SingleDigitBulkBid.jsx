@@ -26,7 +26,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const handleDigitClick = (num) => {
         const pts = Number(inputPoints);
         if (!pts || pts <= 0) {
-            showWarning('Please enter points.');
+            showWarning(t('gameBid.pleaseEnterPoints'));
             return;
         }
 
@@ -131,7 +131,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
             onSubmit={() => setIsReviewOpen(true)}
             hideFooter={false}
             showFooterStats={false}
-            submitLabel="Submit Bet"
+            submitLabel={t('gameBid.submitBet')}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32"
             walletBalance={walletBefore}
         >
@@ -145,7 +145,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                     <div className="w-full min-w-0 md:flex md:justify-center md:items-center">
                         <div className="flex flex-col gap-2 mb-1 md:mb-0 w-full md:max-w-sm">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">Date:</label>
+                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">{t('gameBid.date')}:</label>
                                 <div className="relative flex-1 min-w-0">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -154,7 +154,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                 </div>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">Type:</label>
+                                <label className="text-gray-400 text-xs font-medium shrink-0 w-16">{t('gameBid.type')}:</label>
                                 <select
                                     value={session}
                                     onChange={(e) => setSession(e.target.value)}
@@ -162,11 +162,11 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     className={`flex-1 min-w-0 appearance-none bg-[#202124] border border-white/10 text-white font-bold text-xs py-2 min-h-[36px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
                                 >
                                     {isRunning ? (
-                                        <option value="CLOSE">CLOSE</option>
+                                        <option value="CLOSE">{t('gameBid.close')}</option>
                                     ) : (
                                         <>
-                                            <option value="OPEN">OPEN</option>
-                                            <option value="CLOSE">CLOSE</option>
+                                            <option value="OPEN">{t('gameBid.open')}</option>
+                                            <option value="CLOSE">{t('gameBid.close')}</option>
                                         </>
                                     )}
                                 </select>
@@ -178,7 +178,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     inputMode="numeric"
                                     value={inputPoints}
                                     onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    placeholder="Point"
+                                    placeholder={t('gameBid.point')}
                                     className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2 min-h-[36px] px-4 text-center text-xs focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>

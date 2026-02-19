@@ -211,7 +211,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
 
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">Enter Open Pana:</label>
+                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterOpenPana')}:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
@@ -232,7 +232,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                                             });
                                         }
                                     }}
-                                    placeholder="Pana"
+                                    placeholder={t('gameBid.pana')}
                                     className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
                                         openPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
                                     }`}
@@ -240,26 +240,26 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">Enter Close Ank:</label>
+                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterCloseAnk')}:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
                                     value={closeAnk}
                                     readOnly
-                                    placeholder="Ank"
+                                    placeholder={t('gameBid.ank')}
                                     className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm opacity-80 cursor-not-allowed focus:outline-none"
                                 />
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">Enter Points:</label>
+                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterPoints')}:</label>
                                 <input
                                     ref={pointsInputRef}
                                     type="text"
                                     inputMode="numeric"
                                     value={points}
                                     onChange={(e) => setPoints(sanitizePoints(e.target.value))}
-                                    placeholder="Point"
+                                    placeholder={t('gameBid.point')}
                                     className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
@@ -280,7 +280,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                                 disabled={!bids.length}
                                 className={submitBtnClass(!!bids.length)}
                             >
-                                Submit Bet
+                                {t('gameBid.submitBet')}
                             </button>
                         </div>
                     </div>
@@ -288,9 +288,9 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                     {/* Right: list */}
                     <div className="mt-10 md:mt-0">
                         <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center text-[#d4af37] font-bold text-xs sm:text-sm mb-2 px-2">
-                            <div className="truncate">Sangam</div>
-                            <div className="truncate">Amount</div>
-                            <div className="truncate">Delete</div>
+                            <div className="truncate">{t('gameBid.sangam')}</div>
+                            <div className="truncate">{t('gameBid.amount')}</div>
+                            <div className="truncate">{t('gameBid.delete')}</div>
                         </div>
                         <div className="h-px bg-white/10 w-full mb-2" />
 
@@ -308,7 +308,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                                                 type="button"
                                                 onClick={() => handleDelete(b.id)}
                                                 className="p-2 text-red-400 hover:text-red-300 active:scale-95"
-                                                aria-label="Delete"
+                                                aria-label={t('gameBid.delete')}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path
@@ -333,7 +333,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey="Sangam"
+                labelKey={t('gameBid.sangam')}
                 rows={bids}
                 walletBefore={walletBefore}
                 totalBids={bids.length}

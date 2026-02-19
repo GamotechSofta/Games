@@ -252,7 +252,7 @@ const BidLayout = ({
                                     : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
                             }`}
                         >
-                            {submitLabel === 'Submit Bets' ? t('gameBid.submitBets') : submitLabel}
+                            {submitLabel === 'Submit Bets' ? t('gameBid.submitBets') : submitLabel === 'Submit Bet' ? t('gameBid.submitBet') : submitLabel}
                         </button>
                     </div>
                 </div>

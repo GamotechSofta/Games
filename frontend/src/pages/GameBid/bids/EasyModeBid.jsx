@@ -374,7 +374,7 @@ const EasyModeBid = ({
                             : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
                     }`}
                 >
-                    EASY MODE
+                    {t('gameBid.easyMode')}
                 </button>
                 <button
                     type="button"
@@ -385,7 +385,7 @@ const EasyModeBid = ({
                             : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
                     }`}
                 >
-                    SPECIAL MODE
+                    {t('gameBid.specialMode')}
                 </button>
             </div>
 
@@ -430,13 +430,13 @@ const EasyModeBid = ({
                         } rounded-full text-center focus:outline-none focus:border-[#d4af37] ${(isRunning || lockSessionToOpen) ? 'opacity-80 cursor-not-allowed' : ''}`}
                     >
                         {lockSessionToOpen ? (
-                            <option value="OPEN">OPEN</option>
+                            <option value="OPEN">{t('gameBid.open')}</option>
                         ) : isRunning ? (
-                            <option value="CLOSE">CLOSE</option>
+                            <option value="CLOSE">{t('gameBid.close')}</option>
                         ) : (
                             <>
-                                <option value="OPEN">OPEN</option>
-                                <option value="CLOSE">CLOSE</option>
+<option value="OPEN">{t('gameBid.open')}</option>
+                            <option value="CLOSE">{t('gameBid.close')}</option>
                             </>
                         )}
                     </select>
@@ -464,9 +464,9 @@ const EasyModeBid = ({
         <>
             <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#d4af37] font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>{labelKey}</div>
-                <div>Point</div>
-                <div>Type</div>
-                <div>Delete</div>
+                <div>{t('gameBid.point')}</div>
+                <div>{t('gameBid.type')}</div>
+                <div>{t('common.delete')}</div>
             </div>
             <div className="h-px bg-white/10 w-full mb-2"></div>
             <div className="space-y-2">
@@ -492,7 +492,7 @@ const EasyModeBid = ({
                                 type="button"
                                 onClick={() => handleDeleteBid(bid.id)}
                                 className="p-2 text-red-400 hover:text-red-300 active:scale-95"
-                                aria-label="Delete"
+                                aria-label={t('gameBid.delete')}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path
@@ -596,7 +596,7 @@ const EasyModeBid = ({
                                             <input
                                                 type="number"
                                                 min="0"
-                                                placeholder="Pts"
+                                                placeholder={t('gameBid.pts')}
                                                 value={specialInputs[num] || ''}
                                                 onChange={(e) =>
                                                     setSpecialInputs((p) => ({
@@ -622,7 +622,7 @@ const EasyModeBid = ({
                                                     onClick={handleSubmitFromSpecial}
                                                     className={submitBtnClass(enabled)}
                                                 >
-                                                    Submit Bet
+                                                    {t('gameBid.submitBet')}
                                                 </button>
                                             );
                                         })()}
@@ -637,20 +637,20 @@ const EasyModeBid = ({
 
                                         <div className="flex flex-col gap-3 mb-4">
                                             <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Select Game Type:</label>
+                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
                                                 <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
                                                     {session}
                                                 </div>
                                             </div>
                                             <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Points:</label>
+                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
                                                 <input
                                                     ref={pointsInputRef}
                                                     type="text"
                                                     inputMode="numeric"
                                                     value={inputPoints}
                                                     onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                    placeholder="Point"
+                                                    placeholder={t('gameBid.point')}
                                                     className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                                 />
                                             </div>
@@ -723,7 +723,7 @@ const EasyModeBid = ({
                                                                 : ''
                                                     }`}
                                                 >
-                                                    Submit Bet
+                                                    {t('gameBid.submitBet')}
                                                 </button>
                                             </div>
                                         </div>
@@ -764,7 +764,7 @@ const EasyModeBid = ({
                                         onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
                                         className={submitBtnClass(enabled)}
                                     >
-                                        Submit Bet
+                                        {t('gameBid.submitBet')}
                                     </button>
                                         );
                                     })()}
@@ -780,7 +780,7 @@ const EasyModeBid = ({
 
                 <div className="flex flex-col gap-3 mb-4">
                     <div className="flex flex-row items-center gap-2">
-                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Select Game Type:</label>
+                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
                                         <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
                                             {session}
                                         </div>
@@ -800,14 +800,14 @@ const EasyModeBid = ({
                         />
                     </div>
                     <div className="flex flex-row items-center gap-2">
-                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">Enter Points:</label>
+                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
                                         <input
                                             ref={pointsInputRef}
                                             type="text"
                                             inputMode="numeric"
                                             value={inputPoints}
                                             onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            placeholder="Point"
+                                            placeholder={t('gameBid.point')}
                                             className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                         />
                     </div>
