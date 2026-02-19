@@ -31,7 +31,7 @@ const StartlineDashboard = () => {
     try {
       const u = JSON.parse(localStorage.getItem('user') || 'null');
       const b = Number(u?.balance ?? u?.walletBalance ?? u?.wallet ?? 0) || 0;
-      return `${b}`;
+      return b.toLocaleString('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
     } catch {
       return '0';
     }
@@ -127,15 +127,16 @@ const StartlineDashboard = () => {
           <button
             type="button"
             onClick={() => navigate('/bank')}
-            className="shrink-0 rounded-full bg-[#202124] border border-white/10 px-4 py-2 flex items-center gap-2 shadow-[0_8px_18px_rgba(0,0,0,0.35)]"
+            className="shrink-0 px-2 py-1.5 flex items-center gap-2"
             aria-label={t('startlineDashboard.wallet')}
             title={t('startlineDashboard.wallet')}
           >
-            <svg className="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h9a2 2 0 002-2v-2" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12h6v4h-6z" />
-            </svg>
-            <span className="font-bold text-white/90">{balanceText}</span>
+            <img
+              src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
+              alt={t('startlineDashboard.wallet')}
+              className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+            />
+            <span className="font-bold text-white">{balanceText}</span>
           </button>
         </div>
 
