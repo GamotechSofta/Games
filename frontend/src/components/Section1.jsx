@@ -100,25 +100,21 @@ const Section1 = () => {
         {/* ── STARLINE Button ── */}
         <button
           onClick={() => navigate('/startline-dashboard')}
-          className="group relative overflow-hidden rounded-xl bg-[#111113] border border-[#f2c14e]/25 hover:border-[#f2c14e]/60 transition-all duration-300 active:scale-[0.97] cursor-pointer shrink-0"
+          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-[#f2c14e]/[0.06] to-transparent group-hover:from-[#f2c14e]/[0.12] transition-all duration-300" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-700 pointer-events-none" />
-          <div className="relative flex items-center gap-3 px-4 py-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#f2c14e] to-[#b8860b] flex items-center justify-center shrink-0 shadow-[0_2px_14px_rgba(212,175,55,0.4)] group-hover:shadow-[0_2px_20px_rgba(212,175,55,0.6)] group-hover:scale-105 transition-all duration-300">
-              <svg className="w-6 h-6 text-black" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-              </svg>
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
+              <img
+                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771484988/Black_and_White_Vintage_Star_Company_Logo_u2f6mb.png"
+                alt="Starline"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="text-left">
-              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">{t('markets.starline')}</h3>
-              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">{t('markets.tapToPlay')}</p>
+              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.starline')}</h3>
+              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
             </div>
-            <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
-          <div className="h-[2px] bg-gradient-to-r from-transparent via-[#f2c14e]/30 to-transparent group-hover:via-[#f2c14e]/60 transition-all" />
         </button>
 
         {/* ── Left gold line ── */}
@@ -136,24 +132,22 @@ const Section1 = () => {
 
         {/* ── KING BAZAAR Button ── */}
         <button
-          onClick={() => navigate('/king-bazaar-dashboard')}
-          className="group relative overflow-hidden rounded-xl bg-[#111113] border border-[#f2c14e]/25 hover:border-[#f2c14e]/60 transition-all duration-300 active:scale-[0.97] cursor-pointer shrink-0"
+          onClick={() => navigate('/king-bazaar-market')}
+          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
         >
-          <div className="absolute inset-0 bg-gradient-to-l from-[#f2c14e]/[0.06] to-transparent group-hover:from-[#f2c14e]/[0.12] transition-all duration-300" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-700 pointer-events-none" />
-          <div className="relative flex items-center gap-3 px-4 py-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#f2c14e] to-[#b8860b] flex items-center justify-center shrink-0 shadow-[0_2px_14px_rgba(212,175,55,0.4)] group-hover:shadow-[0_2px_20px_rgba(212,175,55,0.6)] group-hover:scale-105 transition-all duration-300">
-              <span className="text-xl leading-none">🎲</span>
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
+              <img
+                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771485291/Yellow_and_Black_Illustrative_Esports_The_Lion_King_Logo_1_s7gnuh.png"
+                alt="King Bazaar"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="text-left">
-              <h3 className="text-[#f2c14e] text-base font-black tracking-wider leading-none">{t('markets.kingBazaar')}</h3>
-              <p className="text-[#f2c14e] text-[11px] mt-1 font-semibold animate-pulse group-hover:animate-none group-hover:text-[#f2c14e] transition-colors drop-shadow-[0_0_8px_rgba(242,193,78,0.6)]">{t('markets.tapToPlay')}</p>
+              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.kingBazaar')}</h3>
+              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
             </div>
-            <svg className="w-4 h-4 ml-1 text-[#f2c14e]/30 group-hover:text-[#f2c14e] group-hover:translate-x-0.5 transition-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
-          <div className="h-[2px] bg-gradient-to-r from-transparent via-[#f2c14e]/30 to-transparent group-hover:via-[#f2c14e]/60 transition-all" />
         </button>
       </div>
 
