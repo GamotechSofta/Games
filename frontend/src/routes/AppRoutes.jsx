@@ -23,7 +23,6 @@ import MarketResultHistory from '../pages/MarketResultHistory';
 import StartlineDashboard from '../pages/StartlineDashboard';
 import TopWinners from '../pages/TopWinners';
 import StarlineMarket from '../pages/StarlineMarket';
-import KingBazaarDashboard from '../pages/KingBazaarDashboard';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
 import Notifications from '../pages/Notifications';
 import GameRate from '../pages/GameRate';
@@ -152,7 +151,6 @@ const Layout = ({ children }) => {
     location.pathname === '/market-result-history' ||
     location.pathname === '/notifications' ||
     location.pathname === '/startline-dashboard' ||
-    location.pathname === '/king-bazaar-dashboard' ||
     location.pathname === '/king-bazaar-market' ||
     location.pathname === '/game-rate' ||
     isSupportPage;
@@ -227,7 +225,6 @@ const AppRoutes = () => {
           <Route path="/market-result-history" element={<MarketResultHistory />} />
           <Route path="/startline-dashboard" element={<StartlineDashboard />} />
           <Route path="/starline-market" element={<StarlineMarket />} />
-          <Route path="/king-bazaar-dashboard" element={<KingBazaarDashboard />} />
           <Route path="/king-bazaar-market" element={<KingBazaarMarket />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />

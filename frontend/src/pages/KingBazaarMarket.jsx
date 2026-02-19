@@ -126,6 +126,7 @@ const KingBazaarMarket = () => {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [tick, setTick] = useState(() => Date.now());
+  const [showClosedModal, setShowClosedModal] = useState(false);
 
   useEffect(() => {
     const t = window.setInterval(() => setTick(Date.now()), 1000);
@@ -264,7 +265,7 @@ const KingBazaarMarket = () => {
         <div className="flex items-center gap-3 md:gap-4 md:rounded-3xl md:border md:border-white/10 md:bg-[#111113] md:px-6 md:py-5 md:shadow-[0_18px_48px_rgba(0,0,0,0.55)]">
           <button
             type="button"
-            onClick={() => navigate('/king-bazaar-dashboard')}
+            onClick={() => navigate('/')}
             className="w-11 h-11 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition shrink-0"
             aria-label="Back"
           >
@@ -292,123 +293,123 @@ const KingBazaarMarket = () => {
           </div>
         </div>
 
-        <div className="mt-4 md:mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-5">
+        {!loading && items.length === 0 && (
+          <div className="mt-4 md:mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm">
+            <p className="font-medium">No time slots for {title} yet.</p>
+            <p className="mt-1 text-amber-200/90">Slots are added in <strong>Admin → Markets → King Bazaar Market</strong>. Once added, they will appear here.</p>
+          </div>
+        )}
+
+        <div className="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-2.5 min-[375px]:gap-3 sm:gap-4">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[225px] md:h-[285px] rounded-2xl md:rounded-3xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+            Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-gray-800 rounded-lg shadow-lg p-2.5 min-[375px]:p-3 sm:p-4 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 border border-white/5 skeleton-shimmer">
+                <div className="w-14 min-[375px]:w-16 sm:w-20 h-10 min-[375px]:h-12 sm:h-14 rounded bg-white/10" />
+                <div className="flex-1 h-10 min-[375px]:h-12 sm:h-14 rounded-full bg-white/10" />
+                <div className="w-20 min-[375px]:w-24 sm:w-28 h-9 min-[375px]:h-10 sm:h-12 rounded-full bg-white/10" />
+              </div>
             ))
           ) : (
-            items.map((m, idx) => {
+            items.map((m) => {
               const timeLabel = formatTime12(m.startingTime) || '-';
               const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
-              const hasDeclaredOpen =
-                m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
-              const hasDeclaredClose =
-                m.closingNumber != null && /^\d{3}$/.test(String(m.closingNumber));
+              const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
+              const hasDeclaredClose = m.closingNumber != null && /^\d{3}$/.test(String(m.closingNumber));
               const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
-              const statusText = isClosedForToday ? 'Close For Today' : 'Open';
-              // King Bazaar: Display jodi result (e.g., "65" as "6 5")
-              const pill = formatKingBazaarJodi(m.displayResult || m._raw?.displayResult);
-              const countdown = formatCountdown(msUntilNextIST(m.startingTime, tick));
-              const imageUrl = KING_BAZAAR_MARKET_IMAGE_OVERRIDES[idx % KING_BAZAAR_MARKET_IMAGE_OVERRIDES.length] || KING_BAZAAR_MARKET_IMAGE_URL;
-
               const canOpen = !isClosedForToday;
+              const marketStatus = isClosedForToday ? 'closed' : 'open';
+              const isClickable = canOpen;
+              const pill = formatKingBazaarJodi(m.displayResult || m._raw?.displayResult);
+
+              const handleNavigate = () => {
+                if (!canOpen) return;
+                const marketForBidOptions = m._raw
+                  ? { ...(m._raw || {}), _id: m.id, marketName: m.marketName, gameName: m.marketName, startingTime: m.startingTime, closingTime: m.closingTime, openingNumber: m.openingNumber, closingNumber: m.closingNumber, status: m.status === 'running' ? 'running' : 'open' }
+                  : { _id: 'king-demo-market', marketType: 'king', marketName: m.marketName, gameName: m.marketName, startingTime: m.startingTime, closingTime: m.closingTime, openingNumber: null, closingNumber: null, status: 'open' };
+                navigate('/bidoptions', { state: { marketType: 'king', market: marketForBidOptions, kingBazaarMarketKey: marketKey, kingBazaarMarketLabel: marketLabel || 'King Bazaar' } });
+              };
 
               return (
-                <button
+                <div
                   key={m.id}
-                  type="button"
-                  disabled={!canOpen}
-                  onClick={() => {
-                    if (!canOpen) return;
-                    const marketForBidOptions = m._raw
-                      ? {
-                        ...(m._raw || {}),
-                        _id: m.id,
-                        marketName: m.marketName,
-                        gameName: m.marketName,
-                        startingTime: m.startingTime,
-                        closingTime: m.closingTime,
-                        openingNumber: m.openingNumber,
-                        closingNumber: m.closingNumber,
-                        status: m.status === 'running' ? 'running' : 'open',
-                      }
-                      : {
-                        _id: 'king-demo-market',
-                        marketType: 'king',
-                        marketName: m.marketName,
-                        gameName: m.marketName,
-                        startingTime: m.startingTime,
-                        closingTime: m.closingTime,
-                        openingNumber: null,
-                        closingNumber: null,
-                        status: 'open',
-                      };
-                    navigate('/bidoptions', {
-                      state: {
-                        marketType: 'king',
-                        market: marketForBidOptions,
-                        kingBazaarMarketKey: marketKey,
-                        kingBazaarMarketLabel: marketLabel || 'King Bazaar',
-                      },
-                    });
-                  }}
-                  className={`relative overflow-hidden rounded-3xl border shadow-[0_16px_34px_rgba(0,0,0,0.55)] transition md:hover:-translate-y-1 md:hover:shadow-[0_22px_60px_rgba(0,0,0,0.65)] ${canOpen
-                      ? 'border-white/10 hover:border-[#d4af37]/40 active:scale-[0.99] cursor-pointer'
-                      : 'border-white/10 opacity-95 cursor-not-allowed'
-                    }`}
+                  className={`bg-gray-800 rounded-lg shadow-lg transform transition-all duration-200 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 p-2.5 min-[375px]:p-3 sm:p-4 border border-white/5 ${
+                    isClickable ? 'cursor-pointer hover:scale-[1.02] hover:border-white/10' : 'cursor-default opacity-90'
+                  }`}
+                  onClick={() => isClickable && handleNavigate()}
+                  role={isClickable ? 'button' : undefined}
                 >
-                  <div className="relative h-[150px] md:h-[190px] overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#15171b] to-[#050505]">
-                    <img
-                      src={imageUrl}
-                      alt="King Bazaar Market"
-                      className={`absolute inset-0 w-full h-full object-contain p-0 ${canOpen ? '' : 'opacity-70 md:grayscale'
-                        }`}
-                      loading="lazy"
-                      draggable="false"
-                    />
+                  <div className="flex flex-col shrink-0 min-w-0">
+                    <div className="text-white text-base min-[375px]:text-lg sm:text-xl md:text-2xl font-bold leading-tight truncate">{timeLabel}</div>
+                    {marketStatus === 'closed' && (
+                      <div className="text-red-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold mt-0.5 truncate">Close for today</div>
+                    )}
                   </div>
-
-                  <div className="bg-[#202124] border-t border-white/10 px-3 py-2.5 md:px-4 md:py-3.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-[12px] md:text-sm font-extrabold text-[#d4af37] truncate">
-                        {countdown}
-                      </div>
-                      <div className="text-[13px] md:text-sm font-extrabold text-white/90 whitespace-nowrap">{timeLabel}</div>
-                    </div>
-
-                    <div className="mt-1 flex items-center justify-between gap-2">
-                      <div
-                        className={`font-extrabold text-[#d4af37] tracking-wide ${String(pill).includes('*')
-                            ? 'text-[18px] md:text-[22px] leading-none'
-                            : 'text-[14px] md:text-[16px]'
-                          }`}
-                      >
-                        {pill}
-                      </div>
-                      <svg className="w-4 h-4 text-white/55 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-
-                    <div
-                      className={`mt-1 text-center text-[12px] font-semibold ${statusText === 'Close For Today'
-                          ? 'text-red-400'
-                          : statusText === 'Open'
-                            ? 'text-emerald-400'
-                            : 'text-white/80'
-                        }`}
-                    >
-                      {statusText}
+                  <div className="flex-1 flex justify-center min-w-0">
+                    <div className="bg-black rounded-full px-2.5 min-[375px]:px-3 sm:px-4 md:px-6 py-1.5 min-[375px]:py-2 sm:py-2.5 md:py-3 border border-white/10">
+                      <p className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap">{pill}</p>
                     </div>
                   </div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (marketStatus === 'closed') setShowClosedModal(true);
+                      else handleNavigate();
+                    }}
+                    className={`shrink-0 border rounded-full px-2 min-[375px]:px-2.5 sm:px-3 md:px-4 py-1.5 min-[375px]:py-2 sm:py-2.5 flex items-center gap-1 min-[375px]:gap-1.5 sm:gap-2 transition-colors ${
+                      isClickable ? 'bg-gray-700 border-white/10 hover:bg-gray-600 hover:border-white/20' : 'bg-gray-700/50 border-white/5 opacity-70'
+                    }`}
+                  >
+                    <svg className="w-2.5 h-2.5 min-[375px]:w-3 min-[375px]:h-3 sm:w-4 sm:h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">Play Game</span>
+                  </button>
+                </div>
               );
             })
           )}
         </div>
       </div>
+
+      {/* Closed Market Modal */}
+      {showClosedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-gray-800 rounded-2xl shadow-xl max-w-sm w-full relative border border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowClosedModal(false)}
+              className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="px-6 py-8 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center border border-red-500/30">
+                  <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+              </div>
+              <h2 className="text-red-400 text-xl font-bold mb-3">Sorry !</h2>
+              <div className="text-white/90 text-sm leading-relaxed mb-6">
+                <p className="mb-2">Betting is Closed for today.</p>
+                <p>Please come next day to play.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowClosedModal(false)}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-6 rounded-lg transition-colors"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
