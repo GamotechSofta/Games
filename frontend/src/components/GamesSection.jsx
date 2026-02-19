@@ -15,10 +15,10 @@ const GamesSection = () => {
   };
 
   return (
-    <section className="w-full bg-black py-6 sm:py-8 max-w-full overflow-x-hidden">
+    <section className="w-full bg-black pt-2 pb-6 sm:pt-3 sm:pb-8 max-w-full overflow-x-hidden">
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
         {/* Section header - orange-yellow tab (parallelogram style) */}
-        <div className="mb-4 sm:mb-5">
+        <div className="mb-3 sm:mb-4">
           <div
             className="inline-block bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 px-5 sm:px-6 py-2 sm:py-2.5 rounded-sm shadow-[0_2px_8px_rgba(212,175,55,0.3)]"
             style={{ transform: 'skewX(-8deg)' }}
