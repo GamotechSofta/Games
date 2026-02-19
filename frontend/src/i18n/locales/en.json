@@ -515,6 +515,26 @@
     "comingSoon": "Coming Soon",
     "tapToPlay": "Tap to Play"
   },
+  "startlineDashboard": {
+    "title": "STARLINE DASHBOARD",
+    "chooseMarket": "Choose a market to view hourly slots and play.",
+    "noMarkets": "No starline markets. Admin can add them in Starline tab.",
+    "wallet": "Wallet"
+  },
+  "starlineMarket": {
+    "pageTitle": "Starline Market",
+    "selectTimeSlot": "Select a time slot to place bets. Green = open, red = closed for today.",
+    "open": "Open",
+    "closed": "Closed",
+    "closeForToday": "Close for today",
+    "playGame": "Play Game",
+    "noTimeSlots": "No time slots for {{title}} yet.",
+    "slotsAddedIn": "Slots are added in Admin → Markets → Starline Market. Once added, they will appear here.",
+    "sorry": "Sorry !",
+    "bettingClosed": "Betting is Closed for today.",
+    "comeNextDay": "Please come next day to play.",
+    "ok": "OK"
+  },
   "markets": {
     "markets": "Markets",
     "starline": "STARLINE",

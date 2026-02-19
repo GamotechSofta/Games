@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -20,6 +21,7 @@ const getMarketStatus = (market) => {
 
 const StartlineDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [markets, setMarkets] = useState([]);
   const [starlineGroups, setStarlineGroups] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -111,14 +113,14 @@ const StartlineDashboard = () => {
               type="button"
               onClick={() => navigate('/')}
               className="w-11 h-11 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition shrink-0"
-              aria-label="Back"
+              aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <div className="text-base min-[360px]:text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold tracking-wide truncate">
-              STARLINE DASHBOARD
+              {t('startlineDashboard.title')}
             </div>
           </div>
 
@@ -126,8 +128,8 @@ const StartlineDashboard = () => {
             type="button"
             onClick={() => navigate('/bank')}
             className="shrink-0 rounded-full bg-[#202124] border border-white/10 px-4 py-2 flex items-center gap-2 shadow-[0_8px_18px_rgba(0,0,0,0.35)]"
-            aria-label="Wallet"
-            title="Wallet"
+            aria-label={t('startlineDashboard.wallet')}
+            title={t('startlineDashboard.wallet')}
           >
             <svg className="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2h9a2 2 0 002-2v-2" />
@@ -138,7 +140,7 @@ const StartlineDashboard = () => {
         </div>
 
         <div className="hidden md:block mt-4 text-sm text-white/60">
-          Choose a market to view hourly slots and play.
+          {t('startlineDashboard.chooseMarket')}
         </div>
 
         <div className="mt-4 md:mt-6 h-px bg-white/10 md:bg-white/5" />
@@ -151,7 +153,7 @@ const StartlineDashboard = () => {
             ))
           ) : starlineGroups.length === 0 ? (
             <div className="col-span-full text-center py-8 text-white/60 text-sm">
-              No starline markets. Admin can add them in Starline tab.
+              {t('startlineDashboard.noMarkets')}
             </div>
           ) : (
             starlineGroups.map((m, idx) => (
@@ -165,7 +167,7 @@ const StartlineDashboard = () => {
                   <div className="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl md:rounded-3xl bg-gradient-to-br from-[#f2c14e] to-[#d4af37] border border-black/20 overflow-hidden shadow-[0_8px_18px_rgba(242,193,78,0.22)] group-hover:shadow-[0_10px_28px_rgba(242,193,78,0.28)] transition-shadow">
                     <img
                       src={STARLINE_DASHBOARD_MARKET_IMAGE_URL}
-                      alt={m.label || 'Starline Market'}
+                      alt={m.label || t('bidOptions.starlineMarket')}
                       className="absolute inset-0 w-full h-full object-contain p-0 scale-125"
                       loading="lazy"
                       draggable="false"

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 
@@ -129,6 +130,7 @@ const formatCountdown = (ms) => {
 const StarlineMarket = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'Starline').toString();
 
@@ -238,35 +240,35 @@ const StarlineMarket = () => {
             type="button"
             onClick={() => navigate('/startline-dashboard')}
             className="w-11 h-11 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white active:scale-95 transition shrink-0"
-            aria-label="Back"
+            aria-label={t('common.back')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <div className="text-sm text-white/60 leading-none">Starline Market</div>
+            <div className="text-sm text-white/60 leading-none">{t('starlineMarket.pageTitle')}</div>
             <div className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide truncate">{title}</div>
-            <div className="hidden sm:block mt-1 text-xs text-white/50">Select a time slot to place bets. Green = open, red = closed for today.</div>
+            <div className="hidden sm:block mt-1 text-xs text-white/50">{t('starlineMarket.selectTimeSlot')}</div>
           </div>
 
           {/* Desktop legend */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400/90 shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
-              Open
+              {t('starlineMarket.open')}
             </div>
             <div className="flex items-center gap-2 text-xs text-white/70">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-400/90 shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
-              Closed
+              {t('starlineMarket.closed')}
             </div>
           </div>
         </div>
 
         {!loading && items.length === 0 && (
           <div className="mt-4 md:mt-6 p-4 rounded-2xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-sm">
-            <p className="font-medium">No time slots for {title} yet.</p>
-            <p className="mt-1 text-amber-200/90">Slots are added in <strong>Admin → Markets → Starline Market</strong>. Once added, they will appear here.</p>
+            <p className="font-medium">{t('starlineMarket.noTimeSlots', { title })}</p>
+            <p className="mt-1 text-amber-200/90">{t('starlineMarket.slotsAddedIn')}</p>
           </div>
         )}
 
@@ -323,7 +325,7 @@ const StarlineMarket = () => {
                     </div>
                     {marketStatus === 'closed' && (
                       <div className="text-red-400 text-[10px] min-[375px]:text-xs sm:text-sm font-semibold mt-0.5 truncate">
-                        Close for today
+                        {t('starlineMarket.closeForToday')}
                       </div>
                     )}
                   </div>
@@ -373,7 +375,7 @@ const StarlineMarket = () => {
                     <svg className="w-2.5 h-2.5 min-[375px]:w-3 min-[375px]:h-3 sm:w-4 sm:h-4 text-white shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
-                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">Play Game</span>
+                    <span className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold whitespace-nowrap">{t('starlineMarket.playGame')}</span>
                   </button>
                 </div>
               );
@@ -391,7 +393,7 @@ const StarlineMarket = () => {
               type="button"
               onClick={() => setShowClosedModal(false)}
               className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
-              aria-label="Close"
+              aria-label={t('common.close')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -410,12 +412,12 @@ const StarlineMarket = () => {
               </div>
 
               {/* Sorry title */}
-              <h2 className="text-red-400 text-xl font-bold mb-3">Sorry !</h2>
+              <h2 className="text-red-400 text-xl font-bold mb-3">{t('starlineMarket.sorry')}</h2>
 
               {/* Message */}
               <div className="text-white/90 text-sm leading-relaxed mb-6">
-                <p className="mb-2">Betting is Closed for today.</p>
-                <p>Please come next day to play.</p>
+                <p className="mb-2">{t('starlineMarket.bettingClosed')}</p>
+                <p>{t('starlineMarket.comeNextDay')}</p>
               </div>
 
               {/* OK button */}
@@ -424,7 +426,7 @@ const StarlineMarket = () => {
                 onClick={() => setShowClosedModal(false)}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold py-3 px-6 rounded-lg transition-colors"
               >
-                OK
+                {t('starlineMarket.ok')}
               </button>
             </div>
           </div>
