@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import {
     FaChartLine,
     FaMoneyBillWave,
@@ -176,8 +176,7 @@ const Dashboard = () => {
             if (isRefresh) params.set('_', String(Date.now()));
             const query = params.toString();
             const url = `${API_BASE_URL}/dashboard/stats${query ? `?${query}` : ''}`;
-            const response = await fetch(url, {
-                headers: getBookieAuthHeaders(),
+            const response = await bookieFetch(url, {
                 cache: isRefresh ? 'no-store' : 'default',
             });
             const data = await response.json();

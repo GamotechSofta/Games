@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, FaTimes, FaEye, FaEyeSlash, FaCopy } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const BookieManagement = () => {
     const navigate = useNavigate();
@@ -43,23 +41,11 @@ const BookieManagement = () => {
 
     const PHONE_REGEX = /^[6-9]\d{9}$/;
 
-    // Get auth headers
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
-
     // Fetch all bookies
     const fetchBookies = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/admin/bookies`, {
-                headers: getAuthHeaders(),
-            });
+            const response = await adminFetch(`${API_BASE_URL}/admin/bookies`);
             const data = await response.json();
             if (data.success) {
                 setBookies(data.data);
@@ -78,7 +64,7 @@ const BookieManagement = () => {
     }, []);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -134,9 +120,8 @@ const BookieManagement = () => {
                 commissionPercentage: formData.commissionPercentage !== '' ? Number(formData.commissionPercentage) : 0,
                 upiId: formData.bookieType === 'bookie_collects' ? (formData.upiId || '').trim() : '',
             };
-            const response = await fetch(`${API_BASE_URL}/admin/bookies`, {
+            const response = await adminFetch(`${API_BASE_URL}/admin/bookies`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(payload),
             });
             const data = await response.json();
@@ -187,9 +172,8 @@ const BookieManagement = () => {
             };
             if (formData.password) updateData.password = formData.password;
 
-            const response = await fetch(`${API_BASE_URL}/admin/bookies/${selectedBookie._id}`, {
+            const response = await adminFetch(`${API_BASE_URL}/admin/bookies/${selectedBookie._id}`, {
                 method: 'PUT',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(updateData),
             });
             const data = await response.json();
@@ -222,9 +206,9 @@ const BookieManagement = () => {
         setFormLoading(true);
 
         try {
-            const opts = { method: 'DELETE', headers: getAuthHeaders() };
+            const opts = { method: 'DELETE' };
             if (hasSecretDeclarePassword) opts.body = JSON.stringify({ secretDeclarePassword: secretPassword.trim() });
-            const response = await fetch(`${API_BASE_URL}/admin/bookies/${selectedBookie._id}`, opts);
+            const response = await adminFetch(`${API_BASE_URL}/admin/bookies/${selectedBookie._id}`, opts);
             const data = await response.json();
 
             if (data.success) {
@@ -254,9 +238,9 @@ const BookieManagement = () => {
         setError('');
         setPasswordError('');
         try {
-            const opts = { method: 'PATCH', headers: getAuthHeaders() };
+            const opts = { method: 'PATCH' };
             if (secretDeclarePasswordValue) opts.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
-            const response = await fetch(`${API_BASE_URL}/admin/bookies/${bookie._id}/toggle-status`, opts);
+            const response = await adminFetch(`${API_BASE_URL}/admin/bookies/${bookie._id}/toggle-status`, opts);
             const data = await response.json();
             if (data.success) {
                 setShowPasswordModal(false);
@@ -321,7 +305,7 @@ const BookieManagement = () => {
         setShowEditModal(true);
         // Fetch full bookie to get decrypted UPI ID
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/bookies/${bookie._id}`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/admin/bookies/${bookie._id}`);
             const json = await res.json();
             if (json.success && json.data) {
                 const b = json.data;

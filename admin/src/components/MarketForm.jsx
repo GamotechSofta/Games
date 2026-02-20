@@ -34,7 +34,7 @@ const to24Hour = (hour12, minute, ampm) => {
 const HOURS_12 = ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
-const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, apiBaseUrl, getAuthHeaders }) => {
+const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, apiBaseUrl, authFetch }) => {
     const [formData, setFormData] = useState({
         marketName: '',
         startingTime: '00:00',
@@ -102,7 +102,6 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
         setLoading(true);
 
         try {
-            const headers = getAuthHeaders();
             const url = market
                 ? `${apiBaseUrl}/markets/update-market/${market._id}`
                 : `${apiBaseUrl}/markets/create-market`;
@@ -121,9 +120,8 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                     marketType: formData.marketType === 'startline' ? 'startline' : formData.marketType === 'king' ? 'king' : 'main',
                 };
 
-            const response = await fetch(url, {
+            const response = await authFetch(url, {
                 method: market ? 'PATCH' : 'POST',
-                headers,
                 body: JSON.stringify(payload),
             });
 

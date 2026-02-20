@@ -45,8 +45,8 @@ const ScrollToTop = () => {
 
 const PrivateRoute = ({ children }) => {
     const admin = localStorage.getItem('admin');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
-    if (!admin || !password) {
+    const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+    if (!admin || !token) {
         if (!admin) clearAdminAuth();
         return <Navigate to="/" />;
     }

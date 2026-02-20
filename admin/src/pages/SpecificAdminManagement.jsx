@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { clearAdminAuth, getAdminAuthHeaders, API_BASE_URL } from '../utils/api';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TAB_OPTIONS = [
     { path: '/dashboard', label: 'Dashboard' },
@@ -52,7 +52,7 @@ const SpecificAdminManagement = () => {
     const fetchList = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/admin/specific-admins`, { headers: getAdminAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/admin/specific-admins`);
             const data = await res.json();
             if (data.success) setList(data.data || []);
             else setError(data.message || 'Failed to fetch');
@@ -87,9 +87,8 @@ const SpecificAdminManagement = () => {
         }
         setFormLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/specific-admins`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/specific-admins`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({
                     username: loginNumber,
                     password: formData.password,
@@ -128,9 +127,8 @@ const SpecificAdminManagement = () => {
             if (editData.password && editData.password.length >= 6) body.password = editData.password;
             if (editData.clearSecretPassword) body.secretDeclarePassword = null;
             else if (editData.secretDeclarePassword?.trim().length >= 4) body.secretDeclarePassword = editData.secretDeclarePassword.trim();
-            const res = await fetch(`${API_BASE_URL}/admin/specific-admins/${selected._id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/specific-admins/${selected._id}`, {
                 method: 'PUT',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const data = await res.json();
@@ -154,9 +152,8 @@ const SpecificAdminManagement = () => {
         if (!selected) return;
         setFormLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/specific-admins/${selected._id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/specific-admins/${selected._id}`, {
                 method: 'DELETE',
-                headers: getAdminAuthHeaders(),
             });
             const data = await res.json();
             if (data.success) {

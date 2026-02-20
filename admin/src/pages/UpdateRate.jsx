@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { FaPencilAlt } from 'react-icons/fa';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const GAME_LABELS = {
     single: 'Single Digit',
@@ -38,7 +37,7 @@ const UpdateRate = () => {
     }, [navigate]);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -46,20 +45,11 @@ const UpdateRate = () => {
             .catch(() => setHasSecretDeclarePassword(false));
     }, []);
 
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
-
     const fetchRates = async () => {
         try {
             setLoading(true);
             setError('');
-            const res = await fetch(`${API_BASE_URL}/rates`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/rates`);
             const data = await res.json();
             if (data.success) setRates(data.data || []);
             else setError(data.message || 'Failed to fetch rates');
@@ -97,9 +87,8 @@ const UpdateRate = () => {
         try {
             const body = { rate: num };
             if (secretDeclarePasswordValue) body.secretDeclarePassword = secretDeclarePasswordValue;
-            const res = await fetch(`${API_BASE_URL}/rates/${editingKey}`, {
+            const res = await adminFetch(`${API_BASE_URL}/rates/${editingKey}`, {
                 method: 'PATCH',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const data = await res.json();

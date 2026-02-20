@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUserSlash, FaUserCheck, FaUserPlus, FaSearch } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
 
 const computeIsOnline = (item) => {
@@ -50,29 +48,20 @@ const AllUsers = () => {
         }
     };
 
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
-
     const fetchData = async (showLoader = true) => {
         const isSuperAdmin = getAdminRole() === 'super_admin';
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
             const fetches = [
-                fetch(`${API_BASE_URL}/users`, { headers: getAuthHeaders() }),
-                fetch(`${API_BASE_URL}/users?filter=super_admin`, { headers: getAuthHeaders() }),
-                fetch(`${API_BASE_URL}/users?filter=bookie`, { headers: getAuthHeaders() }),
+                adminFetch(`${API_BASE_URL}/users`),
+                adminFetch(`${API_BASE_URL}/users?filter=super_admin`),
+                adminFetch(`${API_BASE_URL}/users?filter=bookie`),
             ];
             if (isSuperAdmin) {
                 fetches.push(
-                    fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAuthHeaders() }),
-                    fetch(`${API_BASE_URL}/admin/super-admins`, { headers: getAuthHeaders() })
+                    adminFetch(`${API_BASE_URL}/admin/bookies`),
+                    adminFetch(`${API_BASE_URL}/admin/super-admins`)
                 );
             }
             const results = await Promise.all(fetches);
@@ -102,7 +91,7 @@ const AllUsers = () => {
             return;
         }
         fetchData(true);
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -128,9 +117,9 @@ const AllUsers = () => {
         setSuccess('');
         setPasswordError('');
         try {
-            const opts = { method: 'PATCH', headers: getAuthHeaders() };
+            const opts = { method: 'PATCH' };
             if (secretDeclarePasswordValue) opts.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
-            const res = await fetch(`${API_BASE_URL}/users/${userId}/toggle-status`, opts);
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}/toggle-status`, opts);
             const data = await res.json();
             if (data.success) {
                 setShowPasswordModal(false);
@@ -159,9 +148,9 @@ const AllUsers = () => {
         setSuccess('');
         setPasswordError('');
         try {
-            const opts = { method: 'PATCH', headers: getAuthHeaders() };
+            const opts = { method: 'PATCH' };
             if (secretDeclarePasswordValue) opts.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
-            const res = await fetch(`${API_BASE_URL}/admin/bookies/${bookieId}/toggle-status`, opts);
+            const res = await adminFetch(`${API_BASE_URL}/admin/bookies/${bookieId}/toggle-status`, opts);
             const data = await res.json();
             if (data.success) {
                 setShowPasswordModal(false);

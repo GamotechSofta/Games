@@ -17,7 +17,7 @@ import {
     FaExclamationTriangle,
 } from 'react-icons/fa';
 
-import { API_BASE_URL, getAdminAuthHeaders, clearAdminAuth } from '../utils/api';
+import { API_BASE_URL, adminFetch, clearAdminAuth } from '../utils/api';
 
 const PRESETS = [
     { id: 'all', label: 'All', getRange: () => ({ from: null, to: null }) },
@@ -136,8 +136,8 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const admin = localStorage.getItem('admin');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
-        if (!admin || !password) {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!admin || !token) {
             if (!admin) clearAdminAuth();
             navigate('/');
             return;
@@ -166,16 +166,12 @@ const AdminDashboard = () => {
             if (isRefresh) params.set('_', String(Date.now()));
             const query = params.toString();
             const url = `${API_BASE_URL}/dashboard/stats${query ? `?${query}` : ''}`;
-            const response = await fetch(url, {
-                headers: getAdminAuthHeaders(),
+            const response = await adminFetch(url, {
                 cache: isRefresh ? 'no-store' : 'default',
             });
             const data = await response.json();
             if (data.success) setStats(data.data);
-            else if (response.status === 401) {
-                clearAdminAuth();
-                navigate('/');
-            } else setError('Failed to fetch dashboard stats');
+            else setError('Failed to fetch dashboard stats');
         } catch (err) {
             setError('Network error. Please check if the server is running.');
         } finally {

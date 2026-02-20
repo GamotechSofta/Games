@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaCog, FaCreditCard, FaCheckCircle, FaExclamationCircle, FaSave, FaBuilding, FaHandHoldingUsd, FaShieldAlt, FaLock } from 'react-icons/fa';
 
 const Settings = () => {
@@ -22,7 +22,7 @@ const Settings = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/bookie/upi`, { headers: getBookieAuthHeaders() });
+                const res = await bookieFetch(`${API_BASE_URL}/bookie/upi`);
                 const json = await res.json();
                 if (json.success) {
                     setBookieType(json.data?.bookieType || 'admin_collects');
@@ -47,7 +47,7 @@ const Settings = () => {
         if (bookieType !== 'bookie_collects') return;
         const fetchSecPwdStatus = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const res = await bookieFetch(`${API_BASE_URL}/bookie/security-password-status`);
                 const json = await res.json();
                 if (json.success && json.data) setSecurityPasswordSet(json.data.isSet === true);
             } catch (e) {
@@ -75,10 +75,9 @@ const Settings = () => {
         try {
             const body = { upiIds: trimmed, upiDistributionType, upiBatchSize };
             if (securityPasswordSet) body.securityPassword = upiSecurityPassword.trim();
-            const res = await fetch(`${API_BASE_URL}/bookie/upi`, {
+            const res = await bookieFetch(`${API_BASE_URL}/bookie/upi`, {
                 method: 'PATCH',
                 headers: {
-                    ...getBookieAuthHeaders(),
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(body),
@@ -125,9 +124,8 @@ const Settings = () => {
         }
         setSecPwdLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/bookie/security-password`, {
+            const res = await bookieFetch(`${API_BASE_URL}/bookie/security-password`, {
                 method: 'PATCH',
-                headers: { ...getBookieAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ newPassword: newPwd, currentPassword: current || undefined }),
             });
             const json = await res.json();

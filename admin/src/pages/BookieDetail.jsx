@@ -16,9 +16,7 @@ import {
     FaEnvelope,
     FaClock,
 } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TABS = [
     { id: 'overview', label: 'Overview' },
@@ -57,12 +55,6 @@ const PRESETS = [
     }},
 ];
 
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return { 'Content-Type': 'application/json', Authorization: `Basic ${btoa(`${admin.username}:${password}`)}` };
-};
-
 const formatCurrency = (n) => {
     const num = Number(n);
     if (!Number.isFinite(num)) return '\u20B90';
@@ -98,9 +90,8 @@ const BookieDetail = () => {
         try {
             setLoading(true);
             setError('');
-            const res = await fetch(
-                `${API_BASE_URL}/reports/revenue/${bookieId}?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`,
-                { headers: getAuthHeaders() }
+            const res = await adminFetch(
+                `${API_BASE_URL}/reports/revenue/${bookieId}?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
             );
             const json = await res.json();
             if (json.success) setData(json.data);

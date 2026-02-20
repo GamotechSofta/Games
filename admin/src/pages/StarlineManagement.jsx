@@ -3,9 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import MarketForm from '../components/MarketForm';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const safeNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const formatTime = (timeStr) => {
@@ -124,14 +122,6 @@ const StarlineManagement = ({ embedded = false }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
 
     const fetchMarkets = async () => {
         try {
@@ -192,7 +182,7 @@ const StarlineManagement = ({ embedded = false }) => {
     }, [activeTab]);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => { if (json.success) setHasSecretDeclarePassword(!!json.hasSecretDeclarePassword); })
             .catch(() => setHasSecretDeclarePassword(false));
@@ -228,9 +218,8 @@ const StarlineManagement = ({ embedded = false }) => {
         setAddMarketLoading(true);
         setAddMarketError('');
         try {
-            const res = await fetch(`${API_BASE_URL}/markets/starline-groups`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/starline-groups`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ label }),
             });
             const data = await res.json();
@@ -260,9 +249,9 @@ const StarlineManagement = ({ embedded = false }) => {
         setDeleteGroupPasswordError('');
         setDeleteGroupLoading(true);
         try {
-            const opts = { method: 'DELETE', headers: getAuthHeaders() };
+            const opts = { method: 'DELETE' };
             if (pwd.trim()) opts.body = JSON.stringify({ secretDeclarePassword: pwd.trim() });
-            const res = await fetch(`${API_BASE_URL}/markets/starline-groups/${encodeURIComponent(deleteGroupKey)}`, opts);
+            const res = await adminFetch(`${API_BASE_URL}/markets/starline-groups/${encodeURIComponent(deleteGroupKey)}`, opts);
             const data = await res.json();
             if (data.success) {
                 setShowDeleteGroupModal(false);
@@ -344,9 +333,8 @@ const StarlineManagement = ({ embedded = false }) => {
             return;
         }
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ secretDeclarePassword: val }),
             });
             const data = await res.json();
@@ -398,9 +386,8 @@ const StarlineManagement = ({ embedded = false }) => {
                 const sec = Number(addBetClosure);
                 if (Number.isFinite(sec) && sec >= 0) payload.betClosureTime = sec;
             }
-            const res = await fetch(`${API_BASE_URL}/markets/create-market`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/create-market`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(payload),
             });
             const data = await res.json();
@@ -426,9 +413,8 @@ const StarlineManagement = ({ embedded = false }) => {
         setDeletePasswordError('');
         try {
             const body = pwd ? { secretDeclarePassword: pwd } : {};
-            const res = await fetch(`${API_BASE_URL}/markets/delete-market/${id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/delete-market/${id}`, {
                 method: 'DELETE',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const data = await res.json();
@@ -478,7 +464,7 @@ const StarlineManagement = ({ embedded = false }) => {
         setCheckLoading(true);
         setPreview(null);
         try {
-            const res = await fetch(`${API_BASE_URL}/markets/preview-declare-open/${id}?openingNumber=${encodeURIComponent(val)}`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/markets/preview-declare-open/${id}?openingNumber=${encodeURIComponent(val)}`);
             const data = await res.json();
             if (data.success && data.data != null) {
                 setPreview({
@@ -508,9 +494,8 @@ const StarlineManagement = ({ embedded = false }) => {
         try {
             const body = { openingNumber: val };
             if (pwd) body.secretDeclarePassword = pwd;
-            const res = await fetch(`${API_BASE_URL}/markets/declare-open/${selectedResultMarket._id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/declare-open/${selectedResultMarket._id}`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const data = await res.json();
@@ -564,7 +549,7 @@ const StarlineManagement = ({ embedded = false }) => {
         if (!window.confirm('Clear result for this slot?')) return;
         setClearLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/markets/clear-result/${selectedResultMarket._id}`, { method: 'POST', headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/markets/clear-result/${selectedResultMarket._id}`, { method: 'POST' });
             const data = await res.json();
             if (data.success) {
                 setSelectedResultMarket((prev) => (prev ? { ...prev, openingNumber: null, closingNumber: null } : null));
@@ -709,7 +694,7 @@ const StarlineManagement = ({ embedded = false }) => {
                         onClose={handleFormClose}
                         onSuccess={handleFormClose}
                         apiBaseUrl={API_BASE_URL}
-                        getAuthHeaders={getAuthHeaders}
+                        authFetch={adminFetch}
                     />
                 )}
 

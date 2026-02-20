@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaWallet, FaPlus, FaMinus, FaBuilding, FaHandHoldingUsd, FaSearch, FaTimes, FaCoins, FaHistory, FaLock } from 'react-icons/fa';
 
 const Wallet = () => {
@@ -27,7 +27,7 @@ const Wallet = () => {
         if (bookieType !== 'bookie_collects') return;
         const check = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const res = await bookieFetch(`${API_BASE_URL}/bookie/security-password-status`);
                 const json = await res.json();
                 if (json.success && json.data) setSecurityPasswordRequired(json.data.isSet === true);
             } catch (e) {
@@ -47,7 +47,7 @@ const Wallet = () => {
     const fetchWallets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/wallet/all`, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(`${API_BASE_URL}/wallet/all`);
             const data = await response.json();
             if (data.success) setWallets(data.data);
         } catch (err) {
@@ -60,7 +60,7 @@ const Wallet = () => {
     const fetchTransactions = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/wallet/transactions`, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(`${API_BASE_URL}/wallet/transactions`);
             const data = await response.json();
             if (data.success) setTransactions(data.data);
         } catch (err) {
@@ -96,12 +96,8 @@ const Wallet = () => {
             const userId = adjustModal.wallet.userId?._id || adjustModal.wallet.userId;
             const body = { userId, amount, type: adjustModal.type };
             if (securityPasswordRequired) body.securityPassword = adjustSecurityPassword.trim();
-            const response = await fetch(`${API_BASE_URL}/wallet/adjust`, {
+            const response = await bookieFetch(`${API_BASE_URL}/wallet/adjust`, {
                 method: 'POST',
-                headers: {
-                    ...getBookieAuthHeaders(),
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(body),
             });
             const data = await response.json();

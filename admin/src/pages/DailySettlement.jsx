@@ -16,7 +16,7 @@ import {
     FaSearch,
     FaFilter,
 } from 'react-icons/fa';
-import { getAdminAuthHeaders, clearAdminAuth, API_BASE_URL } from '../utils/api';
+import { adminFetch, clearAdminAuth, API_BASE_URL } from '../utils/api';
 
 const PRESETS = [
     { id: 'today', label: 'Today', getRange: () => {
@@ -120,7 +120,7 @@ const DailySettlement = () => {
             if (activeTab === 'admin_collects' && bookieFilter) {
                 params.set('bookieId', bookieFilter);
             }
-            const res = await fetch(`${API_BASE_URL}/settlements?${params}`, { headers: getAdminAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/settlements?${params}`);
             const json = await res.json();
             if (json.success) setSettlements(json.data);
         } catch (err) {
@@ -132,9 +132,7 @@ const DailySettlement = () => {
 
     const fetchRevenue = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/reports/revenue?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
-                headers: getAdminAuthHeaders(),
-            });
+            const res = await adminFetch(`${API_BASE_URL}/reports/revenue?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
             const json = await res.json();
             if (json.success) setRevenueData(json.data);
         } catch (err) {
@@ -144,7 +142,7 @@ const DailySettlement = () => {
 
     const fetchBookies = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAdminAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/admin/bookies`);
             const json = await res.json();
             if (json.success) {
                 const list = json.data || [];
@@ -166,9 +164,7 @@ const DailySettlement = () => {
 
     const fetchDailyBreakdown = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/reports/revenue/daily-breakdown?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
-                headers: getAdminAuthHeaders(),
-            });
+            const res = await adminFetch(`${API_BASE_URL}/reports/revenue/daily-breakdown?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
             const json = await res.json();
             if (json.success) setDailyBreakdown(json.data || []);
         } catch (err) {
@@ -178,9 +174,7 @@ const DailySettlement = () => {
 
     const fetchAdminCollectsDailyBreakdown = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/reports/revenue/admin-collects-daily?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
-                headers: getAdminAuthHeaders(),
-            });
+            const res = await adminFetch(`${API_BASE_URL}/reports/revenue/admin-collects-daily?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
             const json = await res.json();
             if (json.success) setAdminCollectsRevenue(json.data || []);
         } catch (err) {
@@ -220,9 +214,8 @@ const DailySettlement = () => {
         }
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({
                     bookieId: formData.bookieId,
                     bookieType: 'bookie_collects',
@@ -250,9 +243,8 @@ const DailySettlement = () => {
         if (!bookieId || !date || amount <= 0) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({
                     bookieId,
                     bookieType: 'bookie_collects',
@@ -275,9 +267,8 @@ const DailySettlement = () => {
         if (!editModal || editModal.amount === '' || editModal.amount < 0) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${editModal._id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements/${editModal._id}`, {
                 method: 'PATCH',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({
                     amount: Number(editModal.amount),
                     remarks: editModal.remarks || '',
@@ -300,9 +291,8 @@ const DailySettlement = () => {
     const handleDelete = async (id) => {
         if (!confirm('Delete this settlement?')) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements/${id}`, {
                 method: 'DELETE',
-                headers: getAdminAuthHeaders(),
             });
             const json = await res.json();
             if (json.success) fetchSettlements();
@@ -316,9 +306,8 @@ const DailySettlement = () => {
         if (!verifyModal) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${verifyModal._id}/approve`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements/${verifyModal._id}/approve`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({ adminRemarks: verifyModal.adminRemarks || '' }),
             });
             const json = await res.json();
@@ -337,9 +326,8 @@ const DailySettlement = () => {
         if (!verifyModal) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${verifyModal._id}/reject`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements/${verifyModal._id}/reject`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
                 body: JSON.stringify({ adminRemarks: verifyModal.adminRemarks || 'Rejected' }),
             });
             const json = await res.json();
@@ -401,9 +389,8 @@ const DailySettlement = () => {
     const handlePaymentSent = async (id) => {
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${id}/payment-sent`, {
+            const res = await adminFetch(`${API_BASE_URL}/settlements/${id}/payment-sent`, {
                 method: 'POST',
-                headers: getAdminAuthHeaders(),
             });
             const json = await res.json();
             if (json.success) {

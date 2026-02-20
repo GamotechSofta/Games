@@ -2,18 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
-    };
-};
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const PlayerDevices = () => {
     const { userId } = useParams();
@@ -34,7 +23,7 @@ const PlayerDevices = () => {
             setLoading(true);
             setError('');
             try {
-                const res = await fetch(`${API_BASE_URL}/users/${userId}`, { headers: getAuthHeaders() });
+                const res = await adminFetch(`${API_BASE_URL}/users/${userId}`);
                 const data = await res.json();
                 if (data.success) {
                     setPlayer(data.data);
@@ -63,9 +52,8 @@ const PlayerDevices = () => {
         setMessage('');
         setError('');
         try {
-            const res = await fetch(`${API_BASE_URL}/users/${userId}/clear-devices`, {
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}/clear-devices`, {
                 method: 'PATCH',
-                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (data.success) {

@@ -11,12 +11,12 @@ const Login = () => {
     const navigate = useNavigate();
     const hasRedirected = useRef(false);
 
-    // If already logged in (admin + password, same as PrivateRoute), go to dashboard once – avoids redirect loop/throttle
+    // If already logged in (admin + token), go to dashboard once – avoids redirect loop
     useEffect(() => {
         if (hasRedirected.current) return;
         const admin = localStorage.getItem('admin');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword');
-        if (admin && password) {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (admin && token) {
             hasRedirected.current = true;
             navigate('/dashboard', { replace: true });
         }
@@ -39,8 +39,9 @@ const Login = () => {
             const data = await response.json();
 
             if (data.success) {
-                localStorage.setItem('admin', JSON.stringify(data.data));
-                localStorage.setItem('adminPassword', password);
+                const { token, ...adminData } = data.data;
+                localStorage.setItem('admin', JSON.stringify(adminData));
+                localStorage.setItem('adminToken', token);
                 navigate('/dashboard');
             } else {
                 setError(data.message || 'Login failed');

@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { API_BASE_URL } from '../utils/api';
-import { getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 
 const HEARTBEAT_INTERVAL_MS = 60 * 1000; // 1 minute – also detects suspended accounts
 
 const logoutSuspendedBookie = () => {
   localStorage.removeItem('bookie');
-  sessionStorage.removeItem('bookiePassword');
+  localStorage.removeItem('bookieToken');
+  sessionStorage.removeItem('bookieToken');
   window.location.href = '/';
 };
 
@@ -19,9 +19,8 @@ export const useHeartbeat = () => {
         const bookie = JSON.parse(localStorage.getItem('bookie') || 'null');
         if (!bookie) return;
 
-        const res = await fetch(`${API_BASE_URL}/bookie/heartbeat`, {
+        const res = await bookieFetch(`${API_BASE_URL}/bookie/heartbeat`, {
           method: 'POST',
-          headers: getBookieAuthHeaders(),
           body: JSON.stringify({}),
         });
         const data = await res.json();

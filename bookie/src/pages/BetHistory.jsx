@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 
 const RANGES = [
     { id: 'today', label: 'Today' },
@@ -87,7 +87,7 @@ const BetHistory = () => {
                 params.append('endDate', endDate);
             }
             const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
-            const response = await fetch(url, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(url);
             const data = await response.json();
             if (data.success) setBets(data.data);
         } catch (err) {

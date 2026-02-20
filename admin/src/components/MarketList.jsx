@@ -26,7 +26,7 @@ function isClosingTimePassedIST(closingTime, nowMs = Date.now()) {
     return !Number.isNaN(targetMs) && nowMs >= targetMs;
 }
 
-const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) => {
+const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -41,24 +41,22 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
     }, []);
 
     useEffect(() => {
-        fetch(`${apiBaseUrl}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        authFetch(`${apiBaseUrl}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
             })
             .catch(() => setHasSecretDeclarePassword(false));
-    }, [apiBaseUrl, getAuthHeaders]);
+    }, [apiBaseUrl, authFetch]);
 
     const performDelete = async (marketId, secretDeclarePasswordValue, skipConfirm = false) => {
         if (!skipConfirm && !window.confirm('Are you sure you want to delete this market?')) return;
         try {
-            const headers = getAuthHeaders();
-            const options = { method: 'DELETE', headers };
+            const options = { method: 'DELETE' };
             if (secretDeclarePasswordValue) {
-                headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
             }
-            const response = await fetch(`${apiBaseUrl}/markets/delete-market/${marketId}`, options);
+            const response = await authFetch(`${apiBaseUrl}/markets/delete-market/${marketId}`, options);
             const data = await response.json();
             if (data.success) {
                 setShowPasswordModal(false);
@@ -104,9 +102,8 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, getAuthHeaders }) =
 
     const performEditAfterVerify = async (market, val) => {
         try {
-            const response = await fetch(`${apiBaseUrl}/admin/verify-secret-declare-password`, {
+            const response = await authFetch(`${apiBaseUrl}/admin/verify-secret-declare-password`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ secretDeclarePassword: val }),
             });
             const data = await response.json();

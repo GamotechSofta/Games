@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowDown, FaArrowUp, FaClock, FaFilter, FaEye, FaCheck, FaTimes, FaImage, FaWallet } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const PaymentManagement = () => {
     const navigate = useNavigate();
@@ -40,7 +38,7 @@ const PaymentManagement = () => {
     }, [filters.status, filters.type]);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -48,22 +46,13 @@ const PaymentManagement = () => {
             .catch(() => setHasSecretDeclarePassword(false));
 
         // Fetch bookies for filter dropdown
-        fetch(`${API_BASE_URL}/admin/bookies`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/bookies`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setBookies(json.data || []);
             })
             .catch(() => {});
     }, []);
-
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
 
     const fetchPayments = async () => {
         try {
@@ -72,9 +61,7 @@ const PaymentManagement = () => {
             if (filters.status) queryParams.append('status', filters.status);
             if (filters.type) queryParams.append('type', filters.type);
 
-            const response = await fetch(`${API_BASE_URL}/payments?${queryParams}`, {
-                headers: getAuthHeaders(),
-            });
+            const response = await adminFetch(`${API_BASE_URL}/payments?${queryParams}`);
             const data = await response.json();
             if (data.success) {
                 setPayments(data.data);
@@ -88,9 +75,7 @@ const PaymentManagement = () => {
 
     const fetchPendingCounts = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/payments/pending-count`, {
-                headers: getAuthHeaders(),
-            });
+            const response = await adminFetch(`${API_BASE_URL}/payments/pending-count`);
             const data = await response.json();
             if (data.success) {
                 setPendingCounts(data.data);
@@ -133,9 +118,8 @@ const PaymentManagement = () => {
                 body.secretDeclarePassword = secretPassword.trim();
             }
 
-            const response = await fetch(endpoint, {
+            const response = await adminFetch(endpoint, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const data = await response.json();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import {
     FaChartLine,
     FaMoneyBillWave,
@@ -126,9 +126,8 @@ const Reports = () => {
     const fetchReport = async () => {
         try {
             setLoading(true);
-            const response = await fetch(
-                `${API_BASE_URL}/reports?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`,
-                { headers: getBookieAuthHeaders() }
+            const response = await bookieFetch(
+                `${API_BASE_URL}/reports?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
             );
             const data = await response.json();
             if (data.success) setReport(data.data);

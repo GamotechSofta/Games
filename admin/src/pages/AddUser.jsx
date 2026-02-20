@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaArrowLeft, FaUserPlus, FaUser } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 
@@ -79,8 +77,6 @@ const AddUser = () => {
         setLoading(true);
 
         try {
-            const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const payload = {
                 firstName: trimmedFirst,
                 lastName: trimmedLast,
@@ -91,12 +87,8 @@ const AddUser = () => {
                 role: formData.role,
                 balance: formData.balance === '' ? 0 : (parseFloat(formData.balance) || 0),
             };
-            const response = await fetch(`${API_BASE_URL}/users/create`, {
+            const response = await adminFetch(`${API_BASE_URL}/users/create`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-                },
                 body: JSON.stringify(payload),
             });
 

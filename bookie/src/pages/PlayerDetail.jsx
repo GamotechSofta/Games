@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaArrowLeft, FaCalendarAlt, FaWallet } from 'react-icons/fa';
 
 const TABS = [
@@ -133,7 +133,7 @@ const PlayerDetail = () => {
         try {
             setLoading(true);
             setError('');
-            const res = await fetch(`${API_BASE_URL}/users/${userId}`, { headers: getBookieAuthHeaders() });
+            const res = await bookieFetch(`${API_BASE_URL}/users/${userId}`);
             const data = await res.json();
             if (data.success) {
                 setPlayer(data.data);
@@ -152,8 +152,8 @@ const PlayerDetail = () => {
         setLoadingTab(true);
         try {
             const [betsRes, txRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}`, { headers: getBookieAuthHeaders() }),
-                fetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`, { headers: getBookieAuthHeaders() }),
+                bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}`),
+                bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`),
             ]);
             const betsData = await betsRes.json();
             const txData = await txRes.json();
@@ -224,7 +224,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`, { headers: getBookieAuthHeaders() });
+            const res = await bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`);
             const data = await res.json();
             setWalletTx(data.success ? (data.data || []).reverse() : []);
         } catch (err) {
@@ -238,7 +238,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/bets/history?userId=${userId}`, { headers: getBookieAuthHeaders() });
+            const res = await bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}`);
             const data = await res.json();
             setBets(data.success ? data.data || [] : []);
         } catch (err) {
@@ -279,9 +279,8 @@ const PlayerDetail = () => {
         setWalletActionError('');
         setWalletActionLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/wallet/adjust`, {
+            const res = await bookieFetch(`${API_BASE_URL}/wallet/adjust`, {
                 method: 'POST',
-                headers: getBookieAuthHeaders(),
                 body: JSON.stringify({ userId, amount, type }),
             });
             const data = await res.json();

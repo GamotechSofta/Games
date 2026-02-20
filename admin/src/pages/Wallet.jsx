@@ -2,18 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaWallet, FaPlus, FaMinus, FaExchangeAlt, FaBuilding, FaSearch, FaTimes } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin'));
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${btoa(`${admin?.username}:${password}`)}`,
-    };
-};
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const Wallet = () => {
     const navigate = useNavigate();
@@ -40,7 +29,7 @@ const Wallet = () => {
     const fetchWallets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/wallet/all`, { headers: getAuthHeaders() });
+            const response = await adminFetch(`${API_BASE_URL}/wallet/all`);
             const data = await response.json();
             if (data.success) setWallets(data.data);
         } catch (err) {
@@ -53,7 +42,7 @@ const Wallet = () => {
     const fetchTransactions = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/wallet/transactions`, { headers: getAuthHeaders() });
+            const response = await adminFetch(`${API_BASE_URL}/wallet/transactions`);
             const data = await response.json();
             if (data.success) setTransactions(data.data);
         } catch (err) {
@@ -81,9 +70,8 @@ const Wallet = () => {
         setAdjusting(true);
         try {
             const userId = adjustModal.wallet.userId?._id || adjustModal.wallet.userId;
-            const response = await fetch(`${API_BASE_URL}/wallet/adjust`, {
+            const response = await adminFetch(`${API_BASE_URL}/wallet/adjust`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ userId, amount, type: adjustModal.type }),
             });
             const data = await response.json();

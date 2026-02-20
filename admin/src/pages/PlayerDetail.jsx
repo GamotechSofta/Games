@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet, FaBuilding, FaLock } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TABS = [
     { id: 'statement', label: 'Account Statement' },
@@ -12,15 +10,6 @@ const TABS = [
     { id: 'bets', label: 'Bet History' },
     { id: 'profile', label: 'Profile' },
 ];
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
-    };
-};
 
 const formatDateRange = (from, to) => {
     if (!from || !to) return '';
@@ -140,7 +129,7 @@ const PlayerDetail = () => {
         try {
             setLoading(true);
             setError('');
-            const res = await fetch(`${API_BASE_URL}/users/${userId}`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}`);
             const data = await res.json();
             if (data.success) {
                 setPlayer(data.data);
@@ -159,8 +148,8 @@ const PlayerDetail = () => {
         setLoadingTab(true);
         try {
             const [betsRes, txRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}`, { headers: getAuthHeaders() }),
-                fetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`, { headers: getAuthHeaders() }),
+                adminFetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}`),
+                adminFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`),
             ]);
             const betsData = await betsRes.json();
             const txData = await txRes.json();
@@ -231,7 +220,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`);
             const data = await res.json();
             setWalletTx(data.success ? (data.data || []).reverse() : []);
         } catch (err) {
@@ -245,7 +234,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/bets/history?userId=${userId}`, { headers: getAuthHeaders() });
+            const res = await adminFetch(`${API_BASE_URL}/bets/history?userId=${userId}`);
             const data = await res.json();
             setBets(data.success ? data.data || [] : []);
         } catch (err) {
@@ -273,7 +262,7 @@ const PlayerDetail = () => {
     const [pendingAction, setPendingAction] = useState(null);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -288,9 +277,9 @@ const PlayerDetail = () => {
         setError('');
         setPasswordError('');
         try {
-            const opts = { method: 'PATCH', headers: getAuthHeaders() };
+            const opts = { method: 'PATCH' };
             if (secretDeclarePasswordValue) opts.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
-            const res = await fetch(`${API_BASE_URL}/users/${userId}/toggle-status`, opts);
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}/toggle-status`, opts);
             const data = await res.json();
             if (data.success) {
                 setShowPasswordModal(false);
@@ -350,9 +339,8 @@ const PlayerDetail = () => {
         setWalletActionError('');
         setWalletActionLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/wallet/adjust`, {
+            const res = await adminFetch(`${API_BASE_URL}/wallet/adjust`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ userId, amount, type }),
             });
             const data = await res.json();
@@ -378,9 +366,9 @@ const PlayerDetail = () => {
         setError('');
         setPasswordError('');
         try {
-            const opts = { method: 'DELETE', headers: getAuthHeaders() };
+            const opts = { method: 'DELETE' };
             if (secretDeclarePasswordValue) opts.body = JSON.stringify({ secretDeclarePassword: secretDeclarePasswordValue });
-            const res = await fetch(`${API_BASE_URL}/users/${userId}`, opts);
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}`, opts);
             const data = await res.json();
             if (data.success) {
                 setShowPasswordModal(false);

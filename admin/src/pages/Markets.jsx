@@ -7,9 +7,7 @@ import StarlineManagement from './StarlineManagement';
 import KingBazaarManagement from './KingBazaarManagement';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TABS = [
     { id: 'regular', label: 'Regular Market', icon: FaChartBar },
@@ -73,7 +71,7 @@ const Markets = () => {
     useRefreshOnMarketReset(fetchMarkets);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -109,9 +107,8 @@ const Markets = () => {
             return;
         }
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
+            const response = await adminFetch(`${API_BASE_URL}/admin/verify-secret-declare-password`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ secretDeclarePassword: val }),
             });
             const data = await response.json();
@@ -142,15 +139,6 @@ const Markets = () => {
         setShowForm(false);
         setEditingMarket(null);
         fetchMarkets();
-    };
-
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
     };
 
     return (
@@ -194,7 +182,7 @@ const Markets = () => {
                         onClose={handleFormClose}
                         onSuccess={handleFormClose}
                         apiBaseUrl={API_BASE_URL}
-                        getAuthHeaders={getAuthHeaders}
+                        authFetch={adminFetch}
                     />
                 )}
 
@@ -231,7 +219,7 @@ const Markets = () => {
                                 onEdit={handleEdit}
                                 onDelete={fetchMarkets}
                                 apiBaseUrl={API_BASE_URL}
-                                getAuthHeaders={getAuthHeaders}
+                                authFetch={adminFetch}
                             />
                         </section>
                     )

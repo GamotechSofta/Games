@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaCheck, FaTimes, FaEye, FaImage, FaArrowDown, FaArrowUp, FaClock, FaFilter, FaWallet, FaBuilding, FaHandHoldingUsd } from 'react-icons/fa';
 
 const Payments = () => {
@@ -34,7 +34,7 @@ const Payments = () => {
             const q = new URLSearchParams();
             if (filters.status) q.append('status', filters.status);
             if (filters.type) q.append('type', filters.type);
-            const response = await fetch(`${API_BASE_URL}/payments?${q}`, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(`${API_BASE_URL}/payments?${q}`);
             const data = await response.json();
             if (data.success) setPayments(data.data);
         } catch (err) {
@@ -46,7 +46,7 @@ const Payments = () => {
 
     const fetchPendingCounts = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/payments/pending-count`, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(`${API_BASE_URL}/payments/pending-count`);
             const data = await response.json();
             if (data.success) setPendingCounts(data.data);
         } catch (err) {
@@ -68,9 +68,8 @@ const Payments = () => {
         if (!actionModal.payment || !actionModal.action) return;
         setProcessing(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/payments/${actionModal.payment._id}/${actionModal.action}`, {
+            const response = await bookieFetch(`${API_BASE_URL}/payments/${actionModal.payment._id}/${actionModal.action}`, {
                 method: 'POST',
-                headers: getBookieAuthHeaders(),
                 body: JSON.stringify({ adminRemarks: adminRemarks || (actionModal.action === 'approve' ? 'Approved by bookie' : 'Rejected by bookie') }),
             });
             const data = await response.json();

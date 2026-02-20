@@ -3,9 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { FaExclamationTriangle, FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const ADD_RESULT_TABS = [
     { id: 'regular', label: 'Regular Market', icon: FaChartBar },
@@ -112,22 +110,11 @@ const AddResult = () => {
     const starlinePendingCount = starlinePendingList.length;
     const kingBazaarPendingCount = kingBazaarPendingList.length;
 
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
-
     const fetchMarketsPendingResult = async () => {
         try {
             const d = new Date();
             const from = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            const res = await fetch(`${API_BASE_URL}/dashboard/stats?from=${from}&to=${from}`, {
-                headers: getAuthHeaders(),
-            });
+            const res = await adminFetch(`${API_BASE_URL}/dashboard/stats?from=${from}&to=${from}`);
             const data = await res.json();
             if (data.success && data.data) {
                 setMarketsPendingResult(data.data.marketsPendingResult || 0);
@@ -286,9 +273,8 @@ const AddResult = () => {
         }
         setCheckLoading(true);
         setPreview(null);
-        const headers = getAuthHeaders();
         try {
-            const previewRes = await fetch(`${API_BASE_URL}/markets/preview-declare-open/${encodeURIComponent(marketId)}?openingNumber=${encodeURIComponent(val)}`, { headers });
+            const previewRes = await adminFetch(`${API_BASE_URL}/markets/preview-declare-open/${encodeURIComponent(marketId)}?openingNumber=${encodeURIComponent(val)}`);
             const previewData = await previewRes.json();
             if (previewData.success && previewData.data != null) {
                 const totalBetAmount = safeNum(previewData.data.totalBetAmount);
@@ -333,10 +319,9 @@ const AddResult = () => {
         }
         setCheckCloseLoading(true);
         setPreviewClose(null);
-        const headers = getAuthHeaders();
         try {
             const url = `${API_BASE_URL}/markets/preview-declare-close/${encodeURIComponent(marketId)}?closingNumber=${encodeURIComponent(val)}`;
-            const res = await fetch(url, { headers });
+            const res = await adminFetch(url);
             const data = await res.json();
             if (data.success && data.data != null) {
                 setPreviewClose({
@@ -403,9 +388,8 @@ const AddResult = () => {
         const secondDigit = val[1];
         setCheckLoading(true);
         setPreview(null);
-        const headers = getAuthHeaders();
         try {
-            const previewRes = await fetch(`${API_BASE_URL}/markets/preview-declare-king-bazaar/${encodeURIComponent(marketId)}?firstDigit=${encodeURIComponent(firstDigit)}&secondDigit=${encodeURIComponent(secondDigit)}`, { headers });
+            const previewRes = await adminFetch(`${API_BASE_URL}/markets/preview-declare-king-bazaar/${encodeURIComponent(marketId)}?firstDigit=${encodeURIComponent(firstDigit)}&secondDigit=${encodeURIComponent(secondDigit)}`);
             const previewData = await previewRes.json();
             if (previewData.success && previewData.data != null) {
                 const totalBetAmount = safeNum(previewData.data.totalBetAmount);
@@ -465,9 +449,8 @@ const AddResult = () => {
         if (!window.confirm(msg)) return;
         setClearLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/markets/clear-result/${selectedMarket._id}`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/clear-result/${selectedMarket._id}`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
             });
             const data = await res.json();
             if (data.success) {

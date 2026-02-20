@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
-    };
-};
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
@@ -30,7 +19,7 @@ const DeclareConfirm = () => {
     const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
@@ -67,7 +56,7 @@ const DeclareConfirm = () => {
         }
         setLoading(true);
         setError('');
-        fetch(url, { headers: getAuthHeaders() })
+        adminFetch(url)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success && json.data) setData(json.data);
@@ -96,9 +85,8 @@ const DeclareConfirm = () => {
                 body = { closingNumber: number };
             }
             if (secretDeclarePasswordValue) body.secretDeclarePassword = secretDeclarePasswordValue;
-            const res = await fetch(`${API_BASE_URL}/markets/${endpoint}/${marketIdStr}`, {
+            const res = await adminFetch(`${API_BASE_URL}/markets/${endpoint}/${marketIdStr}`, {
                 method: 'POST',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const json = await res.json();

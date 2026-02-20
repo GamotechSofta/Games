@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const ACTION_LABELS = {
     admin_login: 'Admin Login',
@@ -51,24 +49,13 @@ const Logs = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
 
-    const getAuthHeaders = () => {
-        const admin = JSON.parse(localStorage.getItem('admin'));
-        const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-        return {
-            'Content-Type': 'application/json',
-            'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-        };
-    };
-
     const fetchLogs = async (showLoader = true) => {
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
             const params = new URLSearchParams({ page, limit: 50, sort: sortOrder });
             if (filterType) params.append('performedByType', filterType);
-            const response = await fetch(`${API_BASE_URL}/admin/logs?${params}`, {
-                headers: getAuthHeaders(),
-            });
+            const response = await adminFetch(`${API_BASE_URL}/admin/logs?${params}`);
             const data = await response.json();
             if (data.success) {
                 setLogs(data.data || []);
@@ -103,9 +90,8 @@ const Logs = () => {
         setDeleteLoading(true);
         setError('');
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/logs`, {
+            const response = await adminFetch(`${API_BASE_URL}/admin/logs`, {
                 method: 'DELETE',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ secretDeclarePassword: deletePassword }),
             });
             const data = await response.json();

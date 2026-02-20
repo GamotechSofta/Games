@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem(AUTH_KEY);
+        localStorage.removeItem('bookieToken');
+        sessionStorage.removeItem('bookieToken');
+        // Clean up legacy password storage (migrated to JWT)
         localStorage.removeItem('bookiePassword');
         sessionStorage.removeItem('bookiePassword');
         setBookie(null);

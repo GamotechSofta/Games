@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaTrophy, FaMedal, FaCrown, FaUserCircle, FaHashtag, FaCalendarAlt } from 'react-icons/fa';
 
 const TopWinners = () => {
@@ -13,7 +13,7 @@ const TopWinners = () => {
             try {
                 setLoading(true);
                 // Note: Ensure your backend supports this endpoint and query param
-                const response = await fetch(`${API_BASE_URL}/reports/top-winners?timeRange=${timeRange}`, { headers: getBookieAuthHeaders() });
+                const response = await bookieFetch(`${API_BASE_URL}/reports/top-winners?timeRange=${timeRange}`);
                 const data = await response.json();
                 if (data.success) {
                     setWinners(data.data);

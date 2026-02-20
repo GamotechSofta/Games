@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1').replace('/api/v1', '') || 'http://localhost:3010';
 
@@ -20,7 +20,7 @@ const HelpDesk = () => {
             setLoading(true);
             const q = new URLSearchParams();
             if (filters.status) q.append('status', filters.status);
-            const response = await fetch(`${API_BASE_URL}/help-desk/tickets?${q}`, { headers: getBookieAuthHeaders() });
+            const response = await bookieFetch(`${API_BASE_URL}/help-desk/tickets?${q}`);
             const data = await response.json();
             if (data.success) setTickets(data.data);
         } catch (err) {
@@ -32,9 +32,8 @@ const HelpDesk = () => {
 
     const handleStatusUpdate = async (ticketId, newStatus) => {
         try {
-            const response = await fetch(`${API_BASE_URL}/help-desk/tickets/${ticketId}/status`, {
+            const response = await bookieFetch(`${API_BASE_URL}/help-desk/tickets/${ticketId}/status`, {
                 method: 'PATCH',
-                headers: getBookieAuthHeaders(),
                 body: JSON.stringify({ status: newStatus }),
             });
             const data = await response.json();

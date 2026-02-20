@@ -17,9 +17,7 @@ import {
     FaHandHoldingUsd,
     FaBuilding,
 } from 'react-icons/fa';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const PRESETS = [
     { id: 'today', label: 'Today', getRange: () => {
@@ -71,15 +69,6 @@ const formatNumber = (n) => {
     const num = Number(n);
     if (!Number.isFinite(num)) return '0';
     return new Intl.NumberFormat('en-IN').format(num);
-};
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin'));
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${btoa(`${admin?.username}:${password}`)}`,
-    };
 };
 
 const TABS = [
@@ -382,9 +371,8 @@ const Revenue = () => {
     const fetchRevenue = async () => {
         try {
             setLoading(true);
-            const response = await fetch(
-                `${API_BASE_URL}/reports/revenue?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`,
-                { headers: getAuthHeaders() }
+            const response = await adminFetch(
+                `${API_BASE_URL}/reports/revenue?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
             );
             const result = await response.json();
             if (result.success) setData(result.data);

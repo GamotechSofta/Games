@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
-    };
-};
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -34,14 +23,14 @@ const Settings = () => {
     const [upiBatchSize, setUpiBatchSize] = useState(10);
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success) setHasSecret(json.hasSecretDeclarePassword || false);
             })
             .catch(() => setHasSecret(false));
         // Fetch current UPI IDs
-        fetch(`${API_BASE_URL}/admin/me/upi`, { headers: getAuthHeaders() })
+        adminFetch(`${API_BASE_URL}/admin/me/upi`)
             .then((res) => res.json())
             .then((json) => {
                 if (json.success && json.data) {
@@ -85,9 +74,8 @@ const Settings = () => {
                     body.currentSecretDeclarePassword = currentSecretPassword;
                 }
             }
-            const res = await fetch(`${API_BASE_URL}/admin/me/secret-declare-password`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password`, {
                 method: 'PATCH',
-                headers: getAuthHeaders(),
                 body: JSON.stringify(body),
             });
             const json = await res.json();
@@ -119,9 +107,8 @@ const Settings = () => {
         }
         setUpiLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/admin/me/upi`, {
+            const res = await adminFetch(`${API_BASE_URL}/admin/me/upi`, {
                 method: 'PATCH',
-                headers: getAuthHeaders(),
                 body: JSON.stringify({ upiIds: trimmed, upiDistributionType, upiBatchSize }),
             });
             const json = await res.json();

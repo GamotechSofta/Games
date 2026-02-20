@@ -3,21 +3,10 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaClock, FaHashtag, FaChartBar, FaEdit } from 'react-icons/fa';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const TRIPLE_PATTI_DIGITS = DIGITS.map((d) => d + d + d);
-
-const getAuthHeaders = () => {
-    const admin = JSON.parse(localStorage.getItem('admin') || '{}');
-    const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
-    return {
-        'Content-Type': 'application/json',
-        Authorization: `Basic ${btoa(`${admin.username}:${password}`)}`,
-    };
-};
 
 /** Format "10:15" or "10:15:00" for display */
 const formatTime = (timeStr) => {
@@ -524,14 +513,13 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
     const fetchStats = async () => {
         if (!marketId) return;
-        const headers = getAuthHeaders();
         setLoading(true);
         setError('');
         setSinglePattiSummary(null);
         try {
             const [statsRes, summaryRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/markets/get-market-stats/${marketId}`, { headers }),
-                fetch(`${API_BASE_URL}/markets/get-single-patti-summary/${marketId}`, { headers }),
+                adminFetch(`${API_BASE_URL}/markets/get-market-stats/${marketId}`),
+                adminFetch(`${API_BASE_URL}/markets/get-single-patti-summary/${marketId}`),
             ]);
             const statsJson = await statsRes.json();
             if (!statsJson.success) {

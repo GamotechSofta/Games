@@ -1,6 +1,7 @@
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
+import { generateBookieToken } from '../utils/jwt.js';
 
 /**
  * Bookie login - only allows users with role 'bookie' and status 'active'
@@ -60,6 +61,10 @@ export const bookieLogin = async (req, res) => {
             ip: getClientIp(req),
         });
 
+        const token = generateBookieToken({
+            id: bookie._id,
+            username: bookie.username,
+        });
         res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -72,6 +77,7 @@ export const bookieLogin = async (req, res) => {
                 uiTheme: bookie.uiTheme || { themeId: 'default' },
                 bookieType: bookie.bookieType || 'admin_collects',
                 commissionPercentage: bookie.commissionPercentage || 0,
+                token,
             },
         });
     } catch (error) {

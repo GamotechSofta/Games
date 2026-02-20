@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders, getReferralUrl } from '../utils/api';
+import { API_BASE_URL, bookieFetch, getReferralUrl } from '../utils/api';
 
 const ReferralLink = () => {
     const [link, setLink] = useState('');
@@ -15,9 +15,7 @@ const ReferralLink = () => {
     const fetchReferralLink = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/bookie/referral-link`, {
-                headers: getBookieAuthHeaders(),
-            });
+            const response = await bookieFetch(`${API_BASE_URL}/bookie/referral-link`);
             const data = await response.json();
             if (data.success) {
                 setLink(getReferralUrl(data.data.bookieId));

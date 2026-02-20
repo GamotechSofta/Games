@@ -2,6 +2,7 @@ import Admin from '../models/admin/admin.js';
 import bcrypt from 'bcryptjs';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
+import { generateAdminToken } from '../utils/jwt.js';
 
 /**
  * Admin login
@@ -61,10 +62,15 @@ export const adminLogin = async (req, res) => {
         if (admin.role === 'specific_admin' && Array.isArray(admin.allowedTabs)) {
             data.allowedTabs = admin.allowedTabs;
         }
+        const token = generateAdminToken({
+            id: admin._id,
+            username: admin.username,
+            role: admin.role,
+        });
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            data,
+            data: { ...data, token },
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

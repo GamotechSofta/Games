@@ -48,8 +48,9 @@ const Login = () => {
             const data = await response.json();
 
             if (data.success) {
-                login(data.data);
-                localStorage.setItem('bookiePassword', password);
+                const { token, ...bookieData } = data.data;
+                login(bookieData);
+                localStorage.setItem('bookieToken', token);
                 navigate('/dashboard');
             } else {
                 setError(data.message || 'Login failed');

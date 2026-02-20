@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import {
     FaMoneyBillWave,
     FaCalendarAlt,
@@ -98,7 +98,7 @@ const DailySettlement = () => {
                 startDate: dateRange.startDate,
                 endDate: dateRange.endDate,
             });
-            const res = await fetch(`${API_BASE_URL}/settlements?${params}`, { headers: getBookieAuthHeaders() });
+            const res = await bookieFetch(`${API_BASE_URL}/settlements?${params}`);
             const json = await res.json();
             if (json.success) setSettlements(json.data);
         } catch (err) {
@@ -110,9 +110,7 @@ const DailySettlement = () => {
 
     const fetchDailyCommission = async () => {
         try {
-            const res = await fetch(`${API_BASE_URL}/reports/commission-daily?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`, {
-                headers: getBookieAuthHeaders(),
-            });
+            const res = await bookieFetch(`${API_BASE_URL}/reports/commission-daily?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
             const json = await res.json();
             if (json.success) setDailyCommission(json.data?.dailyBreakdown || []);
         } catch (err) {
@@ -132,9 +130,8 @@ const DailySettlement = () => {
         if (!date || amount == null || amount < 0) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements`, {
+            const res = await bookieFetch(`${API_BASE_URL}/settlements`, {
                 method: 'POST',
-                headers: getBookieAuthHeaders(),
                 body: JSON.stringify({
                     settlementDate: date,
                     amount: Number(amount),
@@ -158,9 +155,8 @@ const DailySettlement = () => {
     const handleConfirm = async (id) => {
         setConfirming(id);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${id}/confirm`, {
+            const res = await bookieFetch(`${API_BASE_URL}/settlements/${id}/confirm`, {
                 method: 'POST',
-                headers: getBookieAuthHeaders(),
             });
             const json = await res.json();
             if (json.success) {
@@ -180,9 +176,8 @@ const DailySettlement = () => {
         if (!editModal || editModal.amount === '' || editModal.amount < 0) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${editModal._id}`, {
+            const res = await bookieFetch(`${API_BASE_URL}/settlements/${editModal._id}`, {
                 method: 'PATCH',
-                headers: getBookieAuthHeaders(),
                 body: JSON.stringify({
                     amount: Number(editModal.amount),
                     remarks: editModal.remarks || '',
@@ -206,9 +201,8 @@ const DailySettlement = () => {
     const handleDelete = async (id) => {
         if (!confirm('Delete this request?')) return;
         try {
-            const res = await fetch(`${API_BASE_URL}/settlements/${id}`, {
+            const res = await bookieFetch(`${API_BASE_URL}/settlements/${id}`, {
                 method: 'DELETE',
-                headers: getBookieAuthHeaders(),
             });
             const json = await res.json();
             if (json.success) {

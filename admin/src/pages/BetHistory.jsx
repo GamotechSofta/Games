@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
-import { clearAdminAuth } from '../utils/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const RANGES = [
     { id: 'all', label: 'All' },
@@ -117,8 +115,6 @@ const BetHistory = () => {
     const fetchBets = async () => {
         try {
             setLoading(true);
-            const admin = JSON.parse(localStorage.getItem('admin'));
-            const password = localStorage.getItem('adminPassword') || sessionStorage.getItem('adminPassword') || '';
             const params = new URLSearchParams();
             if (startDate && endDate) {
                 params.append('startDate', startDate);
@@ -126,11 +122,7 @@ const BetHistory = () => {
             }
 
             const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `Basic ${btoa(`${admin.username}:${password}`)}`,
-                },
-            });
+            const response = await adminFetch(url);
             const data = await response.json();
             if (data.success) {
                 setBets(data.data);

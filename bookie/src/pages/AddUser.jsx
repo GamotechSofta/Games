@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaLock } from 'react-icons/fa';
 
 const AddUser = () => {
@@ -27,7 +27,7 @@ const AddUser = () => {
         if (bookieType !== 'bookie_collects') return;
         const check = async () => {
             try {
-                const res = await fetch(`${API_BASE_URL}/bookie/security-password-status`, { headers: getBookieAuthHeaders() });
+                const res = await bookieFetch(`${API_BASE_URL}/bookie/security-password-status`);
                 const json = await res.json();
                 if (json.success && json.data) setSecurityPasswordRequired(json.data.isSet === true);
             } catch (e) { console.error(e); }
@@ -61,9 +61,8 @@ const AddUser = () => {
                 balance: formData.balance === '' ? 0 : Number(formData.balance),
             };
             if (needsSecurityPassword) payload.securityPassword = securityPassword.trim();
-            const response = await fetch(`${API_BASE_URL}/users/create`, {
+            const response = await bookieFetch(`${API_BASE_URL}/users/create`, {
                 method: 'POST',
-                headers: { ...getBookieAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
             const data = await response.json();

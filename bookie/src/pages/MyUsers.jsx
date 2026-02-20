@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { useNavigate, Link } from 'react-router-dom';
-import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
+import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaUserPlus, FaSearch } from 'react-icons/fa';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
@@ -23,9 +23,7 @@ const MyUsers = () => {
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const response = await fetch(`${API_BASE_URL}/users`, {
-                headers: getBookieAuthHeaders(),
-            });
+            const response = await bookieFetch(`${API_BASE_URL}/users`);
             const data = await response.json();
             if (data.success) {
                 setUsers(data.data || []);
