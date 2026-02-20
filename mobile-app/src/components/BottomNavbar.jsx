@@ -5,6 +5,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
+// Match frontend BottomNavbar: same Cloudinary icons, center Home elevated (-mt-4), active gold, rounded-2xl border gray-700
 const NAV_ICONS = {
   Bids: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png',
   Funds: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png',
@@ -32,10 +33,11 @@ export default function BottomNavbar() {
     return route.name === name;
   };
 
-  const bottomPadding = Math.max(6, insets.bottom) + spacing[2];
+  const paddingBottom = Math.max(6, insets.bottom);
+  const paddingHorizontal = Math.max(8, insets.left);
 
   return (
-    <View style={[styles.container, { paddingBottom: bottomPadding }]}>
+    <View style={[styles.container, { paddingBottom, paddingLeft: paddingHorizontal, paddingRight: paddingHorizontal }]}>
       <View style={styles.backplate} />
       <View style={styles.inner}>
         {NAV_ITEMS.map((item) => {
@@ -48,11 +50,13 @@ export default function BottomNavbar() {
                 onPress={() => navigation.navigate(item.name)}
                 activeOpacity={0.9}
               >
-                <Image
-                  source={{ uri: NAV_ICONS.Home }}
-                  style={[styles.centerIcon, active && styles.centerIconActive]}
-                  resizeMode="contain"
-                />
+                <View style={[styles.centerIconWrap, active && styles.centerIconWrapActive]}>
+                  <Image
+                    source={{ uri: NAV_ICONS.Home }}
+                    style={[styles.centerIcon, active && styles.centerIconActive]}
+                    resizeMode="contain"
+                  />
+                </View>
                 <Text style={[styles.label, active && styles.labelActive]}>{t(item.labelKey)}</Text>
               </TouchableOpacity>
             );
@@ -62,7 +66,7 @@ export default function BottomNavbar() {
               key={item.id}
               style={styles.tab}
               onPress={() => navigation.navigate(item.name)}
-              activeOpacity={0.9}
+              activeOpacity={0.95}
             >
               <Image
                 source={{ uri: NAV_ICONS[item.name] }}
@@ -87,10 +91,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: spacing[2],
     paddingTop: spacing[2],
+    zIndex: 9999,
+    elevation: 9999,
   },
-  backplate: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.black },
+  backplate: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.black,
+  },
   inner: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -98,7 +106,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.black,
     borderRadius: borderRadius['2xl'],
     borderWidth: 1,
-    borderColor: colors.borderGray,
+    borderColor: '#374151',
     paddingVertical: 6,
     paddingHorizontal: 2,
     minHeight: 52,
@@ -108,25 +116,60 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
-  tab: { alignItems: 'center', justifyContent: 'center', paddingVertical: 4, minWidth: 48 },
-  tabIcon: { width: 20, height: 20, marginBottom: 2, opacity: 0.9 },
-  tabIconActive: { opacity: 1, tintColor: colors.goldLight },
-  dotWrap: { height: 4, width: '100%', alignItems: 'center', justifyContent: 'center' },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.goldLight },
-  label: { fontSize: fontSize['9px'], fontWeight: '700', color: colors.text },
-  labelActive: { color: colors.goldLight },
+  tab: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    minWidth: 48,
+  },
+  tabIcon: {
+    width: 20,
+    height: 20,
+    marginBottom: 2,
+    opacity: 0.9,
+    tintColor: colors.text,
+  },
+  tabIconActive: {
+    opacity: 1,
+    tintColor: colors.goldLight,
+  },
+  dotWrap: {
+    height: 4,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.goldLight,
+  },
+  label: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  labelActive: {
+    color: colors.goldLight,
+  },
   centerBtn: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -16,
+  },
+  centerBtnActive: {},
+  centerIconWrap: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.gray800,
     borderWidth: 1,
-    borderColor: colors.borderGray,
-    marginBottom: -8,
+    borderColor: '#374151',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  centerBtnActive: {
+  centerIconWrapActive: {
     backgroundColor: colors.goldLight,
     borderColor: 'rgba(243,182,27,0.6)',
     shadowColor: colors.goldLight,
@@ -135,6 +178,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  centerIcon: { width: 22, height: 22, marginBottom: 2 },
-  centerIconActive: { tintColor: colors.black },
+  centerIcon: {
+    width: 22,
+    height: 22,
+    tintColor: colors.text,
+  },
+  centerIconActive: {
+    tintColor: colors.black,
+  },
 });

@@ -7,6 +7,7 @@ import { on } from '../utils/events';
 import { useTranslation } from '../hooks/useTranslation';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
+// Match frontend SubHeader (mobile): wallet icon + balance (left), single "Deposit/Withdrawal" button (right), border-t amber-500/60
 const WALLET_ICON = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png';
 
 export default function SubHeader() {
@@ -43,14 +44,16 @@ export default function SubHeader() {
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: WALLET_ICON }} style={styles.walletIcon} />
-      <Text style={styles.balance} numberOfLines={1}>₹{formattedBalance}</Text>
-      <View style={styles.spacer} />
-      <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Funds')} activeOpacity={0.9}>
-        <Text style={styles.actionText}>DEPOSIT</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Funds')} activeOpacity={0.9}>
-        <Text style={styles.actionText}>WITHDRAWAL</Text>
+      <View style={styles.left}>
+        <Image source={{ uri: WALLET_ICON }} style={styles.walletIcon} resizeMode="contain" />
+        <Text style={styles.balance} numberOfLines={1}>{formattedBalance}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.actionBtn}
+        onPress={() => navigation.navigate('Funds')}
+        activeOpacity={0.98}
+      >
+        <Text style={styles.actionText}>{t('header.depositWithdrawal')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -60,24 +63,38 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.black,
     borderTopWidth: 1,
-    borderTopColor: colors.borderAmberStrong,
+    borderTopColor: 'rgba(234,179,8,0.6)',
     paddingHorizontal: Math.max(12, spacing[3]),
     paddingVertical: 6,
     height: 40,
     gap: spacing[2],
   },
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
+    minWidth: 0,
+  },
   walletIcon: { width: 24, height: 24 },
-  balance: { color: colors.text, fontWeight: '700', fontSize: fontSize.sm, flex: 0, maxWidth: 100 },
-  spacer: { flex: 1 },
+  balance: { color: colors.text, fontWeight: '700', fontSize: fontSize.sm },
   actionBtn: {
+    flexShrink: 0,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: 'rgba(251,191,36,0.9)',
     paddingHorizontal: spacing[3],
     paddingVertical: 6,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 2,
-    borderColor: colors.amberBorder,
   },
-  actionText: { color: colors.text, fontSize: fontSize['10px'], fontWeight: '700', letterSpacing: 0.5 },
+  actionText: {
+    color: colors.text,
+    fontSize: fontSize['10px'],
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
 });

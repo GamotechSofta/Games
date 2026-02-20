@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer, useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigationRef } from '../navigationRef';
 import { storage } from '../utils/storage';
 import { useHeartbeat } from '../hooks/useHeartbeat';
@@ -35,14 +36,19 @@ import SupportStatus from '../pages/Support/SupportStatus';
 const Stack = createNativeStackNavigator();
 const PUBLIC_SCREENS = ['Login'];
 
+const BOTTOM_NAV_HEIGHT = 52 + 16 + 24; // inner minHeight + center lift + labels + safe area buffer
+
 function Layout({ children }) {
   const route = useRoute();
+  const insets = useSafeAreaInsets();
+  const bottomPad = BOTTOM_NAV_HEIGHT + Math.max(insets.bottom, 0);
+
   if (route.name === 'Login') return <>{children}</>;
   return (
     <View style={styles.layout}>
       <AppHeader />
       <SubHeader />
-      <View style={styles.content}>{children}</View>
+      <View style={[styles.content, { paddingBottom: bottomPad }]}>{children}</View>
       <BottomNavbar />
     </View>
   );

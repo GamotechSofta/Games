@@ -45,6 +45,7 @@
     "nextMonth": "Next month"
   },
   "header": {
+    "depositWithdrawal": "Deposit/Withdrawal",
     "myBets": "My Bets",
     "funds": "Funds",
     "updateRate": "Game Rate",
