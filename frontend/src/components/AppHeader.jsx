@@ -164,7 +164,7 @@ const AppHeader = () => {
               className="flex items-center cursor-pointer active:scale-95 transition-transform duration-200"
             >
               <img
-                src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770208855/copy_of_7db585f9-9318-4d5b-af85-3239bd0ae2be_1b90b5.png"
+                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771571553/Brown_Mascot_Lion_Free_Logo_sfqwsj.png"
                 alt="Logo"
                 className="h-7 sm:h-7 md:h-8 lg:h-9 w-auto object-contain"
               />

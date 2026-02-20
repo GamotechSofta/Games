@@ -54,14 +54,13 @@ const Navbar = () => {
           </div>
         </div>
         
-        {/* Logo Text - Clickable to home */}
+        {/* Logo - Clickable to home */}
         <Link to="/" className="flex items-center cursor-pointer">
-          <span className="text-base sm:text-xl md:text-2xl font-bold text-[#f3b61b] underline decoration-[#f3b61b] decoration-2 underline-offset-2">
-            RATAN
-          </span>
-          <span className="text-base sm:text-xl md:text-2xl font-bold text-[#f3b61b] underline decoration-[#f3b61b] decoration-2 underline-offset-2 ml-0.5 sm:ml-1">
-            365
-          </span>
+          <img
+            src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771570274/Blue_Tosca_Modern_Game_Logo_1_ktl6bu.png"
+            alt="Logo"
+            className="h-10 sm:h-12 md:h-14 w-auto object-contain"
+          />
         </Link>
       </div>
 
