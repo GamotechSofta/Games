@@ -23,6 +23,7 @@ import Market from './models/market/market.js';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { loginLimiter, apiLimiter } from './middleware/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,13 @@ app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
+
+// Rate limiting: stricter for login (brute-force protection), general for API (abuse/DDoS protection)
+app.use('/api/v1/admin/login', loginLimiter);
+app.use('/api/v1/bookie/login', loginLimiter);
+app.use('/api/v1/users/login', loginLimiter);
+app.use('/api/v1/users/signup', loginLimiter);
+app.use('/api/v1', apiLimiter);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
