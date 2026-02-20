@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
@@ -53,6 +53,13 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         setSelectedDateIST(selectedDate || null);
     }, [selectedDate, setSelectedDateIST]);
 
+    useEffect(() => {
+        return () => {
+            Object.values(bulkApplyTimers.current).forEach(clearTimeout);
+            bulkApplyTimers.current = {};
+        };
+    }, []);
+
     // cell values: key "rc" (row digit + col digit) => points string
     const [cells, setCells] = useState(() => {
         const init = {};
@@ -61,6 +68,21 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
     });
     const [rowBulk, setRowBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
     const [colBulk, setColBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
+    const bulkApplyTimers = useRef({});
+    const lastAppliedRow = useRef({});
+    const lastAppliedCol = useRef({});
+
+    const scheduleBulkApply = (type, key, value, applyFn) => {
+        const id = `${type}-${key}`;
+        if (bulkApplyTimers.current[id]) clearTimeout(bulkApplyTimers.current[id]);
+        const val = sanitizePoints(String(value ?? ''));
+        if (val) {
+            bulkApplyTimers.current[id] = setTimeout(() => {
+                applyFn(key, val);
+                delete bulkApplyTimers.current[id];
+            }, 500);
+        }
+    };
 
     const walletBefore = useMemo(() => {
         try {
@@ -104,16 +126,17 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Please enter points.');
             return;
         }
+        const lastP = lastAppliedRow.current[r] || 0;
+        lastAppliedRow.current[r] = p;
         setCells((prev) => {
             const next = { ...prev };
             for (const c of DIGITS) {
                 const key = `${r}${c}`;
                 const cur = Number(next[key] || 0) || 0;
-                next[key] = String(cur + p);
+                next[key] = String(Math.max(0, cur - lastP + p));
             }
             return next;
         });
-        setRowBulk((prev) => ({ ...prev, [r]: '' }));
     };
 
     const applyCol = (c, pts) => {
@@ -122,16 +145,17 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Please enter points.');
             return;
         }
+        const lastP = lastAppliedCol.current[c] || 0;
+        lastAppliedCol.current[c] = p;
         setCells((prev) => {
             const next = { ...prev };
             for (const r of DIGITS) {
                 const key = `${r}${c}`;
                 const cur = Number(next[key] || 0) || 0;
-                next[key] = String(cur + p);
+                next[key] = String(Math.max(0, cur - lastP + p));
             }
             return next;
         });
-        setColBulk((prev) => ({ ...prev, [c]: '' }));
     };
 
     const clearAll = () => {
@@ -143,6 +167,8 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         });
         setRowBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
         setColBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
+        lastAppliedRow.current = {};
+        lastAppliedCol.current = {};
         // Reset scheduled date to today after bet is placed
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
@@ -266,7 +292,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     inputMode="numeric"
                                     placeholder={t('gameBid.pts')}
                                     value={colBulk[c]}
-                                    onChange={(e) => setColBulk((p) => ({ ...p, [c]: sanitizePoints(e.target.value) }))}
+                                    onChange={(e) => {
+                                        const val = sanitizePoints(e.target.value);
+                                        setColBulk((p) => ({ ...p, [c]: val }));
+                                        scheduleBulkApply('col', c, val, applyCol);
+                                    }}
                                     onBlur={() => {
                                         if (colBulk[c]) applyCol(c, colBulk[c]);
                                     }}
@@ -290,7 +320,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             inputMode="numeric"
                                             placeholder={t('gameBid.pts')}
                                             value={rowBulk[r]}
-                                            onChange={(e) => setRowBulk((p) => ({ ...p, [r]: sanitizePoints(e.target.value) }))}
+                                            onChange={(e) => {
+                                                const val = sanitizePoints(e.target.value);
+                                                setRowBulk((p) => ({ ...p, [r]: val }));
+                                                scheduleBulkApply('row', r, val, applyRow);
+                                            }}
                                             onBlur={() => {
                                                 if (rowBulk[r]) applyRow(r, rowBulk[r]);
                                             }}
@@ -301,7 +335,6 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                         />
                                     </div>
                                     <div className="h-6 md:h-7" />
-
                                     {DIGITS.map((c) => {
                                         const key = `${r}${c}`;
                                         return (
