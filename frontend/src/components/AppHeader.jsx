@@ -140,108 +140,117 @@ const AppHeader = () => {
   return (
     <>
       <div
-        className="fixed top-0 left-0 right-0 z-50 w-full bg-black border-b border-white/5 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1rem,env(safe-area-inset-left))] sm:pr-[max(1rem,env(safe-area-inset-right))] md:pl-[max(1.25rem,env(safe-area-inset-left))] md:pr-[max(1.25rem,env(safe-area-inset-right))] py-1.5 sm:py-1 md:py-1.5 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(0.375rem+env(safe-area-inset-top,0px))] md:pt-[calc(0.5rem+env(safe-area-inset-top,0px))]"
+        className="fixed top-0 left-0 right-0 z-50 w-full min-w-0 bg-black border-b border-white/5
+          pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))]
+          sm:pl-[max(0.75rem,env(safe-area-inset-left))] sm:pr-[max(0.75rem,env(safe-area-inset-right))]
+          md:pl-[max(1rem,env(safe-area-inset-left))] md:pr-[max(1rem,env(safe-area-inset-right))]
+          lg:pl-[max(1.25rem,env(safe-area-inset-left))] lg:pr-[max(1.25rem,env(safe-area-inset-right))]
+          xl:pl-[max(1.5rem,env(safe-area-inset-left))] xl:pr-[max(1.5rem,env(safe-area-inset-right))]
+          py-1.5 sm:py-2 md:py-2
+          pt-[max(0.5rem,calc(0.25rem+env(safe-area-inset-top,0px)))]
+          sm:pt-[max(0.5rem,calc(0.375rem+env(safe-area-inset-top,0px)))]
+          md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]"
       >
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2">
-          {/* Hamburger Menu and Logo together on the left */}
-          <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+        <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0">
+          {/* Hamburger Menu and Logo - left section */}
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 min-w-0 shrink-0">
             <button
               type="button"
               onClick={() => setIsMenuOpen(true)}
-              className="w-8 h-8 sm:w-8 sm:h-8 md:w-9 md:h-9 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 flex items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-700/50 transition-all duration-200"
+              className="w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 flex items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-700/50 transition-all duration-200 touch-manipulation"
               aria-label={t('header.openMenu')}
             >
-            <div className="flex flex-col gap-1 sm:gap-1">
-              <div className="w-4 sm:w-4 md:w-4 h-[2px] bg-white rounded-full"></div>
-              <div className="w-3 sm:w-3 md:w-3.5 h-[2px] bg-white rounded-full"></div>
-              <div className="w-2.5 sm:w-3 md:w-3 h-[2px] bg-white rounded-full"></div>
-            </div>
+              <div className="flex flex-col gap-1">
+                <div className="w-4 h-[2px] bg-white rounded-full"></div>
+                <div className="w-3.5 h-[2px] bg-white rounded-full"></div>
+                <div className="w-3 h-[2px] bg-white rounded-full"></div>
+              </div>
             </button>
 
-            {/* Logo - aligned next to hamburger */}
+            {/* Logo - scales with viewport */}
             <Link
               to="/"
-              className="flex items-center cursor-pointer active:scale-95 transition-transform duration-200"
+              className="flex items-center shrink-0 cursor-pointer active:scale-95 transition-transform duration-200 min-w-0"
             >
               <img
                 src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771571553/Brown_Mascot_Lion_Free_Logo_sfqwsj.png"
                 alt="Logo"
-                className="h-7 sm:h-7 md:h-8 lg:h-9 w-auto object-contain"
+                className="h-6 max-h-10 sm:h-7 sm:max-h-11 md:h-8 md:max-h-12 lg:h-9 lg:max-h-14 xl:h-10 xl:max-h-16 w-auto object-contain"
               />
             </Link>
           </div>
 
-        {/* Right side buttons - Download App, Wallet, Profile */}
-        <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
-          {/* Language Switcher */}
-          <LanguageSwitcher />
+          {/* Right side - buttons */}
+          <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 shrink-0 min-w-0">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
 
-          {/* Download App - icon only on mobile, text on larger screens */}
-          <button
-            onClick={() => navigate('/download')}
-            className="shrink-0 rounded-lg md:rounded-lg bg-gradient-to-r from-[#f3b61b] to-[#e5a914] px-2.5 sm:px-2.5 md:px-3 lg:px-4 py-1.5 sm:py-1.5 md:py-2 text-xs sm:text-xs md:text-sm font-bold text-black active:scale-95 hover:from-[#e5a914] hover:to-[#d49a13] transition-all duration-200 flex items-center gap-1 sm:gap-1 md:gap-1.5 min-w-[36px] min-h-[36px] sm:min-w-0 sm:min-h-0 justify-center"
-          >
-            <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>{t('header.downloadApp')}</span>
-          </button>
-
-          {/* Notification - mobile and desktop (laptop) */}
-          <button
-            onClick={() => navigate('/notifications')}
-            className="shrink-0 w-8 h-8 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 relative"
-            aria-label="Notifications"
-            title="Notifications"
-          >
-            <svg className="w-4 h-4 sm:w-4 sm:h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-            </svg>
-            {notificationCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
-                {notificationCount > 99 ? '99+' : notificationCount}
-              </span>
-            )}
-          </button>
-
-          {/* Wallet - desktop only, responsive size */}
-          <button
-            onClick={() => navigate('/funds?tab=add-fund')}
-            className="hidden md:flex shrink-0 items-center gap-1 md:gap-1.5 rounded-lg bg-[#202124] border border-white/5 px-2 md:px-2.5 py-1 md:py-1.5 hover:bg-[#2a2b2e] transition-colors"
-          >
-            <img
-              src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
-              alt="Wallet"
-              className="w-6 h-6 md:w-6 md:h-6 lg:w-7 lg:h-7 object-contain"
-            />
-            <span className="text-xs md:text-sm lg:text-base font-bold text-white">{formattedBalance}</span>
-          </button>
-
-          {/* Profile Icon - desktop only (hidden on mobile since bottom navbar has it) */}
-          <button
-            type="button"
-            onClick={handleProfileClick}
-            className={`hidden md:flex w-8 h-8 md:w-9 md:h-9 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 ${
-              user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
-            }`}
-            title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
-            aria-label="Profile"
-          >
-            <svg
-              className={`w-4 h-4 md:w-4 md:h-4 ${user ? 'text-yellow-400' : 'text-white'}`}
-              fill={user ? 'currentColor' : 'none'}
-              stroke={user ? 'none' : 'currentColor'}
-              strokeWidth={user ? 0 : 1.5}
-              viewBox="0 0 20 20"
+            {/* Download App - icon only on xs, short text on sm, full on md+ */}
+            <button
+              onClick={() => navigate('/download')}
+              className="shrink-0 rounded-lg bg-gradient-to-r from-[#f3b61b] to-[#e5a914] px-2 sm:px-2.5 md:px-3 lg:px-4 py-2 text-xs sm:text-xs md:text-sm font-bold text-black active:scale-95 hover:from-[#e5a914] hover:to-[#d49a13] transition-all duration-200 flex items-center gap-1 md:gap-1.5 min-w-[36px] min-h-[36px] justify-center touch-manipulation"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                clipRule="evenodd"
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span className="hidden sm:inline">{t('header.downloadApp')}</span>
+            </button>
+
+            {/* Notification */}
+            <button
+              onClick={() => navigate('/notifications')}
+              className="shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 relative touch-manipulation"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <svg className="w-4 h-4 md:w-[18px] md:h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              {notificationCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </span>
+              )}
+            </button>
+
+            {/* Wallet - hidden on small screens */}
+            <button
+              onClick={() => navigate('/funds?tab=add-fund')}
+              className="hidden md:flex shrink-0 items-center gap-1.5 rounded-lg bg-[#202124] border border-white/5 px-2.5 py-1.5 lg:px-3 lg:py-2 hover:bg-[#2a2b2e] transition-colors min-w-0"
+            >
+              <img
+                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
+                alt="Wallet"
+                className="w-6 h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 object-contain shrink-0"
               />
-            </svg>
-          </button>
-        </div>
+              <span className="text-xs lg:text-sm xl:text-base font-bold text-white truncate max-w-[80px] lg:max-w-[100px] xl:max-w-none">{formattedBalance}</span>
+            </button>
+
+            {/* Profile - hidden on mobile */}
+            <button
+              type="button"
+              onClick={handleProfileClick}
+              className={`hidden md:flex w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 touch-manipulation ${
+                user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
+              }`}
+              title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
+              aria-label="Profile"
+            >
+              <svg
+                className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-yellow-400' : 'text-white'}`}
+                fill={user ? 'currentColor' : 'none'}
+                stroke={user ? 'none' : 'currentColor'}
+                strokeWidth={user ? 0 : 1.5}
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       {isMenuOpen && (
