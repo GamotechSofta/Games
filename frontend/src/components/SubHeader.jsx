@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
 
 /**
@@ -7,6 +8,7 @@ import { getBalance, updateUserBalance } from '../api/bets';
  * Fixed below the main AppHeader.
  */
 const SubHeader = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [balance, setBalance] = useState(null);
 
@@ -67,7 +69,7 @@ const SubHeader = () => {
           onClick={() => navigate('/funds')}
           className="shrink-0 rounded-lg bg-[#1a1a1a] border-2 border-amber-400/90 px-3 sm:px-4 py-1.5 sm:py-2 text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(251,191,36,0.4),0_2px_0_rgba(251,191,36,0.3),0_-2px_0_rgba(251,191,36,0.2)] hover:border-amber-400 hover:shadow-[0_0_16px_rgba(251,191,36,0.5)] active:scale-[0.98] transition-all"
         >
-          Deposit/Withdrawal
+          {t('header.depositWithdrawal')}
         </button>
       </div>
     </div>

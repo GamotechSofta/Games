@@ -47,6 +47,7 @@
   "header": {
     "myBets": "My Bets",
     "funds": "Funds",
+    "depositWithdrawal": "Deposit/Withdrawal",
     "updateRate": "Game Rate",
     "topWinners": "Top Winners",
     "telegramChannel": "Telegram Channel",
