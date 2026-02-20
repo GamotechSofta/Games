@@ -87,7 +87,7 @@ const formatRangeLabel = (from, to) => {
 };
 
 const SummaryCard = ({ label, value, icon: Icon, gradient, iconBg, iconColor, sub }) => (
-    <div className={`glass-panel p-6 rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300`}>
+    <div className={`glass-panel glass-panel-card p-6 rounded-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300`}>
         <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
             <Icon className={`w-24 h-24 ${iconColor}`} />
         </div>
@@ -186,7 +186,7 @@ const Reports = () => {
                 </div>
 
                 {/* Date filters */}
-                <div className="glass-panel px-4 py-3 rounded-xl border border-white/5">
+                <div className="glass-panel glass-panel-card px-4 py-3 rounded-xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 shrink-0">
                             <FaCalendarAlt className="w-4 h-4 text-amber-500" />
@@ -277,7 +277,7 @@ const Reports = () => {
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Betting Activity Cards */}
-                            <div className="glass-panel p-6 rounded-2xl border border-white/5">
+                            <div className="glass-panel glass-panel-card p-6 rounded-2xl border border-white/10">
                                 <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
                                         <FaDice className="w-4 h-4 text-amber-500" />
@@ -312,7 +312,7 @@ const Reports = () => {
                             </div>
 
                             {/* Earnings Breakdown */}
-                            <div className="glass-panel p-6 rounded-2xl border border-white/5">
+                            <div className="glass-panel glass-panel-card p-6 rounded-2xl border border-white/10">
                                 <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                                         <FaMoneyBillWave className="w-4 h-4 text-emerald-500" />
@@ -402,7 +402,7 @@ const Reports = () => {
                                 <Link
                                     key={item.to}
                                     to={item.to}
-                                    className="glass-panel p-4 rounded-xl border border-white/5 hover:border-white/20 transition-all group flex items-center gap-4"
+                                    className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 hover:border-white/20 transition-all group flex items-center gap-4"
                                 >
                                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 transition-colors bg-${item.color}-500/10`}>
                                         <item.icon className={`w-5 h-5 text-${item.color}-400`} />
@@ -417,7 +417,7 @@ const Reports = () => {
                         </div>
                     </>
                 ) : (
-                    <div className="glass-panel p-16 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-white/10 text-center flex flex-col items-center justify-center">
                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                             <FaChartLine className="w-8 h-8 text-slate-600" />
                         </div>

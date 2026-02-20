@@ -106,7 +106,7 @@ const Markets = () => {
             const statusText = isClosed ? 'CLOSED' : 'OPEN';
 
             return (
-                <div key={market._id} className="glass-panel rounded-2xl p-4 relative overflow-hidden group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all duration-300 border border-white/5 hover:border-amber-500/30">
+                <div key={market._id} className="glass-panel glass-panel-card rounded-2xl p-4 relative overflow-hidden group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all duration-300 border border-white/10 hover:border-amber-500/30">
                     <div className="absolute -top-8 -right-8 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-300"></div>
 
                     <div className="flex justify-between items-start mb-3 relative z-10">
@@ -200,7 +200,7 @@ const Markets = () => {
         const statusText = hasResult ? 'DECLARED' : 'OPEN';
 
         return (
-            <div key={market._id} className="glass-panel rounded-2xl p-4 relative overflow-hidden group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all duration-300 border border-white/5 hover:border-amber-500/30">
+            <div key={market._id} className="glass-panel glass-panel-card rounded-2xl p-4 relative overflow-hidden group hover:shadow-[0_0_30px_-10px_rgba(245,158,11,0.15)] transition-all duration-300 border border-white/10 hover:border-amber-500/30">
                 <div className="absolute -top-8 -right-8 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all duration-300"></div>
 
                 <div className="flex justify-between items-start mb-3 relative z-10">
@@ -327,7 +327,7 @@ const Markets = () => {
                         ))}
                     </div>
                 ) : currentMarkets.length === 0 ? (
-                    <div className="glass-panel rounded-2xl p-12 text-center border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl p-12 text-center border border-white/10">
                         <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-4">
                             {activeTab === 'regular' && <FaChartBar className="w-8 h-8 text-slate-500" />}
                             {activeTab === 'starline' && <FaStar className="w-8 h-8 text-slate-500" />}

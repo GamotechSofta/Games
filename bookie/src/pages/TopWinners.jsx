@@ -77,7 +77,7 @@ const TopWinners = () => {
                         <p className="text-slate-400 text-sm mt-1">Most successful players on your platform</p>
                     </div>
 
-                    <div className="glass-panel p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto overflow-x-auto">
+                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto overflow-x-auto">
                         {[
                             { id: 'today', label: 'Today' },
                             { id: 'week', label: 'This Week' },
@@ -105,7 +105,7 @@ const TopWinners = () => {
                         ))}
                     </div>
                 ) : winners.length === 0 ? (
-                    <div className="glass-panel p-16 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-white/10 text-center flex flex-col items-center justify-center">
                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                             <FaTrophy className="w-8 h-8 text-slate-600" />
                         </div>
@@ -121,7 +121,7 @@ const TopWinners = () => {
                             return (
                                 <div
                                     key={winner.userId?._id || index}
-                                    className={`glass-panel p-6 rounded-2xl border transition-transform hover:scale-[1.02] duration-300 relative overflow-hidden group ${index < 3 ? style.border : 'border-white/5'
+                                    className={`glass-panel glass-panel-card p-6 rounded-2xl border transition-transform hover:scale-[1.02] duration-300 relative overflow-hidden group ${index < 3 ? style.border : 'border-white/10'
                                         }`}
                                 >
                                     {/* Background Glow for Top 3 */}

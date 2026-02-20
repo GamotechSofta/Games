@@ -96,7 +96,7 @@ const formatRangeLabel = (from, to) => {
 
 /** Section card wrapper */
 const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLabel }) => (
-    <div className="glass-panel rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 group">
+    <div className="glass-panel glass-panel-card rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 group">
         <div className="flex items-start justify-between mb-6">
             <div>
                 <h3 className="text-lg font-bold text-gray-100 flex items-center gap-3">
@@ -107,7 +107,7 @@ const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLab
                     )}
                     {title}
                 </h3>
-                {description && <p className="text-xs text-slate-400 mt-2 font-medium tracking-wide">{description}</p>}
+                {description && <p className="text-xs text-slate-300 mt-2 font-medium tracking-wide">{description}</p>}
             </div>
             {linkTo && (
                 <Link to={linkTo} className="text-xs font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/5 hover:bg-amber-500/10 transition-all">
@@ -123,11 +123,11 @@ const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLab
 
 /** Stat row */
 const StatRow = ({ label, value, subValue, colorClass = 'text-white' }) => (
-    <div className="flex justify-between items-center py-3 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
-        <span className="text-sm text-slate-400 font-medium">{label}</span>
+    <div className="flex justify-between items-center py-3 border-b border-white/10 last:border-0 hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
+        <span className="text-sm text-slate-300 font-medium">{label}</span>
         <div className="text-right">
             <span className={`font-bold font-mono text-base ${colorClass}`}>{value}</span>
-            {subValue && <span className="text-xs text-slate-500 ml-2 block">{subValue}</span>}
+            {subValue && <span className="text-xs text-slate-400 ml-2 block">{subValue}</span>}
         </div>
     </div>
 );
@@ -288,7 +288,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Date Filter */}
-                <div className="glass-panel p-2 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-4 relative z-[60]">
+                <div className="glass-panel glass-panel-card p-2 rounded-2xl flex flex-col lg:flex-row items-center justify-between gap-4 relative z-[60]">
                     <div className="flex flex-wrap items-center gap-1.5 p-1 w-full lg:w-auto">
                         {PRESETS.map((p) => {
                             const isActive = !customMode && datePreset === p.id;
@@ -397,8 +397,8 @@ const Dashboard = () => {
             {/* Primary KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Revenue */}
-                <div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="glass-panel glass-panel-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                         <FaMoneyBillWave className="w-16 h-16 text-emerald-500" />
                     </div>
                     <p className="text-xs text-emerald-400 uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
@@ -412,8 +412,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Net Profit */}
-                <div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="glass-panel glass-panel-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                         <FaChartLine className="w-16 h-16 text-blue-500" />
                     </div>
                     <p className="text-xs text-blue-400 uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
@@ -423,7 +423,7 @@ const Dashboard = () => {
                     <p className="text-3xl font-bold text-white font-mono tracking-tight">{formatCurrency(bookieNetProfit !== null ? bookieNetProfit : netProfit)}</p>
                     {bookieNetProfit !== null && (
                         <>
-                            <p className="mt-2 text-xs text-slate-400 font-medium">
+                            <p className="mt-2 text-xs text-slate-300 font-medium">
                                 {bookieType === 'bookie_collects' 
                                     ? `After platform charge (${commissionPercent}%) & payouts`
                                     : `Commission (${commissionPercent}% of revenue)`}
@@ -444,8 +444,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Players */}
-                <div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="glass-panel glass-panel-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                         <FaUserFriends className="w-16 h-16 text-purple-500" />
                     </div>
                     <p className="text-xs text-purple-400 uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
@@ -453,7 +453,7 @@ const Dashboard = () => {
                         Total Users
                     </p>
                     <p className="text-3xl font-bold text-white font-mono tracking-tight">{stats?.users?.total ?? 0}</p>
-                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-400 text-nowrap">
+                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-300 text-nowrap">
                         <span className="text-emerald-400 font-semibold">{stats?.users?.active ?? 0} active</span>
                         <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
                         <span className="text-amber-400 font-semibold">{stats?.users?.newToday ?? 0} new</span>
@@ -461,8 +461,8 @@ const Dashboard = () => {
                 </div>
 
                 {/* Active Bets */}
-                <div className="glass-panel rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <div className="glass-panel glass-panel-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity">
                         <FaChartBar className="w-16 h-16 text-amber-500" />
                     </div>
                     <p className="text-xs text-amber-400 uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
@@ -540,7 +540,7 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="glass-panel rounded-3xl p-8 border border-white/5 relative overflow-hidden group">
+            <div className="glass-panel glass-panel-card rounded-3xl p-8 border border-white/10 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-500"></div>
                 <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">

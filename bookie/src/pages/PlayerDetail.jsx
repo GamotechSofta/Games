@@ -353,7 +353,7 @@ const PlayerDetail = () => {
                 </div>
 
                 {/* Player info card */}
-                <div className="glass-panel rounded-2xl p-6 mb-8 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card rounded-2xl p-6 mb-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
                         <div className="w-32 h-32 bg-amber-500/20 rounded-full blur-3xl"></div>
                     </div>
@@ -405,7 +405,7 @@ const PlayerDetail = () => {
                 </div>
 
                 {/* Date range & Filters */}
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 glass-panel p-2 rounded-xl">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4 glass-panel glass-panel-card p-2 rounded-xl">
                     <div className="flex bg-black/20 rounded-lg p-1">
                         {TABS.map((tab) => (
                             <button
@@ -428,7 +428,7 @@ const PlayerDetail = () => {
                             {statementFrom && statementTo ? formatDateRange(statementFrom, statementTo) : 'Select Date Range'}
                         </button>
                         {calendarOpen && (
-                            <div className="absolute right-0 top-full mt-2 glass-panel rounded-xl border border-white/10 shadow-2xl z-50 flex flex-col sm:flex-row shadow-black/50 overflow-hidden">
+                            <div className="absolute right-0 top-full mt-2 glass-panel glass-panel-card rounded-xl border border-white/10 shadow-2xl z-50 flex flex-col sm:flex-row shadow-black/50 overflow-hidden">
                                 <div className="min-w-[180px] border-b sm:border-b-0 sm:border-r border-white/5 p-2 bg-black/40">
                                     {STATEMENT_PRESETS.map((p) => (
                                         <button
@@ -464,7 +464,7 @@ const PlayerDetail = () => {
                 </div>
 
                 {/* Tab content */}
-                <div className="glass-panel rounded-2xl overflow-hidden min-h-[300px]">
+                <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden min-h-[300px]">
                     {activeTab === 'statement' && (
                         <>
                             {loadingTab ? (
@@ -644,7 +644,7 @@ const PlayerDetail = () => {
             {/* Edit Wallet Modal */}
             {walletModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="glass-panel bg-[#0B1120] rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card bg-[#0B1120]/80 rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
                         <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
                             <h3 className="text-lg font-bold text-white flex items-center gap-2">

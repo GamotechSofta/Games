@@ -69,7 +69,7 @@ const Login = () => {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]"></div>
             </div>
 
-            <div className="glass-panel rounded-2xl p-8 w-full max-w-md relative z-10 shadow-2xl shadow-black/50">
+            <div className="glass-panel glass-panel-card rounded-2xl p-8 w-full max-w-md relative z-10 shadow-2xl shadow-black/50">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent mb-2 tracking-tight">
                         Bookie Panel

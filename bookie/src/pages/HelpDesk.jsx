@@ -79,7 +79,7 @@ const HelpDesk = () => {
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-0 flex-1">
                     {/* Ticket List */}
-                    <div className="glass-panel rounded-2xl overflow-hidden flex flex-col border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-white/10">
                         <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center shrink-0">
                             <h2 className="font-bold text-white">Tickets</h2>
                             <span className="text-xs text-slate-400">{tickets.length} tickets</span>
@@ -125,7 +125,7 @@ const HelpDesk = () => {
                     </div>
 
                     {/* Ticket Details */}
-                    <div className="glass-panel rounded-2xl overflow-hidden flex flex-col border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-white/10">
                         {selectedTicket ? (
                             <div className="flex flex-col h-full">
                                 <div className="p-6 border-b border-white/5 shrink-0 flex justify-between items-start gap-4">

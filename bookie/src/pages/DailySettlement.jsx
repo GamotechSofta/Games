@@ -258,7 +258,7 @@ const DailySettlement = () => {
                     </span>
                 </div>
 
-                <div className="glass-panel p-3 rounded-lg border border-white/5">
+                <div className="glass-panel glass-panel-card p-3 rounded-lg border border-white/10">
                     <div className="flex flex-wrap items-center gap-2">
                         {[
                             ...PRESETS,
@@ -286,7 +286,7 @@ const DailySettlement = () => {
                 </div>
 
                 {pendingSettlements.length > 0 && (
-                    <div className="glass-panel rounded-lg p-3 border border-amber-500/30 bg-amber-500/5">
+                    <div className="glass-panel glass-panel-card rounded-lg p-3 border border-amber-500/30 bg-amber-500/5">
                         <div className="flex flex-wrap items-center gap-3">
                             <span className="text-xs font-bold text-amber-400">Pending ({pendingSettlements.length})</span>
                             {pendingSettlements.map((s) => (
@@ -308,7 +308,7 @@ const DailySettlement = () => {
                     Total: {formatCurrency(isAdminCollects ? dailyCommission.reduce((s, d) => s + d.commission, 0) : totalAmount)}
                 </div>
 
-                <div className="glass-panel rounded-lg overflow-hidden border border-white/5">
+                <div className="glass-panel glass-panel-card rounded-lg overflow-hidden border border-white/10">
                     {loading ? (
                         <div className="p-8 text-center text-slate-400 text-sm">
                             <div className="animate-spin rounded-full h-6 w-6 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-2" />

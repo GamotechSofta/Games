@@ -85,28 +85,28 @@ const MyUsers = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <div className="glass-panel rounded-xl p-5 border border-white/5 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total</p>
                     <p className="text-2xl font-bold text-white font-mono">{users.length}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <FaUserPlus className="w-8 h-8" />
                     </div>
                 </div>
-                <div className="glass-panel rounded-xl p-5 border border-white/5 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
                     <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">Active</p>
                     <p className="text-2xl font-bold text-white font-mono">{activeCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-emerald-500"></div>
                     </div>
                 </div>
-                <div className="glass-panel rounded-xl p-5 border border-white/5 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
                     <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">Suspended</p>
                     <p className="text-2xl font-bold text-white font-mono">{suspendedCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-red-500"></div>
                     </div>
                 </div>
-                <div className="glass-panel rounded-xl p-5 border border-white/5 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
                     <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">Online</p>
                     <p className="text-2xl font-bold text-white font-mono">{onlineCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -117,7 +117,7 @@ const MyUsers = () => {
 
             {/* Search */}
             <div className="mb-6 sm:mb-8">
-                <div className="relative max-w-lg glass-panel rounded-full overflow-hidden flex items-center">
+                <div className="relative max-w-lg glass-panel glass-panel-card rounded-full overflow-hidden flex items-center">
                     <div className="pl-4 text-slate-400">
                         <FaSearch className="w-4 h-4" />
                     </div>
@@ -149,7 +149,7 @@ const MyUsers = () => {
             )}
 
             {/* Table */}
-            <div className="glass-panel rounded-2xl overflow-hidden min-w-0 max-w-full">
+            <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden min-w-0 max-w-full">
                 {loading ? (
                     <div className="p-12 text-center">
                         <div className="animate-spin rounded-full h-10 w-10 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-4" />

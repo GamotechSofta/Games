@@ -127,7 +127,7 @@ const Revenue = () => {
                     </div>
 
                     {data && (
-                        <div className={`glass-panel px-5 py-3 rounded-xl flex items-center gap-3 border ${isBookieCollects ? 'border-purple-500/20' : 'border-emerald-500/20'
+                        <div className={`glass-panel glass-panel-card px-5 py-3 rounded-xl flex items-center gap-3 border ${isBookieCollects ? 'border-purple-500/20' : 'border-emerald-500/20'
                             }`}>
                             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'
                                 }`}>
@@ -151,7 +151,7 @@ const Revenue = () => {
                 </div>
 
                 {/* Date filters */}
-                <div className="glass-panel px-4 py-3 rounded-xl border border-white/5">
+                <div className="glass-panel glass-panel-card px-4 py-3 rounded-xl border border-white/10">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 shrink-0">
                             <FaCalendarAlt className="w-4 h-4 text-amber-500" />
@@ -198,7 +198,7 @@ const Revenue = () => {
                     <div className="glass-panel h-96 rounded-2xl animate-pulse" />
                 ) : data ? (
                     <>
-                        <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
+                        <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
                             <table className="w-full">
                                 <tbody className="divide-y divide-white/5">
                                     {/* Your Revenue - highlighted row */}
@@ -380,7 +380,7 @@ const Revenue = () => {
                         </div>
                     </>
                 ) : (
-                    <div className="glass-panel p-16 rounded-2xl border border-white/5 text-center flex flex-col items-center justify-center">
+                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-white/10 text-center flex flex-col items-center justify-center">
                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                             <FaMoneyBillWave className="w-8 h-8 text-slate-600" />
                         </div>

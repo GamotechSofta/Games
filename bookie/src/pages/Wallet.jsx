@@ -154,7 +154,7 @@ const Wallet = () => {
                         </p>
                     </div>
 
-                    <div className={`glass-panel px-5 py-3 rounded-xl flex items-center gap-3 border ${canManage ? 'border-purple-500/20' : 'border-emerald-500/20'
+                    <div className={`glass-panel glass-panel-card px-5 py-3 rounded-xl flex items-center gap-3 border ${canManage ? 'border-purple-500/20' : 'border-emerald-500/20'
                         }`}>
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${canManage ? 'bg-purple-500/10' : 'bg-emerald-500/10'
                             }`}>
@@ -173,7 +173,7 @@ const Wallet = () => {
                 </div>
 
                 {/* Summary Card */}
-                <div className="glass-panel p-6 rounded-2xl border border-white/5 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card p-6 rounded-2xl border border-white/10 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-6 opacity-5">
                         <FaCoins className="w-32 h-32 text-amber-500 -mb-10 -mr-10 rotate-12" />
                     </div>
@@ -194,7 +194,7 @@ const Wallet = () => {
                 {/* Controls */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                     {/* Tabs */}
-                    <div className="glass-panel p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto">
+                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab('wallets')}
                             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'wallets'
@@ -245,7 +245,7 @@ const Wallet = () => {
                         ))}
                     </div>
                 ) : activeTab === 'wallets' ? (
-                    <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
                         <table className="w-full">
                             <thead className="bg-white/5 border-b border-white/5 text-left">
                                 <tr>
@@ -301,7 +301,7 @@ const Wallet = () => {
                         </table>
                     </div>
                 ) : (
-                    <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
                         <table className="w-full">
                             <thead className="bg-white/5 border-b border-white/5 text-left">
                                 <tr>
@@ -358,7 +358,7 @@ const Wallet = () => {
             {/* Adjust Balance Modal */}
             {adjustModal.show && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
+                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
                         {/* Header gradient */}
                         <div className={`absolute top-0 left-0 w-full h-1 ${adjustModal.type === 'credit' ? 'bg-gradient-to-r from-emerald-500 to-green-400' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}></div>
 

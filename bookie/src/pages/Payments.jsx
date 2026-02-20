@@ -147,7 +147,7 @@ const Payments = () => {
                 {/* Quick Stats – clickable for quick filter */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                     <button
-                        className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'deposit'
+                        className={`glass-panel glass-panel-card p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'deposit'
                             ? 'border-amber-500/50 shadow-[0_0_30px_-10px_rgba(245,158,11,0.3)]'
                             : 'hover:border-white/20'
                             }`}
@@ -166,7 +166,7 @@ const Payments = () => {
                     </button>
 
                     <button
-                        className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'withdrawal'
+                        className={`glass-panel glass-panel-card p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${filters.status === 'pending' && filters.type === 'withdrawal'
                             ? 'border-purple-500/50 shadow-[0_0_30px_-10px_rgba(168,85,247,0.3)]'
                             : 'hover:border-white/20'
                             }`}
@@ -185,7 +185,7 @@ const Payments = () => {
                     </button>
 
                     <button
-                        className={`glass-panel p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${!hasActiveFilters || (filters.status === '' && filters.type === '')
+                        className={`glass-panel glass-panel-card p-6 rounded-2xl text-left transition-all group relative overflow-hidden ${!hasActiveFilters || (filters.status === '' && filters.type === '')
                             ? 'border-blue-500/50 shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]'
                             : 'hover:border-white/20'
                             }`}
@@ -205,7 +205,7 @@ const Payments = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="glass-panel p-4 rounded-2xl mb-8 border border-white/5">
+                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-8 border border-white/10">
                     <div className="flex flex-col sm:flex-row gap-4 items-end">
                         <div className="flex-1 w-full sm:w-auto relative">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Status</label>
@@ -271,13 +271,13 @@ const Payments = () => {
                         {/* Mobile cards */}
                         <div className="space-y-4 md:hidden">
                             {payments.length === 0 ? (
-                                <div className="p-12 text-center text-slate-500 glass-panel rounded-2xl">
+                                <div className="p-12 text-center text-slate-500 glass-panel glass-panel-card rounded-2xl">
                                     <FaWallet className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                                     No payments found
                                 </div>
                             ) : (
                                 payments.map((p) => (
-                                    <div key={p._id} className="glass-panel rounded-xl p-5 border border-white/5 relative overflow-hidden">
+                                    <div key={p._id} className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden">
                                         <div className={`absolute top-0 left-0 w-1 h-full ${p.type === 'deposit' ? 'bg-emerald-500' : 'bg-purple-500'}`}></div>
                                         {/* Top: Player + Status */}
                                         <div className="flex items-center justify-between mb-4">
@@ -372,7 +372,7 @@ const Payments = () => {
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden md:block glass-panel rounded-2xl overflow-hidden border border-white/5">
+                        <div className="hidden md:block glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-sm">
                                     <thead>
@@ -477,7 +477,7 @@ const Payments = () => {
             {/* Action Modal */}
             {actionModal.show && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
+                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
                         <div className={`absolute top-0 left-0 w-full h-1 ${actionModal.action === 'approve' ? 'bg-gradient-to-r from-emerald-500 to-green-400' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}></div>
 
                         <div className="flex items-center gap-4 mb-6">
@@ -576,7 +576,7 @@ const Payments = () => {
             {/* Detail Modal */}
             {detailModal.show && detailModal.payment && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel w-full max-w-lg rounded-2xl border border-white/10 flex flex-col max-h-[90vh] shadow-2xl">
+                    <div className="glass-panel glass-panel-card w-full max-w-lg rounded-2xl border border-white/10 flex flex-col max-h-[90vh] shadow-2xl">
                         <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
                             <div>
                                 <h3 className="text-xl font-bold text-white">Payment Details</h3>

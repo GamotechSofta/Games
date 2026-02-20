@@ -114,7 +114,7 @@ const AddUser = () => {
                     </div>
                 )}
 
-                <div className="glass-panel rounded-2xl p-8 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card rounded-2xl p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                         <div className="w-48 h-48 bg-amber-500/20 rounded-full blur-3xl"></div>
                     </div>

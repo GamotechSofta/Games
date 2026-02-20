@@ -108,7 +108,7 @@ const BetHistory = () => {
                 </div>
 
                 {/* Date range */}
-                <div className="glass-panel p-4 rounded-2xl mb-6 border border-white/5">
+                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-6 border border-white/10">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Date range</p>
                     <div className="flex flex-wrap gap-2 mb-3">
                         {RANGES.map((r) => (
@@ -154,7 +154,7 @@ const BetHistory = () => {
                         Loading history...
                     </div>
                 ) : (
-                    <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>

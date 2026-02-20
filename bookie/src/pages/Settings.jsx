@@ -162,7 +162,7 @@ const Settings = () => {
                 </div>
 
                 {/* Account Type Card */}
-                <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
                     <div className={`absolute top-0 left-0 w-1 h-full ${isBookieCollects ? 'bg-purple-500' : 'bg-emerald-500'}`}></div>
                     <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'}`}>
@@ -182,7 +182,7 @@ const Settings = () => {
 
                 {/* Security Password (Bookie Collects only) */}
                 {isBookieCollects && (
-                    <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
                         <div className="relative z-10">
                             <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                                 <FaLock className="w-4 h-4 text-purple-400" />
@@ -249,7 +249,7 @@ const Settings = () => {
 
                 {/* Payment Settings */}
                 {isBookieCollects ? (
-                    <div className="glass-panel p-4 rounded-xl border border-white/5 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
                         <div className="relative z-10">
                             <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
                                 <FaCreditCard className="text-amber-500 w-4 h-4" />
@@ -349,7 +349,7 @@ const Settings = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="glass-panel p-4 rounded-xl border border-white/5 text-center">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 text-center">
                         <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 border border-slate-700">
                             <FaShieldAlt className="w-5 h-5 text-slate-400" />
                         </div>
