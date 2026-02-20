@@ -490,7 +490,15 @@
     "enterSingleDigit": "ਸਿੰਗਲ ਅੰਕ ਦਾਖਲ ਕਰੋ",
     "betPlacedSuccessfully": "ਤੁਹਾਡੀ ਬੇਟ ਕਾਮਯਾਬੀ ਨਾਲ ਲਗਾਈ ਗਈ",
     "ok": "ਠੀਕ ਹੈ",
-    "submitBet": "ਬੇਟ ਸਬਮਿਟ ਕਰੋ"
+    "submitBet": "ਬੇਟ ਸਬਮਿਟ ਕਰੋ",
+    "totalBets": "ਕੁੱਲ ਬੇਟਾਂ",
+    "totalBetAmount": "ਕੁੱਲ ਬੇਟ ਰਕਮ",
+    "walletBalanceBeforeDeduction": "ਕਟੌਤੀ ਤੋਂ ਪਹਿਲਾਂ ਵਾਲੇਟ ਬੈਲੇਂਸ",
+    "walletBalanceAfterDeduction": "ਕਟੌਤੀ ਮਗਰੋਂ ਵਾਲੇਟ ਬੈਲੇਂਸ",
+    "betNoteCannotCancel": "*ਨੋਟ: ਇੱਕ ਵਾਰ ਲੱਗੀ ਬੇਟ ਰੱਦ ਨਹੀਂ ਹੋ ਸਕਦੀ*",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "insufficientBalanceFull": "ਅਧੂਰਾ ਬੈਲੇਂਸ. ਲੋੜ: ₹{{amount}}, ਉਪਲੱਬਧ: ₹{{before}}. ਇਸ ਬੇਟ ਲਈ ਫੰਡ ਜੋੜੋ.",
+    "reviewBet": "ਬੇਟ ਦੀ ਸਮੀਖਿਆ ਕਰੋ"
   },
   "topWinners": {
     "title": "ਟਾਪ ਵਿਜੇਤਾ",

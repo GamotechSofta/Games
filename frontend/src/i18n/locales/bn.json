@@ -483,7 +483,15 @@
     "enterSingleDigit": "সিঙ্গল অঙ্ক লিখুন",
     "betPlacedSuccessfully": "আপনার বেট সফলভাবে জমা হয়েছে",
     "ok": "ঠিক আছে",
-    "submitBet": "বেট জমা দিন"
+    "submitBet": "বেট জমা দিন",
+    "totalBets": "মোট বেট",
+    "totalBetAmount": "মোট বেটের পরিমাণ",
+    "walletBalanceBeforeDeduction": "কেটে নেওয়ার আগে ওয়ালেট ব্যালেন্স",
+    "walletBalanceAfterDeduction": "কেটে নেওয়ার পর ওয়ালেট ব্যালেন্স",
+    "betNoteCannotCancel": "*দ্রষ্টব্য: একবার দেওয়া বেট বাতিল করা যাবে না*",
+    "cancel": "বাতিল করুন",
+    "insufficientBalanceFull": "অপর্যাপ্ত ব্যালেন্স। প্রয়োজন: ₹{{amount}}, উপলব্ধ: ₹{{before}}. এই বেট দিতে ফান্ড যোগ করুন।",
+    "reviewBet": "বেট পর্যালোচনা করুন"
   },
   "topWinners": {
     "title": "শীর্ষ বিজয়ী",

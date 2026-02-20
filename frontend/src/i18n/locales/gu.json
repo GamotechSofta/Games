@@ -489,7 +489,15 @@
     "enterSingleDigit": "સિંગલ અંક દાખલ કરો",
     "betPlacedSuccessfully": "તમારી બેટ સફળતાપૂર્વક લાગી",
     "ok": "ઠીક છે",
-    "submitBet": "બેટ સબમિટ કરો"
+    "submitBet": "બેટ સબમિટ કરો",
+    "totalBets": "કુલ બેટ",
+    "totalBetAmount": "કુલ બેટ રકમ",
+    "walletBalanceBeforeDeduction": "કપાત પહેલાં વૉલેટ બેલેન્સ",
+    "walletBalanceAfterDeduction": "કપાત પછી વૉલેટ બેલેન્સ",
+    "betNoteCannotCancel": "*નોંધ: એકવાર મૂકેલી બેટ રદ કરી શકાશે નહીં*",
+    "cancel": "રદ કરો",
+    "insufficientBalanceFull": "અપર્યાપ્ત બેલેન્સ. જરૂરી: ₹{{amount}}, ઉપલબ્ધ: ₹{{before}}. આ બેટ મૂકવા માટે ફંડ ઉમેરો.",
+    "reviewBet": "બેટ સમીક્ષા કરો"
   },
   "topWinners": {
     "title": "ટોચના વિજેતા",

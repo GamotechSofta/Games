@@ -490,7 +490,15 @@
     "enterSingleDigit": "സിംഗിൾ അക്കം നൽകുക",
     "betPlacedSuccessfully": "നിങ്ങളുടെ ബെറ്റ് വിജയകരമായി സമർപ്പിച്ചു",
     "ok": "ശരി",
-    "submitBet": "ബെറ്റ് സമർപ്പിക്കുക"
+    "submitBet": "ബെറ്റ് സമർപ്പിക്കുക",
+    "totalBets": "ആകെ ബെറ്റുകൾ",
+    "totalBetAmount": "ആകെ ബെറ്റ് തുക",
+    "walletBalanceBeforeDeduction": "കിഴിവിന് മുമ്പ് വാലറ്റ് ബാലൻസ്",
+    "walletBalanceAfterDeduction": "കിഴിവിന് ശേഷം വാലറ്റ് ബാലൻസ്",
+    "betNoteCannotCancel": "*കുറിപ്പ്: ഒരിക്കൽ വെച്ച ബെറ്റ് റദ്ദാക്കാനാവില്ല*",
+    "cancel": "റദ്ദാക്കുക",
+    "insufficientBalanceFull": "അപര്യാപ്ത ബാലൻസ്. ആവശ്യമായ തുക: ₹{{amount}}, ലഭ്യം: ₹{{before}}. ഈ ബെറ്റിന് ഫണ്ട് ചേർക്കുക.",
+    "reviewBet": "ബെറ്റ് അവലോകനം ചെയ്യുക"
   },
   "topWinners": {
     "title": "മുൻനിര വിജേതകൾ",

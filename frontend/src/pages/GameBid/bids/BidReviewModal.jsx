@@ -8,11 +8,11 @@ const formatMoney = (v) => {
   return n.toFixed(1);
 };
 
-const formatDateTitle = (marketTitle, dateText) => {
+const formatDateTitle = (marketTitle, dateText, fallback) => {
   const m = (marketTitle || '').toString().trim();
   const d = (dateText || '').toString().trim();
   if (m && d) return `${m} - ${d}`;
-  return m || d || 'Review Bet';
+  return m || d || fallback || 'Review Bet';
 };
 
 const renderBetNumber = (val) => {
@@ -48,7 +48,7 @@ const BidReviewModal = ({
   totalBids = 0,
   totalAmount = 0
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { allowed: bettingAllowed, message: bettingMessage } = useBettingWindow();
   const [stage, setStage] = useState('review'); // 'review' | 'success'
   const [submitting, setSubmitting] = useState(false);
@@ -69,6 +69,12 @@ const BidReviewModal = ({
   const after = before - amount;
   const insufficientBalance = after < 0;
   const cannotSubmit = insufficientBalance || !bettingAllowed;
+
+  const getTranslatedLabel = (key) => {
+    const map = { Digit: 'digit', Pana: 'pana', Jodi: 'jodi', Ank: 'ank', Sangam: 'sangam' };
+    const k = map[key] || key?.toLowerCase?.();
+    return k && i18n.exists(`gameBid.${k}`) ? t(`gameBid.${k}`) : key;
+  };
   const handleClose = () => {
     if (onClose) onClose();
   };
@@ -109,7 +115,7 @@ const BidReviewModal = ({
 
       setStage('success');
     } catch (e) {
-      setSubmitError(e?.message || 'Failed to place bet');
+      setSubmitError(e?.message || t('betHistory.betFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -178,7 +184,7 @@ const BidReviewModal = ({
           >
             {/* Title bar */}
             <div className="bg-black text-white px-3 sm:px-4 py-2.5 text-center text-sm sm:text-lg font-semibold shrink-0 border-b border-white/10">
-              {formatDateTitle(marketTitle, dateText)}
+              {formatDateTitle(marketTitle, dateText, t('gameBid.reviewBet'))}
             </div>
 
             {/* Content: only history list scrolls */}
@@ -186,7 +192,7 @@ const BidReviewModal = ({
               {/* History (scroll only this section) */}
               <div className="flex-1 overflow-y-auto overscroll-contain ios-scroll-touch px-3 sm:px-4 pt-3 sm:pt-4 min-h-0">
                 <div className="grid grid-cols-3 text-center font-semibold text-[#d4af37] text-[11px] sm:text-base">
-                  <div className="truncate">{labelKey}</div>
+                  <div className="truncate">{getTranslatedLabel(labelKey)}</div>
                   <div className="truncate">{t('gameBid.points')}</div>
                   <div className="truncate">{t('gameBid.type')}</div>
                 </div>
@@ -196,7 +202,7 @@ const BidReviewModal = ({
                       <div className="grid grid-cols-3 text-center text-white font-semibold text-[12px] sm:text-base">
                         <div className="truncate">{renderBetNumber(r.number)}</div>
                         <div className="truncate text-[#f2c14e]">{r.points}</div>
-                        <div className="truncate font-medium text-gray-300 uppercase">{r.type}</div>
+                        <div className="truncate font-medium text-gray-300 uppercase">{r.type === 'OPEN' ? t('gameBid.open') : r.type === 'CLOSE' ? t('gameBid.close') : r.type}</div>
                       </div>
                     </div>
                   ))}
@@ -208,19 +214,19 @@ const BidReviewModal = ({
                 <div className="rounded-2xl overflow-hidden border border-white/10">
                   <div className="grid grid-cols-2">
                     <div className="p-3 sm:p-4 text-center border-r border-b border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">Total Bets</div>
+                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBets')}</div>
                       <div className="text-white font-bold text-base sm:text-lg leading-tight">{totalBids}</div>
                     </div>
                     <div className="p-3 sm:p-4 text-center border-b border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">Total Bet Amount</div>
+                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBetAmount')}</div>
                       <div className="text-white font-bold text-base sm:text-lg text-[#f2c14e] leading-tight">{amount}</div>
                     </div>
                     <div className="p-3 sm:p-4 text-center border-r border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">Wallet Balance Before Deduction</div>
+                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceBeforeDeduction')}</div>
                       <div className="text-white font-bold text-base sm:text-lg leading-tight">{formatMoney(before)}</div>
                     </div>
                     <div className="p-3 sm:p-4 text-center">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">Wallet Balance After Deduction</div>
+                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceAfterDeduction')}</div>
                       <div className={`font-bold text-base sm:text-lg leading-tight ${after < 0 ? 'text-red-400' : 'text-white'}`}>{formatMoney(after)}</div>
                     </div>
                   </div>
@@ -237,7 +243,7 @@ const BidReviewModal = ({
               {/* Insufficient balance warning */}
               {insufficientBalance && (
                 <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-200 text-sm shrink-0">
-                  Insufficient balance. Required: ₹{amount.toLocaleString('en-IN')}, Available: ₹{before.toLocaleString('en-IN')}. Add funds to place this bet.
+                  {t('gameBid.insufficientBalanceFull', { amount: amount.toLocaleString('en-IN'), before: before.toLocaleString('en-IN') })}
                 </div>
               )}
 
@@ -250,7 +256,7 @@ const BidReviewModal = ({
 
               {/* Note */}
               <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-4 text-center text-red-400 font-semibold text-[12px] sm:text-base shrink-0">
-                *Note: Bet once placed cannot be cancelled*
+                {t('gameBid.betNoteCannotCancel')}
               </div>
             </div>
 
@@ -262,7 +268,7 @@ const BidReviewModal = ({
                 disabled={submitting}
                 className="bg-black border border-white/10 text-white font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:border-[#d4af37]/40 disabled:opacity-50"
               >
-                Cancel
+                {t('gameBid.cancel')}
               </button>
               <button
                 type="button"

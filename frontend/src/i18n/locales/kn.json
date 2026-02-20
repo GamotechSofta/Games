@@ -490,7 +490,15 @@
     "enterSingleDigit": "ಸಿಂಗಲ್ ಅಂಕಿ ನಮೂದಿಸಿ",
     "betPlacedSuccessfully": "ನಿಮ್ಮ ಬೆಟ್ ಯಶಸ್ವಿಯಾಗಿ ಹಾಕಲಾಯಿತು",
     "ok": "ಸರಿ",
-    "submitBet": "ಬೆಟ್ ಸಲ್ಲಿಸಿ"
+    "submitBet": "ಬೆಟ್ ಸಲ್ಲಿಸಿ",
+    "totalBets": "ಒಟ್ಟು ಬೆಟ್‌ಗಳು",
+    "totalBetAmount": "ಒಟ್ಟು ಬೆಟ್ ಮೊತ್ತ",
+    "walletBalanceBeforeDeduction": "ಕಡಿತ ಮೊದಲು ವಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್",
+    "walletBalanceAfterDeduction": "ಕಡಿತ ನಂತರ ವಾಲೆಟ್ ಬ್ಯಾಲೆನ್ಸ್",
+    "betNoteCannotCancel": "*ಗಮನಿಸಿ: ಒಂದು ಬಾರಿ ಹಾಕಿದ ಬೆಟ್ ರದ್ದು ಮಾಡಲಾಗುವುದಿಲ್ಲ*",
+    "cancel": "ರದ್ದು ಮಾಡಿ",
+    "insufficientBalanceFull": "ಸಾಕಷ್ಟು ಬ್ಯಾಲೆನ್ಸ್ ಇಲ್ಲ. ಅಗತ್ಯ: ₹{{amount}}, ಲಭ್ಯ: ₹{{before}}. ಈ ಬೆಟ್ ಹಾಕಲು ಫಂಡ್ ಸೇರಿಸಿ.",
+    "reviewBet": "ಬೆಟ್ ಸಮೀಕ್ಷೆ ಮಾಡಿ"
   },
   "topWinners": {
     "title": "ಟಾಪ್ ವಿಜೇತರು",

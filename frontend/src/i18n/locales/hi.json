@@ -402,7 +402,15 @@
     "enterSingleDigit": "सिंगल अंक दर्ज करें",
     "betPlacedSuccessfully": "आपकी बेट सफलतापूर्वक लगी",
     "ok": "ठीक है",
-    "submitBet": "बेट सबमिट करें"
+    "submitBet": "बेट सबमिट करें",
+    "totalBets": "कुल बेट",
+    "totalBetAmount": "कुल बेट राशि",
+    "walletBalanceBeforeDeduction": "कटौती से पहले वॉलेट बैलेंस",
+    "walletBalanceAfterDeduction": "कटौती के बाद वॉलेट बैलेंस",
+    "betNoteCannotCancel": "*नोट: एक बार लगाई गई बेट रद्द नहीं की जा सकती*",
+    "cancel": "रद्द करें",
+    "insufficientBalanceFull": "अपर्याप्त बैलेंस. आवश्यक: ₹{{amount}}, उपलब्ध: ₹{{before}}. इस बेट को लगाने के लिए फंड जोड़ें।",
+    "reviewBet": "बेट समीक्षा करें"
   },
   "topWinners": {
     "title": "शीर्ष विजेता",

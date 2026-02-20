@@ -496,7 +496,15 @@
     "selectGameType": "Select Game Type",
     "enterSingleDigit": "Enter Single Digit",
     "betPlacedSuccessfully": "Your Bet Placed Successfully",
-    "ok": "OK"
+    "ok": "OK",
+    "totalBets": "Total Bets",
+    "totalBetAmount": "Total Bet Amount",
+    "walletBalanceBeforeDeduction": "Wallet Balance Before Deduction",
+    "walletBalanceAfterDeduction": "Wallet Balance After Deduction",
+    "betNoteCannotCancel": "*Note: Bet once placed cannot be cancelled*",
+    "cancel": "Cancel",
+    "insufficientBalanceFull": "Insufficient balance. Required: ₹{{amount}}, Available: ₹{{before}}. Add funds to place this bet.",
+    "reviewBet": "Review Bet"
   },
   "topWinners": {
     "title": "Top Winners",
