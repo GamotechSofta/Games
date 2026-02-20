@@ -1,5 +1,7 @@
 import React from 'react';
 import BannersSection from './BannersSection';
+import CasinoGamesCard from './CasinoGamesCard';
+import SkillsGamesCard from './SkillsGamesCard';
 import StarlineCard from './StarlineCard';
 import KingBazaarCard from './KingBazaarCard';
 
@@ -9,6 +11,8 @@ const WalletSection = () => {
       <BannersSection />
 
       <div className="mt-4 min-[375px]:mt-5 sm:mt-6 grid grid-cols-2 gap-2 min-[375px]:gap-3 sm:gap-4 max-w-lg mx-auto">
+        <CasinoGamesCard />
+        <SkillsGamesCard />
         <StarlineCard />
         <KingBazaarCard />
       </div>

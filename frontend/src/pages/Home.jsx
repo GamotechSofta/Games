@@ -1,7 +1,6 @@
 import React from 'react';
 import WalletSection from '../components/WalletSection';
 import HeroSection from '../components/HeroSection';
-import GamesSection from '../components/GamesSection';
 import Section1 from '../components/Section1';
 
 const Home = () => {
@@ -14,9 +13,6 @@ const Home = () => {
       
       {/* Hero Section - Shows on both mobile and desktop (banner) */}
       <HeroSection />
-      
-      {/* Games Section - Aviator + Other Games */}
-      <GamesSection />
 
       {/* Section1 - Markets */}
       <Section1 />
