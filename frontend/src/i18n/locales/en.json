@@ -580,8 +580,12 @@
   "markets": {
     "markets": "Markets",
     "casinoGames": "Casino Games",
+    "casinoGamesLine1": "Casino",
+    "casinoGamesLine2": "Games",
     "aviator": "Aviator",
     "skillsGames": "Skills Games",
+    "skillsGamesLine1": "Skills",
+    "skillsGamesLine2": "Games",
     "starline": "STARLINE",
     "kingBazaar": "KING BAZAAR",
     "tapToPlay": "Tap to Play",

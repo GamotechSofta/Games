@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import CasinoGamesCard from './CasinoGamesCard';
+import SkillsGamesCard from './SkillsGamesCard';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -95,74 +97,9 @@ const Section1 = () => {
 
   return (
     <section className="w-full bg-black  min-[375px]:pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] sm:pt-6 sm:pb-10 min-[375px]:px-3 sm:px-4 md:pb-8 max-w-full overflow-x-hidden">
-      {/* ═══ Desktop: Casino Games + Skills Games + MARKETS + King Bazaar + Starline (right) — single row ═══ */}
+      {/* ═══ Desktop: Left: Starline + Casino Games | MARKETS (center) | Right: Skills Games + King Bazaar ═══ */}
       <div className="hidden md:flex items-center gap-4 mt-4 mb-5 w-full max-w-7xl mx-auto px-4">
-        {/* ── CASINO GAMES Button ── */}
-        <button
-          onClick={() => navigate('/games?category=highEarning')}
-          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
-        >
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
-              <span className="text-2xl">🎰</span>
-            </div>
-            <div className="text-left">
-              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.casinoGames')}</h3>
-              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
-            </div>
-          </div>
-        </button>
-
-        {/* ── SKILLS GAMES Button ── */}
-        <button
-          onClick={() => navigate('/games?category=all')}
-          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
-        >
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
-              <span className="text-2xl">🎯</span>
-            </div>
-            <div className="text-left">
-              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.skillsGames')}</h3>
-              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
-            </div>
-          </div>
-        </button>
-
-        {/* ── Left gold line ── */}
-        <div className="flex-1 h-[1px] bg-gradient-to-r from-[#d4af37]/10 via-[#d4af37]/50 to-[#d4af37]/70 min-w-[20px]" />
-
-        {/* ── MARKETS center ── */}
-        <div className="flex items-center gap-2 shrink-0">
-          <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
-          <h2 className="text-white text-lg font-bold tracking-[0.15em] uppercase">{t('markets.markets')}</h2>
-          <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
-        </div>
-
-        {/* ── Right gold line ── */}
-        <div className="flex-1 h-[1px] bg-gradient-to-l from-[#d4af37]/10 via-[#d4af37]/50 to-[#d4af37]/70 min-w-[20px]" />
-
-        {/* ── KING BAZAAR Button ── */}
-        <button
-          onClick={() => navigate('/king-bazaar-market')}
-          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
-        >
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
-              <img
-                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771485291/Yellow_and_Black_Illustrative_Esports_The_Lion_King_Logo_1_s7gnuh.png"
-                alt="King Bazaar"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <div className="text-left">
-              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.kingBazaar')}</h3>
-              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
-            </div>
-          </div>
-        </button>
-
-        {/* ── STARLINE Button (right side) ── */}
+        {/* ── Left side: Starline, Casino Games ── */}
         <button
           onClick={() => navigate('/startline-dashboard')}
           className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
@@ -177,6 +114,47 @@ const Section1 = () => {
             </div>
             <div className="text-left">
               <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.starline')}</h3>
+              <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
+            </div>
+          </div>
+        </button>
+
+        <div className="w-44 min-h-[4.5rem] shrink-0 [&>button]:h-full [&>button]:min-h-[4.5rem]">
+          <CasinoGamesCard />
+        </div>
+
+        {/* ── Left gold line ── */}
+        <div className="flex-1 h-[1px] bg-gradient-to-r from-[#d4af37]/10 via-[#d4af37]/50 to-[#d4af37]/70 min-w-[20px]" />
+
+        {/* ── MARKETS center ── */}
+        <div className="flex items-center gap-2 shrink-0">
+          <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
+          <h2 className="text-white text-lg font-bold tracking-[0.15em] uppercase">{t('markets.markets')}</h2>
+          <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
+        </div>
+
+        {/* ── Right gold line ── */}
+        <div className="flex-1 h-[1px] bg-gradient-to-l from-[#d4af37]/10 via-[#d4af37]/50 to-[#d4af37]/70 min-w-[20px]" />
+
+        {/* ── Right side: Skills Games, King Bazaar ── */}
+        <div className="w-44 min-h-[4.5rem] shrink-0 [&>button]:h-full [&>button]:min-h-[4.5rem]">
+          <SkillsGamesCard />
+        </div>
+
+        <button
+          onClick={() => navigate('/king-bazaar-market')}
+          className="group relative overflow-hidden rounded-2xl bg-black border-2 border-amber-500 hover:border-amber-400 transition-all duration-300 active:scale-95 cursor-pointer shrink-0"
+        >
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
+              <img
+                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771485291/Yellow_and_Black_Illustrative_Esports_The_Lion_King_Logo_1_s7gnuh.png"
+                alt="King Bazaar"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="text-left">
+              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.kingBazaar')}</h3>
               <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
             </div>
           </div>
