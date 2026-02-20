@@ -158,8 +158,9 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         });
     };
 
-    const clearAll = () => {
-        setIsReviewOpen(false);
+    const clearBulkAndCells = () => {
+        Object.values(bulkApplyTimers.current).forEach(clearTimeout);
+        bulkApplyTimers.current = {};
         setCells(() => {
             const init = {};
             for (const r of DIGITS) for (const c of DIGITS) init[`${r}${c}`] = '';
@@ -169,6 +170,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         setColBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
         lastAppliedRow.current = {};
         lastAppliedCol.current = {};
+    };
+
+    const clearAll = () => {
+        setIsReviewOpen(false);
+        clearBulkAndCells();
         // Reset scheduled date to today after bet is placed
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
@@ -295,7 +301,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     onChange={(e) => {
                                         const val = sanitizePoints(e.target.value);
                                         setColBulk((p) => ({ ...p, [c]: val }));
-                                        scheduleBulkApply('col', c, val, applyCol);
+                                        if (!val) {
+                                            clearBulkAndCells();
+                                        } else {
+                                            scheduleBulkApply('col', c, val, applyCol);
+                                        }
                                     }}
                                     onBlur={() => {
                                         if (colBulk[c]) applyCol(c, colBulk[c]);
@@ -323,7 +333,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             onChange={(e) => {
                                                 const val = sanitizePoints(e.target.value);
                                                 setRowBulk((p) => ({ ...p, [r]: val }));
-                                                scheduleBulkApply('row', r, val, applyRow);
+                                                if (!val) {
+                                                    clearBulkAndCells();
+                                                } else {
+                                                    scheduleBulkApply('row', r, val, applyRow);
+                                                }
                                             }}
                                             onBlur={() => {
                                                 if (rowBulk[r]) applyRow(r, rowBulk[r]);
