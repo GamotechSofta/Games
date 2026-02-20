@@ -211,11 +211,12 @@ export const createBookie = async (req, res) => {
             finalCommission = Math.min(100, Math.max(0, Number(commissionPercentage) || 0));
         }
 
-        // Encrypt UPI ID if provided
-        let encryptedUpi = '';
-        if (upiId && String(upiId).trim()) {
-            encryptedUpi = encrypt(String(upiId).trim());
-        }
+        // Encrypt UPI ID(s) if provided
+        const upiIdsRaw = req.body.upiIds;
+        const ids = Array.isArray(upiIdsRaw) ? upiIdsRaw : (upiId != null ? [upiId] : []);
+        const trimmedUpi = ids.map((id) => String(id || '').trim()).filter(Boolean);
+        const encryptedUpiList = trimmedUpi.map((id) => encrypt(id));
+        const encryptedUpi = encryptedUpiList[0] || '';
 
         const bookie = new Admin({
             username: derivedUsername,
@@ -227,6 +228,7 @@ export const createBookie = async (req, res) => {
             bookieType: finalBookieType,
             commissionPercentage: finalCommission,
             upiId: encryptedUpi,
+            upiIds: encryptedUpiList,
         });
         await bookie.save();
 
@@ -561,12 +563,16 @@ export const getBookieById = async (req, res) => {
             });
         }
 
-        // Include decrypted UPI for admin to view/edit
+        // Include decrypted UPI(s) for admin to view/edit
         let upiIdDecrypted = '';
-        if (bookie.upiId) {
-            try { upiIdDecrypted = decrypt(bookie.upiId); } catch { /* keep empty */ }
+        let upiIdsDecrypted = [];
+        if (bookie.upiIds && Array.isArray(bookie.upiIds) && bookie.upiIds.length > 0) {
+            upiIdsDecrypted = bookie.upiIds.map((enc) => (enc ? (() => { try { return decrypt(enc); } catch { return ''; } })() : '')).filter(Boolean);
+            upiIdDecrypted = upiIdsDecrypted[0] || '';
+        } else if (bookie.upiId) {
+            try { upiIdDecrypted = decrypt(bookie.upiId); if (upiIdDecrypted) upiIdsDecrypted = [upiIdDecrypted]; } catch { /* keep empty */ }
         }
-        const data = { ...bookie, upiIdDecrypted };
+        const data = { ...bookie, upiIdDecrypted, upiIdsDecrypted };
 
         res.status(200).json({
             success: true,
@@ -659,9 +665,17 @@ export const updateBookie = async (req, res) => {
             bookie.commissionPercentage = Math.min(100, Math.max(0, Number(commissionPercentage) || 0));
         }
 
-        // Update UPI ID (encrypt)
-        if (upiId !== undefined) {
-            bookie.upiId = upiId && String(upiId).trim() ? encrypt(String(upiId).trim()) : '';
+        // Update UPI ID(s) - accept upiId (single) or upiIds (array)
+        const upiIdsRaw = req.body.upiIds;
+        if (upiIdsRaw !== undefined) {
+            const ids = Array.isArray(upiIdsRaw) ? upiIdsRaw : (req.body.upiId != null ? [req.body.upiId] : []);
+            const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
+            bookie.upiIds = trimmed.map((id) => encrypt(id));
+            bookie.upiId = trimmed[0] ? encrypt(trimmed[0]) : '';
+        } else if (upiId !== undefined) {
+            const t = upiId && String(upiId).trim();
+            bookie.upiIds = t ? [encrypt(t)] : [];
+            bookie.upiId = t ? encrypt(t) : '';
         }
 
         // Update password if provided
@@ -836,16 +850,23 @@ export const toggleBookieStatus = async (req, res) => {
 
 /**
  * GET /admin/me/upi
- * Get admin's own UPI ID (decrypted)
+ * Get admin's own UPI ID(s) (decrypted)
+ * Returns upiIds array; backward compatible: if upiIds empty, uses legacy upiId
  */
 export const getAdminUpi = async (req, res) => {
     try {
-        const admin = await Admin.findById(req.admin._id).select('upiId').lean();
+        const admin = await Admin.findById(req.admin._id).select('upiId upiIds').lean();
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
         }
-        const upiId = admin.upiId ? decrypt(admin.upiId) : '';
-        res.status(200).json({ success: true, data: { upiId } });
+        let upiIds = [];
+        if (admin.upiIds && Array.isArray(admin.upiIds) && admin.upiIds.length > 0) {
+            upiIds = admin.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
+        } else if (admin.upiId) {
+            const dec = decrypt(admin.upiId);
+            if (dec) upiIds = [dec];
+        }
+        res.status(200).json({ success: true, data: { upiIds, upiId: upiIds[0] || '' } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -853,18 +874,20 @@ export const getAdminUpi = async (req, res) => {
 
 /**
  * PATCH /admin/me/upi
- * Set/update admin's UPI ID
- * Body: { upiId: string }
+ * Set/update admin's UPI ID(s)
+ * Body: { upiIds: string[] } - array of UPI IDs
  */
 export const setAdminUpi = async (req, res) => {
     try {
-        const { upiId } = req.body;
+        const { upiIds: rawIds, upiId: singleUpi } = req.body;
         const admin = await Admin.findById(req.admin._id);
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
         }
-        const trimmed = (upiId || '').trim();
-        admin.upiId = trimmed ? encrypt(trimmed) : '';
+        const ids = Array.isArray(rawIds) ? rawIds : (rawIds != null ? [rawIds] : (singleUpi != null ? [singleUpi] : []));
+        const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
+        admin.upiIds = trimmed.map((id) => encrypt(id));
+        admin.upiId = trimmed[0] ? encrypt(trimmed[0]) : ''; // keep legacy field for backward compat
         await admin.save({ validateBeforeSave: false });
 
         await logActivity({
@@ -873,11 +896,11 @@ export const setAdminUpi = async (req, res) => {
             performedByType: admin.role === 'super_admin' ? 'super_admin' : 'bookie',
             targetType: 'admin',
             targetId: admin._id.toString(),
-            details: `UPI ID updated by ${admin.username}`,
+            details: `UPI IDs updated by ${admin.username} (${trimmed.length} ID(s))`,
             ip: getClientIp(req),
         });
 
-        res.status(200).json({ success: true, message: 'UPI ID updated successfully', data: { upiId: trimmed } });
+        res.status(200).json({ success: true, message: 'UPI IDs saved successfully', data: { upiIds: trimmed } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

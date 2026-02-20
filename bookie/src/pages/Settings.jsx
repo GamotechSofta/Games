@@ -4,11 +4,11 @@ import { API_BASE_URL, getBookieAuthHeaders } from '../utils/api';
 import { FaCog, FaCreditCard, FaCheckCircle, FaExclamationCircle, FaSave, FaBuilding, FaHandHoldingUsd, FaShieldAlt, FaLock } from 'react-icons/fa';
 
 const Settings = () => {
-    const [upiId, setUpiId] = useState('');
+    const [upiIds, setUpiIds] = useState(['']);
     const [bookieType, setBookieType] = useState('');
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState({ type: '', text: '' });
-    const [currentUpi, setCurrentUpi] = useState('');
+    const [currentUpiIds, setCurrentUpiIds] = useState([]);
     const [upiSecurityPassword, setUpiSecurityPassword] = useState('');
 
     // Security password (bookie_collects only)
@@ -24,9 +24,12 @@ const Settings = () => {
                 const json = await res.json();
                 if (json.success) {
                     setBookieType(json.data?.bookieType || 'admin_collects');
-                    if (json.data?.upiId) {
-                        setCurrentUpi(json.data.upiId);
-                        setUpiId(json.data.upiId);
+                    const ids = json.data?.upiIds?.length > 0
+                        ? json.data.upiIds
+                        : (json.data?.upiId ? [json.data.upiId] : []);
+                    if (ids.length > 0) {
+                        setCurrentUpiIds(ids);
+                        setUpiIds(ids);
                     }
                 }
             } catch (error) {
@@ -53,10 +56,10 @@ const Settings = () => {
     const handleSave = async (e) => {
         e.preventDefault();
         setMsg({ type: '', text: '' });
-        const trimmed = upiId.trim();
+        const trimmed = upiIds.map((id) => String(id || '').trim()).filter(Boolean);
 
-        if (!trimmed) {
-            setMsg({ type: 'error', text: 'Please enter a valid UPI ID' });
+        if (trimmed.length === 0) {
+            setMsg({ type: 'error', text: 'Please enter at least one UPI ID' });
             return;
         }
         if (securityPasswordSet && !upiSecurityPassword.trim()) {
@@ -66,7 +69,7 @@ const Settings = () => {
 
         setLoading(true);
         try {
-            const body = { upiId: trimmed };
+            const body = { upiIds: trimmed };
             if (securityPasswordSet) body.securityPassword = upiSecurityPassword.trim();
             const res = await fetch(`${API_BASE_URL}/bookie/upi`, {
                 method: 'PATCH',
@@ -79,11 +82,11 @@ const Settings = () => {
             const json = await res.json();
 
             if (json.success) {
-                setCurrentUpi(trimmed);
+                setCurrentUpiIds(trimmed);
                 setUpiSecurityPassword('');
-                setMsg({ type: 'success', text: 'UPI ID updated successfully' });
+                setMsg({ type: 'success', text: 'UPI IDs updated successfully' });
             } else {
-                setMsg({ type: 'error', text: json.message || 'Failed to update UPI ID' });
+                setMsg({ type: 'error', text: json.message || 'Failed to update UPI IDs' });
             }
         } catch {
             setMsg({ type: 'error', text: 'Network error. Please try again.' });
@@ -91,6 +94,14 @@ const Settings = () => {
             setLoading(false);
         }
     };
+
+    const addUpiRow = () => setUpiIds((prev) => [...prev, '']);
+    const removeUpiRow = (idx) => setUpiIds((prev) => prev.filter((_, i) => i !== idx));
+    const updateUpiRow = (idx, val) => setUpiIds((prev) => {
+        const next = [...prev];
+        next[idx] = val;
+        return next;
+    });
 
     const handleSaveSecurityPassword = async (e) => {
         e.preventDefault();
@@ -245,23 +256,37 @@ const Settings = () => {
                                 UPI ID shown to players for deposits—keep it accurate.
                             </p>
                             <form onSubmit={handleSave} className="space-y-3">
-                                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
-                                    <div className="flex-1">
-                                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Your UPI ID</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={upiId}
-                                                onChange={(e) => { setUpiId(e.target.value); setMsg({ type: '', text: '' }); }}
-                                                placeholder="e.g. username@upi"
-                                                className="w-full px-3 py-2 pl-9 rounded-lg bg-black/40 border border-white/10 text-white text-sm font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
-                                            />
-                                            <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
-                                            {currentUpi && upiId === currentUpi && (
-                                                <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" title="Current" />
-                                            )}
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Your UPI IDs</label>
+                                    {upiIds.map((id, idx) => (
+                                        <div key={idx} className="flex gap-2">
+                                            <div className="relative flex-1">
+                                                <input
+                                                    type="text"
+                                                    value={id}
+                                                    onChange={(e) => { updateUpiRow(idx, e.target.value); setMsg({ type: '', text: '' }); }}
+                                                    placeholder="e.g. username@upi"
+                                                    className="w-full px-3 py-2 pl-9 rounded-lg bg-black/40 border border-white/10 text-white text-sm font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                                />
+                                                <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+                                                {currentUpiIds.includes(id) && id && (
+                                                    <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" title="Saved" />
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeUpiRow(idx)}
+                                                disabled={upiIds.length === 1}
+                                                className="px-3 py-2 rounded-lg bg-red-600/80 hover:bg-red-600 text-white disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                                                title="Remove"
+                                            >
+                                                −
+                                            </button>
                                         </div>
-                                    </div>
+                                    ))}
+                                    <button type="button" onClick={addUpiRow} className="text-xs text-amber-500 hover:text-amber-400">+ Add another UPI ID</button>
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
                                     {securityPasswordSet && (
                                         <div className="sm:w-44">
                                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><FaLock className="w-3 h-3 text-amber-500" /> Security password</label>
@@ -277,7 +302,7 @@ const Settings = () => {
                                     )}
                                     <button
                                         type="submit"
-                                        disabled={loading || (upiId === currentUpi && !msg.text) || (securityPasswordSet && !upiSecurityPassword.trim())}
+                                        disabled={loading || (JSON.stringify(upiIds.filter(Boolean)) === JSON.stringify(currentUpiIds) && !msg.text) || (securityPasswordSet && !upiSecurityPassword.trim())}
                                         className="px-4 py-2 text-sm font-bold rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-all disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
                                     >
                                         {loading ? <span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <FaSave className="w-3.5 h-3.5" />}

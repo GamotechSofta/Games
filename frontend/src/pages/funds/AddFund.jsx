@@ -397,46 +397,46 @@ const AddFund = () => {
                         </div>
 
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-black/30 rounded-xl p-4 border border-white/10">
-                                <div>
-                                    <p className="text-gray-400 text-sm">{t('funds.upiId')}</p>
-                                    <p className="text-white font-mono text-lg">{config?.upiId || t('common.loading')}</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={async () => {
-                                        const upiId = config?.upiId || '';
-                                        if (!upiId) {
-                                            setError(t('funds.upiId') + ' ' + t('common.error'));
-                                            return;
-                                        }
-                                        try {
-                                            await navigator.clipboard.writeText(upiId);
-                                            setShowCopyNotification(true);
-                                            setTimeout(() => setShowCopyNotification(false), 3000);
-                                        } catch (err) {
-                                            // Fallback for older browsers
-                                            const textArea = document.createElement('textarea');
-                                            textArea.value = upiId;
-                                            textArea.style.position = 'fixed';
-                                            textArea.style.opacity = '0';
-                                            document.body.appendChild(textArea);
-                                            textArea.select();
+                            {(config?.upiIds?.length > 0 ? config.upiIds : (config?.upiId ? [config.upiId] : [])).map((upiId, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-black/30 rounded-xl p-4 border border-white/10">
+                                    <div>
+                                        <p className="text-gray-400 text-sm">{t('funds.upiId')}{config?.upiIds?.length > 1 ? ` ${idx + 1}` : ''}</p>
+                                        <p className="text-white font-mono text-lg">{upiId || t('common.loading')}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!upiId) {
+                                                setError(t('funds.upiId') + ' ' + t('common.error'));
+                                                return;
+                                            }
                                             try {
-                                                document.execCommand('copy');
+                                                await navigator.clipboard.writeText(upiId);
                                                 setShowCopyNotification(true);
                                                 setTimeout(() => setShowCopyNotification(false), 3000);
-                                            } catch (fallbackErr) {
-                                                setError(t('common.error'));
+                                            } catch (err) {
+                                                const textArea = document.createElement('textarea');
+                                                textArea.value = upiId;
+                                                textArea.style.position = 'fixed';
+                                                textArea.style.opacity = '0';
+                                                document.body.appendChild(textArea);
+                                                textArea.select();
+                                                try {
+                                                    document.execCommand('copy');
+                                                    setShowCopyNotification(true);
+                                                    setTimeout(() => setShowCopyNotification(false), 3000);
+                                                } catch (fallbackErr) {
+                                                    setError(t('common.error'));
+                                                }
+                                                document.body.removeChild(textArea);
                                             }
-                                            document.body.removeChild(textArea);
-                                        }
-                                    }}
-                                    className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] hover:brightness-105 text-black rounded-lg text-sm font-extrabold border border-black/20 shadow-[0_10px_18px_rgba(212,175,55,0.25)]"
-                                >
-                                    {t('common.copy')}
-                                </button>
-                            </div>
+                                        }}
+                                        className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] hover:brightness-105 text-black rounded-lg text-sm font-extrabold border border-black/20 shadow-[0_10px_18px_rgba(212,175,55,0.25)]"
+                                    >
+                                        {t('common.copy')}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
 

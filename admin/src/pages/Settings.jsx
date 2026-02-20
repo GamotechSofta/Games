@@ -25,11 +25,11 @@ const Settings = () => {
     const [statusMsg, setStatusMsg] = useState('');
     const [hasSecret, setHasSecret] = useState(false);
 
-    // UPI ID state
-    const [upiId, setUpiId] = useState('');
+    // UPI IDs state (multiple)
+    const [upiIds, setUpiIds] = useState(['']);
     const [upiLoading, setUpiLoading] = useState(false);
     const [upiMsg, setUpiMsg] = useState('');
-    const [currentUpi, setCurrentUpi] = useState('');
+    const [currentUpiIds, setCurrentUpiIds] = useState([]);
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
@@ -38,13 +38,16 @@ const Settings = () => {
                 if (json.success) setHasSecret(json.hasSecretDeclarePassword || false);
             })
             .catch(() => setHasSecret(false));
-        // Fetch current UPI
+        // Fetch current UPI IDs
         fetch(`${API_BASE_URL}/admin/me/upi`, { headers: getAuthHeaders() })
             .then((res) => res.json())
             .then((json) => {
-                if (json.success && json.data?.upiId) {
-                    setCurrentUpi(json.data.upiId);
-                    setUpiId(json.data.upiId);
+                if (json.success && json.data) {
+                    const ids = json.data.upiIds && json.data.upiIds.length > 0
+                        ? json.data.upiIds
+                        : (json.data.upiId ? [json.data.upiId] : []);
+                    setCurrentUpiIds(ids);
+                    setUpiIds(ids.length > 0 ? ids : ['']);
                 }
             })
             .catch(() => {});
@@ -105,9 +108,9 @@ const Settings = () => {
     const handleSaveUpi = async (e) => {
         e.preventDefault();
         setUpiMsg('');
-        const trimmed = upiId.trim();
-        if (!trimmed) {
-            setUpiMsg('Please enter a UPI ID');
+        const trimmed = upiIds.map((id) => String(id || '').trim()).filter(Boolean);
+        if (trimmed.length === 0) {
+            setUpiMsg('Please enter at least one UPI ID');
             return;
         }
         setUpiLoading(true);
@@ -115,14 +118,14 @@ const Settings = () => {
             const res = await fetch(`${API_BASE_URL}/admin/me/upi`, {
                 method: 'PATCH',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ upiId: trimmed }),
+                body: JSON.stringify({ upiIds: trimmed }),
             });
             const json = await res.json();
             if (json.success) {
-                setCurrentUpi(trimmed);
-                setUpiMsg('UPI ID saved successfully');
+                setCurrentUpiIds(trimmed);
+                setUpiMsg('UPI IDs saved successfully');
             } else {
-                setUpiMsg(json.message || 'Failed to save UPI ID');
+                setUpiMsg(json.message || 'Failed to save UPI IDs');
             }
         } catch {
             setUpiMsg('Network error');
@@ -130,6 +133,14 @@ const Settings = () => {
             setUpiLoading(false);
         }
     };
+
+    const addUpiRow = () => setUpiIds((prev) => [...prev, '']);
+    const removeUpiRow = (idx) => setUpiIds((prev) => prev.filter((_, i) => i !== idx));
+    const updateUpiRow = (idx, val) => setUpiIds((prev) => {
+        const next = [...prev];
+        next[idx] = val;
+        return next;
+    });
 
     const handleLogout = () => {
         clearAdminAuth();
@@ -238,27 +249,47 @@ const Settings = () => {
                         </form>
                     </div>
                 </div>
-                {/* UPI ID Section */}
+                {/* Admin UPI IDs Section */}
                 <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden min-w-0">
                     <h2 className="text-lg font-bold text-yellow-500 bg-gray-800 px-4 py-3 border-b border-gray-700">
-                        Admin UPI ID
+                        Admin UPI IDs
                     </h2>
                     <div className="p-4 space-y-3">
                         <p className="text-gray-400 text-sm">
-                            This UPI ID is shown to users for deposit payments (for &quot;Admin Collects&quot; type bookies and direct users).
-                            {currentUpi && <span className="block mt-1 text-green-400">Current: {currentUpi}</span>}
+                            These UPI IDs are shown to users for deposit payments (for &quot;Admin Collects&quot; type bookies and direct users). You can add multiple UPI IDs.
+                            {currentUpiIds.length > 0 && <span className="block mt-1 text-green-400">Current: {currentUpiIds.join(', ')}</span>}
                         </p>
                         <form onSubmit={handleSaveUpi} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">UPI ID</label>
-                                <input
-                                    type="text"
-                                    value={upiId}
-                                    onChange={(e) => { setUpiId(e.target.value); setUpiMsg(''); }}
-                                    placeholder="e.g. admin@upi"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                                />
-                                <p className="mt-1 text-xs text-gray-500">Stored encrypted in database. Not in .env file.</p>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-300 mb-1">UPI IDs</label>
+                                {upiIds.map((id, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={id}
+                                            onChange={(e) => { updateUpiRow(idx, e.target.value); setUpiMsg(''); }}
+                                            placeholder="e.g. admin@upi"
+                                            className="flex-1 px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeUpiRow(idx)}
+                                            disabled={upiIds.length === 1}
+                                            className="px-3 py-2.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                                            title="Remove"
+                                        >
+                                            −
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={addUpiRow}
+                                    className="text-sm text-yellow-500 hover:text-yellow-400"
+                                >
+                                    + Add another UPI ID
+                                </button>
+                                <p className="text-xs text-gray-500">Stored encrypted in database. Not in .env file.</p>
                             </div>
                             {upiMsg && (
                                 <p className={`text-sm ${upiMsg.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
@@ -270,7 +301,7 @@ const Settings = () => {
                                 disabled={upiLoading}
                                 className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg disabled:opacity-50 transition-colors"
                             >
-                                {upiLoading ? 'Saving...' : 'Save UPI ID'}
+                                {upiLoading ? 'Saving...' : 'Save UPI IDs'}
                             </button>
                         </form>
                     </div>

@@ -22,48 +22,65 @@ export const getPaymentConfig = async (req, res) => {
         // UPI: 1) DB (super_admin/bookie), 2) code fallback (no env)
         const UPI_FALLBACK_ID = 'example@paytm';
         const UPI_FALLBACK_NAME = 'Golden Games';
-        let upiId = UPI_FALLBACK_ID;
+        let upiIds = [UPI_FALLBACK_ID];
         let upiName = UPI_FALLBACK_NAME;
+
+        const resolveUpiFromAdmin = (admin) => {
+            if (!admin) return null;
+            if (admin.upiIds && Array.isArray(admin.upiIds) && admin.upiIds.length > 0) {
+                return admin.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
+            }
+            if (admin.upiId) {
+                const d = decrypt(admin.upiId);
+                return d ? [d] : [];
+            }
+            return [];
+        };
 
         try {
             if (userId) {
                 const user = await User.findById(userId).select('referredBy').lean();
                 if (user?.referredBy) {
-                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId username').lean();
-                    if (bookie?.bookieType === 'bookie_collects' && bookie.upiId) {
-                        upiId = decrypt(bookie.upiId);
-                        upiName = bookie.username || 'Bookie';
+                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId upiIds username').lean();
+                    if (bookie?.bookieType === 'bookie_collects') {
+                        const ids = resolveUpiFromAdmin(bookie);
+                        if (ids.length > 0) {
+                            upiIds = ids;
+                            upiName = bookie.username || 'Bookie';
+                        }
                     } else {
-                        const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
-                        if (superAdmin?.upiId) {
-                            upiId = decrypt(superAdmin.upiId);
+                        const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                        const ids = resolveUpiFromAdmin(superAdmin);
+                        if (ids.length > 0) {
+                            upiIds = ids;
                             upiName = superAdmin.username || upiName;
                         }
                     }
                 } else {
-                    const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
-                    if (superAdmin?.upiId) {
-                        upiId = decrypt(superAdmin.upiId);
+                    const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                    const ids = resolveUpiFromAdmin(superAdmin);
+                    if (ids.length > 0) {
+                        upiIds = ids;
                         upiName = superAdmin.username || upiName;
                     }
                 }
             } else {
-                // No userId - use super_admin UPI from DB
-                const superAdmin = await Admin.findOne({ role: 'super_admin', upiId: { $ne: '' } }).select('upiId username').lean();
-                if (superAdmin?.upiId) {
-                    upiId = decrypt(superAdmin.upiId);
+                const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                const ids = resolveUpiFromAdmin(superAdmin);
+                if (ids.length > 0) {
+                    upiIds = ids;
                     upiName = superAdmin.username || upiName;
                 }
             }
         } catch (err) {
             console.error('Error resolving UPI for user:', userId, err.message);
-            // Keep fallback values on error
         }
 
         res.status(200).json({
             success: true,
             data: {
-                upiId,
+                upiId: upiIds[0] || UPI_FALLBACK_ID,
+                upiIds,
                 upiName,
                 minDeposit: parseInt(process.env.MIN_DEPOSIT) || 100,
                 maxDeposit: parseInt(process.env.MAX_DEPOSIT) || 50000,

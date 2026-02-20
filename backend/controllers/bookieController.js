@@ -184,16 +184,22 @@ export const updateTheme = async (req, res) => {
 };
 
 /**
- * GET /bookie/upi - Get bookie's UPI ID (decrypted)
+ * GET /bookie/upi - Get bookie's UPI ID(s) (decrypted)
  */
 export const getBookieUpi = async (req, res) => {
     try {
-        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId bookieType').lean();
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId upiIds bookieType').lean();
         if (!bookie) {
             return res.status(403).json({ success: false, message: 'Bookie access required' });
         }
-        const upiId = bookie.upiId ? decrypt(bookie.upiId) : '';
-        res.status(200).json({ success: true, data: { upiId, bookieType: bookie.bookieType || 'admin_collects' } });
+        let upiIds = [];
+        if (bookie.upiIds && Array.isArray(bookie.upiIds) && bookie.upiIds.length > 0) {
+            upiIds = bookie.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
+        } else if (bookie.upiId) {
+            const dec = decrypt(bookie.upiId);
+            if (dec) upiIds = [dec];
+        }
+        res.status(200).json({ success: true, data: { upiIds, upiId: upiIds[0] || '', bookieType: bookie.bookieType || 'admin_collects' } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -232,9 +238,11 @@ export const setBookieUpi = async (req, res) => {
                 });
             }
         }
-        const { upiId } = req.body;
-        const trimmed = (upiId || '').trim();
-        bookie.upiId = trimmed ? encrypt(trimmed) : '';
+        const { upiIds: rawIds, upiId: singleUpi } = req.body;
+        const ids = Array.isArray(rawIds) ? rawIds : (rawIds != null ? [rawIds] : (singleUpi != null ? [singleUpi] : []));
+        const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
+        bookie.upiIds = trimmed.map((id) => encrypt(id));
+        bookie.upiId = trimmed[0] ? encrypt(trimmed[0]) : '';
         await bookie.save({ validateBeforeSave: false });
 
         await logActivity({
@@ -243,11 +251,11 @@ export const setBookieUpi = async (req, res) => {
             performedByType: 'bookie',
             targetType: 'admin',
             targetId: bookie._id.toString(),
-            details: `Bookie "${bookie.username}" updated their UPI ID`,
+            details: `Bookie "${bookie.username}" updated their UPI IDs (${trimmed.length} ID(s))`,
             ip: getClientIp(req),
         });
 
-        res.status(200).json({ success: true, message: 'UPI ID updated successfully', data: { upiId: trimmed } });
+        res.status(200).json({ success: true, message: 'UPI IDs updated successfully', data: { upiIds: trimmed } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

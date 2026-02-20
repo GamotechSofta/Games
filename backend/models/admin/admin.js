@@ -43,12 +43,14 @@ const adminSchema = new mongoose.Schema({
         enum: ['admin_collects', 'bookie_collects'],
         default: 'admin_collects',
     },
-    /** Encrypted UPI ID – used for payment collection (both admin and bookie) */
+    /** Encrypted UPI ID – legacy single ID, kept for backward compatibility */
     upiId: {
         type: String,
         trim: true,
         default: '',
     },
+    /** Encrypted UPI IDs array – supports multiple UPI IDs for payment collection */
+    upiIds: [{ type: String, trim: true }],
     /** Bookie-only: UI theme for their users' panel (user app). Ignored for super_admin. */
     uiTheme: {
         themeId: { type: String, enum: ['default', 'gold', 'blue', 'green', 'red', 'purple'], default: 'default' },
