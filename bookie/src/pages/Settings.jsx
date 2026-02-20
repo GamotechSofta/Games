@@ -10,6 +10,8 @@ const Settings = () => {
     const [msg, setMsg] = useState({ type: '', text: '' });
     const [currentUpiIds, setCurrentUpiIds] = useState([]);
     const [upiSecurityPassword, setUpiSecurityPassword] = useState('');
+    const [upiDistributionType, setUpiDistributionType] = useState('all');
+    const [upiBatchSize, setUpiBatchSize] = useState(10);
 
     // Security password (bookie_collects only)
     const [securityPasswordSet, setSecurityPasswordSet] = useState(false);
@@ -31,6 +33,8 @@ const Settings = () => {
                         setCurrentUpiIds(ids);
                         setUpiIds(ids);
                     }
+                    setUpiDistributionType(json.data?.upiDistributionType || 'all');
+                    setUpiBatchSize(json.data?.upiBatchSize ?? 10);
                 }
             } catch (error) {
                 console.error('Failed to fetch settings:', error);
@@ -69,7 +73,7 @@ const Settings = () => {
 
         setLoading(true);
         try {
-            const body = { upiIds: trimmed };
+            const body = { upiIds: trimmed, upiDistributionType, upiBatchSize };
             if (securityPasswordSet) body.securityPassword = upiSecurityPassword.trim();
             const res = await fetch(`${API_BASE_URL}/bookie/upi`, {
                 method: 'PATCH',
@@ -285,6 +289,32 @@ const Settings = () => {
                                         </div>
                                     ))}
                                     <button type="button" onClick={addUpiRow} className="text-xs text-amber-500 hover:text-amber-400">+ Add another UPI ID</button>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">UPI distribution filter</label>
+                                    <select
+                                        value={upiDistributionType}
+                                        onChange={(e) => setUpiDistributionType(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50"
+                                    >
+                                        <option value="all">Show all – every user sees all UPI IDs</option>
+                                        <option value="round_robin_user">Round robin – each user gets one different UPI ID</option>
+                                        <option value="batch_n">Batch – first N users get UPI 1, next N get UPI 2</option>
+                                        <option value="random">Random – each request gets one random UPI ID</option>
+                                    </select>
+                                    {upiDistributionType === 'batch_n' && (
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Batch size</label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={10000}
+                                                value={upiBatchSize}
+                                                onChange={(e) => setUpiBatchSize(Math.max(1, Math.min(10000, parseInt(e.target.value, 10) || 10)))}
+                                                className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:items-end gap-3">
                                     {securityPasswordSet && (

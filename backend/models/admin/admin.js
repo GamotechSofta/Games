@@ -51,6 +51,14 @@ const adminSchema = new mongoose.Schema({
     },
     /** Encrypted UPI IDs array – supports multiple UPI IDs for payment collection */
     upiIds: [{ type: String, trim: true }],
+    /** UPI distribution: 'all'=show all, 'round_robin_user'=each user gets different ID, 'batch_n'=first N users ID1, next N ID2... */
+    upiDistributionType: {
+        type: String,
+        enum: ['all', 'round_robin_user', 'batch_n', 'random'],
+        default: 'all',
+    },
+    /** For batch_n: how many users get each UPI before switching (e.g. 10, 100) */
+    upiBatchSize: { type: Number, default: 10, min: 1, max: 10000 },
     /** Bookie-only: UI theme for their users' panel (user app). Ignored for super_admin. */
     uiTheme: {
         themeId: { type: String, enum: ['default', 'gold', 'blue', 'green', 'red', 'purple'], default: 'default' },

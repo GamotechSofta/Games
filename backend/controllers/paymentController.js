@@ -37,35 +37,87 @@ export const getPaymentConfig = async (req, res) => {
             return [];
         };
 
+        const applyDistribution = (ids, type, batchSize, uid, userDoc, bookieId) => {
+            if (!ids || ids.length === 0) return ids;
+            if (ids.length === 1) return ids;
+            const t = type || 'all';
+            if (t === 'all') return ids;
+
+            if (t === 'random') {
+                const idx = Math.floor(Math.random() * ids.length);
+                return [ids[idx]];
+            }
+
+            if (t === 'round_robin_user' && uid) {
+                let h = 0;
+                const str = String(uid);
+                for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0;
+                const idx = Math.abs(h) % ids.length;
+                return [ids[idx]];
+            }
+
+            if (t === 'batch_n' && userDoc && batchSize > 0) {
+                const filter = bookieId
+                    ? { referredBy: bookieId, createdAt: { $lt: userDoc.createdAt } }
+                    : { createdAt: { $lt: userDoc.createdAt } };
+                return User.countDocuments(filter).then((count) => {
+                    const batchIndex = Math.floor(count / batchSize);
+                    const idx = batchIndex % ids.length;
+                    return [ids[idx]];
+                });
+            }
+
+            return ids;
+        };
+
+        let sourceAdmin = null;
+        let bookieIdForScope = null;
+
         try {
             if (userId) {
-                const user = await User.findById(userId).select('referredBy').lean();
+                const user = await User.findById(userId).select('referredBy createdAt').lean();
                 if (user?.referredBy) {
-                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId upiIds username').lean();
+                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId upiIds upiDistributionType upiBatchSize username').lean();
                     if (bookie?.bookieType === 'bookie_collects') {
                         const ids = resolveUpiFromAdmin(bookie);
                         if (ids.length > 0) {
                             upiIds = ids;
                             upiName = bookie.username || 'Bookie';
+                            sourceAdmin = bookie;
+                            bookieIdForScope = user.referredBy?.toString?.() || user.referredBy;
                         }
                     } else {
-                        const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                        const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
                         const ids = resolveUpiFromAdmin(superAdmin);
                         if (ids.length > 0) {
                             upiIds = ids;
                             upiName = superAdmin.username || upiName;
+                            sourceAdmin = superAdmin;
                         }
                     }
                 } else {
-                    const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                    const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
                     const ids = resolveUpiFromAdmin(superAdmin);
                     if (ids.length > 0) {
                         upiIds = ids;
                         upiName = superAdmin.username || upiName;
+                        sourceAdmin = superAdmin;
                     }
                 }
+
+                if (sourceAdmin && upiIds.length > 1) {
+                    const distributed = await applyDistribution(
+                        upiIds,
+                        sourceAdmin.upiDistributionType,
+                        sourceAdmin.upiBatchSize ?? 10,
+                        userId,
+                        user,
+                        bookieIdForScope
+                    );
+                    upiIds = Array.isArray(distributed) ? distributed : upiIds;
+                }
             } else {
-                const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds username').lean();
+                const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
                 const ids = resolveUpiFromAdmin(superAdmin);
                 if (ids.length > 0) {
                     upiIds = ids;

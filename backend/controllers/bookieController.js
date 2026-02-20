@@ -188,7 +188,7 @@ export const updateTheme = async (req, res) => {
  */
 export const getBookieUpi = async (req, res) => {
     try {
-        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId upiIds bookieType').lean();
+        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId upiIds upiDistributionType upiBatchSize bookieType').lean();
         if (!bookie) {
             return res.status(403).json({ success: false, message: 'Bookie access required' });
         }
@@ -199,7 +199,16 @@ export const getBookieUpi = async (req, res) => {
             const dec = decrypt(bookie.upiId);
             if (dec) upiIds = [dec];
         }
-        res.status(200).json({ success: true, data: { upiIds, upiId: upiIds[0] || '', bookieType: bookie.bookieType || 'admin_collects' } });
+        res.status(200).json({
+            success: true,
+            data: {
+                upiIds,
+                upiId: upiIds[0] || '',
+                bookieType: bookie.bookieType || 'admin_collects',
+                upiDistributionType: bookie.upiDistributionType || 'all',
+                upiBatchSize: bookie.upiBatchSize ?? 10,
+            },
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -238,11 +247,18 @@ export const setBookieUpi = async (req, res) => {
                 });
             }
         }
-        const { upiIds: rawIds, upiId: singleUpi } = req.body;
+        const { upiIds: rawIds, upiId: singleUpi, upiDistributionType, upiBatchSize } = req.body;
         const ids = Array.isArray(rawIds) ? rawIds : (rawIds != null ? [rawIds] : (singleUpi != null ? [singleUpi] : []));
         const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
         bookie.upiIds = trimmed.map((id) => encrypt(id));
         bookie.upiId = trimmed[0] ? encrypt(trimmed[0]) : '';
+        if (upiDistributionType != null && ['all', 'round_robin_user', 'batch_n', 'random'].includes(upiDistributionType)) {
+            bookie.upiDistributionType = upiDistributionType;
+        }
+        if (upiBatchSize != null) {
+            const n = Math.min(10000, Math.max(1, parseInt(upiBatchSize, 10) || 10));
+            bookie.upiBatchSize = n;
+        }
         await bookie.save({ validateBeforeSave: false });
 
         await logActivity({

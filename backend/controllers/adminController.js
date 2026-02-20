@@ -855,7 +855,7 @@ export const toggleBookieStatus = async (req, res) => {
  */
 export const getAdminUpi = async (req, res) => {
     try {
-        const admin = await Admin.findById(req.admin._id).select('upiId upiIds').lean();
+        const admin = await Admin.findById(req.admin._id).select('upiId upiIds upiDistributionType upiBatchSize').lean();
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
         }
@@ -866,7 +866,15 @@ export const getAdminUpi = async (req, res) => {
             const dec = decrypt(admin.upiId);
             if (dec) upiIds = [dec];
         }
-        res.status(200).json({ success: true, data: { upiIds, upiId: upiIds[0] || '' } });
+        res.status(200).json({
+            success: true,
+            data: {
+                upiIds,
+                upiId: upiIds[0] || '',
+                upiDistributionType: admin.upiDistributionType || 'all',
+                upiBatchSize: admin.upiBatchSize ?? 10,
+            },
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -879,7 +887,7 @@ export const getAdminUpi = async (req, res) => {
  */
 export const setAdminUpi = async (req, res) => {
     try {
-        const { upiIds: rawIds, upiId: singleUpi } = req.body;
+        const { upiIds: rawIds, upiId: singleUpi, upiDistributionType, upiBatchSize } = req.body;
         const admin = await Admin.findById(req.admin._id);
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
@@ -888,6 +896,13 @@ export const setAdminUpi = async (req, res) => {
         const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
         admin.upiIds = trimmed.map((id) => encrypt(id));
         admin.upiId = trimmed[0] ? encrypt(trimmed[0]) : ''; // keep legacy field for backward compat
+        if (upiDistributionType != null && ['all', 'round_robin_user', 'batch_n', 'random'].includes(upiDistributionType)) {
+            admin.upiDistributionType = upiDistributionType;
+        }
+        if (upiBatchSize != null) {
+            const n = Math.min(10000, Math.max(1, parseInt(upiBatchSize, 10) || 10));
+            admin.upiBatchSize = n;
+        }
         await admin.save({ validateBeforeSave: false });
 
         await logActivity({

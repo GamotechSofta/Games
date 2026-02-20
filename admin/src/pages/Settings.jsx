@@ -30,6 +30,8 @@ const Settings = () => {
     const [upiLoading, setUpiLoading] = useState(false);
     const [upiMsg, setUpiMsg] = useState('');
     const [currentUpiIds, setCurrentUpiIds] = useState([]);
+    const [upiDistributionType, setUpiDistributionType] = useState('all');
+    const [upiBatchSize, setUpiBatchSize] = useState(10);
 
     useEffect(() => {
         fetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`, { headers: getAuthHeaders() })
@@ -48,6 +50,8 @@ const Settings = () => {
                         : (json.data.upiId ? [json.data.upiId] : []);
                     setCurrentUpiIds(ids);
                     setUpiIds(ids.length > 0 ? ids : ['']);
+                    setUpiDistributionType(json.data.upiDistributionType || 'all');
+                    setUpiBatchSize(json.data.upiBatchSize ?? 10);
                 }
             })
             .catch(() => {});
@@ -118,7 +122,7 @@ const Settings = () => {
             const res = await fetch(`${API_BASE_URL}/admin/me/upi`, {
                 method: 'PATCH',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ upiIds: trimmed }),
+                body: JSON.stringify({ upiIds: trimmed, upiDistributionType, upiBatchSize }),
             });
             const json = await res.json();
             if (json.success) {
@@ -290,6 +294,34 @@ const Settings = () => {
                                     + Add another UPI ID
                                 </button>
                                 <p className="text-xs text-gray-500">Stored encrypted in database. Not in .env file.</p>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-gray-300">UPI distribution filter</label>
+                                <p className="text-xs text-gray-500">How UPI IDs are shown to users</p>
+                                <select
+                                    value={upiDistributionType}
+                                    onChange={(e) => setUpiDistributionType(e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500"
+                                >
+                                    <option value="all">Show all – every user sees all UPI IDs</option>
+                                    <option value="round_robin_user">Round robin – each user gets one different UPI ID</option>
+                                    <option value="batch_n">Batch – first N users get UPI 1, next N get UPI 2, etc.</option>
+                                    <option value="random">Random – each request gets one random UPI ID</option>
+                                </select>
+                                {upiDistributionType === 'batch_n' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">Batch size (users per UPI)</label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={10000}
+                                            value={upiBatchSize}
+                                            onChange={(e) => setUpiBatchSize(Math.max(1, Math.min(10000, parseInt(e.target.value, 10) || 10)))}
+                                            className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">e.g. 10 = first 10 users get UPI 1, next 10 get UPI 2</p>
+                                    </div>
+                                )}
                             </div>
                             {upiMsg && (
                                 <p className={`text-sm ${upiMsg.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
