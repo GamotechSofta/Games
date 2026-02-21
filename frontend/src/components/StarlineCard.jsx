@@ -13,7 +13,7 @@ const StarlineCard = () => {
       onClick={() => navigate('/startline-dashboard')}
       className="group relative rounded-2xl sm:rounded-3xl bg-black overflow-hidden w-full text-left active:scale-95 transition-all duration-200 border-2 border-amber-500 hover:border-amber-400"
     >
-      <div className="flex items-center gap-2 min-[375px]:gap-2.5 sm:gap-4 py-1.5 px-2 min-[375px]:py-2 min-[375px]:px-3 sm:py-2.5 sm:px-4">
+      <div className="flex items-center gap-2 min-[375px]:gap-2.5 sm:gap-4 py-3 px-3 min-[375px]:py-4 min-[375px]:px-4 sm:py-2.5 sm:px-4">
         <div className="h-9 w-9 min-[375px]:h-10 min-[375px]:w-10 sm:h-14 sm:w-14 rounded-lg min-[375px]:rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-black">
           <img
             src={STARLINE_IMAGE_URL}
