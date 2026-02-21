@@ -10,7 +10,7 @@ export const GAMES = [
     description: 'Crash Game',
     icon: '✈️',
     highEarning: true,
-    image: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771335934/Aviator_Games_aqtqig.svg',
+    image: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771667250/Aviator_Games_kvsp7v.png',
     url: 'https://aviator-jet-theta.vercel.app/?uid=68c3b5afbc7114822c777c1b',
     external: true,
   },
