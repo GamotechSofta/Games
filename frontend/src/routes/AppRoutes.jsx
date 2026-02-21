@@ -26,6 +26,7 @@ import StarlineMarket from '../pages/StarlineMarket';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
 import Notifications from '../pages/Notifications';
 import GameRate from '../pages/GameRate';
+import Games from '../pages/Games';
 
 // Scroll to top on every route/screen change (pathname or search params)
 const ScrollToTop = () => {
@@ -94,7 +95,7 @@ const Layout = ({ children }) => {
     location.pathname === '/market-result-history';
   const hideTopNavOnMobile =
     !isDesktop &&
-    (['/funds', '/profile', '/notifications', '/bidoptions', '/game-bid'].includes(location.pathname) ||
+    (['/funds', '/profile', '/notifications', '/bidoptions', '/game-bid', '/games'].includes(location.pathname) ||
       location.pathname.startsWith('/support'));
 
   // Mobile only: hide bottom navbar (currently none; show on all screens)
@@ -153,6 +154,7 @@ const Layout = ({ children }) => {
     location.pathname === '/startline-dashboard' ||
     location.pathname === '/king-bazaar-market' ||
     location.pathname === '/game-rate' ||
+    location.pathname === '/games' ||
     isSupportPage;
   const isBetsPage = location.pathname === '/bids';
   const isHistoryPage =
@@ -230,6 +232,7 @@ const AppRoutes = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/top-winners" element={<TopWinners />} />
           <Route path="/game-rate" element={<GameRate />} />
+          <Route path="/games" element={<Games />} />
         </Routes>
       </Layout>
     </Router>
