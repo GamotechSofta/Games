@@ -15,7 +15,7 @@ const CasinoGamesCard = () => {
       style={{ backgroundImage: `url(${CASINO_BG_IMAGE_URL})` }}
     >
       <div className="absolute inset-0 bg-black/50" />
-      <div className="relative flex items-center gap-2 min-[375px]:gap-2.5 sm:gap-4 py-3 px-3 min-[375px]:py-4 min-[375px]:px-4 sm:py-2.5 sm:px-4">
+      <div className="relative flex items-center gap-2 min-[375px]:gap-2.5 sm:gap-4 py-5 px-3 min-[375px]:py-6 min-[375px]:px-4 sm:py-4 sm:px-4">
         <div className="flex flex-col min-w-0 flex-1">
           <p className="text-white text-xs min-[375px]:text-sm sm:text-lg md:text-base font-bold uppercase leading-tight tracking-wide">
             {t('markets.casinoGamesLine1')}
