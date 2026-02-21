@@ -11,6 +11,7 @@ const Games = () => {
 
   const filteredGames = GAMES.filter((game) => {
     if (category === 'highEarning') return game.highEarning;
+    if (category === 'upcoming') return game.upcoming;
     if (category === 'other') return !game.highEarning && !game.upcoming;
     return true;
   });
@@ -35,7 +36,7 @@ const Games = () => {
           </svg>
         </button>
         <h1 className="text-white text-xl font-bold">
-          {category === 'highEarning' ? 'Casino Games' : 'All Games'}
+          {category === 'highEarning' ? 'Casino Games' : category === 'upcoming' ? 'Skills Games' : 'All Games'}
         </h1>
       </div>
 
