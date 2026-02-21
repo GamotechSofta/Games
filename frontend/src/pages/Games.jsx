@@ -45,12 +45,12 @@ const Games = () => {
           <div
             key={game.id}
             onClick={() => handleGameClick(game)}
-            className={`bg-gray-800 rounded-2xl overflow-hidden ${
-              game.upcoming ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02] transition-transform'
+            className={`rounded-2xl overflow-hidden border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.3)] hover:shadow-[0_0_12px_rgba(255,255,255,0.4)] transition-all bg-black ${
+              game.upcoming ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'
             }`}
           >
             {/* Game Image */}
-            <div className="relative aspect-[4/3] bg-gray-900">
+            <div className="relative aspect-[4/3] bg-black">
               {game.image ? (
                 <img
                   src={game.image}
@@ -58,7 +58,7 @@ const Games = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
+                <div className="w-full h-full flex items-center justify-center bg-black">
                   <span className="text-5xl">{game.icon}</span>
                 </div>
               )}
@@ -71,7 +71,7 @@ const Games = () => {
             </div>
 
             {/* Game Info */}
-            <div className="p-3 bg-gray-800">
+            <div className="p-3 bg-gray-900">
               <h3 className="text-white text-sm font-semibold truncate">
                 {game.name}
               </h3>
