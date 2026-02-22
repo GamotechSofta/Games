@@ -1307,11 +1307,13 @@ export const getMarketStats = async (req, res) => {
             for (const b of betList) {
                 applyBet(all, b);
                 const betType = (b?.betType || '').toString().trim().toLowerCase();
+                // Half Sangam uses cross-side matching and is settled at CLOSE (not open)
+                // - Open Halfsangam (XXX-Y): Open Pana + Close Ank
+                // - Close Halfsangam (Y-XXX): Open Ank + Close Pana
                 let session =
-                    (betType === 'jodi' || betType === 'full-sangam')
+                    (betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam')
                         ? 'close'
                         : ((b?.betOn === 'close') ? 'close' : (b?.betOn === 'open' ? 'open' : null));
-                if (betType === 'half-sangam') session = 'open';
                 if (!session && startMin != null && b?.createdAt) {
                     const betMin = minutesIST(b.createdAt);
                     if (betMin != null) session = betMin < startMin ? 'open' : 'close';
@@ -1326,12 +1328,14 @@ export const getMarketStats = async (req, res) => {
             applyBet(allStats, b);
             const betType = (b?.betType || '').toString().trim().toLowerCase();
 
-            // Jodi / Full Sangam are "close" category (settled on closing). Half Sangam is open-only.
+            // Jodi, Full Sangam, and Half Sangam are "close" category (settled on closing).
+            // Half Sangam uses cross-side matching:
+            // - Open Halfsangam (XXX-Y): Open Pana + Close Ank
+            // - Close Halfsangam (Y-XXX): Open Ank + Close Pana
             let session =
-                (betType === 'jodi' || betType === 'full-sangam')
+                (betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam')
                     ? 'close'
                     : ((b?.betOn === 'close') ? 'close' : (b?.betOn === 'open' ? 'open' : null));
-            if (betType === 'half-sangam') session = 'open';
             // Backfill for older bets: infer from bet time (IST) vs market starting time
             if (!session && startMin != null && b?.createdAt) {
                 const betMin = minutesIST(b.createdAt);
@@ -1371,11 +1375,11 @@ export const getMarketStats = async (req, res) => {
             let totalWinAmountOnOpenPatti = 0;
             const playersOnOpenPatti = new Set();
             const pannaRateOpen = Number(rates[getPannaRateKey(open3)]) || 0;
-            const halfSangamRate = Number(rates.halfSangam) || 0;
+            // Half Sangam is NOT calculated here - it requires ClosePana/CloseAnk and is settled at close
             for (const b of bets) {
                 const betType = (b?.betType || '').toString().trim().toLowerCase();
-                let session = (betType === 'jodi' || betType === 'full-sangam') ? 'close' : ((b?.betOn === 'close') ? 'close' : (b?.betOn === 'open' ? 'open' : null));
-                if (betType === 'half-sangam') session = 'open';
+                // Half Sangam uses cross-side matching and is settled at close, not open
+                let session = (betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam') ? 'close' : ((b?.betOn === 'close') ? 'close' : (b?.betOn === 'open' ? 'open' : null));
                 if (!session && startMin != null && b?.createdAt) {
                     const betMin = minutesIST(b.createdAt);
                     if (betMin != null) session = betMin < startMin ? 'open' : 'close';
@@ -1395,16 +1399,8 @@ export const getMarketStats = async (req, res) => {
                         totalWinAmountOnOpenPatti += amount * pannaRateOpen;
                         playersOnOpenPatti.add(b.userId.toString());
                     }
-                } else if (betType === 'half-sangam') {
-                    const parts = num.split('-').map((p) => (p || '').trim());
-                    const first = parts[0] || '';
-                    const second = parts[1] || '';
-                    if (/^[0-9]{3}$/.test(first) && /^[0-9]$/.test(second) && first === open3 && second === lastDigitOpen) {
-                        totalBetAmountOnOpenPatti += amount;
-                        totalWinAmountOnOpenPatti += amount * halfSangamRate;
-                        playersOnOpenPatti.add(b.userId.toString());
-                    }
                 }
+                // Half Sangam is explicitly excluded - requires close result for cross-side matching
             }
             totalWinAmountOnOpenPatti = Math.round(totalWinAmountOnOpenPatti * 100) / 100;
             resultOnPatti.open = {
@@ -1420,10 +1416,13 @@ export const getMarketStats = async (req, res) => {
             let totalWinAmountOnClosePatti = 0;
             const playersOnClosePatti = new Set();
             const pannaRateClose = Number(rates[getPannaRateKey(close3)]) || 0;
+            const halfSangamRate = Number(rates.halfSangam) || 0;
+            const fullSangamRate = Number(rates.fullSangam) || 0;
             for (const b of bets) {
                 const betType = (b?.betType || '').toString().trim().toLowerCase();
                 const isCloseSession = (b?.betOn || '').toString().toLowerCase() === 'close';
-                const isCloseSettleType = betType === 'jodi' || betType === 'full-sangam' || (betType === 'single' && isCloseSession) || (betType === 'panna' && isCloseSession);
+                // Half Sangam is settled at close with cross-side matching (requires both open and close results)
+                const isCloseSettleType = betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam' || (betType === 'single' && isCloseSession) || (betType === 'panna' && isCloseSession);
                 if (!isCloseSettleType) continue;
                 const num = (b.betNumber || '').toString().trim();
                 const amount = Number(b.amount) || 0;
@@ -1442,6 +1441,44 @@ export const getMarketStats = async (req, res) => {
                     totalBetAmountOnClosePatti += amount;
                     totalWinAmountOnClosePatti += amount * jodiRate;
                     playersOnClosePatti.add(b.userId.toString());
+                } else if (betType === 'half-sangam' && hasOpen3) {
+                    /**
+                     * Half Sangam: Cross-side matching (settled at closing)
+                     * Format A (Open Halfsangam): "XXX-Y" = Open Pana + Close Ank
+                     *   - XXX must match the declared Open Pana (open3)
+                     *   - Y must match the Close Ank (lastDigitClose)
+                     * Format B (Close Halfsangam): "Y-XXX" = Open Ank + Close Pana
+                     *   - Y must match the Open Ank (lastDigitOpen)
+                     *   - XXX must match the declared Close Pana (close3)
+                     */
+                    const parts = num.split('-').map((p) => (p || '').trim());
+                    const first = parts[0] || '';
+                    const second = parts[1] || '';
+                    const isFormatA = /^[0-9]{3}$/.test(first) && /^[0-9]$/.test(second);
+                    const isFormatB = /^[0-9]$/.test(first) && /^[0-9]{3}$/.test(second);
+                    let won = false;
+                    if (isFormatA) {
+                        // Open Halfsangam: Open Pana (first) + Close Ank (second)
+                        won = first === open3 && second === lastDigitClose;
+                    } else if (isFormatB) {
+                        // Close Halfsangam: Open Ank (first) + Close Pana (second)
+                        won = lastDigitOpen != null && first === lastDigitOpen && second === close3;
+                    }
+                    if (won) {
+                        totalBetAmountOnClosePatti += amount;
+                        totalWinAmountOnClosePatti += amount * halfSangamRate;
+                        playersOnClosePatti.add(b.userId.toString());
+                    }
+                } else if (betType === 'full-sangam' && hasOpen3) {
+                    // Full Sangam: Open Pana + Close Pana
+                    const parts = num.split('-').map((p) => (p || '').trim());
+                    const first = parts[0] || '';
+                    const second = parts[1] || '';
+                    if (/^[0-9]{3}$/.test(first) && /^[0-9]{3}$/.test(second) && first === open3 && second === close3) {
+                        totalBetAmountOnClosePatti += amount;
+                        totalWinAmountOnClosePatti += amount * fullSangamRate;
+                        playersOnClosePatti.add(b.userId.toString());
+                    }
                 }
             }
             totalWinAmountOnClosePatti = Math.round(totalWinAmountOnClosePatti * 100) / 100;

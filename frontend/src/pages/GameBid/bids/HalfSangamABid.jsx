@@ -11,6 +11,7 @@ const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').sl
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
 // Half Sangam (O): Open Pana (3 digits) + Close Ank (1 digit)
+// Cross-side matching: User guesses Open Pana AND Close Ank separately
 const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
@@ -19,6 +20,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
     const [closeAnk, setCloseAnk] = useState('');
     const [points, setPoints] = useState('');
     const pointsInputRef = useRef(null);
+    const closeAnkInputRef = useRef(null);
     const [openPanaInvalid, setOpenPanaInvalid] = useState(false);
     const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -82,12 +84,6 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
             ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]'
             : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
-    const computeCloseAnkFromPana = (pana) => {
-        const s = (pana ?? '').toString().trim();
-        if (!/^[0-9]{3}$/.test(s)) return '';
-        const sum = Number(s[0]) + Number(s[1]) + Number(s[2]);
-        return String(sum % 10);
-    };
 
     const clearAll = () => {
         setIsReviewOpen(false);
@@ -140,13 +136,12 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Open Pana must be a valid Pana (Single / Double / Triple).');
             return;
         }
-        const derivedCloseAnk = computeCloseAnkFromPana(openPana);
-        if (!/^[0-9]$/.test(derivedCloseAnk)) {
-            showWarning('Close Ank could not be calculated. Please re-enter Open Pana.');
+        if (!/^[0-9]$/.test(closeAnk)) {
+            showWarning('Please enter Close Ank (0-9).');
             return;
         }
 
-        const numberKey = `${openPana}-${derivedCloseAnk}`;
+        const numberKey = `${openPana}-${closeAnk}`;
         setBids((prev) => {
             const next = [...prev];
             const idx = next.findIndex((b) => String(b.number) === numberKey && String(b.type) === String(session));
@@ -216,22 +211,21 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                                     type="text"
                                     inputMode="numeric"
                                     value={openPana}
-                                    onChange={(e) => {
-                                        const prevLen = (openPana ?? '').toString().length;
-                                        const next = sanitizeDigits(e.target.value, 3);
-                                        setOpenPana(next);
-                                        setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
-                                        setCloseAnk(computeCloseAnkFromPana(next));
-                                        if (next.length === 3 && prevLen < 3) {
-                                            if (!isValidAnyPana(next)) {
-                                                showWarning('Open Pana must be a valid Single / Double / Triple Pana (3 digits).');
-                                                return;
-                                            }
-                                            window.requestAnimationFrame(() => {
-                                                pointsInputRef.current?.focus?.();
-                                            });
-                                        }
-                                    }}
+onChange={(e) => {
+                                                        const prevLen = (openPana ?? '').toString().length;
+                                                        const next = sanitizeDigits(e.target.value, 3);
+                                                        setOpenPana(next);
+                                                        setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
+                                                        if (next.length === 3 && prevLen < 3) {
+                                                            if (!isValidAnyPana(next)) {
+                                                                showWarning('Open Pana must be a valid Single / Double / Triple Pana (3 digits).');
+                                                                return;
+                                                            }
+                                                            window.requestAnimationFrame(() => {
+                                                                closeAnkInputRef.current?.focus?.();
+                                                            });
+                                                        }
+                                                    }}
                                     placeholder={t('gameBid.pana')}
                                     className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
                                         openPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
@@ -242,12 +236,22 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow }) => {
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterCloseAnk')}:</label>
                                 <input
+                                    ref={closeAnkInputRef}
                                     type="text"
                                     inputMode="numeric"
                                     value={closeAnk}
-                                    readOnly
+                                    onChange={(e) => {
+                                        const prevLen = (closeAnk ?? '').toString().length;
+                                        const next = sanitizeDigits(e.target.value, 1);
+                                        setCloseAnk(next);
+                                        if (next.length === 1 && prevLen < 1) {
+                                            window.requestAnimationFrame(() => {
+                                                pointsInputRef.current?.focus?.();
+                                            });
+                                        }
+                                    }}
                                     placeholder={t('gameBid.ank')}
-                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm opacity-80 cursor-not-allowed focus:outline-none"
+                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
 

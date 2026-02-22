@@ -10,13 +10,8 @@ import { placeBet, updateUserBalance } from '../../../api/bets';
 const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').slice(0, maxLen);
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
-const getTomorrowIST = () => {
-    const todayIST = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-    const [y, m, d] = todayIST.split('-').map(Number);
-    return new Date(y, m - 1, d + 1).toISOString().slice(0, 10);
-};
-
 // Half Sangam (C): Open Ank (1 digit) + Close Pana (3 digits)
+// Cross-side matching: User guesses Open Ank AND Close Pana separately
 const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
@@ -25,6 +20,7 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
     const [closePana, setClosePana] = useState('');
     const [points, setPoints] = useState('');
     const pointsInputRef = useRef(null);
+    const closePanaInputRef = useRef(null);
     const [closePanaInvalid, setClosePanaInvalid] = useState(false);
     const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -88,12 +84,6 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
             ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]'
             : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
-    const computeOpenAnkFromPana = (pana) => {
-        const s = (pana ?? '').toString().trim();
-        if (!/^[0-9]{3}$/.test(s)) return '';
-        const sum = Number(s[0]) + Number(s[1]) + Number(s[2]);
-        return String(sum % 10);
-    };
 
     const clearAll = () => {
         setIsReviewOpen(false);
@@ -142,17 +132,16 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Please enter points.');
             return;
         }
+        if (!/^[0-9]$/.test(openAnk)) {
+            showWarning('Please enter Open Ank (0-9).');
+            return;
+        }
         if (!isValidAnyPana(closePana)) {
             showWarning('Close Pana must be a valid Pana (Single / Double / Triple).');
             return;
         }
-        const derivedOpenAnk = computeOpenAnkFromPana(closePana);
-        if (!/^[0-9]$/.test(derivedOpenAnk)) {
-            showWarning('Open Ank could not be calculated. Please re-enter Close Pana.');
-            return;
-        }
 
-        const numberKey = `${derivedOpenAnk}-${closePana}`;
+        const numberKey = `${openAnk}-${closePana}`;
         setBids((prev) => {
             const next = [...prev];
             const idx = next.findIndex((b) => String(b.number) === numberKey && String(b.type) === String(session));
@@ -200,6 +189,7 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
             setSession={setSession}
             sessionOptionsOverride={['CLOSE']}
             lockSessionSelect
+            hideSessionSelectCaret
             hideFooter
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
@@ -221,34 +211,43 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
                                     type="text"
                                     inputMode="numeric"
                                     value={openAnk}
-                                    readOnly
+                                    onChange={(e) => {
+                                        const prevLen = (openAnk ?? '').toString().length;
+                                        const next = sanitizeDigits(e.target.value, 1);
+                                        setOpenAnk(next);
+                                        if (next.length === 1 && prevLen < 1) {
+                                            window.requestAnimationFrame(() => {
+                                                closePanaInputRef.current?.focus?.();
+                                            });
+                                        }
+                                    }}
                                     placeholder={t('gameBid.ank')}
-                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm opacity-80 cursor-not-allowed focus:outline-none"
+                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterClosePana')}:</label>
                                 <input
+                                    ref={closePanaInputRef}
                                     type="text"
                                     inputMode="numeric"
                                     value={closePana}
-                                    onChange={(e) => {
-                                        const prevLen = (closePana ?? '').toString().length;
-                                        const next = sanitizeDigits(e.target.value, 3);
-                                        setClosePana(next);
-                                        setClosePanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
-                                        setOpenAnk(computeOpenAnkFromPana(next));
-                                        if (next.length === 3 && prevLen < 3) {
-                                            if (!isValidAnyPana(next)) {
-                                                showWarning('Close Pana must be a valid Single / Double / Triple Pana (3 digits).');
-                                                return;
-                                            }
-                                            window.requestAnimationFrame(() => {
-                                                pointsInputRef.current?.focus?.();
-                                            });
-                                        }
-                                    }}
+onChange={(e) => {
+                                                        const prevLen = (closePana ?? '').toString().length;
+                                                        const next = sanitizeDigits(e.target.value, 3);
+                                                        setClosePana(next);
+                                                        setClosePanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
+                                                        if (next.length === 3 && prevLen < 3) {
+                                                            if (!isValidAnyPana(next)) {
+                                                                showWarning('Close Pana must be a valid Single / Double / Triple Pana (3 digits).');
+                                                                return;
+                                                            }
+                                                            window.requestAnimationFrame(() => {
+                                                                pointsInputRef.current?.focus?.();
+                                                            });
+                                                        }
+                                                    }}
                                     placeholder={t('gameBid.pana')}
                                     className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
                                         closePanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'

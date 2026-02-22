@@ -20,11 +20,14 @@ const formatTime = (timeStr) => {
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
 /** Card container matching AddResult/UpdateRate style */
-const SectionCard = ({ title, children, className = '' }) => (
+const SectionCard = ({ title, subtitle, children, className = '' }) => (
     <div className={`rounded-lg border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden ${className}`}>
-        <h2 className="text-sm sm:text-base font-bold text-yellow-500 bg-gray-800/90 px-3 py-2 border-b border-gray-700">
-            {title}
-        </h2>
+        <div className="bg-gray-800/90 px-3 py-2 border-b border-gray-700">
+            <h2 className="text-sm sm:text-base font-bold text-yellow-500">
+                {title}
+            </h2>
+            {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        </div>
         <div className="p-2.5 sm:p-3">{children}</div>
     </div>
 );
@@ -257,17 +260,66 @@ const buildHalfSangamFormatAMatrix = (items) => {
     return { openPanas, grid };
 };
 
-/** Half Sangam section: explainer + matrix (Format A) + table */
-const HalfSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
+/** Build Half Sangam Format B matrix: Open Ank 0-9 (rows) × Close Pana (cols) */
+const buildHalfSangamFormatBMatrix = (items) => {
+    const closePanas = [];
+    const grid = {};
+    DIGITS.forEach((ank) => { grid[ank] = {}; });
+    for (const [key, v] of Object.entries(items)) {
+        const parts = key.split('-').map((p) => (p || '').trim());
+        const a = parts[0] || '';
+        const b = parts[1] || '';
+        if (/^[0-9]$/.test(a) && /^[0-9]{3}$/.test(b)) {
+            if (!grid[a][b]) grid[a][b] = { amount: 0, count: 0 };
+            grid[a][b].amount += v.amount ?? 0;
+            grid[a][b].count += v.count ?? 0;
+            if (!closePanas.includes(b)) closePanas.push(b);
+        }
+    }
+    closePanas.sort();
+    return { closePanas, grid };
+};
+
+/** Separate Half Sangam items into Format A and Format B */
+const separateHalfSangamFormats = (items) => {
+    const formatAItems = {};
+    const formatBItems = {};
+    let formatATotalAmount = 0, formatATotalBets = 0;
+    let formatBTotalAmount = 0, formatBTotalBets = 0;
+    for (const [key, v] of Object.entries(items)) {
+        const parts = key.split('-').map((p) => (p || '').trim());
+        const a = parts[0] || '';
+        const b = parts[1] || '';
+        if (/^[0-9]{3}$/.test(a) && /^[0-9]$/.test(b)) {
+            formatAItems[key] = v;
+            formatATotalAmount += v.amount ?? 0;
+            formatATotalBets += v.count ?? 0;
+        } else if (/^[0-9]$/.test(a) && /^[0-9]{3}$/.test(b)) {
+            formatBItems[key] = v;
+            formatBTotalAmount += v.amount ?? 0;
+            formatBTotalBets += v.count ?? 0;
+        }
+    }
+    return {
+        formatA: { items: formatAItems, totalAmount: formatATotalAmount, totalBets: formatATotalBets },
+        formatB: { items: formatBItems, totalAmount: formatBTotalAmount, totalBets: formatBTotalBets },
+    };
+};
+
+/** Half Sangam O section: Open Pana + Close Ank (Format A) */
+const HalfSangamOSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
     const entries = Object.entries(items).sort(([a], [b]) => String(a).localeCompare(b));
     const formatA = buildHalfSangamFormatAMatrix(items);
     const hasFormatA = formatA.openPanas.length > 0;
     return (
-        <SectionCard title="Half Sangam">
+        <SectionCard title="Half Sangam (O)" subtitle="Open Pana + Close Ank">
             <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
-                <p className="text-sm font-semibold text-yellow-500 mb-1">What is Half Sangam?</p>
+                <p className="text-sm font-semibold text-yellow-500 mb-1">What is Half Sangam (O)?</p>
                 <p className="text-gray-300 text-sm leading-relaxed">
-                    Half Sangam = <strong className="text-white">one 3-digit Pana + one 1-digit Ank</strong> from Open and Close (Open Pana × Close Ank), e.g. <span className="font-mono">156-6</span>.
+                    Half Sangam (O) = <strong className="text-white">Open Pana + Close Ank</strong><br />
+                    <span className="text-gray-400">Format:</span> <span className="font-mono">XXX-Y</span> (e.g. <span className="font-mono">156-6</span>)<br />
+                    <span className="text-gray-400">• XXX = Open Pana (3-digit)</span><br />
+                    <span className="text-gray-400">• Y = Close Ank (1-digit, derived from Close Pana)</span>
                 </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-700">
@@ -283,7 +335,7 @@ const HalfSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
                 <>
                     {hasFormatA && (
                         <div className="mb-6">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Format A — Open Pana × Close Ank</p>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Open Pana × Close Ank Matrix</p>
                             <div className="overflow-x-auto rounded-xl border border-gray-700 bg-gray-800">
                                 <table className="w-full text-sm border-collapse min-w-[320px]">
                                     <thead>
@@ -351,6 +403,126 @@ const HalfSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
                 </>
             )}
         </SectionCard>
+    );
+};
+
+/** Half Sangam C section: Open Ank + Close Pana (Format B) */
+const HalfSangamCSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
+    const entries = Object.entries(items).sort(([a], [b]) => String(a).localeCompare(b));
+    const formatB = buildHalfSangamFormatBMatrix(items);
+    const hasFormatB = formatB.closePanas.length > 0;
+    return (
+        <SectionCard title="Half Sangam (C)" subtitle="Open Ank + Close Pana">
+            <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
+                <p className="text-sm font-semibold text-yellow-500 mb-1">What is Half Sangam (C)?</p>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                    Half Sangam (C) = <strong className="text-white">Open Ank + Close Pana</strong><br />
+                    <span className="text-gray-400">Format:</span> <span className="font-mono">Y-XXX</span> (e.g. <span className="font-mono">6-156</span>)<br />
+                    <span className="text-gray-400">• Y = Open Ank (1-digit, derived from Open Pana)</span><br />
+                    <span className="text-gray-400">• XXX = Close Pana (3-digit)</span>
+                </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-700">
+                <span className="text-gray-400 text-sm">Total Amount:</span>
+                <span className="font-mono font-semibold text-amber-400">₹{formatNum(totalAmount)}</span>
+                <span className="text-gray-500">|</span>
+                <span className="text-gray-400 text-sm">No. of Bets:</span>
+                <span className="font-semibold text-white">{formatNum(totalBets)}</span>
+            </div>
+            {entries.length === 0 ? (
+                <p className="text-gray-500 text-sm">No bets in this category</p>
+            ) : (
+                <>
+                    {hasFormatB && (
+                        <div className="mb-6">
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Open Ank × Close Pana Matrix</p>
+                            <div className="overflow-x-auto rounded-xl border border-gray-700 bg-gray-800">
+                                <table className="w-full text-sm border-collapse min-w-[320px]">
+                                    <thead>
+                                        <tr className="bg-gray-700/80 border-b-2 border-gray-600">
+                                            <th className="py-2 px-2 text-center font-semibold text-yellow-500 border-r-2 border-gray-600 bg-gray-700/90 w-14">Open Ank ↓</th>
+                                            {formatB.closePanas.map((pana) => (
+                                                <th key={pana} className="py-2 px-1.5 text-center font-bold text-yellow-500 border-r border-gray-600 min-w-[3.5rem]" title={`Close Pana ${pana}`}>{pana}</th>
+                                            ))}
+                                            <th className="py-2 px-2 text-center font-semibold text-amber-400 bg-amber-500/10 border-l-2 min-w-[4rem]">Row total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {DIGITS.map((ank) => {
+                                            const rowTotal = formatB.closePanas.reduce((sum, pana) => sum + (formatB.grid[ank][pana]?.amount ?? 0), 0);
+                                            const rowBets = formatB.closePanas.reduce((sum, pana) => sum + (formatB.grid[ank][pana]?.count ?? 0), 0);
+                                            if (rowTotal === 0 && rowBets === 0) return null;
+                                            return (
+                                                <tr key={ank} className="border-b border-gray-700 hover:bg-gray-700/25">
+                                                    <td className="py-1.5 px-2 text-center font-bold text-amber-400 border-r-2 border-gray-600 bg-gray-700/50 font-mono text-xs">{ank}</td>
+                                                    {formatB.closePanas.map((pana) => {
+                                                        const cell = formatB.grid[ank][pana];
+                                                        return (
+                                                            <td key={pana} className="p-1 border-r border-gray-700 text-center">
+                                                                <div className="rounded bg-gray-700/40 border border-gray-600 px-1.5 py-1 min-h-[2.5rem] flex flex-col items-center justify-center gap-0">
+                                                                    <span className="font-mono text-amber-400 text-xs font-semibold">₹{formatNum(cell?.amount)}</span>
+                                                                    <span className="font-mono text-gray-400 text-[10px]">{cell?.count ?? 0}</span>
+                                                                </div>
+                                                            </td>
+                                                        );
+                                                    })}
+                                                    <td className="p-1.5 bg-amber-500/5 border-l-2 border-amber-500/20 text-center">
+                                                        <span className="font-mono text-amber-400 text-xs font-semibold">₹{formatNum(rowTotal)}</span>
+                                                        <span className="block font-mono text-gray-400 text-[10px]">{formatNum(rowBets)}</span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                    <p className="text-xs text-gray-500 mb-2">List view</p>
+                    <div className="overflow-x-auto rounded-lg border border-gray-700 bg-gray-800">
+                        <table className="w-full text-sm border-collapse min-w-[320px]">
+                            <thead>
+                                <tr className="bg-gray-700/70 border-b border-gray-600">
+                                    <th className="text-left py-2.5 px-3 font-semibold text-yellow-500">Option</th>
+                                    <th className="text-right py-2.5 px-3 font-semibold text-gray-300">Amount (₹)</th>
+                                    <th className="text-right py-2.5 px-3 font-semibold text-gray-300">No. of Bets</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {entries.map(([key, v]) => (
+                                    <tr key={key} className="border-b border-gray-700 hover:bg-gray-700/30">
+                                        <td className="py-2 px-3 text-gray-200 font-mono text-xs sm:text-sm" title={key}>
+                                            {getHalfSangamLabel(key)}
+                                        </td>
+                                        <td className="py-2 px-3 text-right font-mono text-amber-400 font-semibold">₹{formatNum(v.amount)}</td>
+                                        <td className="py-2 px-3 text-right text-gray-300">{formatNum(v.count || 0)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </SectionCard>
+    );
+};
+
+/** Combined Half Sangam section wrapper */
+const HalfSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
+    const separated = separateHalfSangamFormats(items);
+    return (
+        <>
+            <HalfSangamOSection
+                items={separated.formatA.items}
+                totalAmount={separated.formatA.totalAmount}
+                totalBets={separated.formatA.totalBets}
+            />
+            <HalfSangamCSection
+                items={separated.formatB.items}
+                totalAmount={separated.formatB.totalAmount}
+                totalBets={separated.formatB.totalBets}
+            />
+        </>
     );
 };
 
@@ -672,34 +844,33 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
     // Section data by view (Open/Closed): show session-specific bets in all sections
     const singleDigitDisplay = viewStats?.singleDigit || { digits: {}, totalAmount: 0, totalBets: 0 };
-    // Jodi + Full Sangam should show in both views, but are always "close" category.
+    // Jodi + Full Sangam + Half Sangam should show in Closed view (close category, settled at closing).
     // Do NOT include them in Open totals (openTotalAmount/openTotalBets remain unchanged).
     const jodiDisplay = statsClose?.jodi || { items: {}, totalAmount: 0, totalBets: 0 };
     const triplePattiDisplay = viewStats?.triplePatti || { items: {}, totalAmount: 0, totalBets: 0 };
-    // Half Sangam is open-only; use open session data
-    const halfSangamDisplay = statsOpen?.halfSangam || { items: {}, totalAmount: 0, totalBets: 0 };
+    // Half Sangam uses cross-side matching (OpenPana+CloseAnk or OpenAnk+ClosePana) - settled at close
+    const halfSangamDisplay = statsClose?.halfSangam || { items: {}, totalAmount: 0, totalBets: 0 };
     const fullSangamDisplay = statsClose?.fullSangam || { items: {}, totalAmount: 0, totalBets: 0 };
 
-    // Open view: open-session (Single Digit, Patti) + Half Sangam (close data shown in section, so include in total so "Total Bet Amount" matches visible bets).
+    // Open view: open-session bets only (Single Digit, Patti) - Half Sangam is NOT included (settled at close)
     const openTotalAmount =
         (singleDigitDisplay?.totalAmount ?? 0) +
         (singlePattiTotalsForView?.totalAmount ?? 0) +
         (doublePattiTotalsForView?.totalAmount ?? 0) +
-        (triplePattiDisplay?.totalAmount ?? 0) +
-        (halfSangamDisplay?.totalAmount ?? 0);
+        (triplePattiDisplay?.totalAmount ?? 0);
     const openTotalBets =
         (singleDigitDisplay?.totalBets ?? 0) +
         (singlePattiTotalsForView?.totalBets ?? 0) +
         (doublePattiTotalsForView?.totalBets ?? 0) +
-        (triplePattiDisplay?.totalBets ?? 0) +
-        (halfSangamDisplay?.totalBets ?? 0);
-    // Closed view: close bets only; Half Sangam is open-only so not shown or counted in closed
+        (triplePattiDisplay?.totalBets ?? 0);
+    // Closed view: close bets + Half Sangam (cross-side matching, settled at close)
     const closedTotalAmount =
         (singleDigitDisplay?.totalAmount ?? 0) +
         (jodiDisplay?.totalAmount ?? 0) +
         (singlePattiTotalsForView?.totalAmount ?? 0) +
         (doublePattiTotalsForView?.totalAmount ?? 0) +
         (triplePattiDisplay?.totalAmount ?? 0) +
+        (halfSangamDisplay?.totalAmount ?? 0) +
         (fullSangamDisplay?.totalAmount ?? 0);
     const closedTotalBets =
         (singleDigitDisplay?.totalBets ?? 0) +
@@ -707,6 +878,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         (singlePattiTotalsForView?.totalBets ?? 0) +
         (doublePattiTotalsForView?.totalBets ?? 0) +
         (triplePattiDisplay?.totalBets ?? 0) +
+        (halfSangamDisplay?.totalBets ?? 0) +
         (fullSangamDisplay?.totalBets ?? 0);
     // Starline: only open bets; King Bazaar: show combined total (First Digit + Second Digit + Jodi)
     const effectiveView = isStartline ? 'open' : statusView;
@@ -1158,7 +1330,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                     />
                     )}
 
-                    {effectiveView === 'open' && !isKingBazaar && (
+                    {effectiveView === 'closed' && !isKingBazaar && (
                     <HalfSangamSection
                         items={halfSangamDisplay.items}
                         totalAmount={halfSangamDisplay.totalAmount}

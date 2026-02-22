@@ -55,6 +55,7 @@ const BidOptions = () => {
       'Triple Pana': t('gameRate.triplePana'),
       'Full Sangam': t('gameRate.fullSangam'),
       'Half Sangam (O)': t('gameRate.halfSangamOpen'),
+      'Half Sangam (C)': t('gameRate.halfSangamClose'),
     };
     return map[key] || key;
   };
@@ -192,6 +193,18 @@ const BidOptions = () => {
         />
       ),
     },
+    {
+      id: 12,
+      title: 'Half Sangam (C)',
+      displayTitle: getGameTitle('Half Sangam (C)'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
+          alt={getGameTitle('Half Sangam (C)')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
   ];
 
   if (!market) {
@@ -250,12 +263,15 @@ const BidOptions = () => {
     ? visibleOptionsBase.filter((opt) => {
         const t = (opt.title || '').toLowerCase().trim();
         // Support both legacy (A/B) and current (O/C) naming.
+        // When running (close session only), hide options that need open session data
         const hideWhenRunning = new Set([
           'jodi',
           'jodi bulk',
           'full sangam',
           'half sangam (o)',
           'half sangam (a)',
+          'half sangam (c)',
+          'half sangam (b)',
         ]);
         return !hideWhenRunning.has(t);
       })
