@@ -69,6 +69,14 @@ const SupportStatus = () => {
     else setMyTickets([]);
   }, [userId]);
 
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/support', { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-md mx-auto pt-4">
@@ -76,7 +84,7 @@ const SupportStatus = () => {
         <div className="flex items-center gap-3 mb-6">
           <button
             type="button"
-            onClick={() => navigate('/support')}
+            onClick={handleBack}
             className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation"
             aria-label="Back"
           >
@@ -114,7 +122,7 @@ const SupportStatus = () => {
             <p className="text-gray-500 text-xs mt-1">{t('support.sendRequestFromSupport')}</p>
             <button
               type="button"
-              onClick={() => navigate('/support')}
+              onClick={() => navigate('/support', { replace: true })}
               className="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition"
             >
               {t('support.askForHelp')}
@@ -122,25 +130,25 @@ const SupportStatus = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {myTickets.map((t) => (
+            {myTickets.map((ticket) => (
               <div
-                key={t._id}
+                key={ticket._id}
                 className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4"
               >
                 <div className="flex justify-between items-start gap-2">
-                  <p className="font-medium text-white text-sm truncate flex-1">{t.subject}</p>
-                  <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(t.status)}`}>
-                    {getStatusLabelKey(t.status) ? t(`support.${getStatusLabelKey(t.status)}`) : t.status}
+                  <p className="font-medium text-white text-sm truncate flex-1">{ticket.subject}</p>
+                  <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(ticket.status)}`}>
+                    {getStatusLabelKey(ticket.status) ? t(`support.${getStatusLabelKey(ticket.status)}`) : ticket.status}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  {t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                  {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                 </p>
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{t.description}</p>
-                {t.adminResponse && (
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{ticket.description}</p>
+                {ticket.adminResponse && (
                   <div className="mt-3 pt-3 border-t border-white/10">
                     <p className="text-xs text-gray-500 mb-1">{t('support.replyFromSupport')}</p>
-                    <p className="text-sm text-green-300/90 whitespace-pre-wrap">{t.adminResponse}</p>
+                    <p className="text-sm text-green-300/90 whitespace-pre-wrap">{ticket.adminResponse}</p>
                   </div>
                 )}
               </div>

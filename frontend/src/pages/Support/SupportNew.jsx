@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 
@@ -8,7 +8,6 @@ const SupportNew = () => {
   const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
-  const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [screenshots, setScreenshots] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -60,12 +59,16 @@ const SupportNew = () => {
       setMessage({ type: 'error', text: t('support.descriptionRequired') });
       return;
     }
+    if (!screenshots.length) {
+      setMessage({ type: 'error', text: t('support.photosRequired') });
+      return;
+    }
     setMessage({ type: '', text: '' });
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('subject', (subject.trim() || t('support.supportRequestDefault')));
+      formData.append('subject', t('support.supportRequestDefault'));
       formData.append('description', description.trim());
       screenshots.forEach((file) => formData.append('screenshots', file));
 
@@ -77,7 +80,6 @@ const SupportNew = () => {
 
       if (data.success) {
         setMessage({ type: 'success', text: t('support.requestSent') });
-        setSubject('');
         setDescription('');
         setScreenshots([]);
         const input = document.getElementById('support-screenshots');
@@ -93,14 +95,11 @@ const SupportNew = () => {
   };
 
   const handleBack = () => {
-    try {
-      const prev = sessionStorage.getItem('prevPathname');
-      if (prev && prev !== '/support' && prev !== '/support/new') {
-        navigate(prev);
-        return;
-      }
-    } catch (_) {}
-    navigate('/');
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -148,20 +147,6 @@ const SupportNew = () => {
           <>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="support-subject" className="block text-sm text-gray-400 mb-1.5">
-                  {t('support.subjectLabel')}
-                </label>
-                <input
-                  id="support-subject"
-                  type="text"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder={t('support.subjectPlaceholder')}
-                  className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50"
-                />
-              </div>
-
-              <div>
                 <label htmlFor="support-description" className="block text-sm text-gray-400 mb-1.5">
                   {t('support.descriptionLabel')} <span className="text-amber-400">*</span>
                 </label>
@@ -177,7 +162,7 @@ const SupportNew = () => {
 
               <div>
                 <label htmlFor="support-screenshots" className="block text-sm text-gray-400 mb-1.5">
-                  {t('support.photosLabel')}
+                  {t('support.photosLabel')} <span className="text-amber-400">*</span>
                 </label>
                 <div className="flex items-center gap-2 flex-wrap">
                   <input
@@ -222,13 +207,12 @@ const SupportNew = () => {
             </form>
 
             <p className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => navigate('/support/status')}
-                className="text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2"
+              <Link
+                to="/support/status"
+                className="inline-block py-2 px-4 text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2 touch-manipulation cursor-pointer"
               >
                 {t('support.viewTickets')}
-              </button>
+              </Link>
             </p>
           </>
         )}
