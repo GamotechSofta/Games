@@ -346,7 +346,8 @@
     "statusLabel": "Status",
     "timeLabel": "Time",
     "cancelAndRefund": "Cancel & refund",
-    "cancelling": "Cancelling..."
+    "cancelling": "Cancelling...",
+    "betIdCopied": "Bet ID copied!"
   },
   "profile": {
     "title": "Profile",

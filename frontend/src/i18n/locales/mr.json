@@ -340,7 +340,8 @@
     "statusLabel": "स्थिती",
     "timeLabel": "वेळ",
     "cancelAndRefund": "रद्द करा आणि परत करा",
-    "cancelling": "रद्द करत आहे..."
+    "cancelling": "रद्द करत आहे...",
+    "betIdCopied": "Bet ID कॉपी झाली!"
   },
   "profile": {
     "title": "प्रोफाइल",

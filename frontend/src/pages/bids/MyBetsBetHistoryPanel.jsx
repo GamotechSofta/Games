@@ -1,5 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+const copyToClipboard = (text, onSuccess) => {
+  const s = String(text || '').trim();
+  if (!s) return;
+  navigator.clipboard?.writeText(s).then(() => onSuccess?.()).catch(() => {});
+};
 
 const formatScheduledDate = (scheduledDate) => {
   if (!scheduledDate) return null;
@@ -32,6 +38,7 @@ export default function MyBetsBetHistoryPanel({
     return flat.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [groupedDesktopByMarket]);
 
+  const [copyToast, setCopyToast] = useState('');
   const statusLabel = (verdict) => {
     if (!verdict) return { text: '—', className: 'text-gray-500' };
     if (verdict.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
@@ -42,6 +49,11 @@ export default function MyBetsBetHistoryPanel({
 
   return (
     <div className={allBetsNewestFirst.length ? 'mt-0' : 'mt-6'}>
+      {copyToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1100] px-4 py-2.5 rounded-lg bg-[#d4af37] text-black font-semibold text-sm shadow-lg">
+          {copyToast}
+        </div>
+      )}
       {cancelMessage?.text && (
         <div
           className={`mb-3 rounded-xl px-4 py-3 text-sm ${
@@ -96,6 +108,15 @@ export default function MyBetsBetHistoryPanel({
                   <div className="flex justify-between items-center gap-1 flex-wrap">
                     <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
                     {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
+                  </div>
+                  <div className="flex justify-between items-center gap-1 text-[10px]">
+                    <span className="text-gray-400 shrink-0">Bet ID</span>
+                    <span className="flex items-center gap-1 min-w-0">
+                      <span className="font-mono text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-400 hover:text-[#d4af37] transition-colors" title="Copy Bet ID" aria-label="Copy Bet ID">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                      </button>
+                    </span>
                   </div>
                   {isScheduled && (
                     <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">

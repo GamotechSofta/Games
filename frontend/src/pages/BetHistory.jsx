@@ -37,6 +37,12 @@ const formatScheduledDate = (scheduledDate) => {
   }
 };
 
+const copyToClipboard = (text, onSuccess) => {
+  const s = String(text || '').trim();
+  if (!s) return;
+  navigator.clipboard?.writeText(s).then(() => onSuccess?.()).catch(() => {});
+};
+
 const renderBetNumber = (val) => {
   const s = (val ?? '').toString().trim();
   if (/^\d{2}$/.test(s)) {
@@ -166,6 +172,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
+  const [copyToast, setCopyToast] = useState('');
 
   // Scope behavior:
   // - default (null/empty): MAIN markets only (exclude starline/king)
@@ -636,6 +643,13 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           </div>
         )}
 
+        {/* Bet ID copied toast */}
+        {copyToast && (
+          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1100] px-4 py-2.5 rounded-lg bg-[#d4af37] text-black font-semibold text-sm shadow-lg">
+            {copyToast}
+          </div>
+        )}
+
         {/* Cancel bet confirmation modal (mobile + desktop) */}
         {confirmCancelBetId && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
@@ -727,6 +741,15 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                         <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
                         {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
                       </div>
+                      <div className="flex justify-between items-center gap-1 text-[10px]">
+                        <span className="text-gray-400 shrink-0">Bet ID</span>
+                        <span className="flex items-center gap-1 min-w-0">
+                          <span className="font-mono text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-400 hover:text-[#d4af37] transition-colors" title="Copy Bet ID" aria-label="Copy Bet ID">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                          </button>
+                        </span>
+                      </div>
                       {isScheduled && (
                         <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
                           Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
@@ -777,6 +800,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   <thead>
                     <tr className="border-b border-white/10 bg-black/20">
                       <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">#</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet ID</th>
                       <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Market</th>
                       <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game Type</th>
                       <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet Number</th>
@@ -811,6 +835,14 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                           }`}
                         >
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-sm">{idx + 1}</td>
+                          <td className="py-3 px-3 lg:py-4 lg:px-4">
+                            <span className="flex items-center gap-1.5">
+                              <span className="font-mono text-gray-300 text-xs" title={betId}>{String(betId || '').slice(-8)}</span>
+                              <button type="button" onClick={() => { copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="p-1 text-gray-400 hover:text-[#d4af37] transition-colors" title="Copy Bet ID" aria-label="Copy Bet ID">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                              </button>
+                            </span>
+                          </td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-white text-sm font-medium truncate max-w-[120px]" title={marketTitle}>
                             <span className="block truncate">{marketTitle?.toUpperCase() || '—'}</span>
                             {isScheduled && (
