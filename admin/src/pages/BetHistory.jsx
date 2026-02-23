@@ -93,6 +93,7 @@ const BetHistory = () => {
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
     const [filter, setFilter] = useState('all');
+    const [searchBetId, setSearchBetId] = useState('');
 
     const { startDate, endDate, label } = getDateRange(dateRange, customStart, customEnd);
 
@@ -100,7 +101,11 @@ const BetHistory = () => {
         ? bets
         : bets.filter((b) => getBetCategory(b) === filter);
 
-    const sortedBets = [...filteredBets].sort((a, b) => {
+    const searchFilteredBets = searchBetId.trim()
+        ? filteredBets.filter((b) => (b._id || '').toLowerCase().includes(searchBetId.trim().toLowerCase()))
+        : filteredBets;
+
+    const sortedBets = [...searchFilteredBets].sort((a, b) => {
         const catA = getBetCategory(a);
         const catB = getBetCategory(b);
         const order = { open: 1, close: 2, startline: 3, king: 4 };
@@ -182,6 +187,18 @@ const BetHistory = () => {
                         <p className="text-gray-400 text-sm">
                             Showing data for: <span className="text-orange-500 font-medium">{dateRange === 'custom' && customStart && customEnd ? `${customStart} to ${customEnd}` : label}</span>
                         </p>
+                    </div>
+
+                    {/* Search by Bet ID */}
+                    <div className="bg-gray-800 rounded-lg p-4 mb-4 sm:mb-6 border border-gray-700">
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">Search by Bet ID</p>
+                        <input
+                            type="text"
+                            placeholder="Enter bet ID to search..."
+                            value={searchBetId}
+                            onChange={(e) => setSearchBetId(e.target.value)}
+                            className="w-full max-w-md px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        />
                     </div>
 
                     {/* Filter tabs */}
