@@ -5,14 +5,12 @@ import HalfSangamBBid from './HalfSangamBBid';
 
 /**
  * Unified Half Sangam bid component with mode toggle.
- * Bids (Sangam, Amount, Delete) are preserved per mode when flipping.
+ * Single shared list: flip only changes input mode, list stays intact.
  */
 const HalfSangamBid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
     const [mode, setMode] = useState('open');
-    // Preserve bids per mode so Add to List does not reset when flipping
-    const [openBids, setOpenBids] = useState([]);
-    const [closeBids, setCloseBids] = useState([]);
+    const [bids, setBids] = useState([]);
 
     const isOpenMode = mode === 'open';
     const OpenLabel = t('gameRate.halfSangamOpen');
@@ -32,9 +30,9 @@ const HalfSangamBid = ({ market, title, scheduleForTomorrow }) => {
     return (
         <>
             {isOpenMode ? (
-                <HalfSangamABid market={market} title={OpenLabel} scheduleForTomorrow={scheduleForTomorrow} slotBetweenPanaAndAnk={flipButton} bids={openBids} setBids={setOpenBids} />
+                <HalfSangamABid market={market} title={OpenLabel} scheduleForTomorrow={scheduleForTomorrow} slotBetweenPanaAndAnk={flipButton} bids={bids} setBids={setBids} />
             ) : (
-                <HalfSangamBBid market={market} title={CloseLabel} scheduleForTomorrow={scheduleForTomorrow} slotBetweenPanaAndAnk={flipButton} bids={closeBids} setBids={setCloseBids} />
+                <HalfSangamBBid market={market} title={CloseLabel} scheduleForTomorrow={scheduleForTomorrow} slotBetweenPanaAndAnk={flipButton} bids={bids} setBids={setBids} />
             )}
         </>
     );
