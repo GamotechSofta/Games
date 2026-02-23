@@ -190,6 +190,13 @@ const AddResult = () => {
         if (type === 'king') { setActiveTab('king'); setActiveGroupKey(''); }
     }, [location.state?.marketType]);
 
+    // King Bazaar: auto-select first group so Time Slots show directly (no list view)
+    useEffect(() => {
+        if (activeTab === 'king' && kingBazaarGroups.length > 0 && !activeGroupKey) {
+            setActiveGroupKey(kingBazaarGroups[0].key);
+        }
+    }, [activeTab, kingBazaarGroups, activeGroupKey]);
+
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);
         setActiveGroupKey('');
@@ -645,20 +652,12 @@ const AddResult = () => {
                     <div className="flex flex-col xl:flex-row gap-4 sm:gap-6">
                         <div className="flex-1 min-w-0 w-full">
                             {activeGroupKey ? (
-                                <>
-                                    <nav className="flex items-center gap-2 text-sm text-gray-400 mb-3">
-                                        <button type="button" onClick={() => setActiveGroupKey('')} className="hover:text-amber-400 transition-colors">King Bazaar</button>
-                                        <span>/</span>
-                                        <span className="text-white font-medium">{groups.find((g) => (g.key || '').toLowerCase() === activeGroupKey.toLowerCase())?.label || activeGroupKey}</span>
-                                    </nav>
-                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                                        <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                                            <span className="inline-block w-1 h-6 sm:h-7 bg-gray-500 rounded-full" />
-                                            Time Slots
-                                        </h2>
-                                        <button type="button" onClick={() => setActiveGroupKey('')} className="px-3 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm font-medium">← Back to list</button>
-                                    </div>
-                                </>
+                                <div className="flex flex-wrap items-center gap-3 mb-4">
+                                    <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                                        <span className="inline-block w-1 h-6 sm:h-7 bg-gray-500 rounded-full" />
+                                        Time Slots
+                                    </h2>
+                                </div>
                             ) : null}
                             {(loading || loadingGroups) ? (
                                 <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm rounded-xl border border-gray-700 bg-gray-800/50">Loading King Bazaar...</div>
@@ -669,32 +668,7 @@ const AddResult = () => {
                                         <p className="text-gray-400 text-sm mb-4">No King Bazaar markets yet. Add from Markets → King Bazaar Market.</p>
                                         <Link to="/markets" state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaCrown className="w-4 h-4" /> Go to King Bazaar Market</Link>
                                     </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
-                                        {groups.sort((a, b) => (safeNumOrder(a.order) - safeNumOrder(b.order)) || (a.label || '').localeCompare(b.label || '')).map((g) => {
-                                            const groupSlots = (kingBazaarMarkets || []).filter((m) => (m.kingBazaarGroup || '').toString().toLowerCase() === (g.key || '').toLowerCase());
-                                            const slotCount = groupSlots.length;
-                                            const declaredCount = groupSlots.filter((m) => m.openingNumber != null && m.closingNumber != null).length;
-                                            const openCount = slotCount - declaredCount;
-                                            const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
-                                            const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
-                                            return (
-                                                <div key={g.key} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
-                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                        <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{statusLabel}</div>
-                                                        <span className="text-amber-400 font-mono text-sm">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
-                                                    </div>
-                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
-                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300">
-                                                        {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
-                                                        {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
-                                                    </div>
-                                                    <button type="button" onClick={() => setActiveGroupKey(g.key)} className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-sm font-semibold">View Slots</button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )
+                                ) : null
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
                                     {slotsForGroup.length === 0 ? (

@@ -168,6 +168,13 @@ const KingBazaarManagement = ({ embedded = false }) => {
         }
     }, [kingBazaarGroups, location.state?.kingBazaarMarketKey]);
 
+    // Auto-select first group so Add slot section shows directly (no list view)
+    useEffect(() => {
+        if (kingBazaarGroups.length > 0 && !activeTab) {
+            setActiveTab(kingBazaarGroups[0].key);
+        }
+    }, [kingBazaarGroups, activeTab]);
+
     // When entering a group's detail view, refetch markets so slots are current for that group
     useEffect(() => {
         const key = (activeTab || '').toString().trim().toLowerCase();
@@ -335,11 +342,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                 setShowActionPasswordModal(false);
                 setActionPassword('');
                 setActionPasswordError('');
-                if (pendingActionType === 'addMarket') {
-                    setShowAddMarket(true);
-                    setNewMarketLabel('');
-                    setAddMarketError('');
-                } else if (pendingActionType === 'addSlot') {
+                if (pendingActionType === 'addSlot') {
                     setShowAddSlot(true);
                     setAddError('');
                 } else if (pendingActionType === 'edit' && pendingEditMarket) {
@@ -445,118 +448,16 @@ const KingBazaarManagement = ({ embedded = false }) => {
                     <div className="mb-3 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">{error}</div>
                 )}
 
-                {/* ═══ List view: choose market ═══ */}
-                {!activeTab ? (
-                    <>
-                        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-                            <h1 className="text-xl sm:text-2xl font-bold text-amber-400">King Bazaar</h1>
-                            {!loadingGroups && kingBazaarGroups.length > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={openAddMarket}
-                                    className="px-4 py-2.5 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/30"
-                                >
-                                    + Add market
-                                </button>
-                            )}
-                        </div>
-                        <p className="text-gray-400 text-sm mb-6">
-                            Choose a market to add time slots, edit closing times, view details, and declare results.
-                        </p>
-                        {loadingGroups ? (
-                            <div className="flex items-center gap-3 py-10 text-gray-400">
-                                <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-                                Loading markets…
-                            </div>
-                        ) : kingBazaarGroups.length === 0 ? (
-                            <div className="rounded-2xl border-2 border-dashed border-amber-500/40 bg-gray-800/60 p-10 text-center">
-                                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-                                    <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                </div>
-                                <p className="text-gray-300 font-medium mb-1">No King Bazaar markets yet</p>
-                                <p className="text-gray-500 text-sm mb-5">Add your first market, then add time slots and declare results.</p>
-                                <button
-                                    type="button"
-                                    onClick={openAddMarket}
-                                    className="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"
-                                >
-                                    + Add King Bazaar market
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
-                                {[...kingBazaarGroups]
-                                    .sort((a, b) => (safeNum(a.order) - safeNum(b.order)) || (a.label || '').localeCompare(b.label || ''))
-                                    .map((g) => {
-                                        const groupSlots = (markets || []).filter((m) => m.marketType === 'king' && (m.kingBazaarGroup || '').toLowerCase() === g.key);
-                                        const slotCount = groupSlots.length;
-                                        const declaredCount = groupSlots.filter((m) => m.openingNumber && /^\d{3}$/.test(String(m.openingNumber))).length;
-                                        const openCount = slotCount - declaredCount;
-                                        const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
-                                        const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
-                                        return (
-                                            <div
-                                                key={g.key}
-                                                className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden"
-                                            >
-                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                    <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
-                                                        {statusLabel}
-                                                    </div>
-                                                    <div className="min-w-0 overflow-hidden flex justify-end">
-                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
-                                                    </div>
-                                                </div>
-                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
-                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                    {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
-                                                    {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setActiveTab(g.key)}
-                                                        className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
-                                                    >
-                                                        Manage
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => { e.stopPropagation(); setDeleteGroupKey(g.key); setShowDeleteGroupModal(true); }}
-                                                        className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                            </div>
-                        )}
-                    </>
-                ) : (
-                    <>
-                        {/* ═══ Detail view: breadcrumb + title ═══ */}
-                        <nav className="flex items-center gap-2 text-sm text-gray-400 mb-3">
-                            <button type="button" onClick={() => { setActiveTab(''); setSelectedResultMarket(null); }} className="hover:text-amber-400 transition-colors">King Bazaar</button>
-                            <span>/</span>
-                            <span className="text-white font-medium">{activeGroup?.label || activeTab}</span>
-                        </nav>
-                        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold text-white">{activeGroup?.label || activeTab}</h1>
-                                <p className="text-gray-400 text-sm mt-0.5">Add time slots, edit closing time, view details, and declare result per slot.</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => { setActiveTab(''); setSelectedResultMarket(null); }}
-                                className="px-3 py-2 rounded-lg border border-gray-600 text-gray-300 hover:bg-gray-700 text-sm font-medium"
-                            >
-                                ← Back to list
-                            </button>
-                        </div>
-                    </>
-                )}
+                {loadingGroups ? (
+                    <div className="flex items-center gap-3 py-10 text-gray-400">
+                        <div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                        Loading…
+                    </div>
+                ) : !activeTab ? (
+                    <div className="rounded-2xl border-2 border-dashed border-amber-500/40 bg-gray-800/60 p-10 text-center">
+                        <p className="text-gray-400 text-sm">No King Bazaar markets yet.</p>
+                    </div>
+                ) : null}
 
                 {showForm && editingMarket && (
                     <MarketForm
@@ -579,13 +480,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
                             {/* 1. Time slots */}
                             <section className="rounded-2xl border border-gray-700 bg-gray-800/50 p-5 sm:p-6">
                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white flex items-center gap-2">
-                                            <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 font-mono text-sm">1</span>
-                                            Time slots
-                                        </h2>
-                                        <p className="text-gray-500 text-xs mt-1">Add slots and set when each closes. Edit or delete below.</p>
-                                    </div>
+                                    <h2 className="text-base font-bold text-white">Time slots</h2>
                                     <button
                                         type="button"
                                         onClick={openAddSlot}
@@ -623,7 +518,6 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
                                                     <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
                                                         <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
                                                         <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
@@ -707,41 +601,11 @@ const KingBazaarManagement = ({ embedded = false }) => {
                     )
                 )}
 
-                {/* Add King Bazaar market modal (available on list view) */}
-                {showAddMarket && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                        <div className="bg-gray-800 rounded-2xl border border-amber-500/40 shadow-xl max-w-md w-full p-6">
-                            <h3 className="text-base font-bold text-white mb-1">Add King Bazaar market</h3>
-                            <p className="text-gray-500 text-sm mb-4">Add a new market (e.g. King Afternoon Bazaar). You can then add time slots and declare results for it.</p>
-                            <form onSubmit={handleAddMarketSubmit} className="space-y-4">
-                                {addMarketError && <div className="p-3 rounded-xl bg-red-900/40 border border-red-700/50 text-red-200 text-sm">{addMarketError}</div>}
-                                <div>
-                                    <label className="block text-gray-400 text-xs font-medium mb-1">Market name</label>
-                                    <input
-                                        type="text"
-                                        value={newMarketLabel}
-                                        onChange={(e) => setNewMarketLabel(e.target.value)}
-                                        placeholder="e.g. King Afternoon Bazaar"
-                                        className="w-full px-3 py-2.5 bg-gray-700 border border-gray-600 rounded-xl text-white text-sm"
-                                    />
-                                </div>
-                                <div className="flex gap-3 pt-1">
-                                    <button type="submit" disabled={addMarketLoading} className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm disabled:opacity-50">
-                                        {addMarketLoading ? 'Adding...' : 'Add market'}
-                                    </button>
-                                    <button type="button" onClick={() => { setShowAddMarket(false); setNewMarketLabel(''); setAddMarketError(''); }} disabled={addMarketLoading} className="px-4 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium text-sm">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Action password modal (Add market, Edit, Add slot) */}
+                {/* Action password modal (Edit, Add slot) */}
                 {showActionPasswordModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                         <div className="bg-gray-800 rounded-xl border border-gray-700 shadow-xl max-w-md w-full p-6">
                             <h3 className="text-lg font-bold text-yellow-500 mb-2">
-                                {pendingActionType === 'addMarket' && 'Enter Secret Password to Add King Bazaar Market'}
                                 {pendingActionType === 'edit' && 'Enter Secret Password to Edit'}
                                 {pendingActionType === 'addSlot' && 'Enter Secret Password to Add Time Slot'}
                             </h3>
@@ -767,28 +631,6 @@ const KingBazaarManagement = ({ embedded = false }) => {
                     </div>
                 )}
 
-                {/* Delete King Bazaar market (group) modal */}
-                {showDeleteGroupModal && deleteGroupKey && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                        <div className="bg-gray-800 rounded-2xl border border-red-500/40 shadow-xl max-w-md w-full p-6">
-                            <h3 className="text-base font-bold text-white mb-1">Delete King Bazaar market</h3>
-                            <p className="text-gray-400 text-sm mb-1">Market: <strong className="text-white">{kingBazaarGroups.find((g) => g.key === deleteGroupKey)?.label || deleteGroupKey}</strong></p>
-                            <p className="text-gray-500 text-sm mb-4">This will remove the market and all its time slots. This cannot be undone. {hasSecretDeclarePassword ? 'Enter secret declare password to confirm.' : ''}</p>
-                            <form onSubmit={(e) => { e.preventDefault(); handleDeleteGroup(deleteGroupPassword); }} className="space-y-4">
-                                {hasSecretDeclarePassword && (
-                                    <>
-                                        <input type="password" value={deleteGroupPassword} onChange={(e) => { setDeleteGroupPassword(e.target.value); setDeleteGroupPasswordError(''); }} placeholder="Secret declare password" className="w-full px-4 py-3 rounded-xl bg-gray-700 border border-gray-600 text-white text-sm" />
-                                        {deleteGroupPasswordError && <p className="text-red-400 text-sm">{deleteGroupPasswordError}</p>}
-                                    </>
-                                )}
-                                <div className="flex gap-3">
-                                    <button type="submit" disabled={deleteGroupLoading} className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm disabled:opacity-50">Delete market & slots</button>
-                                    <button type="button" onClick={() => { setShowDeleteGroupModal(false); setDeleteGroupKey(null); setDeleteGroupPassword(''); setDeleteGroupPasswordError(''); }} disabled={deleteGroupLoading} className="px-4 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium text-sm">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
             </div>
     );
 
