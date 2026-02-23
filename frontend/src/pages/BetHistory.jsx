@@ -566,21 +566,22 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     return [...(filtered || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [filtered]);
 
-  const labelForType = (t) => {
-    const s = String(t || '').toLowerCase();
-    if (s === 'single') return 'Single Ank';
-    if (s === 'jodi') return 'Jodi';
-    if (s === 'panna') return 'Panna';
-    if (s === 'half-sangam') return 'Half Sangam';
-    if (s === 'full-sangam') return 'Full Sangam';
-    return t || 'Bet';
+  const labelForType = (betType) => {
+    const s = String(betType || '').toLowerCase();
+    if (s === 'single') return t('bids.gameType.singleAnk');
+    if (s === 'jodi') return t('gameRate.jodi');
+    if (s === 'panna') return t('bids.gameType.panna');
+    if (s === 'half-sangam' || s === 'half-sangam-open' || s === 'half-sangam-close') return t('bids.gameType.halfSangam');
+    if (s === 'full-sangam') return t('bids.gameType.fullSangam');
+    if (s === 'digit') return t('bids.gameType.digit');
+    return betType || t('bids.gameType.bet');
   };
 
   const statusLabel = (verdict) => {
-    if (verdict?.state === 'won') return { text: 'Won', className: 'text-[#43b36a] font-semibold' };
-    if (verdict?.state === 'lost') return { text: 'Lost', className: 'text-red-400 font-semibold' };
-    if (verdict?.state === 'cancelled') return { text: 'Cancelled', className: 'text-orange-400 font-semibold' };
-    return { text: 'Pending', className: 'text-amber-400/90 font-medium' };
+    if (verdict?.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
+    if (verdict?.state === 'lost') return { text: t('bids.status.lost'), className: 'text-red-400 font-semibold' };
+    if (verdict?.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-400 font-semibold' };
+    return { text: t('bids.status.pending'), className: 'text-amber-400/90 font-medium' };
   };
 
   // Draft state for modal
@@ -742,38 +743,38 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                         {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
                       </div>
                       <div className="flex justify-between items-center gap-1 text-[10px]">
-                        <span className="text-gray-400 shrink-0">Bet ID</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.betIdLabel')}</span>
                         <span className="flex items-center gap-1 min-w-0">
                           <span className="font-mono text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
-                          <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-400 hover:text-[#d4af37] transition-colors" title="Copy Bet ID" aria-label="Copy Bet ID">
+                          <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                           </button>
                         </span>
                       </div>
                       {isScheduled && (
                         <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
-                          Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                          {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                         </div>
                       )}
                       <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{marketTitle?.toUpperCase() || 'MARKET'}</p>
                       <div className="flex justify-between gap-1 text-xs">
-                        <span className="text-gray-400 shrink-0">Game</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.gameLabel')}</span>
                         <span className="text-white font-medium truncate">{gameType}</span>
                       </div>
                       <div className="flex justify-between gap-1 text-xs">
-                        <span className="text-gray-400 shrink-0">Bet</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.betLabel')}</span>
                         <span className="text-white font-bold truncate">{betValue}</span>
                       </div>
                       <div className="flex justify-between gap-1 text-xs">
-                        <span className="text-gray-400 shrink-0">Points</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.pointsLabel')}</span>
                         <span className="text-white font-semibold">{points}</span>
                       </div>
                       <div className="flex justify-between gap-1 text-xs items-center min-w-0">
-                        <span className="text-gray-400 shrink-0">Status</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.statusLabel')}</span>
                         <span className={`${status.className} truncate text-[10px]`}>{status.text}{verdict?.state === 'won' && verdict?.payout > 0 ? ` ₹${Number(verdict.payout).toLocaleString('en-IN')}` : ''}</span>
                       </div>
                       <div className="flex justify-between gap-1 text-[10px]">
-                        <span className="text-gray-400 shrink-0">Time</span>
+                        <span className="text-gray-400 shrink-0">{t('bids.timeLabel')}</span>
                         <span className="text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                       </div>
                       {verdict?.state === 'pending' && canCancel?.canCancel && (
@@ -782,10 +783,10 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                             type="button"
                             onClick={() => handleCancelBetClick(betId)}
                             disabled={cancellingBetId === betId}
-                            title="Cancel & refund"
+                            title={t('bids.cancelAndRefund')}
                             className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
                           >
-                            {cancellingBetId === betId ? <><svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> Cancelling...</> : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Cancel & refund</>}
+                            {cancellingBetId === betId ? <><svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t('bids.cancelling')}</> : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> {t('bids.cancelAndRefund')}</>}
                           </button>
                         </div>
                       )}
@@ -800,15 +801,15 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   <thead>
                     <tr className="border-b border-white/10 bg-black/20">
                       <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">#</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet ID</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Market</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game Type</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Bet Number</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Session</th>
-                      <th className="text-right py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Points</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Status</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Date & Time</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider w-32">Action</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.betIdLabel')}</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.market')}</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.gameTypeLabel')}</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.betNumberLabel')}</th>
+                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.sessionLabel')}</th>
+                      <th className="text-right py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.pointsLabel')}</th>
+                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.statusLabel')}</th>
+                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.dateTimeLabel')}</th>
+                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider w-32">{t('bids.actionLabel')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -838,7 +839,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                           <td className="py-3 px-3 lg:py-4 lg:px-4">
                             <span className="flex items-center gap-1.5">
                               <span className="font-mono text-gray-300 text-xs" title={betId}>{String(betId || '').slice(-8)}</span>
-                              <button type="button" onClick={() => { copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="p-1 text-gray-400 hover:text-[#d4af37] transition-colors" title="Copy Bet ID" aria-label="Copy Bet ID">
+                              <button type="button" onClick={() => { copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="p-1 text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                               </button>
                             </span>
@@ -847,7 +848,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                             <span className="block truncate">{marketTitle?.toUpperCase() || '—'}</span>
                             {isScheduled && (
                               <span className="inline-block mt-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">
-                                Scheduled bet{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
+                                {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                               </span>
                             )}
                           </td>
@@ -874,13 +875,13 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                                 type="button"
                                 onClick={() => handleCancelBetClick(betId)}
                                 disabled={cancellingBetId === betId}
-                                title="Cancel & refund"
+                                title={t('bids.cancelAndRefund')}
                                 className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
                               >
                                 {cancellingBetId === betId ? (
-                                  <><svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>Cancelling...</span></>
+                                  <><svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>{t('bids.cancelling')}</span></>
                                 ) : (
-                                  <><svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>Cancel</span></>
+                                  <><svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>{t('bids.cancelBet')}</span></>
                                 )}
                               </button>
                             ) : verdict?.state === 'cancelled' ? (

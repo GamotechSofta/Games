@@ -251,7 +251,48 @@
     "noKeepBet": "नहीं, बेट रखें",
     "yesCancel": "हाँ, रद्द करें",
     "noBetsFound": "कोई बेट नहीं मिला।",
-    "loginToSeeHistory": "अपना बेट इतिहास देखने के लिए लॉग इन करें।"
+    "loginToSeeHistory": "अपना बेट इतिहास देखने के लिए लॉग इन करें।",
+    "status": {
+      "win": "जीत",
+      "loose": "हार",
+      "lost": "हार",
+      "pending": "लंबित",
+      "cancelled": "रद्द"
+    },
+    "gameType": {
+      "singleAnk": "सिंगल अंक",
+      "digit": "डिजिट",
+      "panna": "पाना",
+      "halfSangam": "हाफ संगम",
+      "fullSangam": "फुल संगम",
+      "bet": "बेट"
+    },
+    "session": {
+      "open": "ओपन",
+      "close": "क्लोज"
+    },
+    "cancelBetSuccess": "बेट सफलतापूर्वक रद्द। ₹{{amount}} वॉलेट में वापस।",
+    "cancelBetFailed": "बेट रद्द करने में विफल",
+    "canOnlyCancelWithin30Min": "बेट के 30 मिनट के भीतर ही रद्द कर सकते हैं",
+    "cannotCancelWithin30MinOfClosing": "मार्केट बंद होने के 30 मिनट पहले रद्द नहीं कर सकते",
+    "marketTimingNotConfigured": "मार्केट समय कॉन्फ़िगर नहीं",
+    "marketNotFound": "मार्केट नहीं मिला",
+    "scheduledBet": "शेड्यूल बेट",
+    "gameLabel": "गेम",
+    "betLabel": "बेट",
+    "pointsLabel": "पॉइंट्स",
+    "statusLabel": "स्थिति",
+    "timeLabel": "समय",
+    "cancelAndRefund": "रद्द करें और रिफंड",
+    "cancelling": "रद्द हो रहा है...",
+    "betIdCopied": "बेट आईडी कॉपी हो गई!",
+    "betIdLabel": "बेट आईडी",
+    "gameTypeLabel": "खेल प्रकार",
+    "betNumberLabel": "बेट नंबर",
+    "sessionLabel": "सत्र",
+    "dateTimeLabel": "तारीख और समय",
+    "actionLabel": "कार्रवाई",
+    "copyBetId": "बेट आईडी कॉपी करें"
   },
   "profile": {
     "title": "प्रोफ़ाइल",

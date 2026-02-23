@@ -152,7 +152,7 @@ const evaluateBet = ({ market, betNumberRaw, amount, session, ratesMap }) => {
 
 const Bids = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const myBetsSubPaths = ['/bids', '/bet-history', '/market-result-history', '/starline-bet-history', '/king-bazaar-bet-history'];
@@ -206,13 +206,13 @@ const Bids = () => {
     'game-results': t('bids.gameResults'),
     'starline-bet-history': t('bids.starlineBetHistory'),
     'king-bazaar-bet-history': t('bids.kingBazaarBetHistory'),
-  }), [t]);
+  }), [t, i18n.language]);
   const TITLE_TO_TAB = useMemo(() => ({
     [t('bids.betHistory')]: 'bet-history',
     [t('bids.gameResults')]: 'game-results',
     [t('bids.starlineBetHistory')]: 'starline-bet-history',
     [t('bids.kingBazaarBetHistory')]: 'king-bazaar-bet-history',
-  }), [t]);
+  }), [t, i18n.language]);
 
   const tabParam = (searchParams.get('tab') || '').toString();
   const initialTitle = TAB_TO_TITLE[tabParam] || (items[0]?.title || t('bids.betHistory'));
@@ -245,12 +245,11 @@ const Bids = () => {
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
 
-  // Keep selected desktop panel on refresh (via ?tab=...)
+  // Keep selected desktop panel on refresh (via ?tab=...) and sync activeTitle when language changes
   useEffect(() => {
-    const t = TAB_TO_TITLE[tabParam];
-    if (t && t !== activeTitle) setActiveTitle(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabParam]);
+    const title = TAB_TO_TITLE[tabParam];
+    if (title) setActiveTitle(title);
+  }, [tabParam, TAB_TO_TITLE]);
 
   // Write the tab param whenever selection changes
   useEffect(() => {

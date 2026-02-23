@@ -347,7 +347,14 @@
     "timeLabel": "Time",
     "cancelAndRefund": "Cancel & refund",
     "cancelling": "Cancelling...",
-    "betIdCopied": "Bet ID copied!"
+    "betIdCopied": "Bet ID copied!",
+    "betIdLabel": "Bet ID",
+    "gameTypeLabel": "Game Type",
+    "betNumberLabel": "Bet Number",
+    "sessionLabel": "Session",
+    "dateTimeLabel": "Date & Time",
+    "actionLabel": "Action",
+    "copyBetId": "Copy Bet ID"
   },
   "profile": {
     "title": "Profile",
