@@ -94,10 +94,21 @@ const SupportNew = () => {
     }
   };
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
+  const handleBack = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    try {
+      const prev = sessionStorage.getItem('prevPathname');
+      if (prev && prev !== '/support' && prev !== '/support/new' && prev !== '/support/status') {
+        navigate(prev, { replace: false });
+        return;
+      }
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/', { replace: true });
+      }
+    } catch (_) {
       navigate('/', { replace: true });
     }
   };
@@ -105,12 +116,12 @@ const SupportNew = () => {
   return (
     <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-md mx-auto pt-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        {/* Header - relative z-10 to ensure back button is above any overlay */}
+        <div className="flex items-center gap-3 mb-6 relative z-10">
           <button
             type="button"
             onClick={handleBack}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none"
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
