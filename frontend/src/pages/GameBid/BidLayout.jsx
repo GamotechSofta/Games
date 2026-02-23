@@ -32,6 +32,8 @@ const BidLayout = ({
     session = 'OPEN',
     setSession = () => {},
     sessionRightSlot = null,
+    /** Optional slot between date and session controls (e.g. Half Sangam flip) */
+    slotBetweenDateSession = null,
     // Optional: override allowed session options for this page (e.g. ['OPEN'])
     sessionOptionsOverride = null,
     // Optional: lock session dropdown (prevents selecting OPEN/CLOSE)
@@ -156,7 +158,7 @@ const BidLayout = ({
 
             {showDateSession && (
                 <div
-                    className={`pb-4 pt-2 flex flex-row flex-wrap gap-2 sm:gap-3 overflow-hidden ${dateSessionGridClassName}`}
+                    className={`pb-4 pt-2 flex flex-row ${slotBetweenDateSession ? 'flex-nowrap overflow-x-auto' : 'flex-wrap overflow-hidden'} gap-2 sm:gap-3 ${dateSessionGridClassName}`}
                     style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
                 >
                     {/* Date display: tomorrow when scheduling, else today */}
@@ -180,9 +182,16 @@ const BidLayout = ({
                             </span>
                         )}
                     </div>
+
+                    {/* Optional slot between date and session (e.g. Half Sangam flip) */}
+                    {slotBetweenDateSession && (
+                        <div className="shrink-0">
+                            {slotBetweenDateSession}
+                        </div>
+                    )}
                     
-                    {/* Session Select - hidden on mobile, each bid screen has its own session control */}
-                    <div className="relative flex-1 min-w-0 hidden md:block">
+                    {/* Session Select - visible when flip slot present (one row), else hidden on mobile */}
+                    <div className={`relative flex-1 min-w-0 ${slotBetweenDateSession ? 'block' : 'hidden md:block'}`}>
                         <select
                             value={session}
                             onChange={(e) => setSession(e.target.value)}

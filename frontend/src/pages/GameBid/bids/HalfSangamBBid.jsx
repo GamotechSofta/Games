@@ -12,7 +12,7 @@ const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6
 
 // Half Sangam (C): Open Ank (1 digit) + Close Pana (3 digits)
 // Cross-side matching: User guesses Open Ank AND Close Pana separately
-const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
+const HalfSangamBBid = ({ market, title, scheduleForTomorrow, slotBetweenDateSession, slotBetweenPanaAndAnk, bids: bidsProp, setBids: setBidsProp }) => {
     const { t } = useTranslation();
     const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState('CLOSE');
@@ -22,7 +22,9 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
     const pointsInputRef = useRef(null);
     const closePanaInputRef = useRef(null);
     const [closePanaInvalid, setClosePanaInvalid] = useState(false);
-    const [bids, setBids] = useState([]);
+    const [internalBids, setInternalBids] = useState([]);
+    const bids = bidsProp !== undefined ? bidsProp : internalBids;
+    const setBids = setBidsProp !== undefined ? setBidsProp : setInternalBids;
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
     const [selectedDate, setSelectedDate] = useState(() => {
@@ -191,6 +193,7 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
             lockSessionSelect
             hideSessionSelectCaret
             hideFooter
+            slotBetweenDateSession={slotBetweenDateSession}
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -225,6 +228,13 @@ const HalfSangamBBid = ({ market, title, scheduleForTomorrow }) => {
                                     className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
+
+                            {slotBetweenPanaAndAnk && (
+                                <div className="flex flex-row items-center gap-2 py-2">
+                                    <div className="shrink-0 w-40" />
+                                    <div className="flex-1 min-w-0">{slotBetweenPanaAndAnk}</div>
+                                </div>
+                            )}
 
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterClosePana')}:</label>

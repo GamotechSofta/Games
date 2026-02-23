@@ -54,6 +54,7 @@ const BidOptions = () => {
       'Double Pana Bulk': t('gameRate.doublePanaBulk'),
       'Triple Pana': t('gameRate.triplePana'),
       'Full Sangam': t('gameRate.fullSangam'),
+      'Half Sangam': t('gameRate.halfSangam'),
       'Half Sangam (O)': t('gameRate.halfSangamOpen'),
       'Half Sangam (C)': t('gameRate.halfSangamClose'),
     };
@@ -183,24 +184,12 @@ const BidOptions = () => {
     },
     {
       id: 11,
-      title: 'Half Sangam (O)',
-      displayTitle: getGameTitle('Half Sangam (O)'),
+      title: 'Half Sangam',
+      displayTitle: getGameTitle('Half Sangam'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
-          alt={getGameTitle('Half Sangam (O)')}
-          className="w-full h-full object-contain"
-        />
-      ),
-    },
-    {
-      id: 12,
-      title: 'Half Sangam (C)',
-      displayTitle: getGameTitle('Half Sangam (C)'),
-      icon: (
-        <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
-          alt={getGameTitle('Half Sangam (C)')}
+          alt={getGameTitle('Half Sangam')}
           className="w-full h-full object-contain"
         />
       ),
@@ -253,7 +242,7 @@ const BidOptions = () => {
           'Double Pana',
           'Double Pana Bulk',
           'Triple Pana',
-          'Half Sangam (O)',
+          'Half Sangam',
         ]);
         return allowed.has(t);
       })
@@ -268,10 +257,7 @@ const BidOptions = () => {
           'jodi',
           'jodi bulk',
           'full sangam',
-          'half sangam (o)',
-          'half sangam (a)',
-          'half sangam (c)',
-          'half sangam (b)',
+          'half sangam',
         ]);
         return !hideWhenRunning.has(t);
       })

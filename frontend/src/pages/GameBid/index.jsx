@@ -14,6 +14,7 @@ import TriplePanaBid from './bids/TriplePanaBid';
 import FullSangamBid from './bids/FullSangamBid';
 import HalfSangamABid from './bids/HalfSangamABid';
 import HalfSangamBBid from './bids/HalfSangamBBid';
+import HalfSangamBid from './bids/HalfSangamBid';
 
 const BID_COMPONENTS = {
     'single digit': SingleDigitBid,
@@ -26,10 +27,11 @@ const BID_COMPONENTS = {
     'double pana bulk': DoublePanaBulkBid,
     'triple pana': TriplePanaBid,
     'full sangam': FullSangamBid,
-    // Half Sangam (O): Open Pana + Close Ank (cross-side)
+    // Half Sangam: unified UI with Open (O) / Close (C) toggle
+    'half sangam': HalfSangamBid,
+    // Legacy keys for direct navigation (e.g. deep links)
     'half sangam (a)': HalfSangamABid,
     'half sangam (o)': HalfSangamABid,
-    // Half Sangam (C): Open Ank + Close Pana (cross-side)
     'half sangam (b)': HalfSangamBBid,
     'half sangam (c)': HalfSangamBBid,
 };
