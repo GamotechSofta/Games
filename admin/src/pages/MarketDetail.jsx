@@ -19,6 +19,9 @@ const formatTime = (timeStr) => {
 
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
+/** Remove "testing market" from King Bazaar/Starline market names for display */
+const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
+
 /** Card container matching AddResult/UpdateRate style */
 const SectionCard = ({ title, subtitle, children, className = '' }) => (
     <div className={`rounded-lg border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden ${className}`}>
@@ -895,7 +898,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     };
 
     return (
-        <AdminLayout onLogout={handleLogout} title={fromAddResult ? 'Add Result - View' : 'Market Detail'}>
+        <AdminLayout onLogout={handleLogout} title={fromAddResult && (isStartline || isKingBazaar) ? `Add Result - ${stripTestingMarket(market.marketName)}` : fromAddResult ? 'Add Result - View' : 'Market Detail'}>
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8 overflow-x-hidden">
                 <Link
                     to={fromAddResult ? '/add-result' : '/markets'}
@@ -910,7 +913,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                     <div className="bg-gray-800 border-b border-gray-700 px-3 py-2.5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <div>
-                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{market.marketName}</h1>
+                                <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">{(isStartline || isKingBazaar) ? stripTestingMarket(market.marketName) : market.marketName}</h1>
                                 <p className="text-gray-400 text-xs mt-0.5">Market overview & result</p>
                             </div>
                             <div className="flex items-center gap-2">
@@ -1368,7 +1371,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                         state={{ preselectedMarket: market }}
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-semibold border border-amber-400 transition-colors"
                     >
-                        <FaEdit /> Add Result for {market.marketName}
+                        <FaEdit /> Add Result for {(isStartline || isKingBazaar) ? stripTestingMarket(market.marketName) : market.marketName}
                     </Link>
                     )}
                 </div>

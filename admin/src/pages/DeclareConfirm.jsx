@@ -4,6 +4,7 @@ import AdminLayout from '../components/AdminLayout';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
+const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
 
 const DeclareConfirm = () => {
     const navigate = useNavigate();
@@ -96,7 +97,7 @@ const DeclareConfirm = () => {
                 navigate('/declare-success', {
                     replace: true,
                     state: {
-                        marketName: market.marketName || data?.marketName,
+                        marketName: (market.marketType === 'king' || market.marketType === 'startline') ? stripTestingMarket(market.marketName || data?.marketName || '') : (market.marketName || data?.marketName),
                         declareType,
                         number: declareType === 'king' ? `${firstDigit}${secondDigit}` : number,
                     },
@@ -150,7 +151,8 @@ const DeclareConfirm = () => {
     const title = declareType === 'king' ? `Declare Jodi: ${displayNumber}` : 
                   declareType === 'open' ? `Declare Open: ${displayNumber}` : 
                   `Declare Close: ${displayNumber}`;
-    const marketName = data?.marketName || market.marketName || 'Market';
+    const rawName = data?.marketName || market.marketName || 'Market';
+    const marketDisplay = (market.marketType === 'king' || market.marketType === 'startline') ? stripTestingMarket(rawName) : rawName;
 
     return (
         <AdminLayout onLogout={handleLogout} title="Confirm Declare">
@@ -167,7 +169,7 @@ const DeclareConfirm = () => {
                 </button>
 
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 break-words">{title}</h1>
-                <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 truncate">{marketName}</p>
+                <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 truncate">{marketDisplay}</p>
 
                 {error && (
                     <div className="mb-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200 text-sm">{error}</div>

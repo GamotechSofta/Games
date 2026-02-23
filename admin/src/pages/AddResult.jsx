@@ -26,6 +26,9 @@ const formatTime = (timeStr) => {
     return `${Number.isFinite(h) ? h : ''}:${m}`;
 };
 
+/** Remove "testing market" from King Bazaar/Starline market names for display */
+const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
+
 /** Format HH:mm to 12-hour with AM/PM (same as MarketList) */
 const formatTime12h = (timeStr) => {
     const s = (timeStr || '').toString().trim().slice(0, 5);
@@ -691,7 +694,6 @@ const AddResult = () => {
                                                         <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
                                                     </div>
                                                 </div>
-                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
                                                 <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
                                                     <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
                                                     <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
@@ -769,8 +771,10 @@ const AddResult = () => {
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 border-b border-gray-700 bg-gray-800 shrink-0">
-                                <h2 id="add-result-modal-title" className="text-base sm:text-lg font-bold text-yellow-500 truncate pr-2" title={selectedMarket.marketName}>
-                                    {selectedMarket.marketName}
+                                <h2 id="add-result-modal-title" className="text-base sm:text-lg font-bold text-yellow-500 truncate pr-2" title={selectedMarket.marketType === 'king' || selectedMarket.marketType === 'startline' ? stripTestingMarket(selectedMarket.marketName) : selectedMarket.marketName}>
+                                    {selectedMarket.marketType === 'king' || selectedMarket.marketType === 'startline'
+                                        ? stripTestingMarket(selectedMarket.marketName)
+                                        : selectedMarket.marketName}
                                 </h2>
                                 <button
                                     type="button"
