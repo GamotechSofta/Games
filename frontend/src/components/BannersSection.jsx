@@ -10,7 +10,7 @@ const BANNERS = [
     alt: "Casino banner"
   },
   {
-    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873160/BlackandWhiteMinimalistCasinoNightFacebookCover5839x3402px_1_uvb80y.jpg",
+    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873423/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_5839_x_3402_px_7_tzzudc.png",
     alt: "Casino banner"
   },
 ];
