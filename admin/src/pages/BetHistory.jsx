@@ -219,8 +219,9 @@ const BetHistory = () => {
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Category</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">ID</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Player</th>
-                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Market</th>
-                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Bet Type</th>
+                                        <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Market</th>
+                                        <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Bet Type</th>
+                                        <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Bet No</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Amount</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Status</th>
                                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Date</th>
@@ -229,7 +230,7 @@ const BetHistory = () => {
                                 <tbody className="divide-y divide-gray-700">
                                     {sortedBets.length === 0 ? (
                                         <tr>
-                                            <td colSpan="8" className="px-6 py-4 text-center text-gray-400">
+                                            <td colSpan="9" className="px-6 py-4 text-center text-gray-400">
                                                 No bets found
                                             </td>
                                         </tr>
@@ -249,8 +250,9 @@ const BetHistory = () => {
                                                 </td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet._id.slice(-8)}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet.userId?.username || bet.userId}</td>
-                                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet.marketId?.marketName || bet.marketId}</td>
-                                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">{bet.betType}</td>
+                                                <td className="px-3 sm:px-4 py-3 sm:py-4 text-sm">{bet.marketId?.marketName || bet.marketId}</td>
+                                                <td className="px-2 sm:px-3 py-3 sm:py-4 text-sm">{bet.betType}</td>
+                                                <td className="px-2 sm:px-3 py-3 sm:py-4 text-sm font-mono text-amber-300">{bet.betNumber || '-'}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">₹{bet.amount}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm">
                                                     <span className={`px-2 py-1 rounded text-xs ${
