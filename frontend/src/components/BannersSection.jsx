@@ -9,6 +9,10 @@ const BANNERS = [
     src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png",
     alt: "Casino banner"
   },
+  {
+    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873160/BlackandWhiteMinimalistCasinoNightFacebookCover5839x3402px_1_uvb80y.jpg",
+    alt: "Casino banner"
+  },
 ];
 
 const BannersSection = () => {
