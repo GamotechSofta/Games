@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const BANNERS = [
   {
+    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873663/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_5839_x_3402_px_thbbms.svg",
+    alt: "Casino banner"
+  },
+  {
     src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png",
     alt: "Black Gold Casino Night Banner"
   },
@@ -9,10 +13,7 @@ const BANNERS = [
     src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png",
     alt: "Casino banner"
   },
-  {
-    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873663/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_5839_x_3402_px_thbbms.svg",
-    alt: "Casino banner"
-  },
+  
 ];
 
 const BannersSection = () => {
