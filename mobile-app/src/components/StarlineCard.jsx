@@ -24,11 +24,12 @@ export default function StarlineCard() {
   );
 }
 
+// Frontend mobile: rounded-2xl border-2 border-amber-500 py-3 px-3 min-[375px]:py-4 px-4 gap-2 min-[375px]:gap-2.5, icon h-9 w-9 min-[375px]:h-10 w-10 rounded-lg min-[375px]:rounded-xl, text-xs min-[375px]:text-sm, sub text-[9px] min-[375px]:text-[10px]
 const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: 0,
-    borderRadius: borderRadius['2xl'],
+    borderRadius: 16,
     backgroundColor: colors.black,
     borderWidth: 2,
     borderColor: colors.amber,
@@ -37,14 +38,14 @@ const styles = StyleSheet.create({
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 6,
-    paddingHorizontal: spacing[2],
+    gap: 8,           // gap-2 min-[375px]:gap-2.5
+    paddingVertical: 12,  // py-3 min-[375px]:py-4
+    paddingHorizontal: 12, // px-3 min-[375px]:px-4
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.xl,
+    width: 36,        // h-9 w-9 min-[375px]:h-10 w-10
+    height: 36,
+    borderRadius: 8,   // rounded-lg min-[375px]:rounded-xl
     backgroundColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
@@ -54,10 +55,10 @@ const styles = StyleSheet.create({
   textWrap: { flex: 1, minWidth: 0 },
   title: {
     color: colors.text,
-    fontSize: fontSize.sm,
+    fontSize: 12,     // text-xs min-[375px]:text-sm
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  sub: { color: colors.amberText, fontSize: fontSize['10px'], fontWeight: '600', marginTop: 2 },
+  sub: { color: colors.amberText, fontSize: 9, fontWeight: '600', marginTop: 2 }, // text-[9px] min-[375px]:text-[10px]
 });

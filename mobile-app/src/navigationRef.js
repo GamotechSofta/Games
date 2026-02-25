@@ -13,3 +13,10 @@ export function resetToLogin() {
     navigationRef.reset({ index: 0, routes: [{ name: 'Login' }] });
   }
 }
+
+/** After login/signup success – go to Home and clear back stack so user cannot go back to Login */
+export function resetToHome() {
+  if (navigationRef.isReady()) {
+    navigationRef.reset({ index: 0, routes: [{ name: 'Home' }] });
+  }
+}

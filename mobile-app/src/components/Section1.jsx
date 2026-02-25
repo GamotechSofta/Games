@@ -153,38 +153,39 @@ export default function Section1() {
   );
 }
 
+// Frontend mobile: section bg-black min-[375px]:pt-4 pb-[5rem+safe], min-[375px]:px-3; header mb-4 min-[375px]:mb-6, h-[2px] bg-[#d4af37], MARKETS w-[110px] h-[24px] text-sm; grid gap-2 min-[375px]:gap-3; card rounded-lg status py-1.5 px-2 min-h-[32px], content p-3 border-t white/5
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.black,
-    paddingTop: spacing[4],
+    paddingTop: 16,     // min-[375px]:pt-4
     paddingBottom: 80,
-    paddingHorizontal: spacing[3],
+    paddingHorizontal: 12, // min-[375px]:px-3
   },
   mobileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing[4],
-    gap: spacing[2],
+    marginBottom: 16,   // mb-4 min-[375px]:mb-6
+    gap: 8,
   },
   goldLine: {
     flex: 1,
     height: 2,
-    backgroundColor: colors.gold,
+    backgroundColor: '#d4af37',
     minWidth: 0,
   },
   marketsBlock: {
-    width: 110,
-    minHeight: 24,
+    width: 110,        // min-[375px]:w-[140px] sm:w-[180px]
+    minHeight: 24,     // min-[375px]:h-[28px] sm:h-[34px]
     alignItems: 'center',
     justifyContent: 'center',
   },
   marketsTitle: {
     color: colors.text,
-    fontSize: fontSize.sm,
+    fontSize: 14,      // text-sm min-[375px]:text-base sm:text-xl
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1,  // tracking-wider
   },
   list: { flex: 1 },
   listContent: { paddingBottom: 100 },
@@ -192,13 +193,13 @@ const styles = StyleSheet.create({
   cardGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[2],
+    gap: 8,            // gap-2 min-[375px]:gap-3
   },
   card: {
     width: '48%',
     minWidth: 0,
-    backgroundColor: colors.gray800,
-    borderRadius: borderRadius.lg,
+    backgroundColor: colors.gray800, // bg-gray-800
+    borderRadius: 8,   // rounded-lg
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -210,8 +211,8 @@ const styles = StyleSheet.create({
   },
   cardClosed: { opacity: 0.9 },
   statusBar: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing[2],
+    paddingVertical: 6,  // py-1.5 min-[375px]:py-2
+    paddingHorizontal: 8, // px-2 min-[375px]:px-3
     minHeight: 32,
     alignItems: 'center',
     justifyContent: 'center',
@@ -220,69 +221,68 @@ const styles = StyleSheet.create({
   statusBarClosed: { backgroundColor: colors.red },
   statusBarText: {
     color: colors.text,
-    fontSize: fontSize['10px'],
+    fontSize: 10,      // text-[10px] min-[375px]:text-xs sm:text-sm
     fontWeight: '600',
   },
   cardContent: {
-    padding: spacing[3],
+    padding: 12,       // p-3 min-[375px]:p-3.5 sm:p-4
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
+    gap: 6,            // gap-1.5
+    marginBottom: 6,   // mb-1.5 min-[375px]:mb-2
   },
-  clockWrap: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' },
+  clockWrap: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }, // w-3.5 h-3.5
   clockIcon: { fontSize: 12 },
   time: {
-    color: 'rgba(245,158,11,0.9)',
-    fontSize: fontSize['10px'],
+    color: 'rgba(245,158,11,0.9)', // text-amber-500/90
+    fontSize: 10,      // text-[10px] min-[375px]:text-xs sm:text-sm
     fontWeight: '500',
     flex: 1,
   },
   gameName: {
     color: colors.text,
     fontWeight: '700',
-    fontSize: fontSize.sm,
-    marginBottom: spacing[2],
+    fontSize: 14,      // text-sm min-[375px]:text-base sm:text-lg
+    marginBottom: 8,   // mb-2 min-[375px]:mb-2.5
   },
   result: {
-    color: '#fbbf24',
-    fontSize: fontSize.base,
+    color: '#fbbf24',  // text-amber-400
+    fontSize: 16,      // text-base min-[375px]:text-lg sm:text-xl
     fontWeight: '800',
     letterSpacing: 1,
-    marginBottom: spacing[2],
+    marginBottom: 8,
   },
   footer: {
-    paddingTop: 6,
+    paddingTop: 6,     // pt-1.5
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
   },
   footerLink: {
     color: colors.goldText,
-    fontSize: fontSize['10px'],
+    fontSize: 10,      // text-[10px] min-[375px]:text-[11px] sm:text-sm
     fontWeight: '600',
     textAlign: 'center',
   },
-  // Skeleton
   skeletonGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[2],
+    gap: 8,
   },
   skeletonCard: {
     width: '48%',
     minWidth: 0,
     backgroundColor: colors.gray800,
-    borderRadius: borderRadius.lg,
+    borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
   skeletonBar: { height: 32, backgroundColor: 'rgba(255,255,255,0.1)' },
-  skeletonContent: { padding: spacing[2], gap: spacing[2] },
+  skeletonContent: { padding: 8, gap: 8 },
   skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   skeletonDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.1)' },
   skeletonBarThin: { height: 12, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.1)' },

@@ -27,11 +27,19 @@ import MarketResultHistory from '../pages/MarketResultHistory';
 import StartlineDashboard from '../pages/StartlineDashboard';
 import StarlineMarket from '../pages/StarlineMarket';
 import KingBazaarMarket from '../pages/KingBazaarMarket';
+import KingBazaarDashboard from '../pages/KingBazaarDashboard';
+import Games from '../pages/Games';
 import Notifications from '../pages/Notifications';
 import TopWinners from '../pages/TopWinners';
 import GameRate from '../pages/GameRate';
 import SupportNew from '../pages/Support/SupportNew';
 import SupportStatus from '../pages/Support/SupportStatus';
+import AddFund from '../pages/funds/AddFund';
+import WithdrawFund from '../pages/funds/WithdrawFund';
+import Bank from '../pages/funds/Bank';
+import AddFundHistory from '../pages/funds/AddFundHistory';
+import WithdrawFundHistory from '../pages/funds/WithdrawFundHistory';
+import Support from '../pages/Support/Support';
 
 const Stack = createNativeStackNavigator();
 const PUBLIC_SCREENS = ['Login'];
@@ -108,11 +116,19 @@ export default function AppRoutes() {
         <Stack.Screen name="StartlineDashboard" component={withLayout(StartlineDashboard)} />
         <Stack.Screen name="StarlineMarket" component={withLayout(StarlineMarket)} />
         <Stack.Screen name="KingBazaarMarket" component={withLayout(KingBazaarMarket)} />
+        <Stack.Screen name="KingBazaarDashboard" component={withLayout(KingBazaarDashboard)} />
+        <Stack.Screen name="Games" component={withLayout(Games)} />
         <Stack.Screen name="Notifications" component={withLayout(Notifications)} />
         <Stack.Screen name="TopWinners" component={withLayout(TopWinners)} />
         <Stack.Screen name="GameRate" component={withLayout(GameRate)} />
         <Stack.Screen name="SupportNew" component={withLayout(SupportNew)} />
         <Stack.Screen name="SupportStatus" component={withLayout(SupportStatus)} />
+        <Stack.Screen name="Support" component={withLayout(Support)} />
+        <Stack.Screen name="AddFund" component={withLayout(AddFund)} />
+        <Stack.Screen name="WithdrawFund" component={withLayout(WithdrawFund)} />
+        <Stack.Screen name="Bank" component={withLayout(Bank)} />
+        <Stack.Screen name="AddFundHistory" component={withLayout(AddFundHistory)} />
+        <Stack.Screen name="WithdrawFundHistory" component={withLayout(WithdrawFundHistory)} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,15 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import BetHistory from './BetHistory';
 
 export default function KingBazaarBetHistory() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>King Bazaar Bet History</Text>
-    </View>
-  );
+  return <BetHistory marketScope="king" />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  text: { color: '#fff', fontSize: 18 },
-});

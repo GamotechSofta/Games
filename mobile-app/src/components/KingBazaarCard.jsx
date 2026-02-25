@@ -9,7 +9,7 @@ const KING_IMAGE = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v177148614
 export default function KingBazaarCard() {
   const { t } = useTranslation();
   return (
-    <TouchableOpacity style={styles.card} onPress={() => navigate('KingBazaarMarket')} activeOpacity={0.95}>
+    <TouchableOpacity style={styles.card} onPress={() => navigate('KingBazaarDashboard')} activeOpacity={0.95}>
       <View style={styles.inner}>
         <View style={styles.iconBox}>
           <Image source={{ uri: KING_IMAGE }} style={styles.icon} resizeMode="contain" />
@@ -23,11 +23,12 @@ export default function KingBazaarCard() {
   );
 }
 
+// Frontend mobile: same as StarlineCard – rounded-2xl border-2 border-amber-500 py-3 px-3 min-[375px]:py-4 px-4, icon h-9 w-9 min-[375px]:h-10 w-10
 const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: 0,
-    borderRadius: borderRadius['2xl'],
+    borderRadius: 16,
     backgroundColor: colors.black,
     borderWidth: 2,
     borderColor: colors.amber,
@@ -36,14 +37,14 @@ const styles = StyleSheet.create({
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 6,
-    paddingHorizontal: spacing[2],
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
   },
   iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: borderRadius.xl,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     backgroundColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
@@ -53,10 +54,10 @@ const styles = StyleSheet.create({
   textWrap: { flex: 1, minWidth: 0 },
   title: {
     color: colors.text,
-    fontSize: fontSize.sm,
+    fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  sub: { color: colors.amberText, fontSize: fontSize['10px'], fontWeight: '600', marginTop: 2 },
+  sub: { color: colors.amberText, fontSize: 9, fontWeight: '600', marginTop: 2 },
 });
