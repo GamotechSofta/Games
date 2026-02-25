@@ -217,8 +217,9 @@ const AddFund = () => {
                             <div className="max-w-[520px] mx-auto h-10 rounded-md bg-[#202124] border border-white/10 skeleton-shimmer" />
                         </div>
                     ) : (
-                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
-                        {/* Top card (as screenshot) */}
+                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start">
+                        {/* Left: Wallet card (GoldenBets.com, ₹, balance, user name) — desktop shows this on left */}
+                        <div className="md:max-w-[340px]">
                         <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
                             <div className="px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 flex items-center justify-center gap-2 text-[13px] sm:text-sm text-gray-300">
                                 <svg className="w-4 h-4 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -266,9 +267,12 @@ const AddFund = () => {
                                 </div>
                             </div>
                         </div>
+                        </div>
 
+                        {/* Right: Enter Amount, quick amounts, Add Cash, deposit note — desktop shows this on right */}
+                        <div className="mt-6 sm:mt-8 md:mt-0 flex flex-col">
                         {/* Amount input */}
-                        <div className="mt-6 sm:mt-8 flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center md:justify-start gap-2">
                             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#202124] border border-white/10 flex items-center justify-center shadow-sm shrink-0">
                                 <svg className="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M4 10l8-4 8 4" />
@@ -279,14 +283,14 @@ const AddFund = () => {
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder={t('funds.enterAmount')}
-                                className="flex-1 min-w-0 max-w-[520px] bg-[#202124] border border-white/10 rounded-full px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/20"
+                                className="flex-1 min-w-0 max-w-[520px] md:max-w-none bg-[#202124] border border-white/10 rounded-full px-4 py-2.5 sm:py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/20"
                                 min={minDeposit}
                                 max={maxDeposit}
                             />
                         </div>
 
                         {/* Quick buttons */}
-                        <div className="mt-2.5 sm:mt-3 grid grid-cols-2 gap-2 max-w-[520px] mx-auto">
+                        <div className="mt-2.5 sm:mt-3 grid grid-cols-2 gap-2 max-w-[520px] md:max-w-none mx-auto md:mx-0">
                             {quickAmountsStep1.map((amt) => (
                                 <button
                                     key={amt}
@@ -304,7 +308,7 @@ const AddFund = () => {
                         </div>
 
                         {/* Add Cash */}
-                        <div className="mt-2.5 sm:mt-3 max-w-[520px] mx-auto">
+                        <div className="mt-2.5 sm:mt-3 max-w-[520px] md:max-w-none mx-auto md:mx-0">
                             <button
                                 type="button"
                                 onClick={handleAddCash}
@@ -317,9 +321,10 @@ const AddFund = () => {
                             </button>
                         </div>
 
-                        {/* Note */}
-                        <div className="mt-2.5 sm:mt-3 max-w-[520px] mx-auto bg-[#202124] rounded-md border border-white/10 px-3 py-2 text-[10px] sm:text-[11px] text-gray-300">
+                        {/* Note: Deposit time use only phone pay App — right side on desktop */}
+                        <div className="mt-2.5 sm:mt-3 max-w-[520px] md:max-w-none mx-auto md:mx-0 bg-[#202124] rounded-md border border-white/10 px-3 py-2 text-[10px] sm:text-[11px] text-gray-300">
                             {t('funds.depositNoteText')}
+                        </div>
                         </div>
                     </div>
                     )}
