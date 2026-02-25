@@ -7,6 +7,16 @@ import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 
+// Convert API market name to i18n key (e.g. "Milan Morning" -> "milanMorning")
+const toMarketNameKey = (name) => {
+  if (!name || typeof name !== 'string') return '';
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/\s+(\w)/g, (_, c) => c.toUpperCase())
+    .replace(/^\w/, (c) => c.toLowerCase());
+};
+
 const Section1 = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -233,9 +243,9 @@ const Section1 = () => {
                 <span className="text-amber-500/90 text-[10px] min-[375px]:text-xs sm:text-sm font-medium truncate">{market.timeRange}</span>
               </div>
 
-              {/* Game Name */}
-              <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight truncate mb-2 min-[375px]:mb-2.5">
-                {market.gameName}
+              {/* Game Name – translated when key exists, else fallback to API name; allow wrap so long names (e.g. in Marathi) don't get cut */}
+              <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight break-words min-h-[1.5em] mb-2 min-[375px]:mb-2.5">
+                {t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName })}
               </h3>
 
               {/* Result */}

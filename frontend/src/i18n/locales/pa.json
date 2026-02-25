@@ -581,7 +581,31 @@
     "marketIsOpen": "ਮਾਰਕੀਟ ਖੁੱਲ੍ਹਿਆ ਹੈ",
     "closingIsRunning": "ਬੰਦ ਹੋ ਰਿਹਾ ਹੈ",
     "marketClosed": "ਮਾਰਕੀਟ ਬੰਦ",
-    "runningForTomorrow": "ਕੱਲ੍ਹ ਲਈ ਚੱਲ ਰਿਹਾ ਹੈ"
+    "runningForTomorrow": "ਕੱਲ੍ਹ ਲਈ ਚੱਲ ਰਿਹਾ ਹੈ",
+    "names": {
+      "milanMorning": "ਮਿਲਾਨ ਮੌਰਨਿੰਗ",
+      "rajdhaniMorning": "ਰਾਜਧਾਨੀ ਮੌਰਨਿੰਗ",
+      "shridevi": "ਸ਼੍ਰੀਦੇਵੀ",
+      "timeBazar": "ਟਾਈਮ ਬਜ਼ਾਰ",
+      "punaBazar": "ਪੁਣਾ ਬਜ਼ਾਰ",
+      "prabhat": "ਪ੍ਰਭਾਤ",
+      "bombayDay": "ਬੰਬੇ ਡੇ",
+      "shaktiDay": "ਸ਼ਕਤੀ ਡੇ",
+      "milanDay": "ਮਿਲਾਨ ਡੇ",
+      "kalyan": "ਕਲਿਆਣ",
+      "kalyanMorning": "ਕਲਿਆਣ ਮੌਰਨਿੰਗ",
+      "radhaNight": "ਰਾਧਾ ਨਾਈਟ",
+      "shrideviNight": "ਸ਼੍ਰੀਦੇਵੀ ਨਾਈਟ",
+      "milanNight": "ਮਿਲਾਨ ਨਾਈਟ",
+      "kalyanNight": "ਕਲਿਆਣ ਨਾਈਟ",
+      "bombayNight": "ਬੰਬੇ ਨਾਈਟ",
+      "rajdhaniNight": "ਰਾਜਧਾਨੀ ਨਾਈਟ",
+      "ratanKhatri": "ਰਤਨ ਖਤਰੀ",
+      "madhurDay": "ਮਧੁਰ ਡੇ",
+      "madhurNight": "ਮਧੁਰ ਨਾਈਟ",
+      "mainBazar": "ਮੇਨ ਬਜ਼ਾਰ",
+      "dhanlaxmi": "ਧਨਲਕਸ਼ਮੀ"
+    }
   },
   "language": {
     "english": "ਅੰਗਰੇਜ਼ੀ",
