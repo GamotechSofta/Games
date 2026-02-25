@@ -23,9 +23,7 @@ const AppHeader = () => {
     { key: 'myBets', label: t('header.myBets'), path: '/bids' },
     { key: 'funds', label: t('header.funds'), path: '/funds' },
     { key: 'updateRate', label: t('header.updateRate'), path: '/game-rate' },
-    { key: 'topWinners', label: t('header.topWinners'), path: '/top-winners' },
     { key: 'telegramChannel', label: t('header.telegramChannel'), path: '/support' },
-    { key: 'notification', label: t('header.notification'), path: '/notifications' },
     { key: 'helpDesk', label: t('header.helpDesk'), path: '/support' },
     { key: 'shareApp', label: t('header.shareApp'), path: '/support' },
     { key: 'logout', label: t('header.logout'), path: '/login' }
@@ -324,13 +322,7 @@ const AppHeader = () => {
                 >
                   {/* Icon Container */}
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
-                    {item.key === 'topWinners' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797561/podium_swqjij.png"
-                        alt={item.label}
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'telegramChannel' ? (
+                    {item.key === 'telegramChannel' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797952/telegram_yw9hf1.png"
                         alt="Telegram"
@@ -352,12 +344,6 @@ const AppHeader = () => {
                       <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                    ) : item.key === 'notification' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798359/notification_1_pflwit.png"
-                        alt="Notification"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
                     ) : item.key === 'helpDesk' ? (
                       <img
                         src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777618/customer-support_du0zcj.png"
@@ -385,11 +371,6 @@ const AppHeader = () => {
                   <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
                     {item.label}
                   </span>
-                  {item.key === 'notification' && notificationCount > 0 && (
-                    <span className="min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
-                      {notificationCount > 99 ? '99+' : notificationCount}
-                    </span>
-                  )}
                   {/* Arrow Indicator */}
                   <svg className="w-4 h-4 text-white/20 group-hover:text-yellow-500/60 group-hover:translate-x-1 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
