@@ -103,6 +103,7 @@ export default function AppRoutes() {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Home" component={withLayout(Home)} />
         <Stack.Screen name="BidOptions" component={withLayout(BidOptions)} />
+        <Stack.Screen name="MainMarket" component={withLayout(BidOptions)} />
         <Stack.Screen name="GameBid" component={withLayout(GameBid)} />
         <Stack.Screen name="Passbook" component={withLayout(Passbook)} />
         <Stack.Screen name="Funds" component={withLayout(Funds)} />
@@ -136,6 +137,6 @@ export default function AppRoutes() {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' },
-  layout: { flex: 1, backgroundColor: '#000' },
+  layout: { flex: 1, backgroundColor: '#0a0a0a' },
   content: { flex: 1, paddingTop: 4 },
 });

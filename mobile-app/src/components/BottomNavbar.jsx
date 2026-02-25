@@ -170,9 +170,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   centerIconWrapActive: {
-    backgroundColor: colors.goldLight,
+    backgroundColor: '#f3b61b',
+    borderWidth: 2,
     borderColor: 'rgba(243,182,27,0.6)',
-    shadowColor: colors.goldLight,
+    shadowColor: '#f3b61b',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 4,

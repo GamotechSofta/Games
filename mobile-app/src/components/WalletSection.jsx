@@ -48,13 +48,14 @@ export default function WalletSection() {
   );
 }
 
+// Frontend: pt-1.5 pb-1 px-2 min-[375px]:px-4; Other Games mt-4 min-[375px]:mt-5 mb-4 min-[375px]:mb-5; grid gap-2 min-[375px]:gap-3 max-w-lg
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: colors.black,
-    paddingTop: 6,
-    paddingBottom: 4,
-    paddingHorizontal: IS_MIN_375 ? 16 : 8, // px-2 min-[375px]:px-4
+    paddingTop: 6,   // pt-1.5
+    paddingBottom: 4, // pb-1
+    paddingHorizontal: IS_MIN_375 ? 16 : 8,
     maxWidth: '100%',
   },
   otherGamesHeader: {

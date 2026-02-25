@@ -96,6 +96,7 @@ export default function AppHeader() {
 }
 
 const styles = StyleSheet.create({
+  // Frontend: bg-black border-b border-white/5 py-1.5
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.black,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255,255,255,0.05)',
-    paddingBottom: 6,
+    paddingVertical: 6,
     paddingRight: Math.max(8, 12),
   },
   left: {

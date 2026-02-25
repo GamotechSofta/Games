@@ -59,6 +59,7 @@ export default function SubHeader() {
   );
 }
 
+// Frontend: h-10 sm:h-11, border-t amber-500/60, wallet w-6 h-6, button rounded-lg bg-[#1a1a1a] border-2 border-amber-400/90
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -66,9 +67,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: colors.black,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(234,179,8,0.6)',
+    borderTopColor: 'rgba(245,158,11,0.6)',
     paddingHorizontal: Math.max(12, spacing[3]),
     paddingVertical: 6,
+    minHeight: 40,
     height: 40,
     gap: spacing[2],
   },
@@ -84,7 +86,7 @@ const styles = StyleSheet.create({
   actionBtn: {
     flexShrink: 0,
     borderRadius: borderRadius.lg,
-    backgroundColor: colors.surface,
+    backgroundColor: '#1a1a1a',
     borderWidth: 2,
     borderColor: 'rgba(251,191,36,0.9)',
     paddingHorizontal: spacing[3],

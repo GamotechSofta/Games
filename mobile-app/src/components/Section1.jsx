@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
@@ -32,10 +33,15 @@ const ClockIcon = () => (
   </View>
 );
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const IS_MIN_375 = SCREEN_WIDTH >= 375;
+
 export default function Section1() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const sectionPaddingBottom = 80 + Math.max(insets.bottom, 0);
 
   const fetchMarkets = async () => {
     try {
@@ -81,7 +87,7 @@ export default function Section1() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingBottom: sectionPaddingBottom }]}>
         <MobileHeader />
         <View style={styles.skeletonGrid}>
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -103,7 +109,7 @@ export default function Section1() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: sectionPaddingBottom }]}>
       <MobileHeader />
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {markets.length === 0 && (
@@ -117,8 +123,10 @@ export default function Section1() {
                 key={m.id}
                 style={[styles.card, !isClickable && styles.cardClosed]}
                 onPress={() => {
-                  if (isClickable) navigate('BidOptions', { marketId: m.id });
-                  else navigate('BidOptions', { marketId: m.id, scheduleForTomorrow: true });
+                  const marketWithStatus = { ...m.market, status: m.status };
+                  const params = { market: marketWithStatus, marketId: m.id };
+                  if (isClickable) navigate('BidOptions', params);
+                  else navigate('BidOptions', { ...params, scheduleForTomorrow: true });
                 }}
                 activeOpacity={0.9}
               >
@@ -158,9 +166,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.black,
-    paddingTop: 16,     // min-[375px]:pt-4
-    paddingBottom: 80,
-    paddingHorizontal: 12, // min-[375px]:px-3
+    paddingTop: IS_MIN_375 ? 16 : 0,  // min-[375px]:pt-4
+    paddingHorizontal: IS_MIN_375 ? 12 : 0, // min-[375px]:px-3
   },
   mobileHeader: {
     flexDirection: 'row',
