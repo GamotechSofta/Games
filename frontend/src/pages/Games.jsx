@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { GAMES } from '../config/games';
 
 const PROVIDER_NAME = 'DPBOSS KING';
@@ -7,6 +8,7 @@ const PROVIDER_NAME = 'DPBOSS KING';
 const Games = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const category = searchParams.get('category') || 'all';
 
   const filteredGames = GAMES.filter((game) => {
@@ -23,6 +25,13 @@ const Games = () => {
     }
   };
 
+  const pageTitle =
+    category === 'highEarning'
+      ? t('markets.casinoGames')
+      : category === 'upcoming'
+        ? t('markets.skillsGames')
+        : t('games.allGames');
+
   return (
     <div className="min-h-screen bg-black px-3 py-4">
       {/* Header */}
@@ -36,7 +45,7 @@ const Games = () => {
           </svg>
         </button>
         <h1 className="text-white text-xl font-bold">
-          {category === 'highEarning' ? 'Casino Games' : category === 'upcoming' ? 'Skills Games' : 'All Games'}
+          {pageTitle}
         </h1>
       </div>
 
@@ -66,7 +75,7 @@ const Games = () => {
               {/* Coming Soon badge */}
               {game.upcoming && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                  <span className="text-amber-400 text-xs font-bold px-2 py-1 bg-black/80 rounded">Coming Soon</span>
+                  <span className="text-amber-400 text-xs font-bold px-2 py-1 bg-black/80 rounded">{t('games.comingSoon')}</span>
                 </div>
               )}
             </div>

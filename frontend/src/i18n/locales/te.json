@@ -534,6 +534,7 @@
   },
   "games": {
     "otherGames": "ఇతర గేమ్‌లు",
+    "allGames": "అన్ని గేమ్‌లు",
     "comingSoon": "త్వరలో వస్తుంది",
     "tapToPlay": "ఆడడానికి టాప్ చేయండి"
   },
@@ -573,6 +574,12 @@
   },
   "markets": {
     "markets": "మార్కెట్‌లు",
+    "casinoGames": "కాసినో గేమ్స్",
+    "casinoGamesLine1": "కాసినో",
+    "casinoGamesLine2": "గేమ్స్",
+    "skillsGames": "స్కిల్స్ గేమ్స్",
+    "skillsGamesLine1": "స్కిల్స్",
+    "skillsGamesLine2": "గేమ్స్",
     "starline": "స్టార్‌లైన్",
     "kingBazaar": "కింగ్ బజార్",
     "tapToPlay": "ఆడడానికి టాప్ చేయండి",

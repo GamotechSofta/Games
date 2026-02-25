@@ -535,6 +535,7 @@
   },
   "games": {
     "otherGames": "ಇತರ ಗೇಮ್‌ಗಳು",
+    "allGames": "ಎಲ್ಲಾ ಗೇಮ್‌ಗಳು",
     "comingSoon": "ಶೀಘ್ರದಲ್ಲೇ ಬರುತ್ತದೆ",
     "tapToPlay": "ಆಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ"
   },
@@ -574,6 +575,12 @@
   },
   "markets": {
     "markets": "ಮಾರ್ಕೆಟ್‌ಗಳು",
+    "casinoGames": "ಕ್ಯಾಸಿನೋ ಆಟಗಳು",
+    "casinoGamesLine1": "ಕ್ಯಾಸಿನೋ",
+    "casinoGamesLine2": "ಆಟಗಳು",
+    "skillsGames": "ಸ್ಕಿಲ್ಸ್ ಆಟಗಳು",
+    "skillsGamesLine1": "ಸ್ಕಿಲ್ಸ್",
+    "skillsGamesLine2": "ಆಟಗಳು",
     "starline": "ಸ್ಟಾರ್‌ಲೈನ್",
     "kingBazaar": "ಕಿಂಗ್ ಬಜಾರ್",
     "tapToPlay": "ಆಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ",

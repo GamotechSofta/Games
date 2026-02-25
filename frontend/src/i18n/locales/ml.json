@@ -535,6 +535,7 @@
   },
   "games": {
     "otherGames": "മറ്റ് ഗെയിമുകൾ",
+    "allGames": "എല്ലാ ഗെയിമുകളും",
     "comingSoon": "ഉടൻ വരുന്നു",
     "tapToPlay": "ആടാൻ ടാപ്പ് ചെയ്യുക"
   },
@@ -574,6 +575,12 @@
   },
   "markets": {
     "markets": "മാർക്കറ്റുകൾ",
+    "casinoGames": "കാസിനോ ഗെയിമുകൾ",
+    "casinoGamesLine1": "കാസിനോ",
+    "casinoGamesLine2": "ഗെയിമുകൾ",
+    "skillsGames": "സ്കിൽസ് ഗെയിമുകൾ",
+    "skillsGamesLine1": "സ്കിൽസ്",
+    "skillsGamesLine2": "ഗെയിമുകൾ",
     "starline": "സ്റ്റാർലൈൻ",
     "kingBazaar": "കിംഗ് ബസാർ",
     "tapToPlay": "ആടാൻ ടാപ്പ് ചെയ്യുക",

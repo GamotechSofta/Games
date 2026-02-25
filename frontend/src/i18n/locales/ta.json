@@ -534,6 +534,7 @@
   },
   "games": {
     "otherGames": "மற்ற விளையாட்டுகள்",
+    "allGames": "அனைத்து விளையாட்டுகள்",
     "comingSoon": "விரைவில் வருகிறது",
     "tapToPlay": "விளையாட கிளிக் செய்யவும்"
   },
@@ -573,6 +574,12 @@
   },
   "markets": {
     "markets": "சந்தைகள்",
+    "casinoGames": "கேசினோ விளையாட்டுகள்",
+    "casinoGamesLine1": "கேசினோ",
+    "casinoGamesLine2": "விளையாட்டுகள்",
+    "skillsGames": "திறன் விளையாட்டுகள்",
+    "skillsGamesLine1": "திறன்",
+    "skillsGamesLine2": "விளையாட்டுகள்",
     "starline": "ஸ்டார்லைன்",
     "kingBazaar": "கிங் பஜார்",
     "tapToPlay": "விளையாட கிளிக் செய்யவும்",

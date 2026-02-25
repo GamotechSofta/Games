@@ -535,6 +535,7 @@
   },
   "games": {
     "otherGames": "ਹੋਰ ਗੇਮਾਂ",
+    "allGames": "ਸਾਰੀਆਂ ਗੇਮਾਂ",
     "comingSoon": "ਜਲਦੀ ਆ ਰਿਹਾ ਹੈ",
     "tapToPlay": "ਖੇਡਣ ਲਈ ਟੈਪ ਕਰੋ"
   },
@@ -574,6 +575,12 @@
   },
   "markets": {
     "markets": "ਮਾਰਕੀਟ",
+    "casinoGames": "ਕੈਸੀਨੋ ਗੇਮਾਂ",
+    "casinoGamesLine1": "ਕੈਸੀਨੋ",
+    "casinoGamesLine2": "ਗੇਮਾਂ",
+    "skillsGames": "ਸਕਿਲ ਗੇਮਾਂ",
+    "skillsGamesLine1": "ਸਕਿਲ",
+    "skillsGamesLine2": "ਗੇਮਾਂ",
     "starline": "ਸਟਾਰਲਾਈਨ",
     "kingBazaar": "ਕਿੰਗ ਬਜ਼ਾਰ",
     "tapToPlay": "ਖੇਡਣ ਲਈ ਟੈਪ ਕਰੋ",
