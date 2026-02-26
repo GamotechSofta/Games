@@ -71,7 +71,7 @@ export default function GameRate() {
           <ActivityIndicator size="large" color={colors.goldLight} />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.tableWrap} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.tableWrap} showsVerticalScrollIndicator={false} removeClippedSubviews={true}>
           <View style={styles.table}>
             {/* Header Row */}
             <View style={[styles.tableRow, styles.tableHeaderRow]}>

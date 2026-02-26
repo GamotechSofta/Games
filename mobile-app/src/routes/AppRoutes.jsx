@@ -44,7 +44,8 @@ import Support from '../pages/Support/Support';
 const Stack = createNativeStackNavigator();
 const PUBLIC_SCREENS = ['Login'];
 
-const BOTTOM_NAV_HEIGHT = 52 + 16 + 24; // inner minHeight + center lift + labels + safe area buffer
+// Match actual navbar height: inner ~52 + py + label ~14, center lift -16; keep minimal gap
+const BOTTOM_NAV_HEIGHT = 58 + 10;
 
 function Layout({ children }) {
   const route = useRoute();
@@ -91,6 +92,7 @@ export default function AppRoutes() {
     );
   }
 
+  const tabScreenOptions = { animation: 'none' };
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
@@ -98,18 +100,20 @@ export default function AppRoutes() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: '#000' },
+          animation: 'default',
+          freezeOnBlur: true,
         }}
       >
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Home" component={withLayout(Home)} />
+        <Stack.Screen name="Home" component={withLayout(Home)} options={tabScreenOptions} />
         <Stack.Screen name="BidOptions" component={withLayout(BidOptions)} />
         <Stack.Screen name="MainMarket" component={withLayout(BidOptions)} />
         <Stack.Screen name="GameBid" component={withLayout(GameBid)} />
         <Stack.Screen name="Passbook" component={withLayout(Passbook)} />
-        <Stack.Screen name="Funds" component={withLayout(Funds)} />
+        <Stack.Screen name="Funds" component={withLayout(Funds)} options={tabScreenOptions} />
         <Stack.Screen name="Download" component={withLayout(Download)} />
-        <Stack.Screen name="Bids" component={withLayout(Bids)} />
-        <Stack.Screen name="Profile" component={withLayout(Profile)} />
+        <Stack.Screen name="Bids" component={withLayout(Bids)} options={tabScreenOptions} />
+        <Stack.Screen name="Profile" component={withLayout(Profile)} options={tabScreenOptions} />
         <Stack.Screen name="BetHistory" component={withLayout(BetHistory)} />
         <Stack.Screen name="StarlineBetHistory" component={withLayout(StarlineBetHistory)} />
         <Stack.Screen name="KingBazaarBetHistory" component={withLayout(KingBazaarBetHistory)} />
@@ -124,7 +128,7 @@ export default function AppRoutes() {
         <Stack.Screen name="GameRate" component={withLayout(GameRate)} />
         <Stack.Screen name="SupportNew" component={withLayout(SupportNew)} />
         <Stack.Screen name="SupportStatus" component={withLayout(SupportStatus)} />
-        <Stack.Screen name="Support" component={withLayout(Support)} />
+        <Stack.Screen name="Support" component={withLayout(Support)} options={tabScreenOptions} />
         <Stack.Screen name="AddFund" component={withLayout(AddFund)} />
         <Stack.Screen name="WithdrawFund" component={withLayout(WithdrawFund)} />
         <Stack.Screen name="Bank" component={withLayout(Bank)} />

@@ -152,6 +152,38 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     return true;
   };
 
+  const labelForTypeInner = (betType) => {
+    const s = String(betType || '').toLowerCase();
+    if (s === 'single') return t('bids.gameType.singleAnk');
+    if (s === 'jodi') return t('gameRate.jodi');
+    if (s === 'panna') return t('bids.gameType.panna');
+    if (s === 'half-sangam' || s === 'half-sangam-open' || s === 'half-sangam-close') return t('bids.gameType.halfSangam');
+    if (s === 'full-sangam') return t('bids.gameType.fullSangam');
+    return betType || t('bids.gameType.bet');
+  };
+
+  const getStatusColorInner = (state) => {
+    if (state === 'won') return '#43b36a';
+    if (state === 'lost') return '#f87171';
+    if (state === 'cancelled') return '#fb923c';
+    return '#fbbf24';
+  };
+
+  const getStatusTextInner = (verdict) => {
+    if (verdict?.state === 'won') return t('bids.status.win');
+    if (verdict?.state === 'lost') return t('bids.status.lost');
+    if (verdict?.state === 'cancelled') return t('bids.status.cancelled');
+    return t('bids.status.pending');
+  };
+
+  const getBorderColorInner = (state) => {
+    if (state === 'won') return '#43b36a';
+    if (state === 'lost') return '#ef4444';
+    if (state === 'pending') return '#f59e0b';
+    if (state === 'cancelled') return '#fb923c';
+    return 'rgba(255,255,255,0.1)';
+  };
+
   useEffect(() => {
     storage.getItem('user').then((raw) => {
       const u = safeParse(raw, null);
@@ -413,77 +445,20 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     </TouchableOpacity>
   );
 
-  const BetCard = ({ row, idx }) => {
-    const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
-    const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
-    const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
-    const statusColor = getStatusColor(verdict?.state);
-    const borderColor = getBorderColor(verdict?.state);
-    const isCancelling = cancellingBetId === betId;
-
-    return (
-      <View style={[styles.betCard, { borderColor }]}>
-        {verdict?.state === 'cancelled' && (
-          <View style={styles.cancelledOverlay}>
-            <Text style={styles.cancelledX}>✕</Text>
-          </View>
-        )}
-        <View style={styles.betCardRow}>
-          <Text style={styles.betIdxText}>#{idx + 1}</Text>
-          {session ? <View style={styles.sessionBadge}><Text style={styles.sessionBadgeText}>{session}</Text></View> : null}
-        </View>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.betIdLabel')}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Text style={styles.betMono} numberOfLines={1}>{String(betId || '').slice(-8)}</Text>
-            <TouchableOpacity onPress={() => copyBetId(betId)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.copyIcon}>⎘</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        {isScheduled && (
-          <View style={styles.scheduledBadge}>
-            <Text style={styles.scheduledText}>{t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}</Text>
-          </View>
-        )}
-        <Text style={styles.marketName} numberOfLines={1}>{(marketTitle || 'MARKET').toUpperCase()}</Text>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.gameLabel')}</Text>
-          <Text style={styles.betValue}>{labelForType(betType)}</Text>
-        </View>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.betLabel')}</Text>
-          <Text style={styles.betValue}>{betNumber != null ? String(betNumber) : '-'}</Text>
-        </View>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.pointsLabel')}</Text>
-          <Text style={styles.betValue}>{points}</Text>
-        </View>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.statusLabel')}</Text>
-          <Text style={[styles.betStatusValue, { color: statusColor }]}>
-            {getStatusText(verdict)}{verdict?.state === 'won' && verdict?.payout > 0 ? ` ₹${Number(verdict.payout).toLocaleString('en-IN')}` : ''}
-          </Text>
-        </View>
-        <View style={styles.betCardRow}>
-          <Text style={styles.betLabel}>{t('bids.timeLabel')}</Text>
-          <Text style={styles.betTimeValue}>{formatTxnTime(createdAt)}</Text>
-        </View>
-        {verdict?.state === 'pending' && canCancel?.canCancel && (
-          <TouchableOpacity
-            onPress={() => setConfirmCancelBetId(betId)}
-            disabled={isCancelling}
-            style={[styles.cancelBtn, isCancelling && { opacity: 0.6 }]}
-            activeOpacity={0.8}
-          >
-            {isCancelling
-              ? <ActivityIndicator size="small" color="#fff" />
-              : <Text style={styles.cancelBtnText}>{t('bids.cancelAndRefund')}</Text>}
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+  const renderItem = useCallback(({ item, index }) => (
+    <BetCardKeyed
+      row={item}
+      idx={index}
+      t={t}
+      copyBetId={copyBetId}
+      setConfirmCancelBetId={setConfirmCancelBetId}
+      cancellingBetId={cancellingBetId}
+      labelForType={labelForTypeInner}
+      getStatusColor={getStatusColorInner}
+      getStatusText={getStatusTextInner}
+      getBorderColor={getBorderColorInner}
+    />
+  ), [t, cancellingBetId, copyBetId, setConfirmCancelBetId]);
 
   return (
     <View style={styles.container}>
@@ -576,7 +551,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
         </View>
       </Modal>
 
-      {/* Bet list */}
+      {/* Bet list optimized with FlatList */}
       {betsLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.goldLight} />
@@ -590,15 +565,95 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
           <Text style={styles.emptyText}>{t('bids.noBetsFound')}</Text>
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.listGrid} showsVerticalScrollIndicator={false}>
-          {allBetsNewestFirst.map((row, idx) => (
-            <BetCard key={row.betId} row={row} idx={idx} />
-          ))}
-        </ScrollView>
+        <FlatList
+          data={allBetsNewestFirst}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.betId}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={styles.listGrid}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={Platform.OS === 'android'}
+          maxToRenderPerBatch={8}
+          initialNumToRender={10}
+          windowSize={5}
+        />
       )}
     </View>
   );
 }
+
+const BetCardKeyed = React.memo(({ row, idx, t, copyBetId, setConfirmCancelBetId, cancellingBetId, labelForType, getStatusColor, getStatusText, getBorderColor }) => {
+  const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
+  const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
+  const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
+  const statusColor = getStatusColor(verdict?.state);
+  const borderColor = getBorderColor(verdict?.state);
+  const isCancelling = cancellingBetId === betId;
+
+  return (
+    <View style={[styles.betCard, { borderColor }]}>
+      {verdict?.state === 'cancelled' && (
+        <View style={styles.cancelledOverlay}>
+          <Text style={styles.cancelledX}>✕</Text>
+        </View>
+      )}
+      <View style={styles.betCardRow}>
+        <Text style={styles.betIdxText}>#{idx + 1}</Text>
+        {session ? <View style={styles.sessionBadge}><Text style={styles.sessionBadgeText}>{session}</Text></View> : null}
+      </View>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.betIdLabel')}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={styles.betMono} numberOfLines={1}>{String(betId || '').slice(-8)}</Text>
+          <TouchableOpacity onPress={() => copyBetId(betId)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Text style={styles.copyIcon}>⎘</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {isScheduled && (
+        <View style={styles.scheduledBadge}>
+          <Text style={styles.scheduledText}>{t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}</Text>
+        </View>
+      )}
+      <Text style={styles.marketName} numberOfLines={1}>{(marketTitle || 'MARKET').toUpperCase()}</Text>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.gameLabel')}</Text>
+        <Text style={styles.betValue}>{labelForType(betType)}</Text>
+      </View>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.betLabel')}</Text>
+        <Text style={styles.betValue}>{betNumber != null ? String(betNumber) : '-'}</Text>
+      </View>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.pointsLabel')}</Text>
+        <Text style={styles.betValue}>{points}</Text>
+      </View>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.statusLabel')}</Text>
+        <Text style={[styles.betStatusValue, { color: statusColor }]}>
+          {getStatusText(verdict)}{verdict?.state === 'won' && verdict?.payout > 0 ? ` ₹${Number(verdict.payout).toLocaleString('en-IN')}` : ''}
+        </Text>
+      </View>
+      <View style={styles.betCardRow}>
+        <Text style={styles.betLabel}>{t('bids.timeLabel')}</Text>
+        <Text style={styles.betTimeValue}>{formatTxnTime(createdAt)}</Text>
+      </View>
+      {verdict?.state === 'pending' && canCancel?.canCancel && (
+        <TouchableOpacity
+          onPress={() => setConfirmCancelBetId(betId)}
+          disabled={isCancelling}
+          style={[styles.cancelBtn, isCancelling && { opacity: 0.6 }]}
+          activeOpacity={0.8}
+        >
+          {isCancelling
+            ? <ActivityIndicator size="small" color="#fff" />
+            : <Text style={styles.cancelBtnText}>{t('bids.cancelAndRefund')}</Text>}
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black, paddingHorizontal: spacing[3] },
@@ -617,8 +672,10 @@ const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyBox: { margin: spacing[4], borderRadius: borderRadius['2xl'], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#202124', padding: spacing[6], alignItems: 'center' },
   emptyText: { color: '#d1d5db', fontSize: fontSize.base },
-  listGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[3], paddingBottom: spacing[6] },
-  betCard: { width: '47.5%', backgroundColor: '#202124', borderRadius: borderRadius.lg, borderWidth: 2, padding: spacing[2], gap: 6 },
+  listColumnWrapper: { justifyContent: 'space-between', marginBottom: spacing[3] },
+  columnWrapper: { justifyContent: 'space-between' },
+  listGrid: { paddingBottom: spacing[6] },
+  betCard: { width: '48.5%', backgroundColor: '#202124', borderRadius: borderRadius.lg, borderWidth: 2, padding: spacing[2], gap: 6 },
   betCardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 },
   betIdxText: { color: colors.goldText, fontSize: 10, fontWeight: '600' },
   sessionBadge: { borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2 },

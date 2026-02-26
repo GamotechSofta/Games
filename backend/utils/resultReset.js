@@ -114,14 +114,23 @@ async function saveLastResetDateToDB(dateKey) {
     }
 }
 
+/** In-memory cache: we already ran the check for this IST date. Avoids running on every market API request. */
+let lastCheckedDateIST = null;
+
 /**
  * If we've crossed into a new calendar day (IST), save yesterday's results to history, then clear
  * openingNumber and closingNumber for all markets. View history (result-history by date) is preserved.
  * Called when fetching markets so admin and frontend always see reset results after midnight IST.
+ * Only runs the full check once per day (IST); subsequent calls in the same day return immediately.
  * @param {Model} Market - Mongoose Market model
  */
 export async function ensureResultsResetForNewDay(Market) {
     const today = getTodayIST();
+
+    // Already ran for today (either skipped or performed reset) — no DB, no logs
+    if (lastCheckedDateIST === today) {
+        return;
+    }
     
     console.log(`[resultReset] 🔍 Checking if reset needed for ${today}...`);
 
@@ -137,6 +146,7 @@ export async function ensureResultsResetForNewDay(Market) {
     // If we've already reset today, skip (use < instead of <= to allow same-day resets if needed)
     if (lastResetDate !== null && today <= lastResetDate) {
         console.log(`[resultReset] ✓ Already reset today (${today}), skipping`);
+        lastCheckedDateIST = today;
         return;
     }
 
@@ -173,6 +183,8 @@ export async function ensureResultsResetForNewDay(Market) {
     
     // Save today's date to database so we don't reset again until tomorrow
     await saveLastResetDateToDB(today);
+
+    lastCheckedDateIST = today;
     
     console.log(`[resultReset] ✅ Market reset completed successfully for ${today}`);
     console.log(`[resultReset] 📊 Summary: ${result.modifiedCount} markets reset, history preserved`);

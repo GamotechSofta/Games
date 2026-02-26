@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Image, StyleSheet, PanResponder, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect, useRef, memo } from 'react';
+import { View, StyleSheet, PanResponder, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 
 const BANNER_HEIGHT = 180;
 
@@ -11,7 +12,7 @@ const BANNERS = [
 ];
 
 // Frontend mobile: mt-2, h-[180px] object-cover, shadow, gradient overlay, swipe + auto 4s, dot indicators
-export default function BannersSection() {
+function BannersSection() {
   const [bannerIdx, setBannerIdx] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -69,7 +70,8 @@ export default function BannersSection() {
               <Image
                 source={{ uri }}
                 style={[styles.slide, { width, height: BANNER_HEIGHT }]}
-                resizeMode="cover"
+                contentFit="cover"
+                cachePolicy="memory-disk"
               />
             </View>
           ))}
@@ -138,3 +140,4 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.4)',
   },
 });
+export default memo(BannersSection);

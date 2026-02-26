@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
-    View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StyleSheet,
+    View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
@@ -96,41 +97,52 @@ export default function KingBazaarDashboard() {
             <View style={styles.divider} />
 
             {/* Groups Grid */}
-            <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-                {loadingGroups ? (
-                    [1, 2, 3].map((i) => (
-                        <View key={i} style={styles.skeletonCard} />
-                    ))
-                ) : groups.length === 0 ? (
+            <FlatList
+                data={groups}
+                renderItem={({ item, index }) => (
+                    <GroupCard
+                        item={item}
+                        imgUrl={KING_IMG_OVERRIDES[index % KING_IMG_OVERRIDES.length] || KING_DEFAULT_IMG}
+                        t={t}
+                        onPress={() => openKingBazaarMarket(item.key, item.label)}
+                    />
+                )}
+                keyExtractor={(item) => item.key}
+                numColumns={3}
+                columnWrapperStyle={styles.columnWrapper}
+                contentContainerStyle={styles.grid}
+                showsVerticalScrollIndicator={false}
+                removeClippedSubviews={true}
+                ListLoadingComponent={loadingGroups && [1, 2, 3].map((i) => (
+                    <View key={i} style={styles.skeletonCard} />
+                ))}
+                ListEmptyComponent={!loadingGroups && groups.length === 0 && (
                     <View style={styles.emptyBox}>
                         <Text style={styles.emptyText}>{t('startlineDashboard.noMarkets')}</Text>
                     </View>
-                ) : (
-                    groups.map((m, idx) => {
-                        const imgUrl = KING_IMG_OVERRIDES[idx % KING_IMG_OVERRIDES.length] || KING_DEFAULT_IMG;
-                        return (
-                            <TouchableOpacity
-                                key={m.key}
-                                onPress={() => openKingBazaarMarket(m.key, m.label)}
-                                style={styles.marketCard}
-                                activeOpacity={0.85}
-                            >
-                                <View style={styles.marketImageWrap}>
-                                    <Image
-                                        source={{ uri: imgUrl }}
-                                        style={styles.marketImage}
-                                        resizeMode="cover"
-                                    />
-                                </View>
-                                <Text style={styles.marketLabel} numberOfLines={2}>{m.label}</Text>
-                            </TouchableOpacity>
-                        );
-                    })
                 )}
-            </ScrollView>
+            />
         </View>
     );
 }
+
+const GroupCard = React.memo(({ item, imgUrl, t, onPress }) => (
+    <TouchableOpacity
+        onPress={onPress}
+        style={styles.marketCard}
+        activeOpacity={0.85}
+    >
+        <View style={styles.marketImageWrap}>
+            <Image
+                source={{ uri: imgUrl }}
+                style={styles.marketImage}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+            />
+        </View>
+        <Text style={styles.marketLabel} numberOfLines={2}>{item.label}</Text>
+    </TouchableOpacity>
+));
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.black },
@@ -143,9 +155,10 @@ const styles = StyleSheet.create({
     walletIcon: { fontSize: 20 },
     walletText: { color: colors.text, fontWeight: '700', fontSize: fontSize.base },
     divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginHorizontal: spacing[4] },
-    grid: { flexDirection: 'row', flexWrap: 'wrap', padding: spacing[4], gap: spacing[3], paddingBottom: 100 },
+    columnWrapper: { justifyContent: 'flex-start', gap: spacing[3] },
+    grid: { padding: spacing[4], paddingBottom: 100 },
     skeletonCard: { width: '30%', height: 130, backgroundColor: '#202124', borderRadius: borderRadius['2xl'], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-    emptyBox: { alignItems: 'center', paddingVertical: spacing[6] },
+    emptyBox: { flex: 1, alignItems: 'center', paddingVertical: spacing[6], width: '100%' },
     emptyText: { color: 'rgba(255,255,255,0.6)', fontSize: fontSize.sm },
     marketCard: { width: '30%', alignItems: 'center', padding: spacing[1] },
     marketImageWrap: {

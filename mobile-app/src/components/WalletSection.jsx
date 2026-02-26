@@ -14,7 +14,7 @@ const IS_MIN_375 = SCREEN_WIDTH >= 375;
 // Exact same as frontend Other Games: "flex items-center justify-center mt-4 min-[375px]:mt-5 mb-4 min-[375px]:mb-5 gap-1 min-[375px]:gap-2"
 // "flex-1 h-[2px] bg-white" lines, "gap-2" title row, "text-sm min-[375px]:text-base font-bold tracking-[0.15em] uppercase"
 // Grid: "gap-2 min-[375px]:gap-3 max-w-lg mx-auto"
-export default function WalletSection() {
+function WalletSection() {
   const { t } = useTranslation();
   const headerGap = IS_MIN_375 ? 8 : 4;
   const headerMt = IS_MIN_375 ? 20 : 16;
@@ -83,3 +83,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 });
+export default React.memo(WalletSection);

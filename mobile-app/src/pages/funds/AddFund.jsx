@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from '../../hooks/useTranslation';
 import { API_BASE_URL } from '../../config/api';
 import { storage } from '../../utils/storage';
+import { on } from '../../utils/events';
 import { colors, spacing, borderRadius, fontSize } from '../../theme';
 
 export default function AddFund() {
@@ -14,11 +15,19 @@ export default function AddFund() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    useEffect(() => {
+    const loadUser = useCallback(() => {
         storage.getItem('user').then((raw) => {
             try { setUser(raw ? JSON.parse(raw) : null); } catch { setUser(null); }
         });
     }, []);
+
+    useEffect(() => {
+        loadUser();
+        const unsub = on('userLogin', loadUser);
+        return () => unsub();
+    }, [loadUser]);
+
+    useFocusEffect(loadUser);
 
     const QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];
 
@@ -64,6 +73,27 @@ export default function AddFund() {
                 <Text style={styles.title}>{t('funds.addFund')}</Text>
             </View>
             <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {/* Wallet card: GoldenBets.com, balance, username (frontend ref) */}
+                <View style={styles.walletCard}>
+                    <View style={styles.walletCardHeader}>
+                        <Text style={styles.walletCardBrand}>GoldenBets.com</Text>
+                    </View>
+                    <View style={styles.walletCardBalanceStrip}>
+                        <View style={styles.walletRupeeCircle}>
+                            <Text style={styles.walletRupeeSign}>₹</Text>
+                        </View>
+                        <Text style={styles.walletBalanceText}>
+                            ₹ {(Number(user?.balance ?? user?.walletBalance ?? user?.wallet ?? 0) || 0).toLocaleString('en-IN')}
+                        </Text>
+                    </View>
+                    <View style={styles.walletCardFooter}>
+                        <Text style={styles.walletUsername}>{user?.username || user?.name || 'User'}</Text>
+                        <View style={styles.walletDots}>
+                            <View style={[styles.walletDot, { backgroundColor: '#ef4444' }]} />
+                            <View style={[styles.walletDot, { backgroundColor: colors.goldLight }]} />
+                        </View>
+                    </View>
+                </View>
                 <View style={styles.inputCard}>
                     <Text style={styles.fieldLabel}>{t('funds.enterAmount') || 'Enter Amount'} <Text style={styles.required}>*</Text></Text>
                     <View style={styles.inputRow}>
@@ -103,6 +133,17 @@ export default function AddFund() {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.black },
     header: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[3] },
+    walletCard: { backgroundColor: '#202124', borderRadius: borderRadius['2xl'], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden', marginBottom: spacing[4] },
+    walletCardHeader: { paddingHorizontal: spacing[4], paddingTop: spacing[3], paddingBottom: spacing[2], alignItems: 'center' },
+    walletCardBrand: { fontSize: fontSize.sm, color: '#d1d5db', fontWeight: '600', letterSpacing: 0.5 },
+    walletCardBalanceStrip: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], paddingHorizontal: spacing[4], paddingVertical: spacing[3], backgroundColor: '#cca84d', borderTopWidth: 0 },
+    walletRupeeCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.25)', borderWidth: 1, borderColor: 'rgba(0,0,0,0.2)', alignItems: 'center', justifyContent: 'center' },
+    walletRupeeSign: { fontSize: fontSize.sm, fontWeight: '800', color: colors.black },
+    walletBalanceText: { color: colors.black, fontWeight: '800', fontSize: fontSize.base },
+    walletCardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing[4], paddingVertical: spacing[3] },
+    walletUsername: { fontSize: fontSize.sm, color: 'rgba(255,255,255,0.9)' },
+    walletDots: { flexDirection: 'row', gap: 6 },
+    walletDot: { width: 12, height: 12, borderRadius: 6 },
     backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     backIcon: { color: colors.text, fontSize: 20, fontWeight: '600' },
     title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700' },

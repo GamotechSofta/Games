@@ -4,9 +4,11 @@ import { getBalance, updateUserBalance } from '../api/bets';
 import { clearUserAuth } from '../utils/auth';
 
 const HEARTBEAT_INTERVAL_MS = 60 * 1000; // 1 minute – also used to detect suspended accounts
+const MIN_VISIBILITY_INTERVAL_MS = 30 * 1000; // Throttle tab-focus requests to avoid 429
 
 export const useHeartbeat = () => {
   const intervalRef = useRef(null);
+  const lastVisibilityRef = useRef(0);
 
   useEffect(() => {
     const sendHeartbeat = async () => {
@@ -30,12 +32,6 @@ export const useHeartbeat = () => {
       }
     };
 
-    const userData = localStorage.getItem('user');
-    if (!userData) return;
-
-    sendHeartbeat();
-    intervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
-
     const refreshBalance = async () => {
       try {
         const res = await getBalance();
@@ -43,11 +39,19 @@ export const useHeartbeat = () => {
       } catch (_) {}
     };
 
+    const userData = localStorage.getItem('user');
+    if (!userData) return;
+
+    sendHeartbeat();
+    intervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        sendHeartbeat();
-        refreshBalance();
-      }
+      if (document.visibilityState !== 'visible') return;
+      const now = Date.now();
+      if (now - lastVisibilityRef.current < MIN_VISIBILITY_INTERVAL_MS) return;
+      lastVisibilityRef.current = now;
+      sendHeartbeat();
+      refreshBalance();
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
 

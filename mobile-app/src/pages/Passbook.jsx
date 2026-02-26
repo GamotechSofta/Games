@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
+import { updateUserBalance } from '../api/bets';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
 const formatDate = (dateStr) => {
@@ -60,7 +61,11 @@ export default function Passbook() {
       const txData = await txRes.json();
       const balData = await balRes.json();
       if (txData.success) setTransactions(txData.data || []);
-      if (balData.success) setBalance(balData.data?.balance ?? 0);
+      if (balData.success) {
+        const newBal = balData.data?.balance ?? 0;
+        setBalance(newBal);
+        updateUserBalance(newBal);
+      }
     } catch (err) {
       // ignore
     } finally {
@@ -96,11 +101,28 @@ export default function Passbook() {
     return Array.from(map.entries());
   }, [filtered]);
 
-  const filterOptions = [
-    { key: 'all', label: t('common.all'), count: transactions.length },
-    { key: 'credit', label: t('passbook.credited'), count: stats.creditCount },
-    { key: 'debit', label: t('passbook.withdrawn'), count: stats.debitCount },
-  ];
+  const sections = useMemo(() => {
+    return grouped.map(([date, data]) => ({ title: date, data }));
+  }, [grouped]);
+
+  const renderItem = useCallback(({ item, index, section }) => {
+    const isCredit = item.type === 'credit';
+    const isLast = index === section.data.length - 1;
+    return (
+      <TxItem
+        tx={item}
+        isCredit={isCredit}
+        isLast={isLast}
+        t={t}
+        formatTime={formatTime}
+        formatAmount={formatAmount}
+      />
+    );
+  }, [t]);
+
+  const renderSectionHeader = useCallback(({ section: { title } }) => (
+    <Text style={styles.groupDate}>{title}</Text>
+  ), []);
 
   return (
     <View style={styles.container}>
@@ -120,83 +142,84 @@ export default function Passbook() {
           <ActivityIndicator size="large" color={colors.goldLight} />
         </View>
       ) : (
-        <ScrollView
+        <SectionList
+          sections={sections}
+          keyExtractor={(item, index) => item._id || String(index)}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          stickySectionHeadersEnabled={false}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor={colors.goldLight} />}
           contentContainerStyle={styles.scrollContent}
-        >
-          {/* Balance Card */}
-          <View style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>{t('passbook.currentBalance')}</Text>
-            <Text style={styles.balanceValue}>₹{balance !== null ? formatAmount(balance) : '---'}</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statValue}>+₹{formatAmount(stats.totalCredit)}</Text>
-                <Text style={styles.statLabel}>{t('passbook.credited')} ({stats.creditCount})</Text>
+          initialNumToRender={20}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          ListHeaderComponent={
+            <>
+              {/* Balance Card */}
+              <View style={styles.balanceCard}>
+                <Text style={styles.balanceLabel}>{t('passbook.currentBalance')}</Text>
+                <Text style={styles.balanceValue}>₹{balance !== null ? formatAmount(balance) : '---'}</Text>
+                <View style={styles.statsRow}>
+                  <View style={styles.statItem}>
+                    <Text style={styles.statValue}>+₹{formatAmount(stats.totalCredit)}</Text>
+                    <Text style={styles.statLabel}>{t('passbook.credited')} ({stats.creditCount})</Text>
+                  </View>
+                  <View style={styles.statDivider} />
+                  <View style={styles.statItem}>
+                    <Text style={[styles.statValue, { color: '#f87171' }]}>-₹{formatAmount(stats.totalDebit)}</Text>
+                    <Text style={styles.statLabel}>{t('passbook.withdrawn')} ({stats.debitCount})</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Text style={[styles.statValue, { color: '#f87171' }]}>-₹{formatAmount(stats.totalDebit)}</Text>
-                <Text style={styles.statLabel}>{t('passbook.withdrawn')} ({stats.debitCount})</Text>
-              </View>
-            </View>
-          </View>
 
-          {/* Filter tabs */}
-          <View style={styles.filterRow}>
-            {filterOptions.map((fo) => (
-              <TouchableOpacity
-                key={fo.key}
-                onPress={() => setFilter(fo.key)}
-                style={[styles.filterTab, fo.key === filter && styles.filterTabActive]}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.filterTabText, fo.key === filter && styles.filterTabTextActive]}>
-                  {fo.label} {fo.count > 0 ? `(${fo.count})` : ''}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Transactions */}
-          {filtered.length === 0 ? (
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyText}>{t('passbook.noTransactions')}</Text>
-            </View>
-          ) : (
-            grouped.map(([date, txs]) => (
-              <View key={date}>
-                <Text style={styles.groupDate}>{date}</Text>
-                {txs.map((tx, idx) => {
-                  const isCredit = tx.type === 'credit';
-                  return (
-                    <View key={tx._id || idx} style={[styles.txCard, idx < txs.length - 1 && styles.txCardBorder]}>
-                      <View style={[styles.txIconWrap, { backgroundColor: isCredit ? 'rgba(67,179,106,0.1)' : 'rgba(248,113,113,0.1)' }]}>
-                        <Text style={{ fontSize: 18 }}>{isCredit ? '↓' : '↑'}</Text>
-                      </View>
-                      <View style={styles.txInfo}>
-                        <Text style={styles.txDesc} numberOfLines={1}>{tx.description || (isCredit ? t('passbook.creditEntry') : t('passbook.debitEntry'))}</Text>
-                        <Text style={styles.txTime}>{formatTime(tx.createdAt)}</Text>
-                      </View>
-                      <View style={styles.txAmtWrap}>
-                        <Text style={[styles.txAmount, { color: isCredit ? '#43b36a' : '#f87171' }]}>
-                          {isCredit ? '+' : '-'}₹{formatAmount(tx.amount)}
-                        </Text>
-                        {tx.balanceAfter != null && (
-                          <Text style={styles.txBalance}>₹{formatAmount(tx.balanceAfter)}</Text>
-                        )}
-                      </View>
-                    </View>
-                  );
-                })}
+              {/* Filter tabs */}
+              <View style={styles.filterRow}>
+                {filterOptions.map((fo) => (
+                  <TouchableOpacity
+                    key={fo.key}
+                    onPress={() => setFilter(fo.key)}
+                    style={[styles.filterTab, fo.key === filter && styles.filterTabActive]}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.filterTabText, fo.key === filter && styles.filterTabTextActive]}>
+                      {fo.label} {fo.count > 0 ? `(${fo.count})` : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ))
-          )}
-        </ScrollView>
+              {filtered.length === 0 && (
+                <View style={styles.emptyBox}>
+                  <Text style={styles.emptyText}>{t('passbook.noTransactions')}</Text>
+                </View>
+              )}
+            </>
+          }
+        />
       )}
     </View>
   );
 }
+
+const TxItem = React.memo(({ tx, isCredit, isLast, t, formatTime, formatAmount }) => (
+  <View style={[styles.txCard, !isLast && styles.txCardBorder]}>
+    <View style={[styles.txIconWrap, { backgroundColor: isCredit ? 'rgba(67,179,106,0.1)' : 'rgba(248,113,113,0.1)' }]}>
+      <Text style={{ fontSize: 18 }}>{isCredit ? '↓' : '↑'}</Text>
+    </View>
+    <View style={styles.txInfo}>
+      <Text style={styles.txDesc} numberOfLines={1}>{tx.description || (isCredit ? t('passbook.creditEntry') : t('passbook.debitEntry'))}</Text>
+      <Text style={styles.txTime}>{formatTime(tx.createdAt)}</Text>
+    </View>
+    <View style={styles.txAmtWrap}>
+      <Text style={[styles.txAmount, { color: isCredit ? '#43b36a' : '#f87171' }]}>
+        {isCredit ? '+' : '-'}₹{formatAmount(tx.amount)}
+      </Text>
+      {tx.balanceAfter != null && (
+        <Text style={styles.txBalance}>₹{formatAmount(tx.balanceAfter)}</Text>
+      )}
+    </View>
+  </View>
+));
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0b' },

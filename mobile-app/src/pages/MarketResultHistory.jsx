@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -105,27 +105,32 @@ export default function MarketResultHistory() {
       </View>
 
       {/* Results */}
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {resultsLoading ? (
-          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-            <View key={i} style={styles.skeletonCard} />
-          ))
-        ) : rows.length === 0 ? (
+      <FlatList
+        data={rows}
+        renderItem={({ item }) => <ResultRow r={item} />}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        ListLoadingComponent={resultsLoading && [1, 2, 3, 4, 5].map((i) => (
+          <View key={i} style={styles.skeletonCard} />
+        ))}
+        ListEmptyComponent={!resultsLoading && rows.length === 0 && (
           <View style={styles.emptyBox}>
             <Text style={styles.emptyText}>{t('bids.noMarketsFound')}</Text>
           </View>
-        ) : (
-          rows.map((r) => (
-            <View key={r.id} style={styles.resultCard}>
-              <Text style={styles.marketName} numberOfLines={1}>{r.name.toUpperCase()}</Text>
-              <Text style={styles.resultValue}>{r.result}</Text>
-            </View>
-          ))
         )}
-      </ScrollView>
+      />
     </View>
   );
 }
+
+const ResultRow = React.memo(({ r }) => (
+  <View style={styles.resultCard}>
+    <Text style={styles.marketName} numberOfLines={1}>{r.name.toUpperCase()}</Text>
+    <Text style={styles.resultValue}>{r.result}</Text>
+  </View>
+));
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },

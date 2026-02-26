@@ -145,6 +145,19 @@ export async function getBalance() {
   return data;
 }
 
+/** Fetches current balance from API, updates storage, and returns balance for display (e.g. in bet review modal). */
+export async function getBalanceForDisplay() {
+  const res = await getBalance();
+  if (res?.success && res.data?.balance != null) {
+    await updateUserBalance(res.data.balance);
+    return Number(res.data.balance) || 0;
+  }
+  const user = await getStoredUser();
+  const val = user?.wallet ?? user?.balance ?? user?.points ?? user?.walletAmount ?? user?.wallet_amount ?? user?.amount ?? 0;
+  const n = Number(val);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export async function getMyWalletTransactions(limit = 200) {
   const user = await getStoredUser();
   const userId = user?.id || user?._id;

@@ -33,7 +33,7 @@ export default function Funds() {
         <Text style={styles.title}>{t('funds.fundsTitle')}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false} removeClippedSubviews={true}>
         {items.map((item) => (
           <TouchableOpacity
             key={item.key}

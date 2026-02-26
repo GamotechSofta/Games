@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -133,57 +133,38 @@ export default function KingBazaarMarket() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <View key={i} style={styles.skeletonCard} />)
-          : items.map((m) => {
-            const timeLabel = formatTime12(m.startingTime) || '-';
-            const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
-            const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
-            const hasDeclaredClose = m.closingNumber != null && /^\d{3}$/.test(String(m.closingNumber));
-            const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
-            const marketStatus = isClosedForToday ? 'closed' : 'open';
-            const isClickable = !isClosedForToday;
-            const pill = formatKingBazaarJodi(m.displayResult);
+      <FlatList
+        data={items}
+        renderItem={({ item }) => (
+          <SlotCard
+            m={item}
+            tick={tick}
+            t={t}
+            onPress={() => {
+              const slotClosed = isSlotClosedTodayIST(item.startingTime, tick);
+              const hasDeclaredOpen = item.openingNumber != null && /^\d{3}$/.test(String(item.openingNumber));
+              const hasDeclaredClose = item.closingNumber != null && /^\d{3}$/.test(String(item.closingNumber));
+              const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
+              const marketStatus = isClosedForToday ? 'closed' : 'open';
 
-            const handleNavigate = () => {
-              if (!isClickable) { setShowClosedModal(true); return; }
-              const marketForBidOptions = m._raw
-                ? { ...(m._raw || {}), _id: m.id, marketName: m.marketName, gameName: m.marketName, startingTime: m.startingTime, closingTime: m.closingTime, openingNumber: m.openingNumber, closingNumber: m.closingNumber, status: m.status === 'running' ? 'running' : 'open' }
-                : { _id: 'king-demo-market', marketType: 'king', marketName: m.marketName, gameName: m.marketName, startingTime: m.startingTime, closingTime: m.closingTime, openingNumber: null, closingNumber: null, status: 'open' };
+              if (marketStatus === 'closed') { setShowClosedModal(true); return; }
+              const marketForBidOptions = item._raw
+                ? { ...(item._raw || {}), _id: item.id, marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: item.openingNumber, closingNumber: item.closingNumber, status: item.status === 'running' ? 'running' : 'open' }
+                : { _id: 'king-demo-market', marketType: 'king', marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: null, closingNumber: null, status: 'open' };
               navigation.navigate('BidOptions', {
                 marketType: 'king', market: marketForBidOptions,
                 kingBazaarMarketKey: marketKey, kingBazaarMarketLabel: marketLabel || 'King Bazaar',
               });
-            };
-
-            return (
-              <TouchableOpacity
-                key={m.id}
-                onPress={handleNavigate}
-                style={[styles.slotCard, isClosedForToday && { opacity: 0.9 }]}
-                activeOpacity={isClickable ? 0.85 : 1}
-              >
-                <View style={styles.timeBlock}>
-                  <Text style={styles.timeText}>{timeLabel}</Text>
-                  {marketStatus === 'closed' && (
-                    <Text style={styles.closedText}>{t('kingBazaarMarket.closeForToday')}</Text>
-                  )}
-                </View>
-                <View style={styles.resultPillWrap}>
-                  <View style={styles.resultPill}>
-                    <Text style={styles.resultPillText}>{pill}</Text>
-                  </View>
-                </View>
-                <TouchableOpacity onPress={handleNavigate} style={[styles.playBtn, isClosedForToday && { opacity: 0.7 }]} activeOpacity={0.8}>
-                  <Text style={styles.playIcon}>▶</Text>
-                  <Text style={styles.playText}>{t('kingBazaarMarket.playGame')}</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            );
-          })}
-      </ScrollView>
-
+            }}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => <View key={i} style={styles.skeletonCard} />)}
+      />
+      {/* Closed Modal */}
       <Modal visible={showClosedModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -205,6 +186,41 @@ export default function KingBazaarMarket() {
     </View>
   );
 }
+
+const SlotCard = React.memo(({ m, tick, t, onPress }) => {
+  const timeLabel = formatTime12(m.startingTime) || '-';
+  const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
+  const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
+  const hasDeclaredClose = m.closingNumber != null && /^\d{3}$/.test(String(m.closingNumber));
+  const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
+  const pill = formatKingBazaarJodi(m.displayResult);
+  const marketStatus = isClosedForToday ? 'closed' : 'open';
+  const isClickable = !isClosedForToday;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.slotCard, isClosedForToday && { opacity: 0.9 }]}
+      activeOpacity={isClickable ? 0.85 : 1}
+    >
+      <View style={styles.timeBlock}>
+        <Text style={styles.timeText}>{timeLabel}</Text>
+        {marketStatus === 'closed' && (
+          <Text style={styles.closedText}>{t('kingBazaarMarket.closeForToday')}</Text>
+        )}
+      </View>
+      <View style={styles.resultPillWrap}>
+        <View style={styles.resultPill}>
+          <Text style={styles.resultPillText}>{pill}</Text>
+        </View>
+      </View>
+      <TouchableOpacity onPress={onPress} style={[styles.playBtn, isClosedForToday && { opacity: 0.7 }]} activeOpacity={0.8}>
+        <Text style={styles.playIcon}>▶</Text>
+        <Text style={styles.playText}>{t('kingBazaarMarket.playGame')}</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },

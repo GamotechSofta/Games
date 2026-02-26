@@ -10,7 +10,7 @@ const NAV_ICONS = {
   Bids: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png',
   Funds: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png',
   Home: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777716/home_pvawyw.png',
-  SupportNew: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900219/customer-support_1_bibfxx.png',
+  Support: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900219/customer-support_1_bibfxx.png',
   Profile: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770900013/user_bsay8i.png',
 };
 
@@ -18,11 +18,11 @@ const NAV_ITEMS = [
   { id: 'my-bids', labelKey: 'navigation.myBets', name: 'Bids' },
   { id: 'funds', labelKey: 'navigation.funds', name: 'Funds' },
   { id: 'home', labelKey: 'navigation.home', name: 'Home', isCenter: true },
-  { id: 'support', labelKey: 'navigation.support', name: 'SupportNew' },
+  { id: 'support', labelKey: 'navigation.support', name: 'Support' },
   { id: 'profile', labelKey: 'navigation.profile', name: 'Profile' },
 ];
 
-export default function BottomNavbar() {
+function BottomNavbar() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
@@ -30,14 +30,17 @@ export default function BottomNavbar() {
 
   const isActive = (name) => {
     if (name === 'Home') return route.name === 'Home';
+    if (name === 'Support') return route.name === 'Support' || route.name === 'SupportNew' || route.name === 'SupportStatus';
     return route.name === name;
   };
 
+  // Frontend: paddingBottom max(0.375rem, safe-area), paddingLeft/Right max(0.5rem, safe-area)
   const paddingBottom = Math.max(6, insets.bottom);
-  const paddingHorizontal = Math.max(8, insets.left);
+  const paddingLeft = Math.max(8, insets.left);
+  const paddingRight = Math.max(8, insets.right);
 
   return (
-    <View style={[styles.container, { paddingBottom, paddingLeft: paddingHorizontal, paddingRight: paddingHorizontal }]}>
+    <View style={[styles.container, { paddingBottom, paddingLeft, paddingRight }]}>
       <View style={styles.backplate} />
       <View style={styles.inner}>
         {NAV_ITEMS.map((item) => {
@@ -57,7 +60,7 @@ export default function BottomNavbar() {
                     resizeMode="contain"
                   />
                 </View>
-                <Text style={[styles.label, active && styles.labelActive]}>{t(item.labelKey)}</Text>
+                <Text style={[styles.label, styles.centerLabel, active && styles.labelActive]}>{t(item.labelKey)}</Text>
               </TouchableOpacity>
             );
           }
@@ -99,16 +102,17 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.black,
   },
+  // Frontend: relative bg-black rounded-2xl border border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]
   inner: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-around',
     backgroundColor: colors.black,
-    borderRadius: borderRadius['2xl'],
+    borderRadius: 16, // rounded-2xl
     borderWidth: 1,
-    borderColor: '#374151',
-    paddingVertical: 6,
-    paddingHorizontal: 2,
+    borderColor: '#374151', // border-gray-700
+    paddingVertical: 6,   // py-1.5
+    paddingHorizontal: 2, // px-0.5
     minHeight: 52,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -116,35 +120,42 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
+  // Frontend: flex flex-col items-center justify-center gap-0.5 px-1 py-1 rounded-lg min-w-[48px]
   tab: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 4,
+    gap: 2,       // gap-0.5
+    paddingVertical: 4,   // py-1
+    paddingHorizontal: 4, // px-1
+    borderRadius: 8,      // rounded-lg
     minWidth: 48,
   },
   tabIcon: {
-    width: 20,
+    width: 20,    // w-5 h-5
     height: 20,
-    marginBottom: 2,
     opacity: 0.9,
-    tintColor: colors.text,
+    tintColor: colors.text, // inactive: white (brightness(0)_invert(1))
   },
   tabIconActive: {
     opacity: 1,
-    tintColor: colors.goldLight,
+    tintColor: colors.goldLight, // active: gold
+    transform: [{ scale: 1.05 }], // scale-105
   },
+  // Frontend: h-1 w-full flex justify-center for active dot
   dotWrap: {
-    height: 4,
+    height: 4,   // h-1
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   dot: {
-    width: 4,
+    width: 4,      // w-1 h-1 rounded-full bg-[#f3b61b]
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.goldLight,
   },
+  // Frontend: text-[9px] font-bold, active text-[#f3b61b] else text-white
   label: {
     fontSize: 9,
     fontWeight: '700',
@@ -153,12 +164,14 @@ const styles = StyleSheet.create({
   labelActive: {
     color: colors.goldLight,
   },
+  // Frontend: -mt-4 relative z-10 for center button
   centerBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -16,
+    marginTop: -16, // -mt-4
   },
   centerBtnActive: {},
+  // Frontend: w-12 h-12 rounded-full, active: bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1, inactive: bg-gray-800 border border-gray-700, shadow-[0_2px_8px_rgba(0,0,0,0.35)]
   centerIconWrap: {
     width: 48,
     height: 48,
@@ -168,23 +181,34 @@ const styles = StyleSheet.create({
     borderColor: '#374151',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
   },
   centerIconWrapActive: {
-    backgroundColor: '#f3b61b',
+    backgroundColor: colors.goldLight, // #f3b61b
     borderWidth: 2,
-    borderColor: 'rgba(243,182,27,0.6)',
-    shadowColor: '#f3b61b',
+    borderColor: 'rgba(243,182,27,0.6)', // ring-[#f3b61b]/60
+    shadowColor: colors.goldLight,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 4,
+    transform: [{ scale: 1.05 }], // scale-105
   },
   centerIcon: {
-    width: 22,
-    height: 22,
-    tintColor: colors.text,
+    width: 20,    // match frontend w-5 h-5 inside circle
+    height: 20,
+    tintColor: colors.text, // inactive: white
   },
   centerIconActive: {
-    tintColor: colors.black,
+    tintColor: colors.black, // active: brightness(0) on yellow bg
+  },
+  // Frontend: center label mt-0.5
+  centerLabel: {
+    marginTop: 2,
   },
 });
+export default React.memo(BottomNavbar);

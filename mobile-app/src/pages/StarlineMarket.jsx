@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -118,69 +118,42 @@ export default function StarlineMarket() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <View key={i} style={styles.skeletonCard} />)
-          : items.map((m) => {
-            const timeLabel = formatTime12(m.startingTime) || '-';
-            const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
-            const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
-            const isClosedForToday = slotClosed || hasDeclaredOpen;
-            const pill = `${hasDeclaredOpen ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
-            const marketStatus = isClosedForToday ? 'closed' : 'open';
-            const isClickable = !isClosedForToday;
+      <FlatList
+        data={items}
+        renderItem={({ item }) => (
+          <SlotCard
+            m={item}
+            tick={tick}
+            t={t}
+            onPress={() => {
+              const hasDeclaredOpen = item.openingNumber != null && /^\d{3}$/.test(String(item.openingNumber));
+              const slotClosed = isSlotClosedTodayIST(item.startingTime, tick);
+              const isClosedForToday = slotClosed || hasDeclaredOpen;
+              const marketStatus = isClosedForToday ? 'closed' : 'open';
 
-            const handlePlay = () => {
               if (marketStatus === 'closed') { setShowClosedModal(true); return; }
               navigation.navigate('BidOptions', {
                 marketType: 'starline',
                 market: {
-                  _id: m.id, marketName: m.marketName, gameName: m.marketName,
-                  startingTime: m.startingTime, closingTime: m.closingTime,
-                  openingNumber: m.openingNumber, closingNumber: m.closingNumber,
+                  _id: item.id, marketName: item.marketName, gameName: item.marketName,
+                  startingTime: item.startingTime, closingTime: item.closingTime,
+                  openingNumber: item.openingNumber, closingNumber: item.closingNumber,
                   status: marketStatus,
                 },
                 starlineMarketKey: marketKey,
                 starlineMarketLabel: marketLabel || 'Starline',
               });
-            };
-
-            return (
-              <TouchableOpacity
-                key={m.id}
-                onPress={handlePlay}
-                style={[styles.slotCard, isClosedForToday && { opacity: 0.9 }]}
-                activeOpacity={isClickable ? 0.85 : 1}
-              >
-                {/* Time + Status */}
-                <View style={styles.timeBlock}>
-                  <Text style={styles.timeText}>{timeLabel}</Text>
-                  {marketStatus === 'closed' && (
-                    <Text style={styles.closedText}>{t('starlineMarket.closeForToday')}</Text>
-                  )}
-                </View>
-
-                {/* Result pill */}
-                <View style={styles.resultPillWrap}>
-                  <View style={styles.resultPill}>
-                    <Text style={styles.resultPillText}>{pill}</Text>
-                  </View>
-                </View>
-
-                {/* Play button */}
-                <TouchableOpacity
-                  onPress={handlePlay}
-                  style={[styles.playBtn, isClosedForToday && { opacity: 0.7 }]}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.playIcon}>▶</Text>
-                  <Text style={styles.playText}>{t('starlineMarket.playGame')}</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            );
-          })}
-      </ScrollView>
-
+            }}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => (
+          <View key={i} style={styles.skeletonCard} />
+        ))}
+      />
       {/* Closed Modal */}
       <Modal visible={showClosedModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -203,6 +176,45 @@ export default function StarlineMarket() {
     </View>
   );
 }
+
+const SlotCard = React.memo(({ m, tick, t, onPress }) => {
+  const timeLabel = formatTime12(m.startingTime) || '-';
+  const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
+  const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));
+  const isClosedForToday = slotClosed || hasDeclaredOpen;
+  const pill = `${hasDeclaredOpen ? String(m.openingNumber) : '***'} - ${openDigit(m.openingNumber)}`;
+  const marketStatus = isClosedForToday ? 'closed' : 'open';
+  const isClickable = !isClosedForToday;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.slotCard, isClosedForToday && { opacity: 0.9 }]}
+      activeOpacity={isClickable ? 0.85 : 1}
+    >
+      <View style={styles.timeBlock}>
+        <Text style={styles.timeText}>{timeLabel}</Text>
+        {marketStatus === 'closed' && (
+          <Text style={styles.closedText}>{t('starlineMarket.closeForToday')}</Text>
+        )}
+      </View>
+      <View style={styles.resultPillWrap}>
+        <View style={styles.resultPill}>
+          <Text style={styles.resultPillText}>{pill}</Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        onPress={onPress}
+        style={[styles.playBtn, isClosedForToday && { opacity: 0.7 }]}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.playIcon}>▶</Text>
+        <Text style={styles.playText}>{t('starlineMarket.playGame')}</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+});
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },

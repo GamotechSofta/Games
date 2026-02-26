@@ -10,7 +10,7 @@ import { colors, spacing, borderRadius, fontSize } from '../theme';
 // Match frontend SubHeader (mobile): wallet icon + balance (left), single "Deposit/Withdrawal" button (right), border-t amber-500/60
 const WALLET_ICON = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png';
 
-export default function SubHeader() {
+function SubHeader() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [balance, setBalance] = useState(null);
@@ -23,21 +23,25 @@ export default function SubHeader() {
     setBalance(Number(b));
   }, []);
 
+  const fetchBalanceFromApi = useCallback(async () => {
+    const userStr = await storage.getItem('user');
+    if (!userStr) return;
+    const res = await getBalance();
+    if (res.success && res.data?.balance != null) {
+      await updateUserBalance(res.data.balance);
+      setBalance(res.data.balance);
+    }
+  }, []);
+
   useEffect(() => {
     loadBalance();
-    const fetchBalance = async () => {
-      const userStr = await storage.getItem('user');
-      if (!userStr) return;
-      const res = await getBalance();
-      if (res.success && res.data?.balance != null) {
-        await updateUserBalance(res.data.balance);
-        setBalance(res.data.balance);
-      }
-    };
-    fetchBalance();
-    const unsub = on('userLogin', loadBalance);
+    fetchBalanceFromApi();
+    const unsub = on('userLogin', () => {
+      loadBalance();
+      fetchBalanceFromApi();
+    });
     return () => unsub();
-  }, [loadBalance]);
+  }, [loadBalance, fetchBalanceFromApi]);
 
   const displayBalance = balance != null ? Number(balance) : 0;
   const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
@@ -100,3 +104,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 });
+export default React.memo(SubHeader);

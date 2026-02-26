@@ -24,11 +24,10 @@ export function useRefreshOnMarketReset(refetch, intervalMs = 60000) {
     lastDateKeyRef.current = getTodayIST();
     const interval = setInterval(checkAndRefetch, intervalMs);
 
+    // Only refetch when app becomes active if the date changed (midnight IST), not every time.
+    // Matches frontend: visibilitychange refetches; we avoid "Too many requests" on mobile.
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        refetchRef.current?.();
-        lastDateKeyRef.current = getTodayIST();
-      }
+      if (state === 'active') checkAndRefetch();
     });
 
     return () => {

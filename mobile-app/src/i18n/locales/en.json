@@ -495,7 +495,14 @@
     "totalBetAmount": "Total Bet Amount",
     "walletBalanceBeforeDeduction": "Wallet Before",
     "walletBalanceAfterDeduction": "Wallet After",
-    "betNoteCannotCancel": "Note: Bets cannot be cancelled once placed."
+    "betNoteCannotCancel": "Note: Bets cannot be cancelled once placed.",
+    "pleaseTryAgainShortly": "Server is busy. Please try again in a moment.",
+    "stillBusyRetryLater": "Still busy. Wait a few seconds and tap Submit Bet again.",
+    "betPlacedSuccessfully": "Your Bet Placed Successfully",
+    "ok": "OK",
+    "flip": "Flip",
+    "apply": "Apply",
+    "allPts": "All pts"
   },
   "topWinners": {
     "title": "Top Winners",
@@ -564,6 +571,7 @@
     "skillsGamesLine2": "Games",
     "tapToPlay": "Tap to Play",
     "noMarketsAvailable": "No markets available",
+    "marketsLoadError": "Couldn't load markets. Pull down to refresh.",
     "marketIsOpen": "MARKET IS OPEN",
     "closingIsRunning": "CLOSING IS RUNNING",
     "marketClosed": "MARKET CLOSED",
