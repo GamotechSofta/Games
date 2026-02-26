@@ -1,10 +1,15 @@
 /**
  * Simple event emitter for app-level events (replaces window.dispatchEvent in RN).
+ * Events:
+ *   'userLogin'       – user logged in, reload profile
+ *   'userLogout'      – user logged out, clear profile
+ *   'balanceUpdated'  – only balance changed, no need to reload full profile
+ *   'notificationsSeen' – notification count changed
  */
 const listeners = {};
 
-export function emit(eventName) {
-  (listeners[eventName] || []).forEach((fn) => { try { fn(); } catch (_) {} });
+export function emit(eventName, payload) {
+  (listeners[eventName] || []).forEach((fn) => { try { fn(payload); } catch (_) { } });
 }
 
 export function on(eventName, fn) {

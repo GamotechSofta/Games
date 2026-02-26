@@ -502,7 +502,8 @@
     "ok": "OK",
     "flip": "Flip",
     "apply": "Apply",
-    "allPts": "All pts"
+    "allPts": "All pts",
+    "clear": "Clear"
   },
   "topWinners": {
     "title": "Top Winners",
@@ -538,6 +539,9 @@
   },
   "games": {
     "otherGames": "Other Games",
+    "casinoGames": "Casino Games",
+    "skillsGames": "Skills Games",
+    "allGames": "All Games",
     "comingSoon": "Coming Soon",
     "tapToPlay": "Tap to Play"
   },
@@ -575,7 +579,31 @@
     "marketIsOpen": "MARKET IS OPEN",
     "closingIsRunning": "CLOSING IS RUNNING",
     "marketClosed": "MARKET CLOSED",
-    "runningForTomorrow": "Running for tomorrow"
+    "runningForTomorrow": "Running for tomorrow",
+    "names": {
+      "milanMorning": "Milan Morning",
+      "rajdhaniMorning": "Rajdhani Morning",
+      "shridevi": "Shridevi",
+      "timeBazar": "Time Bazar",
+      "punaBazar": "Puna Bazar",
+      "prabhat": "Prabhat",
+      "bombayDay": "Bombay Day",
+      "shaktiDay": "Shakti Day",
+      "milanDay": "Milan Day",
+      "kalyan": "Kalyan",
+      "kalyanMorning": "Kalyan Morning",
+      "radhaNight": "Radha Night",
+      "shrideviNight": "Shridevi Night",
+      "milanNight": "Milan Night",
+      "kalyanNight": "Kalyan Night",
+      "bombayNight": "Bombay Night",
+      "rajdhaniNight": "Rajdhani Night",
+      "ratanKhatri": "Ratan Khatri",
+      "madhurDay": "Madhur Day",
+      "madhurNight": "Madhur Night",
+      "mainBazar": "Main Bazar",
+      "dhanlaxmi": "Dhanlaxmi"
+    }
   },
   "language": {
     "english": "English",

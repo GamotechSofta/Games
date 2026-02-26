@@ -15,12 +15,18 @@ function getSnapshot() {
  * Use this instead of react-i18next's useTranslation to avoid "Property 'useTranslation' doesn't exist" in RN/Hermes.
  */
 export function useTranslation(ns) {
-  const lang = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const language = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   const t = useCallback(
     (key, options) => {
       return i18n.t(key, { ns: ns || 'translation', ...options });
     },
-    [lang, ns]
+    [language, ns]
   );
-  return { t, i18n, ready: !!i18n.isInitialized };
+  return { t, i18n, language, ready: !!i18n.isInitialized };
+}
+
+/** BCP 47 locale for Intl (dates, numbers). Use with useTranslation().language */
+export function getLocaleForIntl(lang) {
+  const code = (lang || i18n.language || 'en').split('-')[0];
+  return code === 'en' ? 'en-IN' : `${code}-IN`;
 }

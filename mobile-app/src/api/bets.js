@@ -34,8 +34,9 @@ export async function updateUserBalance(newBalance) {
     const user = userStr ? JSON.parse(userStr) : {};
     user.balance = newBalance;
     await storage.setItem('user', JSON.stringify(user));
-    emit('userLogin');
-  } catch (_) {}
+    // Emit dedicated balance event — NOT userLogin — to prevent full profile reload cascade
+    emit('balanceUpdated', newBalance);
+  } catch (_) { }
 }
 
 export async function placeBet(marketId, bets, scheduledDate) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../hooks/useTranslation';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
@@ -24,6 +25,7 @@ const getWalletFromStorage = async () => {
 
 const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -100,16 +102,20 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     const marketTitle = market?.gameName || market?.marketName || title;
     const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
 
+    const bottomPadding = Math.max(insets.bottom, 12) + 72; // tab bar + safe area
+    const submitBarHeight = 12 + 52 + bottomPadding;
+
     return (
         <BidLayout market={market} title={title} bidsCount={reviewRows.length} totalPoints={totalPoints} session={session} setSession={setSession} showDateSession={!!scheduleForTomorrow} displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined} walletBalance={walletBefore} hideFooter onSubmit={openReview}>
             <View style={s.content}>
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
-                <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+                <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: submitBarHeight }]}>
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => {
                         const groupKey = String(d);
                         const list = doublePanasBySumDigit[groupKey] || [];
@@ -118,14 +124,14 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             <View key={groupKey} style={s.group}>
                                 <View style={s.groupHeader}>
                                     <View style={s.groupLabel}><Text style={s.groupLabelText}>{groupKey}</Text></View>
-                                    <TextInput style={s.groupInput} value={groupBulk[groupKey]} onChangeText={(v) => setGroupBulk((p) => ({ ...p, [groupKey]: sanitizePoints(v) }))} onBlur={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])} placeholder={t('gameBid.allPts')} placeholderTextColor="#6b7280" />
+                                    <TextInput style={s.groupInput} value={groupBulk[groupKey]} onChangeText={(v) => setGroupBulk((p) => ({ ...p, [groupKey]: sanitizePoints(v) }))} onBlur={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])} placeholder={t('gameBid.allPts')} placeholderTextColor="#6b7280" keyboardType="numeric" />
                                     <TouchableOpacity style={s.applyBtn} onPress={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])}><Text style={s.applyBtnText}>{t('gameBid.apply')}</Text></TouchableOpacity>
                                 </View>
                                 <View style={s.panaRow}>
                                     {list.map((num) => (
                                         <View key={num} style={s.panaCell}>
                                             <View style={s.panaLabel}><Text style={s.panaLabelText}>{num}</Text></View>
-                                            <TextInput style={s.panaInput} value={specialInputs[num]} onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: sanitizePoints(v) }))} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" />
+                                            <TextInput style={s.panaInput} value={specialInputs[num]} onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: sanitizePoints(v) }))} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" />
                                         </View>
                                     ))}
                                 </View>
@@ -133,9 +139,12 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                         );
                     })}
                 </ScrollView>
-                <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={openReview} disabled={!canSubmit}>
-                    <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
-                </TouchableOpacity>
+                {/* Frontend: fixed bottom-[88px], always visible; disabled = opacity-50 */}
+                <View style={[s.submitBtnWrap, { paddingBottom: bottomPadding }]}>
+                    <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={openReview} disabled={!canSubmit} activeOpacity={0.98}>
+                        <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
             <BidReviewModal open={isReviewOpen} onClose={clearAll} onSubmit={handleSubmit} marketTitle={marketTitle} dateText={dateText} labelKey={t('gameBid.pana')} rows={reviewRows} walletBefore={walletBefore} totalBids={reviewRows.length} totalAmount={totalPoints} />
         </BidLayout>
@@ -143,10 +152,11 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingVertical: 8 },
+    content: { flex: 1, paddingHorizontal: 12, paddingTop: 16 },
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
-    scroll: { maxHeight: 340 },
+    scroll: { flex: 1 },
+    scrollContent: { paddingBottom: 16 },
     group: { marginBottom: 16 },
     groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
     groupLabel: { width: 36, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
@@ -160,9 +170,10 @@ const s = StyleSheet.create({
     panaLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
     panaInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
     moreHint: { color: '#9ca3af', fontSize: 11 },
-    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+    submitBtnWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 12, paddingHorizontal: 12, backgroundColor: '#000' },
+    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 52, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },
-    submitBtnText: { color: '#4b3608', fontWeight: '700' },
+    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 16 },
 });
 
 export default DoublePanaBulkBid;

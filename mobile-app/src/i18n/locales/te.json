@@ -504,6 +504,9 @@
   },
   "games": {
     "otherGames": "ఇతర గేమ్‌లు",
+    "casinoGames": "కాసినో గేమ్స్",
+    "skillsGames": "స్కిల్స్ గేమ్స్",
+    "allGames": "అన్ని గేమ్‌లు",
     "comingSoon": "త్వరలో వస్తుంది",
     "tapToPlay": "ఆడడానికి టాప్ చేయండి"
   },
@@ -536,7 +539,31 @@
     "marketIsOpen": "మార్కెట్ తెరిచి ఉంది",
     "closingIsRunning": "మూసివేయబడుతోంది",
     "marketClosed": "మార్కెట్ మూసివేయబడింది",
-    "runningForTomorrow": "రేపటికి నడుస్తోంది"
+    "runningForTomorrow": "రేపటికి నడుస్తోంది",
+    "names": {
+      "milanMorning": "మిలాన్ మార్నింగ్",
+      "rajdhaniMorning": "రాజ్ధానీ మార్నింగ్",
+      "shridevi": "శ్రీదేవి",
+      "timeBazar": "టైమ్ బజార్",
+      "punaBazar": "పుణా బజార్",
+      "prabhat": "ప్రభాత్",
+      "bombayDay": "బొంబే డే",
+      "shaktiDay": "శక్తి డే",
+      "milanDay": "మిలాన్ డే",
+      "kalyan": "కల్యాణ్",
+      "kalyanMorning": "కల్యాణ్ మార్నింగ్",
+      "radhaNight": "రాధా నైట్",
+      "shrideviNight": "శ్రీదేవి నైట్",
+      "milanNight": "మిలాన్ నైట్",
+      "kalyanNight": "కల్యాణ్ నైట్",
+      "bombayNight": "బొంబే నైట్",
+      "rajdhaniNight": "రాజ్ధానీ నైట్",
+      "ratanKhatri": "రతన్ ఖత్రి",
+      "madhurDay": "మధుర్ డే",
+      "madhurNight": "మధుర్ నైట్",
+      "mainBazar": "మెయిన్ బజార్",
+      "dhanlaxmi": "ధనలక్ష్మి"
+    }
   },
   "language": {
     "english": "ఆంగ్లం",

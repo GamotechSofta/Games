@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Clipboard, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from '../hooks/useTranslation';
+import { useTranslation, getLocaleForIntl } from '../hooks/useTranslation';
 import { storage } from '../utils/storage';
 import { clearUserAuth } from '../utils/auth';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
@@ -18,7 +18,7 @@ const pick = (obj, keys) => {
 
 export default function Profile() {
   const navigation = useNavigation();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [user, setUser] = useState(null);
   const [toast, setToast] = useState('');
   const [copiedField, setCopiedField] = useState('');
@@ -51,7 +51,7 @@ export default function Profile() {
   const userId = user?.id || user?._id || t('profile.na');
   const avatarInitial = (form.username || 'U').charAt(0).toUpperCase();
   const memberSince = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(user.createdAt).toLocaleDateString(getLocaleForIntl(language), { year: 'numeric', month: 'long', day: 'numeric' })
     : null;
 
   const showToast = (msg) => {

@@ -2,13 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Modal, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useTranslation } from '../hooks/useTranslation';
+import { useTranslation, getLocaleForIntl } from '../hooks/useTranslation';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { storage } from '../utils/storage';
 import { on, emit } from '../utils/events';
 import { clearUserAuth } from '../utils/auth';
 import LanguageSwitcher from './LanguageSwitcher';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+
+const inCurrencyFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
 
 // Match frontend AppHeader: hamburger opens drawer with profile + menu items (My Bets, Funds, Game Rate, Telegram, Help Desk, Share App, Logout)
 const LOGO_URL = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771571553/Brown_Mascot_Lion_Free_Logo_sfqwsj.png';
@@ -22,7 +24,7 @@ const ICON_LOGOUT = 'https://res.cloudinary.com/dzd47mpdo/image/upload/v17697989
 function AppHeader() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [user, setUser] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,22 +60,30 @@ function AppHeader() {
       setNotificationCount(0);
     });
     const unsubNotif = on('notificationsSeen', refreshNotificationCount);
+    // Update balance in the drawer without reloading full user profile
+    const unsubBalance = on('balanceUpdated', (newBal) => {
+      if (newBal != null) {
+        setUser((prev) => prev ? { ...prev, balance: newBal } : prev);
+      }
+    });
 
     return () => {
       unsubLogin();
       unsubLogout();
       unsubNotif();
+      unsubBalance();
     };
   }, [loadUser, refreshNotificationCount]);
 
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
   const displayName = user?.username || user?.name || t('header.signIn');
   const displayPhone = user?.phone || user?.mobile || user?.mobileNumber || user?.phoneNumber || user?.email || '-';
   const sinceDateRaw = user?.createdAt || user?.created_at;
   const sinceDate = sinceDateRaw ? new Date(sinceDateRaw) : null;
   const sinceText = sinceDate && !Number.isNaN(sinceDate.getTime())
-    ? `${t('header.since')} ${sinceDate.toLocaleDateString('en-GB')}`
+    ? `${t('header.since')} ${sinceDate.toLocaleDateString(getLocaleForIntl(language))}`
     : `${t('header.since')} -`;
   const avatarInitial = displayName ? String(displayName).charAt(0).toUpperCase() : 'U';
 
@@ -84,6 +94,10 @@ function AppHeader() {
 
   const handleMenuAction = (item) => {
     closeMenu();
+    if (item.key === 'language') {
+      setIsLanguageModalOpen(true);
+      return;
+    }
     if (item.key === 'logout') {
       emit('userLogout');
       clearUserAuth();
@@ -92,11 +106,12 @@ function AppHeader() {
     if (item.screen) navigation.navigate(item.screen);
   };
 
-  // Menu items matching frontend hamburger: My Bets, Funds, Update Rate, Telegram, Help Desk, Share App, Logout
+  // Menu items matching frontend: My Bets, Funds, Game Rate, Language, Telegram, Help Desk, Share App, Logout
   const menuItems = [
     { key: 'myBets', label: t('header.myBets'), screen: 'Bids', icon: 'image', uri: ICON_MY_BETS },
     { key: 'funds', label: t('header.funds'), screen: 'Funds', icon: 'image', uri: ICON_FUNDS },
     { key: 'updateRate', label: t('header.updateRate'), screen: 'GameRate', icon: 'svg' },
+    { key: 'language', label: t('header.language'), screen: null, icon: 'svg' },
     { key: 'telegramChannel', label: t('header.telegramChannel'), screen: 'Support', icon: 'image', uri: ICON_TELEGRAM },
     { key: 'helpDesk', label: t('header.helpDesk'), screen: 'Support', icon: 'image', uri: ICON_HELP },
     { key: 'shareApp', label: t('header.shareApp'), screen: 'Support', icon: 'image', uri: ICON_SHARE },
@@ -124,11 +139,7 @@ function AppHeader() {
           </TouchableOpacity>
         </View>
         <View style={styles.right}>
-          <LanguageSwitcher />
-          <TouchableOpacity style={styles.downloadBtn} onPress={() => navigation.navigate('Download')} activeOpacity={0.95}>
-            <Text style={styles.downloadIcon}>↓</Text>
-            <Text style={styles.downloadText}>{t('header.downloadApp')}</Text>
-          </TouchableOpacity>
+          <LanguageSwitcher open={isLanguageModalOpen} onClose={() => setIsLanguageModalOpen(false)} />
           <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')} activeOpacity={0.95}>
             <Text style={styles.notifIcon}>🔔</Text>
             {notificationCount > 0 && (
@@ -160,7 +171,7 @@ function AppHeader() {
                   <Text style={styles.profileSince}>{sinceText}</Text>
                   {user && (
                     <Text style={styles.profileBalance}>
-                      ₹ {(Number(user?.balance ?? user?.walletBalance ?? user?.wallet ?? 0) || 0).toLocaleString('en-IN')}
+                      ₹ {inCurrencyFormatter.format(Number(user?.balance ?? user?.walletBalance ?? user?.wallet ?? 0) || 0)}
                     </Text>
                   )}
                 </View>
@@ -184,6 +195,8 @@ function AppHeader() {
                       <Image source={{ uri: item.uri }} style={styles.menuItemImg} resizeMode="contain" />
                     ) : item.key === 'updateRate' ? (
                       <Text style={styles.menuItemSvg}>₹</Text>
+                    ) : item.key === 'language' ? (
+                      <Text style={styles.menuItemSvg}>🌐</Text>
                     ) : null}
                   </View>
                   <Text style={styles.menuItemLabel}>{item.label}</Text>
@@ -242,20 +255,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     minWidth: 0,
   },
-  downloadBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderRadius: borderRadius.lg,
-    minWidth: 36,
-    minHeight: 36,
-    justifyContent: 'center',
-    backgroundColor: colors.goldLight,
-  },
-  downloadIcon: { fontSize: 16, color: colors.black },
-  downloadText: { color: colors.black, fontWeight: '700', fontSize: fontSize.xs },
   notifBtn: {
     width: 36,
     height: 36,
@@ -382,4 +381,4 @@ const styles = StyleSheet.create({
   menuItemArrow: { color: 'rgba(255,255,255,0.3)', fontSize: 20, fontWeight: '300' },
   versionText: { textAlign: 'center', color: '#6b7280', fontSize: 10, marginTop: 8, marginBottom: 16 },
 });
-export default React.memo(AppHeader);
+export default AppHeader;

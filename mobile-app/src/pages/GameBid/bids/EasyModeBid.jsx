@@ -56,7 +56,7 @@ const EasyModeBid = ({
     const isRunning = market?.status === 'running';
     useEffect(() => {
         if (lockSessionToOpen && session !== 'OPEN') setSession('OPEN');
-        else if (isRunning) setSession('CLOSE');
+        else if (isRunning && session !== 'CLOSE') setSession('CLOSE');
     }, [isRunning, lockSessionToOpen, session]);
 
     useEffect(() => {
@@ -152,6 +152,31 @@ const EasyModeBid = ({
         else if (validPanasForSumMode?.length) setSpecialInputs(Object.fromEntries(validPanasForSumMode.map((n) => [n, ''])));
     };
 
+    const findPanaBySum = (targetNum) => {
+        if (!isPanaSumMode || !validPanasForSumMode?.length) return [];
+        return validPanasForSumMode.filter((pana) => {
+            const sum = pana.split('').reduce((a, b) => a + Number(b), 0);
+            return sum === targetNum || (sum % 10) === targetNum;
+        });
+    };
+
+    const handleKeypadClick = (num) => {
+        if (!isPanaSumMode) return;
+        const pts = Number(inputPoints);
+        const matches = findPanaBySum(num);
+        if (!matches.length) {
+            showWarning(`No ${specialModeType === 'doublePana' ? 'double' : 'single'} pana found with sum ${num}`);
+            return;
+        }
+        if (pts && pts > 0) {
+            const toAdd = matches.map((m) => ({ id: Date.now() + Math.random(), number: m, points: String(pts), type: session }));
+            setBids((prev) => mergeBids(prev, toAdd));
+            showWarning(`Added ${matches.length} pana numbers with sum ${num}`);
+        } else {
+            showWarning(`Found ${matches.length} pana numbers. Enter points to add.`);
+        }
+    };
+
     const clearAll = () => {
         setIsReviewOpen(false);
         setBids([]);
@@ -181,14 +206,27 @@ const EasyModeBid = ({
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
+
+    const pointsBySum = useMemo(() => {
+        if (!isPanaSumMode || !validPanasForSumMode?.length) return {};
+        const map = {};
+        for (const b of bids) {
+            if (validPanasForSumMode.includes(b.number)) {
+                const sum = b.number.split('').reduce((a, c) => a + Number(c), 0);
+                const d = sum % 10;
+                map[d] = (map[d] || 0) + (Number(b.points) || 0);
+            }
+        }
+        return map;
+    }, [bids, isPanaSumMode, validPanasForSumMode]);
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
     const labelKey = label ? label.split(' ').pop() : 'Number';
     const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
     const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-
     const canSubmitSpecial = bids.length > 0 || Object.values(specialInputs).some((v) => Number(v) > 0);
 
     const modeTabs = showModeTabs ? (
@@ -256,6 +294,7 @@ const EasyModeBid = ({
                                                 style={s.specialInput}
                                                 placeholder={t('gameBid.pts')}
                                                 placeholderTextColor="#6b7280"
+                                                keyboardType="numeric"
                                                 value={specialInputs[num] || ''}
                                                 onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: v.replace(/\D/g, '').slice(0, 6) }))}
                                             />
@@ -268,7 +307,7 @@ const EasyModeBid = ({
                                     </TouchableOpacity>
                                 )}
                             </ScrollView>
-                        ) : (specialModeType === 'doublePana' || specialModeType === 'singlePana') && validPanasForSumMode?.length > 0 ? (
+                        ) : isPanaSumMode ? (
                             <ScrollView style={s.specialScroll} showsVerticalScrollIndicator={false}>
                                 <View style={s.inputRow}>
                                     <Text style={s.label}>{t('gameBid.selectGameType')}:</Text>
@@ -276,17 +315,25 @@ const EasyModeBid = ({
                                 </View>
                                 <View style={s.inputRow}>
                                     <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                                    <TextInput style={s.input} value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                                    <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
                                 </View>
-                                <View style={s.specialGrid}>
-                                    {validPanasForSumMode.slice(0, 60).map((num) => (
-                                        <View key={num} style={s.specialCell}>
-                                            <View style={s.specialLabel}><Text style={s.specialLabelText}>{num}</Text></View>
-                                            <TextInput style={s.specialInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" value={specialInputs[num] || ''} onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: v.replace(/\D/g, '').slice(0, 6) }))} />
-                                        </View>
-                                    ))}
+
+                                <View style={s.keypadBox}>
+                                    <Text style={s.keypadTitle}>Select Sum</Text>
+                                    <View style={s.keypadGrid}>
+                                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                                            <TouchableOpacity key={num} style={s.keyBtn} onPress={() => handleKeypadClick(num)}>
+                                                <Text style={s.keyBtnText}>{num}</Text>
+                                                {pointsBySum[num] > 0 && (
+                                                    <View style={s.keyBadge}>
+                                                        <Text style={s.keyBadgeText}>{pointsBySum[num] > 999 ? '999+' : pointsBySum[num]}</Text>
+                                                    </View>
+                                                )}
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
                                 </View>
-                                {validPanasForSumMode.length > 60 && <Text style={s.moreHint}>+ {validPanasForSumMode.length - 60} more — use Easy Mode for full list</Text>}
+
                                 {showInlineSubmit && (
                                     <TouchableOpacity style={[s.submitBtn, !canSubmitSpecial && s.submitBtnDisabled]} onPress={handleSubmitFromSpecial} disabled={!canSubmitSpecial}>
                                         <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
@@ -294,7 +341,7 @@ const EasyModeBid = ({
                                 )}
                             </ScrollView>
                         ) : (
-                            <View style={s.readOnlyWrap}><Text style={s.readOnlyText}>Special mode — use Easy Mode</Text></View>
+                            <View style={s.readOnlyWrap}><Text style={s.readOnlyText}>Special mode not available</Text></View>
                         )}
                         {bidsList}
                     </>
@@ -306,11 +353,11 @@ const EasyModeBid = ({
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{label}:</Text>
-                            <TextInput style={s.input} value={inputNumber} onChangeText={(v) => { const x = maxLength === 2 ? v.replace(/\D/g, '').slice(0, 2) : v.replace(/\D/g, '').slice(0, maxLength || 3); setInputNumber(x); }} placeholder={labelKey} placeholderTextColor="#6b7280" maxLength={maxLength} />
+                            <TextInput style={s.input} keyboardType="numeric" value={inputNumber} onChangeText={(v) => setInputNumber(v.replace(/\D/g, '').slice(0, maxLength))} placeholder={labelKey} placeholderTextColor="#6b7280" maxLength={maxLength} />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
                         </View>
                         <View style={s.btnRow}>
                             <TouchableOpacity style={s.addBtn} onPress={handleAddBid}><Text style={s.addBtnText}>{t('gameBid.addToList')}</Text></TouchableOpacity>
@@ -325,23 +372,23 @@ const EasyModeBid = ({
                 )}
             </View>
 
-            <BidReviewModal open={isReviewOpen} onClose={clearAll} onSubmit={handleSubmitBet} marketTitle={marketTitle} dateText={dateText} labelKey={labelKey} rows={bids} walletBefore={walletBefore} totalBids={bids.length} totalAmount={totalPoints} />
+            <BidReviewModal open={isReviewOpen} onClose={() => { setIsReviewOpen(false); clearAll(); }} onSubmit={handleSubmitBet} marketTitle={marketTitle} dateText={dateText} labelKey={labelKey} rows={reviewRows} walletBefore={walletBefore} totalBids={reviewRows.length} totalAmount={reviewRows.reduce((a, b) => a + Number(b.points), 0)} />
         </BidLayout>
     );
 };
 
 const s = StyleSheet.create({
-    content: { paddingTop: 16 },
-    warnBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12, marginBottom: 16 },
-    warnText: { color: '#fca5a5', fontSize: 13 },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
+    warnBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+    warnText: { color: '#fecaca', fontSize: 14, textAlign: 'center' },
     modeRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-    modeBtn: { flex: 1, height: 44, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    modeBtn: { flex: 1, minHeight: 44, paddingVertical: 12, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     modeBtnActive: { backgroundColor: '#d4af37', borderColor: '#d4af37' },
-    modeBtnText: { fontWeight: 'bold' },
+    modeBtnText: { fontWeight: '700', fontSize: 14 },
     modeTextActive: { color: '#4b3608' },
     modeTextInactive: { color: '#9ca3af' },
-    inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-    label: { color: '#9ca3af', fontSize: 13, width: 120 },
+    inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+    label: { color: '#9ca3af', fontSize: 14, width: 128 },
     readOnlyWrap: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     readOnlyText: { color: '#fff', fontWeight: '700', fontSize: 13 },
     input: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
@@ -351,14 +398,20 @@ const s = StyleSheet.create({
     submitBtn: { flex: 1, backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },
     submitBtnText: { color: '#4b3608', fontWeight: '700' },
-    specialScroll: { maxHeight: 360 },
+    specialScroll: { maxHeight: '100%' },
     specialGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     specialCell: { flexDirection: 'row', alignItems: 'center', width: '30%', minWidth: 100 },
     specialLabel: { width: 44, height: 36, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     specialLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
-    specialInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
-    moreHint: { color: '#9ca3af', fontSize: 11, marginBottom: 8 },
-    bidsListWrap: { marginTop: 16 },
+    specialInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, padding: 0 },
+    keypadBox: { backgroundColor: '#202124', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 12, marginBottom: 16 },
+    keypadTitle: { color: '#f2c14e', fontSize: 14, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 },
+    keypadGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+    keyBtn: { width: '18%', aspectRatio: 1, backgroundColor: '#2a2d32', borderRadius: 12, borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    keyBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+    keyBadge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#d4af37', borderRadius: 8, minWidth: 16, height: 16, paddingHorizontal: 2, alignItems: 'center', justifyContent: 'center' },
+    keyBadgeText: { color: '#4b3608', fontSize: 8, fontWeight: 'bold' },
+    bidsListWrap: { marginTop: 16, paddingBottom: 100 },
     bidsListHeader: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
     bidsListHeaderText: { flex: 1, color: '#d4af37', fontSize: 11, fontWeight: '700', textAlign: 'center' },
     bidRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderRadius: 8, padding: 10, marginTop: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },

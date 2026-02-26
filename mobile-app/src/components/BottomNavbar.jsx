@@ -211,4 +211,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-export default React.memo(BottomNavbar);
+export default BottomNavbar;

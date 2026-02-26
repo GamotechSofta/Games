@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { getBalance, updateUserBalance } from '../api/bets';
 import { storage } from '../utils/storage';
 import { on } from '../utils/events';
 import { useTranslation } from '../hooks/useTranslation';
@@ -10,41 +9,49 @@ import { colors, spacing, borderRadius, fontSize } from '../theme';
 // Match frontend SubHeader (mobile): wallet icon + balance (left), single "Deposit/Withdrawal" button (right), border-t amber-500/60
 const WALLET_ICON = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png';
 
+const inCurrencyFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 });
+
 function SubHeader() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [balance, setBalance] = useState(null);
 
-  const loadBalance = useCallback(async () => {
-    const userStr = await storage.getItem('user');
-    if (!userStr) return;
-    const u = JSON.parse(userStr);
-    const b = u?.balance ?? u?.walletBalance ?? u?.wallet ?? 0;
-    setBalance(Number(b));
-  }, []);
-
-  const fetchBalanceFromApi = useCallback(async () => {
-    const userStr = await storage.getItem('user');
-    if (!userStr) return;
-    const res = await getBalance();
-    if (res.success && res.data?.balance != null) {
-      await updateUserBalance(res.data.balance);
-      setBalance(res.data.balance);
-    }
-  }, []);
-
+  // Load balance once from storage on mount
   useEffect(() => {
-    loadBalance();
-    fetchBalanceFromApi();
-    const unsub = on('userLogin', () => {
-      loadBalance();
-      fetchBalanceFromApi();
+    storage.getItem('user').then((userStr) => {
+      if (!userStr) return;
+      try {
+        const u = JSON.parse(userStr);
+        const b = u?.balance ?? u?.walletBalance ?? u?.wallet ?? 0;
+        setBalance(Number(b));
+      } catch (_) { }
     });
-    return () => unsub();
-  }, [loadBalance, fetchBalanceFromApi]);
+
+    // Listen for direct balance pushes from heartbeat / bet placement
+    // This avoids triggering a fresh API call on every balance update
+    const unsubBalance = on('balanceUpdated', (newBal) => {
+      if (newBal != null) setBalance(Number(newBal));
+    });
+
+    // Also re-load from storage on login (full user object may have changed)
+    const unsubLogin = on('userLogin', () => {
+      storage.getItem('user').then((userStr) => {
+        if (!userStr) return;
+        try {
+          const u = JSON.parse(userStr);
+          setBalance(Number(u?.balance ?? u?.walletBalance ?? u?.wallet ?? 0));
+        } catch (_) { }
+      });
+    });
+
+    return () => {
+      unsubBalance();
+      unsubLogin();
+    };
+  }, []);
 
   const displayBalance = balance != null ? Number(balance) : 0;
-  const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
+  const formattedBalance = inCurrencyFormatter.format(displayBalance);
 
   return (
     <View style={styles.container}>
@@ -104,4 +111,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 });
-export default React.memo(SubHeader);
+export default SubHeader;

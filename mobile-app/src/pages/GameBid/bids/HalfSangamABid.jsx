@@ -84,6 +84,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     const handleAdd = () => {
@@ -115,16 +116,16 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterOpenPana')}:</Text>
-                    <TextInput style={[s.input, openPanaInvalid && s.inputInvalid]} value={openPana} onChangeText={(v) => { const next = sanitizeDigits(v, 3); setOpenPana(next); setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next)); }} placeholder={t('gameBid.pana')} placeholderTextColor="#6b7280" maxLength={3} />
+                    <TextInput style={[s.input, openPanaInvalid && s.inputInvalid]} value={openPana} onChangeText={(v) => { const next = sanitizeDigits(v, 3); setOpenPana(next); setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next)); }} placeholder={t('gameBid.pana')} placeholderTextColor="#6b7280" maxLength={3} keyboardType="numeric" />
                 </View>
                 {slotBetweenPanaAndAnk ? <View style={s.slotWrap}>{slotBetweenPanaAndAnk}</View> : null}
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterCloseAnk')}:</Text>
-                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder="0-9" placeholderTextColor="#6b7280" maxLength={1} />
+                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder="0-9" placeholderTextColor="#6b7280" maxLength={1} keyboardType="numeric" />
                 </View>
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                    <TextInput style={s.input} value={points} onChangeText={(v) => setPoints(sanitizePoints(v))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                    <TextInput style={s.input} value={points} onChangeText={(v) => setPoints(sanitizePoints(v))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" keyboardType="numeric" />
                 </View>
                 <View style={s.btnRow}>
                     <TouchableOpacity style={s.addBtn} onPress={handleAdd}><Text style={s.addBtnText}>{t('gameBid.addToList')}</Text></TouchableOpacity>
@@ -148,7 +149,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
 };
 
 const s = StyleSheet.create({
-    content: { paddingVertical: 8 },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },

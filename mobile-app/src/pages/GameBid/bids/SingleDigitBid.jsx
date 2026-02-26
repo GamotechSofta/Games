@@ -109,6 +109,11 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
     };
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
+    const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
+    const dateText = scheduleForTomorrow
+        ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/')
+        : new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/');
     const marketTitle = market?.gameName || market?.marketName || title;
     const isRunning = market?.status === 'running';
 
@@ -120,6 +125,11 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
     useEffect(() => {
         if (isRunning) setSession('CLOSE');
     }, [isRunning]);
+
+    const handleCancelBet = () => {
+        setIsReviewOpen(false);
+        clearAll();
+    };
 
     const handleSubmitBet = async () => {
         const marketId = market?._id || market?.id;
@@ -135,16 +145,31 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, formattedBids, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     const modeTabs = (
         <View style={s.modeRow}>
-            <TouchableOpacity onPress={() => setActiveTab('special')} style={[s.modeBtn, activeTab === 'special' ? s.modeBtnActive : s.modeBtnInactive]}>
+            <TouchableOpacity onPress={() => setActiveTab('special')} style={[s.modeBtn, activeTab === 'special' ? s.modeBtnActive : s.modeBtnInactive]} activeOpacity={0.98}>
                 <Text style={[s.modeBtnText, activeTab === 'special' ? s.modeTextActive : s.modeTextInactive]}>{t('gameBid.specialMode')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setActiveTab('easy')} style={[s.modeBtn, activeTab === 'easy' ? s.modeBtnActive : s.modeBtnInactive]}>
+            <TouchableOpacity onPress={() => setActiveTab('easy')} style={[s.modeBtn, activeTab === 'easy' ? s.modeBtnActive : s.modeBtnInactive]} activeOpacity={0.98}>
                 <Text style={[s.modeBtnText, activeTab === 'easy' ? s.modeTextActive : s.modeTextInactive]}>{t('gameBid.easyMode')}</Text>
             </TouchableOpacity>
+        </View>
+    );
+
+    const dateSessionRow = (
+        <View style={s.dateSessionRow}>
+            <View style={s.dateInputWrap}>
+                <Text style={s.dateIcon}>📅</Text>
+                <Text style={s.dateText}>{formDateDisplay}</Text>
+            </View>
+            <View style={[s.sessionWrap, isRunning && { opacity: 0.8 }]}>
+                <View style={s.sessionBtn}>
+                    <Text style={s.sessionBtnText}>{session === 'OPEN' ? t('gameBid.open') : t('gameBid.close')}</Text>
+                </View>
+            </View>
         </View>
     );
 
@@ -167,6 +192,7 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
             <View style={s.content}>
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
                 {modeTabs}
+                {dateSessionRow}
 
                 {activeTab === 'easy' ? (
                     <View style={s.easyModeBox}>
@@ -176,11 +202,11 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterSingleDigit')}:</Text>
-                            <TextInput style={s.input} inputMode="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.digit')} maxLength={1} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.digit')} maxLength={1} placeholderTextColor="#6b7280" />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} inputMode="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
                         </View>
                         <TouchableOpacity style={s.submitBtn} onPress={handleAddBid}>
                             <Text style={s.submitBtnText}>{t('gameBid.add')}</Text>
@@ -188,23 +214,17 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                     </View>
                 ) : (
                     <View style={s.specialModeBox}>
-                        <View style={s.gridRow}>
-                            {[0, 1, 2, 3, 4].map((num) => (
-                                <View key={num} style={s.specCell}>
-                                    <View style={s.specLabel}><Text style={s.specLabelText}>{num}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" inputMode="numeric" value={specialModeInputs[num]} onChangeText={(val) => setSpecialModeInputs((p) => ({ ...p, [num]: val.replace(/\D/g, '') }))} />
-                                </View>
-                            ))}
-                        </View>
-                        <View style={[s.gridRow, { marginTop: 12 }]}>
-                            {[5, 6, 7, 8, 9].map((num) => (
-                                <View key={num} style={s.specCell}>
-                                    <View style={s.specLabel}><Text style={s.specLabelText}>{num}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" inputMode="numeric" value={specialModeInputs[num]} onChangeText={(val) => setSpecialModeInputs((p) => ({ ...p, [num]: val.replace(/\D/g, '') }))} />
-                                </View>
-                            ))}
-                        </View>
-                        <TouchableOpacity style={[s.submitBtn, { marginTop: 24 }]} onPress={handleAddSpecialModeBids}>
+                        {[[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]].map((pair, rowIdx) => (
+                            <View key={rowIdx} style={s.gridRow}>
+                                {pair.map((num) => (
+                                    <View key={num} style={s.specCell}>
+                                        <View style={s.specLabel}><Text style={s.specLabelText}>{num}</Text></View>
+                                        <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialModeInputs[num]} onChangeText={(val) => setSpecialModeInputs((p) => ({ ...p, [num]: val.replace(/\D/g, '') }))} />
+                                    </View>
+                                ))}
+                            </View>
+                        ))}
+                        <TouchableOpacity style={[s.submitBtn, { marginTop: 16 }]} onPress={handleAddSpecialModeBids}>
                             <Text style={s.submitBtnText}>{t('gameBid.addToList')}</Text>
                         </TouchableOpacity>
                     </View>
@@ -213,10 +233,10 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
 
             <BidReviewModal
                 open={isReviewOpen}
-                onClose={clearAll}
+                onClose={handleCancelBet}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
-                dateText={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : formatDateDisplay(new Date().toISOString().slice(0, 10))}
+                dateText={dateText}
                 labelKey="Digit"
                 rows={bids}
                 walletBefore={walletBefore}
@@ -228,29 +248,36 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingTop: 16 },
-    warnBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 16 },
-    warnText: { color: '#fca5a5', fontSize: 13, textAlign: 'center' },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
+    warnBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', borderWidth: 1, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 16 },
+    warnText: { color: '#fecaca', fontSize: 14, textAlign: 'center' },
     modeRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-    modeBtn: { flex: 1, height: 44, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    modeBtn: { flex: 1, minHeight: 44, paddingVertical: 12, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     modeBtnActive: { backgroundColor: '#d4af37', borderColor: '#d4af37' },
     modeBtnInactive: { backgroundColor: '#202124', borderColor: 'rgba(255,255,255,0.1)' },
-    modeTextActive: { color: '#4b3608', fontWeight: 'bold' },
-    modeTextInactive: { color: '#9ca3af', fontWeight: 'bold' },
+    modeTextActive: { color: '#4b3608', fontWeight: '700', fontSize: 14 },
+    modeTextInactive: { color: '#9ca3af', fontWeight: '700', fontSize: 14 },
+    dateSessionRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+    dateInputWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 24, paddingLeft: 36, paddingRight: 10, minHeight: 44, height: 44 },
+    dateIcon: { position: 'absolute', left: 12, fontSize: 16, color: '#9ca3af' },
+    dateText: { flex: 1, color: colors.white, fontSize: 12, fontWeight: '700', textAlign: 'center', paddingLeft: 8 },
+    sessionWrap: { flex: 1, minWidth: 0 },
+    sessionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 24, minHeight: 44, height: 44, paddingHorizontal: 16 },
+    sessionBtnText: { color: colors.white, fontSize: 12, fontWeight: '700' },
     easyModeBox: { gap: 12 },
-    inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    label: { color: '#9ca3af', fontSize: 13, fontWeight: '500', width: 120 },
-    readOnlyWrap: { flex: 1, height: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-    readOnlyText: { color: 'white', fontWeight: 'bold', fontSize: 13 },
-    input: { flex: 1, height: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: 13, fontWeight: '600' },
-    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
-    submitBtnText: { color: '#4b3608', fontWeight: 'bold', fontSize: 14 },
+    inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+    label: { color: '#9ca3af', fontSize: 14, fontWeight: '500', width: 128 },
+    readOnlyWrap: { flex: 1, minHeight: 40, height: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    readOnlyText: { color: 'white', fontWeight: '700', fontSize: 14 },
+    input: { flex: 1, minHeight: 40, height: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: 14, fontWeight: '600', paddingHorizontal: 16 },
+    submitBtn: { backgroundColor: '#d4af37', borderRadius: 8, minHeight: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 14 },
     specialModeBox: { paddingTop: 8 },
-    gridRow: { flexDirection: 'row', gap: 8 },
-    specCell: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 40 },
-    specLabel: { width: 36, height: '100%', backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRightWidth: 0, alignItems: 'center', justifyContent: 'center' },
-    specLabelText: { color: '#f2c14e', fontWeight: 'bold', fontSize: 13 },
-    specInput: { flex: 1, height: '100%', backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: 13, fontWeight: '600', padding: 0 }
+    gridRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
+    specCell: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 40, minWidth: 0 },
+    specLabel: { width: 40, height: 40, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRightWidth: 0, alignItems: 'center', justifyContent: 'center' },
+    specLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 14 },
+    specInput: { flex: 1, height: 40, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: 'white', textAlign: 'center', fontSize: 14, fontWeight: '600', paddingHorizontal: 8 }
 });
 
 export default SingleDigitBid;

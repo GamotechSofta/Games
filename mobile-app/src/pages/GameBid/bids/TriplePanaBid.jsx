@@ -10,12 +10,12 @@ import { storage } from '../../../utils/storage';
 import { colors, borderRadius } from '../../../theme';
 
 const getWalletFromStorage = async () => {
-  try {
-    const s = await storage.getItem('user');
-    const u = s ? JSON.parse(s) : null;
-    const val = u?.wallet ?? u?.balance ?? u?.points ?? 0;
-    return Number.isFinite(Number(val)) ? Number(val) : 0;
-  } catch { return 0; }
+    try {
+        const s = await storage.getItem('user');
+        const u = s ? JSON.parse(s) : null;
+        const val = u?.wallet ?? u?.balance ?? u?.points ?? 0;
+        return Number.isFinite(Number(val)) ? Number(val) : 0;
+    } catch { return 0; }
 };
 
 const isValidTriplePana = (n) => {
@@ -135,6 +135,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     const modeTabs = (
@@ -173,11 +174,11 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPana')}:</Text>
-                            <TextInput style={[s.input, isPanaInvalid && s.inputError]} inputMode="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.pana')} maxLength={3} placeholderTextColor="#6b7280" />
+                            <TextInput style={[s.input, isPanaInvalid && s.inputError]} keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.pana')} maxLength={3} placeholderTextColor="#6b7280" />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} inputMode="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
                         </View>
                         <TouchableOpacity style={s.submitBtn} onPress={handleAddBid}>
                             <Text style={s.submitBtnText}>{t('gameBid.add')}</Text>
@@ -189,7 +190,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                             {[0, 1, 2, 3, 4].map((num) => (
                                 <View key={num} style={s.specCell}>
                                     <View style={s.specLabel}><Text style={s.specLabelText}>{tripleNumbers[num]}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" inputMode="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
+                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
                                 </View>
                             ))}
                         </View>
@@ -197,7 +198,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                             {[5, 6, 7, 8, 9].map((num) => (
                                 <View key={num} style={s.specCell}>
                                     <View style={s.specLabel}><Text style={s.specLabelText}>{tripleNumbers[num]}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" inputMode="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
+                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
                                 </View>
                             ))}
                         </View>
@@ -225,7 +226,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingTop: 16 },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
     warnBox: { backgroundColor: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.3)', borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 16 },
     warnText: { color: '#fca5a5', fontSize: 13, textAlign: 'center' },
     modeRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navigationRef } from '../navigationRef';
 import { storage } from '../utils/storage';
 import { useHeartbeat } from '../hooks/useHeartbeat';
+import { useTranslation } from '../hooks/useTranslation';
 
 import AppHeader from '../components/AppHeader';
 import SubHeader from '../components/SubHeader';
@@ -44,20 +45,51 @@ import Support from '../pages/Support/Support';
 const Stack = createNativeStackNavigator();
 const PUBLIC_SCREENS = ['Login'];
 
+// Match frontend: screens that do NOT show top navbar (AppHeader + SubHeader) on mobile
+const HIDE_TOP_NAV_SCREENS = [
+  'Bids',
+  'BetHistory',
+  'StarlineBetHistory',
+  'KingBazaarBetHistory',
+  'MarketResultHistory',
+  'Funds',
+  'Profile',
+  'Notifications',
+  'BidOptions',
+  'GameBid',
+  'Games',
+  'Support',
+  'SupportNew',
+  'SupportStatus',
+];
+
 // Match actual navbar height: inner ~52 + py + label ~14, center lift -16; keep minimal gap
 const BOTTOM_NAV_HEIGHT = 58 + 10;
 
 function Layout({ children }) {
   const route = useRoute();
   const insets = useSafeAreaInsets();
+  useTranslation(); // re-render layout + all screens when language changes
   const bottomPad = BOTTOM_NAV_HEIGHT + Math.max(insets.bottom, 0);
+  const hideTopNav = HIDE_TOP_NAV_SCREENS.includes(route.name);
 
   if (route.name === 'Login') return <>{children}</>;
   return (
     <View style={styles.layout}>
-      <AppHeader />
-      <SubHeader />
-      <View style={[styles.content, { paddingBottom: bottomPad }]}>{children}</View>
+      {!hideTopNav && (
+        <>
+          <AppHeader />
+          <SubHeader />
+        </>
+      )}
+      <View
+        style={[
+          styles.content,
+          { paddingBottom: bottomPad, paddingTop: hideTopNav ? Math.max(8, insets.top) : 4 },
+        ]}
+      >
+        {children}
+      </View>
       <BottomNavbar />
     </View>
   );
@@ -72,6 +104,45 @@ const withLayout = (Component) => {
     );
   };
 };
+
+const navigationOptions = {
+  headerShown: false,
+  contentStyle: { backgroundColor: '#000' },
+  animation: 'default',
+  freezeOnBlur: true,
+};
+
+const tabScreenOptions = { animation: 'none' };
+
+// Define wrapped components once outside to prevent re-mounting on every AppRoutes render
+const HomeWithLayout = withLayout(Home);
+const BidOptionsWithLayout = withLayout(BidOptions);
+const GameBidWithLayout = withLayout(GameBid);
+const PassbookWithLayout = withLayout(Passbook);
+const FundsWithLayout = withLayout(Funds);
+const DownloadWithLayout = withLayout(Download);
+const BidsWithLayout = withLayout(Bids);
+const ProfileWithLayout = withLayout(Profile);
+const BetHistoryWithLayout = withLayout(BetHistory);
+const StarlineBetHistoryWithLayout = withLayout(StarlineBetHistory);
+const KingBazaarBetHistoryWithLayout = withLayout(KingBazaarBetHistory);
+const MarketResultHistoryWithLayout = withLayout(MarketResultHistory);
+const StartlineDashboardWithLayout = withLayout(StartlineDashboard);
+const StarlineMarketWithLayout = withLayout(StarlineMarket);
+const KingBazaarMarketWithLayout = withLayout(KingBazaarMarket);
+const KingBazaarDashboardWithLayout = withLayout(KingBazaarDashboard);
+const GamesWithLayout = withLayout(Games);
+const NotificationsWithLayout = withLayout(Notifications);
+const TopWinnersWithLayout = withLayout(TopWinners);
+const GameRateWithLayout = withLayout(GameRate);
+const SupportNewWithLayout = withLayout(SupportNew);
+const SupportStatusWithLayout = withLayout(SupportStatus);
+const SupportWithLayout = withLayout(Support);
+const AddFundWithLayout = withLayout(AddFund);
+const WithdrawFundWithLayout = withLayout(WithdrawFund);
+const BankWithLayout = withLayout(Bank);
+const AddFundHistoryWithLayout = withLayout(AddFundHistory);
+const WithdrawFundHistoryWithLayout = withLayout(WithdrawFundHistory);
 
 export default function AppRoutes() {
   const [initialRoute, setInitialRoute] = useState(null);
@@ -92,48 +163,42 @@ export default function AppRoutes() {
     );
   }
 
-  const tabScreenOptions = { animation: 'none' };
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName={initialRoute}
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#000' },
-          animation: 'default',
-          freezeOnBlur: true,
-        }}
+        screenOptions={navigationOptions}
       >
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Home" component={withLayout(Home)} options={tabScreenOptions} />
-        <Stack.Screen name="BidOptions" component={withLayout(BidOptions)} />
-        <Stack.Screen name="MainMarket" component={withLayout(BidOptions)} />
-        <Stack.Screen name="GameBid" component={withLayout(GameBid)} />
-        <Stack.Screen name="Passbook" component={withLayout(Passbook)} />
-        <Stack.Screen name="Funds" component={withLayout(Funds)} options={tabScreenOptions} />
-        <Stack.Screen name="Download" component={withLayout(Download)} />
-        <Stack.Screen name="Bids" component={withLayout(Bids)} options={tabScreenOptions} />
-        <Stack.Screen name="Profile" component={withLayout(Profile)} options={tabScreenOptions} />
-        <Stack.Screen name="BetHistory" component={withLayout(BetHistory)} />
-        <Stack.Screen name="StarlineBetHistory" component={withLayout(StarlineBetHistory)} />
-        <Stack.Screen name="KingBazaarBetHistory" component={withLayout(KingBazaarBetHistory)} />
-        <Stack.Screen name="MarketResultHistory" component={withLayout(MarketResultHistory)} />
-        <Stack.Screen name="StartlineDashboard" component={withLayout(StartlineDashboard)} />
-        <Stack.Screen name="StarlineMarket" component={withLayout(StarlineMarket)} />
-        <Stack.Screen name="KingBazaarMarket" component={withLayout(KingBazaarMarket)} />
-        <Stack.Screen name="KingBazaarDashboard" component={withLayout(KingBazaarDashboard)} />
-        <Stack.Screen name="Games" component={withLayout(Games)} />
-        <Stack.Screen name="Notifications" component={withLayout(Notifications)} />
-        <Stack.Screen name="TopWinners" component={withLayout(TopWinners)} />
-        <Stack.Screen name="GameRate" component={withLayout(GameRate)} />
-        <Stack.Screen name="SupportNew" component={withLayout(SupportNew)} />
-        <Stack.Screen name="SupportStatus" component={withLayout(SupportStatus)} />
-        <Stack.Screen name="Support" component={withLayout(Support)} options={tabScreenOptions} />
-        <Stack.Screen name="AddFund" component={withLayout(AddFund)} />
-        <Stack.Screen name="WithdrawFund" component={withLayout(WithdrawFund)} />
-        <Stack.Screen name="Bank" component={withLayout(Bank)} />
-        <Stack.Screen name="AddFundHistory" component={withLayout(AddFundHistory)} />
-        <Stack.Screen name="WithdrawFundHistory" component={withLayout(WithdrawFundHistory)} />
+        <Stack.Screen name="Home" component={HomeWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="BidOptions" component={BidOptionsWithLayout} />
+        <Stack.Screen name="MainMarket" component={BidOptionsWithLayout} />
+        <Stack.Screen name="GameBid" component={GameBidWithLayout} />
+        <Stack.Screen name="Passbook" component={PassbookWithLayout} />
+        <Stack.Screen name="Funds" component={FundsWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="Download" component={DownloadWithLayout} />
+        <Stack.Screen name="Bids" component={BidsWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="Profile" component={ProfileWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="BetHistory" component={BetHistoryWithLayout} />
+        <Stack.Screen name="StarlineBetHistory" component={StarlineBetHistoryWithLayout} />
+        <Stack.Screen name="KingBazaarBetHistory" component={KingBazaarBetHistoryWithLayout} />
+        <Stack.Screen name="MarketResultHistory" component={MarketResultHistoryWithLayout} />
+        <Stack.Screen name="StartlineDashboard" component={StartlineDashboardWithLayout} />
+        <Stack.Screen name="StarlineMarket" component={StarlineMarketWithLayout} />
+        <Stack.Screen name="KingBazaarMarket" component={KingBazaarMarketWithLayout} />
+        <Stack.Screen name="KingBazaarDashboard" component={KingBazaarDashboardWithLayout} />
+        <Stack.Screen name="Games" component={GamesWithLayout} />
+        <Stack.Screen name="Notifications" component={NotificationsWithLayout} />
+        <Stack.Screen name="TopWinners" component={TopWinnersWithLayout} />
+        <Stack.Screen name="GameRate" component={GameRateWithLayout} />
+        <Stack.Screen name="SupportNew" component={SupportNewWithLayout} />
+        <Stack.Screen name="SupportStatus" component={SupportStatusWithLayout} />
+        <Stack.Screen name="Support" component={SupportWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="AddFund" component={AddFundWithLayout} />
+        <Stack.Screen name="WithdrawFund" component={WithdrawFundWithLayout} />
+        <Stack.Screen name="Bank" component={BankWithLayout} />
+        <Stack.Screen name="AddFundHistory" component={AddFundHistoryWithLayout} />
+        <Stack.Screen name="WithdrawFundHistory" component={WithdrawFundHistoryWithLayout} />
       </Stack.Navigator>
     </NavigationContainer>
   );

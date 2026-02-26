@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  StyleSheet, RefreshControl,
+  View, Text, TouchableOpacity, ActivityIndicator,
+  StyleSheet, RefreshControl, SectionList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -10,24 +10,28 @@ import { storage } from '../utils/storage';
 import { updateUserBalance } from '../api/bets';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
+const dateCardFormatter = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+const timeFormatter = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+const inCurrencyFormatter = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const formatDate = (dateStr) => {
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return dateCardFormatter.format(d);
   } catch { return ''; }
 };
 
 const formatTime = (dateStr) => {
   try {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return timeFormatter.format(d);
   } catch { return ''; }
 };
 
 const formatAmount = (amount) => {
   const n = Number(amount);
   if (!Number.isFinite(n)) return '0.00';
-  return n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return inCurrencyFormatter.format(n);
 };
 
 export default function Passbook() {
@@ -100,6 +104,12 @@ export default function Passbook() {
     });
     return Array.from(map.entries());
   }, [filtered]);
+
+  const filterOptions = useMemo(() => [
+    { key: 'all', label: t('passbook.allTransactions'), count: transactions.length },
+    { key: 'credit', label: t('passbook.credits'), count: stats.creditCount },
+    { key: 'debit', label: t('passbook.debits'), count: stats.debitCount },
+  ], [t, transactions.length, stats.creditCount, stats.debitCount]);
 
   const sections = useMemo(() => {
     return grouped.map(([date, data]) => ({ title: date, data }));

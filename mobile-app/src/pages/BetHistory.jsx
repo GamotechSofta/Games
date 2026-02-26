@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Modal, StyleSheet, Clipboard, Alert,
+  Modal, StyleSheet, Clipboard, Alert, FlatList, Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -14,12 +14,16 @@ import { colors, spacing, borderRadius, fontSize } from '../theme';
 /* ─── Helpers ─── */
 const safeParse = (raw, fallback) => { try { return JSON.parse(raw); } catch { return fallback; } };
 
+const txnDateFormatter = new Intl.DateTimeFormat('en-GB');
+const txnTimeFormatter = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' });
+const istDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+
 const formatTxnTime = (iso) => {
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return '-';
-    const date = d.toLocaleDateString('en-GB').replace(/\//g, '-');
-    const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    const date = txnDateFormatter.format(d).replace(/\//g, '-');
+    const time = txnTimeFormatter.format(d);
     return `${date} ${time}`;
   } catch { return '-'; }
 };
@@ -29,7 +33,7 @@ const formatScheduledDate = (scheduledDate) => {
   try {
     const d = typeof scheduledDate === 'string' ? new Date(scheduledDate) : scheduledDate;
     if (Number.isNaN(d?.getTime())) return null;
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/');
+    return txnDateFormatter.format(d).replace(/\//g, '/');
   } catch { return null; }
 };
 
@@ -267,19 +271,19 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     const closeStr = (market?.closingTime || '').toString().trim();
     if (!closeStr) return { canCancel: false, reason: 'Market timing not configured' };
     try {
-      const getTodayIST = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      const getTodayISTValue = () => istDateFormatter.format(new Date());
       const normalizeTimeStr = (timeStr) => {
         const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
         return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
       };
       const parseISTDateTime = (isoStr) => { const d = new Date(isoStr); return isNaN(d.getTime()) ? null : d.getTime(); };
-      const todayIST = getTodayIST();
+      const todayIST = getTodayISTValue();
       const openAt = parseISTDateTime(`${todayIST}T00:00:00+05:30`);
       let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
       if (closeAt <= openAt) {
         const baseDate = new Date(`${todayIST}T12:00:00+05:30`);
         baseDate.setDate(baseDate.getDate() + 1);
-        const nextDayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(baseDate);
+        const nextDayStr = istDateFormatter.format(baseDate);
         closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
       }
       const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60;

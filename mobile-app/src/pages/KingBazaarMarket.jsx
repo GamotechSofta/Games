@@ -27,8 +27,9 @@ const formatKingBazaarJodi = (jodi) => {
   return '* *';
 };
 
-const getTodayIST = (now = new Date()) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+const istDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+const getTodayIST = (now = new Date()) => istDateFormatter.format(now);
 
 const getTodayTargetMsIST = (timeHHMM, nowMs) => {
   const todayIST = getTodayIST(new Date(nowMs));
@@ -62,7 +63,8 @@ export default function KingBazaarMarket() {
   const [showClosedModal, setShowClosedModal] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setTick(Date.now()), 1000);
+    // Check slot closed status every 30s — 1s is too frequent for all cards to re-render
+    const timer = setInterval(() => setTick(Date.now()), 30000);
     return () => clearInterval(timer);
   }, []);
 
@@ -116,7 +118,7 @@ export default function KingBazaarMarket() {
 
   useEffect(() => { fetchItems(true); }, [marketKey]);
   useEffect(() => {
-    const id = setInterval(() => fetchItems(false), 5000);
+    const id = setInterval(() => fetchItems(false), 30000);
     return () => clearInterval(id);
   }, [marketKey]);
 
@@ -162,6 +164,9 @@ export default function KingBazaarMarket() {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
         ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => <View key={i} style={styles.skeletonCard} />)}
       />
       {/* Closed Modal */}

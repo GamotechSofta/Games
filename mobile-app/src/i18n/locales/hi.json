@@ -403,6 +403,9 @@
   },
   "games": {
     "otherGames": "अन्य गेम",
+    "casinoGames": "कैसीनो गेम",
+    "skillsGames": "स्किल गेम",
+    "allGames": "सभी गेम",
     "comingSoon": "जल्द आ रहा है",
     "tapToPlay": "खेलने के लिए टैप करें"
   },
@@ -435,7 +438,31 @@
     "marketIsOpen": "मार्केट खुला है",
     "closingIsRunning": "बंद हो रहा है",
     "marketClosed": "मार्केट बंद",
-    "runningForTomorrow": "कल के लिए चल रहा है"
+    "runningForTomorrow": "कल के लिए चल रहा है",
+    "names": {
+      "milanMorning": "मिलन मॉर्निंग",
+      "rajdhaniMorning": "राजधानी मॉर्निंग",
+      "shridevi": "श्रीदेवी",
+      "timeBazar": "टाइम बाजार",
+      "punaBazar": "पुणा बाजार",
+      "prabhat": "प्रभात",
+      "bombayDay": "बॉम्बे डे",
+      "shaktiDay": "शक्ति डे",
+      "milanDay": "मिलन डे",
+      "kalyan": "कल्याण",
+      "kalyanMorning": "कल्याण मॉर्निंग",
+      "radhaNight": "राधा नाइट",
+      "shrideviNight": "श्रीदेवी नाइट",
+      "milanNight": "मिलन नाइट",
+      "kalyanNight": "कल्याण नाइट",
+      "bombayNight": "बॉम्बे नाइट",
+      "rajdhaniNight": "राजधानी नाइट",
+      "ratanKhatri": "रतन खत्री",
+      "madhurDay": "मधुर डे",
+      "madhurNight": "मधुर नाइट",
+      "mainBazar": "मेन बाजार",
+      "dhanlaxmi": "धनलक्ष्मी"
+    }
   },
   "language": {
     "english": "अंग्रेजी",

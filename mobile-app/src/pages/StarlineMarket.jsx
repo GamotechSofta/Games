@@ -23,8 +23,9 @@ const formatTime12 = (time24) => {
 const sumDigits = (s) => [...String(s)].reduce((acc, c) => acc + (Number(c) || 0), 0);
 const openDigit = (open3) => (open3 && /^\d{3}$/.test(String(open3)) ? String(sumDigits(open3) % 10) : '*');
 
-const getTodayIST = (now = new Date()) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+const istDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' });
+
+const getTodayIST = (now = new Date()) => istDateFormatter.format(now);
 
 const getTodayTargetMsIST = (timeHHMM, nowMs) => {
   const todayIST = getTodayIST(new Date(nowMs));
@@ -60,7 +61,8 @@ export default function StarlineMarket() {
   const [showClosedModal, setShowClosedModal] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => setTick(Date.now()), 1000);
+    // Check slot closed status every 30s — 1s tick causes all cards to re-render every second
+    const timer = setInterval(() => setTick(Date.now()), 30000);
     return () => clearInterval(timer);
   }, []);
 
@@ -94,7 +96,7 @@ export default function StarlineMarket() {
   useEffect(() => { fetchItems(); }, [marketKey]);
 
   useEffect(() => {
-    const id = setInterval(fetchItems, 5000);
+    const id = setInterval(fetchItems, 30000);
     return () => clearInterval(id);
   }, [marketKey]);
 
@@ -150,6 +152,9 @@ export default function StarlineMarket() {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
         ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => (
           <View key={i} style={styles.skeletonCard} />
         ))}

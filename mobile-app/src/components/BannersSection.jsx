@@ -1,143 +1,104 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
-import { View, StyleSheet, PanResponder, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 
-const BANNER_HEIGHT = 180;
+const BANNER_HEIGHT = 168;
+const CAROUSEL_RADIUS = 16;
+const HORIZONTAL_PADDING = 16;
 
-// Same 3 banners as frontend (all PNG for RN). Order: Black Gold, Black Orange, Minimalist.
+// Same 3 banners as frontend. Order: Black Gold, Black Orange, Minimalist.
 const BANNERS = [
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png',
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png',
   'https://res.cloudinary.com/dnyp5jknp/image/upload/w_1080,h_547,f_png,c_fill/v1771873663/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_5839_x_3402_px_thbbms',
 ];
 
-// Frontend mobile: mt-2, h-[180px] object-cover, shadow, gradient overlay, swipe + auto 4s, dot indicators
 function BannersSection() {
   const [bannerIdx, setBannerIdx] = useState(0);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
+  const scrollRef = useRef(null);
   const { width: winWidth } = useWindowDimensions();
-  const width = Math.max(winWidth || 320, 320);
+  const carouselWidth = Math.max(winWidth || 320, 320) - HORIZONTAL_PADDING * 2;
+
+  const bannerIdxRef = useRef(0);
+  bannerIdxRef.current = bannerIdx;
 
   useEffect(() => {
     if (BANNERS.length <= 1) return;
-    const id = setInterval(() => setBannerIdx((i) => (i + 1) % BANNERS.length), 4000);
+    const id = setInterval(() => {
+      const next = (bannerIdxRef.current + 1) % BANNERS.length;
+      setBannerIdx(next);
+      scrollRef.current?.scrollTo({ x: next * carouselWidth, animated: true });
+    }, 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [carouselWidth]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => false,
-      onPanResponderGrant: (_, evt) => {
-        const x = evt?.nativeEvent?.pageX ?? 0;
-        touchStartX.current = x;
-        touchEndX.current = x;
-      },
-      onPanResponderMove: (_, evt) => {
-        const x = evt?.nativeEvent?.pageX;
-        if (typeof x === 'number') touchEndX.current = x;
-      },
-      onPanResponderRelease: () => {
-        const diff = touchStartX.current - touchEndX.current;
-        if (Math.abs(diff) > 50) {
-          if (diff > 0) {
-            setBannerIdx((i) => (i + 1) % BANNERS.length);
-          } else {
-            setBannerIdx((i) => (i - 1 + BANNERS.length) % BANNERS.length);
-          }
-        }
-      },
-    })
-  ).current;
+  const onScroll = (e) => {
+    const x = e.nativeEvent.contentOffset.x;
+    const index = Math.round(x / carouselWidth);
+    if (index >= 0 && index < BANNERS.length && index !== bannerIdx) {
+      setBannerIdx(index);
+    }
+  };
 
-  if (!width || width <= 0) return null;
+  if (!carouselWidth || carouselWidth <= 0) return null;
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.carousel, { width, height: BANNER_HEIGHT }]} {...panResponder.panHandlers}>
-        <View
-          style={[
-            styles.slider,
-            {
-              width: width * BANNERS.length,
-              transform: [{ translateX: -bannerIdx * width }],
-            },
-          ]}
+      <View style={[styles.carouselOuter, { width: carouselWidth }]}>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScroll}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+          style={[styles.carousel, { width: carouselWidth, height: BANNER_HEIGHT }]}
+          contentContainerStyle={styles.scrollContent}
         >
           {BANNERS.map((uri, i) => (
-            <View key={i} style={[styles.slideWrap, { width, height: BANNER_HEIGHT }]}>
+            <View key={i} style={[styles.slideWrap, { width: carouselWidth, height: BANNER_HEIGHT }]}>
               <Image
                 source={{ uri }}
-                style={[styles.slide, { width, height: BANNER_HEIGHT }]}
+                style={[styles.slide, { width: carouselWidth, height: BANNER_HEIGHT }]}
                 contentFit="cover"
+                contentPosition={i === 1 ? 'top' : 'center'}
                 cachePolicy="memory-disk"
               />
             </View>
           ))}
-        </View>
-        <View style={styles.overlay} pointerEvents="none" />
-        {BANNERS.length > 1 && (
-          <View style={styles.dots} pointerEvents="none">
-            {BANNERS.map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i === bannerIdx ? styles.dotActive : styles.dotInactive,
-                ]}
-              />
-            ))}
-          </View>
-        )}
+        </ScrollView>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 8 },
+  wrap: {
+    marginBottom: 4,
+    paddingHorizontal: HORIZONTAL_PADDING,
+    alignItems: 'center',
+  },
+  carouselOuter: {
+    position: 'relative',
+    borderRadius: CAROUSEL_RADIUS,
+    overflow: 'hidden',
+    backgroundColor: '#0a0a0a',
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.2)',
+  },
   carousel: {
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 25,
-    elevation: 8,
+    borderRadius: CAROUSEL_RADIUS,
   },
-  slider: { flexDirection: 'row' },
-  slideWrap: { overflow: 'hidden' },
-  slide: {},
-  overlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 80,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+  scrollContent: { flexGrow: 1 },
+  slideWrap: {
+    overflow: 'hidden',
+    borderRadius: CAROUSEL_RADIUS,
   },
-  dots: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  dotActive: {
-    width: 24,
-    borderRadius: 3,
-    backgroundColor: '#f59e0b',
-  },
-  dotInactive: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
+  slide: {
+    borderRadius: CAROUSEL_RADIUS,
   },
 });
 export default memo(BannersSection);

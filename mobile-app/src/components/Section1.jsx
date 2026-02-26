@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Dimensions, RefreshControl, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
@@ -103,8 +103,8 @@ const REFRESH_INTERVAL_MS = 30000;
 // Cache: ekda load kele ki new screen var gel ki parat load/skeleton nko – cached data dikhav
 let cachedMarkets = [];
 
-function Section1({ refreshKey }) {
-  const { t } = useTranslation();
+function Section1({ refreshKey, ListHeaderComponent, onRefresh, refreshing }) {
+  const { t, language } = useTranslation();
   const insets = useSafeAreaInsets();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -191,59 +191,98 @@ function Section1({ refreshKey }) {
     return null;
   }, [markets.length, loading, t]);
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.containerNoFlex, { paddingBottom: sectionPaddingBottom }]}>
-        {mobileHeader}
-        <View style={styles.skeletonGrid}>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <View key={i} style={styles.skeletonCard}>
-              <View style={styles.skeletonBar} />
-              <View style={styles.skeletonContent}>
-                <View style={styles.skeletonRow}>
-                  <View style={styles.skeletonDot} />
-                  <View style={[styles.skeletonBarThin, { flex: 1, maxWidth: '80%' }]} />
-                </View>
-                <View style={[styles.skeletonBarThin, { width: '75%' }]} />
-                <View style={[styles.skeletonBarThin, { width: 96, height: 24 }]} />
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
+  // Pulse animation (admin: animate-pulse)
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.5, duration: 600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+      ])
     );
-  }
+    loop.start();
+    return () => loop.stop();
+  }, [pulseAnim]);
+
+  // Single skeleton card – same structure as admin Skeleton.jsx SkeletonCard: bg-gray-800/50 rounded-xl p-6 border border-gray-700/50; row (h-4 w-24 + w-12 h-12); h-8 w-32 mb-4; space-y-2 (h-3 w-full, h-3 w-3/4)
+  const SkeletonCard = () => (
+    <Animated.View style={[styles.skeletonCard, { opacity: pulseAnim }]}>
+      <View style={styles.skeletonCardRow1}>
+        <View style={styles.skeletonBlockA} />
+        <View style={styles.skeletonBlockB} />
+      </View>
+      <View style={styles.skeletonBlockC} />
+      <View style={styles.skeletonCardLines}>
+        <View style={styles.skeletonLineFull} />
+        <View style={styles.skeletonLineThreeQuarters} />
+      </View>
+    </Animated.View>
+  );
+
+  const skeletonGrid = useMemo(
+    () => (
+      <View style={styles.skeletonGrid}>
+        {[1, 2, 3, 4].map((i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </View>
+    ),
+    []
+  );
+
+  const listEmptyComponent = useMemo(
+    () => (loading ? skeletonGrid : null),
+    [loading, skeletonGrid]
+  );
 
   return (
-    <View style={[styles.container, styles.containerNoFlex, { paddingBottom: sectionPaddingBottom }]}>
-      {mobileHeader}
-      <View style={styles.list}>
-        {listHeader}
-        <View style={styles.cardGrid}>
-          {markets.map((m) => renderMarketItem(m))}
-        </View>
-      </View>
-    </View>
+    <FlatList
+      key={`markets-${language}`}
+      data={markets}
+      extraData={language}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => renderMarketItem(item)}
+      numColumns={2}
+      columnWrapperStyle={styles.cardGrid}
+      contentContainerStyle={[styles.containerExtra, { paddingBottom: sectionPaddingBottom + 100 }]}
+      ListHeaderComponent={
+        <React.Fragment key={language}>
+          {ListHeaderComponent}
+          {mobileHeader}
+          {listHeader}
+        </React.Fragment>
+      }
+      ListEmptyComponent={listEmptyComponent}
+      showsVerticalScrollIndicator={false}
+      removeClippedSubviews={!loading}
+      initialNumToRender={6}
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.goldLight]}
+            tintColor={colors.goldLight}
+          />
+        ) : null
+      }
+    />
   );
 }
 
 // Frontend mobile: section bg-black min-[375px]:pt-4 pb-[5rem+safe], min-[375px]:px-3; header mb-4 min-[375px]:mb-6, h-[2px] bg-[#d4af37], MARKETS w-[110px] h-[24px] text-sm; grid gap-2 min-[375px]:gap-3; card rounded-lg status py-1.5 px-2 min-h-[32px], content p-3 border-t white/5
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  containerExtra: {
     backgroundColor: colors.black,
-    paddingTop: IS_MIN_375 ? 16 : 0,
-    paddingHorizontal: IS_MIN_375 ? 12 : 0,
-  },
-  containerNoFlex: {
-    flexGrow: 0,
-    flexShrink: 0,
+    paddingHorizontal: IS_MIN_375 ? 12 : 8,
   },
   mobileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: HEADER_MB,   // frontend: mb-4 min-[375px]:mb-6
+    marginBottom: HEADER_MB,
     gap: 8,
   },
   goldLine: {
@@ -253,36 +292,26 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   marketsBlock: {
-    width: MARKETS_BLOCK_WIDTH,   // frontend: w-[110px] min-[375px]:w-[140px]
-    minHeight: MARKETS_BLOCK_HEIGHT, // frontend: h-[24px] min-[375px]:h-[28px]
+    width: MARKETS_BLOCK_WIDTH,
+    minHeight: MARKETS_BLOCK_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
   },
   marketsTitle: {
     color: colors.text,
-    fontSize: GAMENAME_FONT,   // frontend: text-sm min-[375px]:text-base
+    fontSize: GAMENAME_FONT,
     fontWeight: '700',
     letterSpacing: 1,
   },
-  list: {},
-  listContent: { paddingBottom: 0 },
   empty: { color: colors.textMuted, textAlign: 'center', padding: spacing[6] },
-  errorBlock: { padding: spacing[6], alignItems: 'center', gap: spacing[4] },
-  errorText: { color: colors.textMuted, textAlign: 'center', fontSize: fontSize.sm },
-  retryBtn: { paddingHorizontal: spacing[5], paddingVertical: spacing[3], borderRadius: borderRadius.xl, backgroundColor: colors.goldLight },
-  retryBtnText: { color: colors.black, fontWeight: '700', fontSize: fontSize.sm },
   cardGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GRID_GAP,   // frontend: gap-2 min-[375px]:gap-3
-  },
-  cardGridRow: {
-    gap: GRID_GAP,
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
     marginBottom: GRID_GAP,
   },
   card: {
-    width: '48%',
-    minWidth: 140,
+    width: '48.5%', // Slightly less than 50% for space-between
     backgroundColor: colors.gray800,
     borderRadius: 8,
     overflow: 'hidden',
@@ -296,8 +325,8 @@ const styles = StyleSheet.create({
   },
   cardClosed: { opacity: 0.9 },
   statusBar: {
-    paddingVertical: STATUS_PY,   // frontend: py-1.5 min-[375px]:py-2
-    paddingHorizontal: STATUS_PX,  // frontend: px-2 min-[375px]:px-3
+    paddingVertical: STATUS_PY,
+    paddingHorizontal: STATUS_PX,
     minHeight: 32,
     alignItems: 'center',
     justifyContent: 'center',
@@ -306,19 +335,19 @@ const styles = StyleSheet.create({
   statusBarClosed: { backgroundColor: colors.red },
   statusBarText: {
     color: colors.text,
-    fontSize: TIME_FONT,   // frontend: text-[10px] min-[375px]:text-xs
+    fontSize: TIME_FONT,
     fontWeight: '600',
   },
   cardContent: {
-    padding: CARD_PADDING,  // frontend: p-3 min-[375px]:p-3.5
+    padding: CARD_PADDING,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,              // frontend: gap-1.5
-    marginBottom: TIME_ROW_MB, // frontend: mb-1.5 min-[375px]:mb-2
+    gap: 6,
+    marginBottom: TIME_ROW_MB,
   },
   clockWrap: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' },
   clockIcon: { fontSize: 12 },
@@ -332,45 +361,90 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '700',
     fontSize: GAMENAME_FONT,
-    marginBottom: GAMENAME_MB,  // frontend: mb-2 min-[375px]:mb-2.5
+    marginBottom: GAMENAME_MB,
   },
   result: {
     color: '#fbbf24',
     fontSize: RESULT_FONT,
     fontWeight: '800',
     letterSpacing: 1,
-    marginBottom: GAMENAME_MB,  // frontend: mb-2 min-[375px]:mb-2.5
+    marginBottom: GAMENAME_MB,
   },
   footer: {
-    paddingTop: 6,   // frontend: pt-1.5
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.05)',
   },
   footerLink: {
     color: colors.goldText,
-    fontSize: FOOTER_FONT,  // frontend: text-[10px] min-[375px]:text-[11px]
+    fontSize: FOOTER_FONT,
     fontWeight: '600',
     textAlign: 'center',
   },
+  // Admin Skeleton.jsx SkeletonCard: grid + card layout
   skeletonGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: GRID_GAP,
+    justifyContent: 'space-between',
   },
+  // Admin: bg-gray-800/50 rounded-xl p-6 border border-gray-700/50
   skeletonCard: {
-    width: '48%',
-    minWidth: 0,
-    backgroundColor: colors.gray800,
-    borderRadius: 8,
-    overflow: 'hidden',
+    width: '48.5%',
+    backgroundColor: 'rgba(31,41,55,0.5)',
+    borderRadius: 12,
+    padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(55,65,81,0.5)',
+    marginBottom: GRID_GAP,
   },
-  skeletonBar: { height: 32, backgroundColor: 'rgba(255,255,255,0.1)' },
-  skeletonContent: { padding: SKELETON_CONTENT_P, gap: GRID_GAP },
-  skeletonRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  skeletonDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.1)' },
-  skeletonBarThin: { height: 12, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.1)' },
+  // Admin: flex items-center justify-between mb-4
+  skeletonCardRow1: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  // Admin: h-4 bg-gray-700 rounded w-24
+  skeletonBlockA: {
+    height: 16,
+    width: 96,
+    borderRadius: 4,
+    backgroundColor: '#374151',
+  },
+  // Admin: w-12 h-12 bg-gray-700 rounded-xl
+  skeletonBlockB: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#374151',
+  },
+  // Admin: h-8 bg-gray-700 rounded w-32 mb-4
+  skeletonBlockC: {
+    height: 32,
+    width: 128,
+    borderRadius: 4,
+    backgroundColor: '#374151',
+    marginBottom: 16,
+  },
+  // Admin: space-y-2
+  skeletonCardLines: {
+    gap: 8,
+  },
+  // Admin: h-3 bg-gray-700 rounded w-full
+  skeletonLineFull: {
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: '#374151',
+    width: '100%',
+  },
+  // Admin: h-3 bg-gray-700 rounded w-3/4
+  skeletonLineThreeQuarters: {
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: '#374151',
+    width: '75%',
+  },
 });
 
-export default React.memo(Section1);
+export default Section1;

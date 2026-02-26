@@ -114,6 +114,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     return (
@@ -165,7 +166,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                 onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))}
                                 placeholder={t('gameBid.point')}
                                 placeholderTextColor="#6b7280"
-                                inputMode="numeric"
+                                keyboardType="numeric"
                             />
                         </View>
                     </View>
@@ -208,7 +209,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingVertical: 8 },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
     warnBox: { marginBottom: 16, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
     row: { gap: 16 },

@@ -505,6 +505,9 @@
   },
   "games": {
     "otherGames": "മറ്റ് ഗെയിമുകൾ",
+    "casinoGames": "കാസിനോ ഗെയിമുകൾ",
+    "skillsGames": "സ്കിൽസ് ഗെയിമുകൾ",
+    "allGames": "എല്ലാ ഗെയിമുകളും",
     "comingSoon": "ഉടൻ വരുന്നു",
     "tapToPlay": "ആടാൻ ടാപ്പ് ചെയ്യുക"
   },
@@ -537,7 +540,31 @@
     "marketIsOpen": "മാർക്കറ്റ് തുറന്നിരിക്കുന്നു",
     "closingIsRunning": "അടയ്ക്കുന്നു",
     "marketClosed": "മാർക്കറ്റ് അടച്ചു",
-    "runningForTomorrow": "നാളെക്ക് പ്രവർത്തിക്കുന്നു"
+    "runningForTomorrow": "നാളെക്ക് പ്രവർത്തിക്കുന്നു",
+    "names": {
+      "milanMorning": "മിലാൻ മോർണിംഗ്",
+      "rajdhaniMorning": "രാജധാനി മോർണിംഗ്",
+      "shridevi": "ശ്രീദേവി",
+      "timeBazar": "ടൈം ബസാർ",
+      "punaBazar": "പുണാ ബസാർ",
+      "prabhat": "പ്രഭാതം",
+      "bombayDay": "ബോംബെ ഡേ",
+      "shaktiDay": "ശക്തി ഡേ",
+      "milanDay": "മിലാൻ ഡേ",
+      "kalyan": "കല്യാണം",
+      "kalyanMorning": "കല്യാണം മോർണിംഗ്",
+      "radhaNight": "രാധ നൈറ്റ്",
+      "shrideviNight": "ശ്രീദേവി നൈറ്റ്",
+      "milanNight": "മിലാൻ നൈറ്റ്",
+      "kalyanNight": "കല്യാണം നൈറ്റ്",
+      "bombayNight": "ബോംബെ നൈറ്റ്",
+      "rajdhaniNight": "രാജധാനി നൈറ്റ്",
+      "ratanKhatri": "രതൻ ഖത്രി",
+      "madhurDay": "മധുര് ഡേ",
+      "madhurNight": "മധുര് നൈറ്റ്",
+      "mainBazar": "മെയിൻ ബസാർ",
+      "dhanlaxmi": "ധനലക്ഷ്മി"
+    }
   },
   "language": {
     "english": "ഇംഗ്ലീഷ്",

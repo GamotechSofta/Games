@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: colors.black,
-    paddingTop: 6,   // pt-1.5
     paddingBottom: 4, // pb-1
     paddingHorizontal: IS_MIN_375 ? 16 : 8,
     maxWidth: '100%',
@@ -83,4 +82,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 });
-export default React.memo(WalletSection);
+export default WalletSection;

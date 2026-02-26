@@ -505,6 +505,9 @@
   },
   "games": {
     "otherGames": "ಇತರ ಗೇಮ್‌ಗಳು",
+    "casinoGames": "ಕ್ಯಾಸಿನೋ ಆಟಗಳು",
+    "skillsGames": "ಸ್ಕಿಲ್ಸ್ ಆಟಗಳು",
+    "allGames": "ಎಲ್ಲಾ ಗೇಮ್‌ಗಳು",
     "comingSoon": "ಶೀಘ್ರದಲ್ಲೇ ಬರುತ್ತದೆ",
     "tapToPlay": "ಆಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ"
   },
@@ -537,7 +540,31 @@
     "marketIsOpen": "ಮಾರ್ಕೆಟ್ ತೆರೆದಿದೆ",
     "closingIsRunning": "ಮುಚ್ಚಲಾಗುತ್ತಿದೆ",
     "marketClosed": "ಮಾರ್ಕೆಟ್ ಮುಚ್ಚಲಾಗಿದೆ",
-    "runningForTomorrow": "ನಾಳೆಗಾಗಿ ಚಾಲನೆಯಲ್ಲಿದೆ"
+    "runningForTomorrow": "ನಾಳೆಗಾಗಿ ಚಾಲನೆಯಲ್ಲಿದೆ",
+    "names": {
+      "milanMorning": "ಮಿಲಾನ್ ಮಾರ್ನಿಂಗ್",
+      "rajdhaniMorning": "ರಾಜಧಾನಿ ಮಾರ್ನಿಂಗ್",
+      "shridevi": "ಶ್ರೀದೇವಿ",
+      "timeBazar": "ಟೈಮ್ ಬಜಾರ್",
+      "punaBazar": "ಪುಣಾ ಬಜಾರ್",
+      "prabhat": "ಪ್ರಭಾತ",
+      "bombayDay": "ಬಾಂಬೆ ಡೇ",
+      "shaktiDay": "ಶಕ್ತಿ ಡೇ",
+      "milanDay": "ಮಿಲಾನ್ ಡೇ",
+      "kalyan": "ಕಲ್ಯಾಣ",
+      "kalyanMorning": "ಕಲ್ಯಾಣ ಮಾರ್ನಿಂಗ್",
+      "radhaNight": "ರಾಧಾ ನೈಟ್",
+      "shrideviNight": "ಶ್ರೀದೇವಿ ನೈಟ್",
+      "milanNight": "ಮಿಲಾನ್ ನೈಟ್",
+      "kalyanNight": "ಕಲ್ಯಾಣ ನೈಟ್",
+      "bombayNight": "ಬಾಂಬೆ ನೈಟ್",
+      "rajdhaniNight": "ರಾಜಧಾನಿ ನೈಟ್",
+      "ratanKhatri": "ರತನ್ ಖತ್ರಿ",
+      "madhurDay": "ಮಧುರ್ ಡೇ",
+      "madhurNight": "ಮಧುರ್ ನೈಟ್",
+      "mainBazar": "ಮೇನ್ ಬಜಾರ್",
+      "dhanlaxmi": "ಧನಲಕ್ಷ್ಮಿ"
+    }
   },
   "language": {
     "english": "ಆಂಗ್ಲ",

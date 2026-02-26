@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
+import { useTranslation } from '../hooks/useTranslation';
 import { GAMES } from '../config/games';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
@@ -16,6 +17,7 @@ function getImageUri(uri) {
 export default function Games() {
   const route = useRoute();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const category = route.params?.category || 'all';
 
   const filteredGames = GAMES.filter((game) => {
@@ -27,10 +29,10 @@ export default function Games() {
 
   const title =
     category === 'highEarning'
-      ? 'Casino Games'
+      ? t('games.casinoGames')
       : category === 'upcoming'
-        ? 'Skills Games'
-        : 'All Games';
+        ? t('games.skillsGames')
+        : t('games.allGames');
 
   const handleGamePress = (game) => {
     if (game.upcoming) return;
@@ -70,7 +72,7 @@ export default function Games() {
                 )}
                 {isUpcoming && (
                   <View style={styles.comingSoonOverlay}>
-                    <Text style={styles.comingSoonText}>Coming Soon</Text>
+                    <Text style={styles.comingSoonText}>{t('games.comingSoon')}</Text>
                   </View>
                 )}
               </View>

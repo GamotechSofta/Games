@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { useScheduling } from '../BettingWindowContext';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { useFocusEffect } from '@react-navigation/native';
-import { placeBet, updateUserBalance, getBalanceForDisplay } from '../../../api/bets';
+import { placeBet, updateUserBalance } from '../../../api/bets';
 import { storage } from '../../../utils/storage';
 import { SINGLE_PANA_BY_SUM } from '../panaRules';
 
@@ -26,6 +27,7 @@ const getWalletFromStorage = async () => {
 
 const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const { setSelectedDateIST } = useScheduling();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
@@ -72,6 +74,16 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         setSelectedDate(new Date().toISOString().split('T')[0]);
     };
 
+    const clearGroup = (groupKey) => {
+        const list = panasBySumDigit[groupKey] || [];
+        setSpecialInputs((prev) => {
+            const next = { ...prev };
+            for (const num of list) next[num] = '';
+            return next;
+        });
+        setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
+    };
+
     const applyGroup = (groupKey, pts) => {
         const p = sanitizePoints(pts);
         const n = Number(p);
@@ -88,14 +100,15 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
     };
 
-    const openReview = async () => {
+    const openReview = () => {
         const rows = Object.entries(specialInputs)
             .filter(([, pts]) => Number(pts) > 0)
             .map(([num, pts]) => ({ id: `${num}-${pts}-${session}`, number: num, points: String(pts), type: session }));
-        if (!rows.length) { showWarning('Please enter points for at least one Single Panna.'); return; }
+        if (!rows.length) {
+            showWarning('Please enter points for at least one Single Panna.');
+            return;
+        }
         setReviewRows(rows);
-        const w = await getBalanceForDisplay();
-        setWalletBefore(w);
         setIsReviewOpen(true);
     };
 
@@ -117,16 +130,25 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        setIsReviewOpen(false);
+        clearAll();
     };
 
     const marketTitle = market?.gameName || market?.marketName || title;
     const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
 
+    const bottomPadding = Math.max(insets.bottom, 12) + 72; // tab bar + safe area
+    const submitBarHeight = 12 + 52 + bottomPadding; // wrap paddingTop + button height + bottom padding
     return (
         <BidLayout market={market} title={title} bidsCount={reviewRows.length} totalPoints={totalPoints} session={session} setSession={setSession} displayDate={formatDateDisplay(selectedDate)} walletBalance={walletBefore} hideFooter onSubmit={openReview} showDateSession>
             <View style={s.content}>
+                {scheduleForTomorrow ? (
+                    <View style={s.scheduleBanner}>
+                        <Text style={s.scheduleBannerText}>Scheduling bet for <Text style={s.scheduleBannerStrong}>tomorrow</Text>. Date is set to next day (IST).</Text>
+                    </View>
+                ) : null}
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
-                <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+                <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} contentContainerStyle={[s.scrollContent, { paddingBottom: submitBarHeight }]}>
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => {
                         const groupKey = String(d);
                         const list = panasBySumDigit[groupKey] || [];
@@ -142,9 +164,13 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                         onBlur={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])}
                                         placeholder={t('gameBid.allPts')}
                                         placeholderTextColor="#6b7280"
+                                        keyboardType="numeric"
                                     />
-                                    <TouchableOpacity style={s.applyBtn} onPress={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])}>
+                                    <TouchableOpacity style={[s.applyBtn, !groupBulk[groupKey] && s.applyBtnDisabled]} onPress={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])} disabled={!groupBulk[groupKey]}>
                                         <Text style={s.applyBtnText}>{t('gameBid.apply')}</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={s.clearBtn} onPress={() => clearGroup(groupKey)}>
+                                        <Text style={s.clearBtnText}>{t('gameBid.clear')}</Text>
                                     </TouchableOpacity>
                                 </View>
                                 <View style={s.panaRow}>
@@ -157,6 +183,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                                 onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: sanitizePoints(v) }))}
                                                 placeholder={t('gameBid.pts')}
                                                 placeholderTextColor="#6b7280"
+                                                keyboardType="numeric"
                                             />
                                         </View>
                                     ))}
@@ -165,9 +192,12 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                         );
                     })}
                 </ScrollView>
-                <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={openReview} disabled={!canSubmit}>
-                    <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
-                </TouchableOpacity>
+                {/* Frontend: fixed bottom-[88px], always visible; disabled = opacity-50 */}
+                <View style={[s.submitBtnWrap, { paddingBottom: bottomPadding }]}>
+                    <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={openReview} disabled={!canSubmit} activeOpacity={0.98}>
+                        <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
             <BidReviewModal open={isReviewOpen} onClose={clearAll} onSubmit={handleSubmit} marketTitle={marketTitle} dateText={dateText} labelKey={t('gameBid.pana')} rows={reviewRows} walletBefore={walletBefore} totalBids={reviewRows.length} totalAmount={totalPoints} />
         </BidLayout>
@@ -175,25 +205,33 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingVertical: 8 },
+    content: { flex: 1, paddingHorizontal: 12, paddingTop: 16 },
+    scheduleBanner: { marginBottom: 12, backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)', borderRadius: 12, padding: 10 },
+    scheduleBannerText: { color: '#fde68a', fontSize: 13 },
+    scheduleBannerStrong: { fontWeight: '700' },
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
-    scroll: { maxHeight: 340 },
+    scroll: { flex: 1 },
+    scrollContent: { paddingBottom: 16 },
     group: { marginBottom: 16 },
     groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-    groupLabel: { width: 36, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    groupLabel: { width: 40, height: 36, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     groupLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
     groupInput: { width: 80, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
     applyBtn: { paddingHorizontal: 12, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', alignItems: 'center', justifyContent: 'center' },
+    applyBtnDisabled: { borderColor: 'rgba(255,255,255,0.1)' },
     applyBtnText: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
+    clearBtn: { paddingHorizontal: 12, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(239,68,68,0.4)', alignItems: 'center', justifyContent: 'center' },
+    clearBtnText: { color: '#f87171', fontWeight: '700', fontSize: 12 },
     panaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
     panaCell: { flexDirection: 'row', alignItems: 'center', width: '30%', minWidth: 90 },
     panaLabel: { width: 40, height: 36, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     panaLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
     panaInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
-    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center', marginTop: 16 },
+    submitBtnWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 12, paddingHorizontal: 12, backgroundColor: '#000' },
+    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 52, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },
-    submitBtnText: { color: '#4b3608', fontWeight: '700' },
+    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 16 },
 });
 
 export default SinglePanaBulkBid;

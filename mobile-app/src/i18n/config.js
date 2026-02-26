@@ -36,13 +36,15 @@ i18n.use(initReactI18next).init({
   react: { useSuspense: false },
 });
 
-// Persist language choice (load on init)
-storage.getItem(LANGUAGE_KEY).then((lng) => {
-  if (lng && resources[lng]) i18n.changeLanguage(lng);
-});
-
+// Persist: save whenever language changes
 i18n.on('languageChanged', (lng) => {
   storage.setItem(LANGUAGE_KEY, lng);
 });
 
+// Load saved language before first paint so app renders in user's choice
+const languageReadyPromise = storage.getItem(LANGUAGE_KEY).then((lng) => {
+  if (lng && resources[lng]) return i18n.changeLanguage(lng);
+}).catch(() => {});
+
+export { languageReadyPromise };
 export default i18n;

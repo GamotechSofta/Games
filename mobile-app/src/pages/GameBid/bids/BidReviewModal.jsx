@@ -68,71 +68,71 @@ const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, da
                         </View>
                     </View>
                 ) : (
-                <View style={styles.sheet}>
-                    <View style={styles.titleBar}>
-                        <Text style={styles.title}>{titleText}</Text>
-                    </View>
+                    <View style={styles.sheet}>
+                        <View style={styles.titleBar}>
+                            <Text style={styles.title}>{titleText}</Text>
+                        </View>
 
-                    <View style={styles.headerRow}>
-                        <Text style={[styles.col, styles.colLeft]}>{labelKey}</Text>
-                        <Text style={styles.col}>{t('gameBid.points')}</Text>
-                        <Text style={styles.col}>{t('gameBid.type')}</Text>
-                    </View>
+                        <View style={styles.headerRow}>
+                            <Text style={[styles.col, styles.colLeft]}>{labelKey}</Text>
+                            <Text style={styles.col}>{t('gameBid.points')}</Text>
+                            <Text style={styles.col}>{t('gameBid.type')}</Text>
+                        </View>
 
-                    <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-                        {rows?.map((r, i) => (
-                            <View key={r.id || i} style={styles.row}>
-                                <Text style={[styles.cell, styles.cellLeft]} numberOfLines={1}>{r.number}</Text>
-                                <Text style={[styles.cell, styles.cellPoints]}>{r.points}</Text>
-                                <Text style={[styles.cell, styles.cellType]}>
-                                    {r.type?.toUpperCase() === 'OPEN' ? t('gameBid.open') : r.type?.toUpperCase() === 'CLOSE' ? t('gameBid.close') : (r.type || '-')}
-                                </Text>
+                        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+                            {rows?.map((r, i) => (
+                                <View key={r.id || i} style={styles.row}>
+                                    <Text style={[styles.cell, styles.cellLeft]} numberOfLines={1}>{r.number}</Text>
+                                    <Text style={[styles.cell, styles.cellPoints]}>{r.points}</Text>
+                                    <Text style={[styles.cell, styles.cellType]}>
+                                        {r.type?.toUpperCase() === 'OPEN' ? t('gameBid.open') : r.type?.toUpperCase() === 'CLOSE' ? t('gameBid.close') : (r.type || '-')}
+                                    </Text>
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        <View style={styles.summaryGrid}>
+                            <View style={[styles.sumCell, styles.sumCellBorderR, styles.sumCellBorderB]}>
+                                <Text style={styles.sumLabel}>{t('gameBid.totalBids')}</Text>
+                                <Text style={styles.sumVal}>{totalBids || rows?.length || 0}</Text>
                             </View>
-                        ))}
-                    </ScrollView>
+                            <View style={[styles.sumCell, styles.sumCellBorderB]}>
+                                <Text style={styles.sumLabel}>{t('gameBid.totalBetAmount')}</Text>
+                                <Text style={[styles.sumVal, styles.sumValGold]}>{amount}</Text>
+                            </View>
+                            <View style={[styles.sumCell, styles.sumCellBorderR]}>
+                                <Text style={styles.sumLabel}>{t('gameBid.walletBalanceBeforeDeduction')}</Text>
+                                <Text style={styles.sumVal}>{before.toFixed(1)}</Text>
+                            </View>
+                            <View style={styles.sumCell}>
+                                <Text style={styles.sumLabel}>{t('gameBid.walletBalanceAfterDeduction')}</Text>
+                                <Text style={[styles.sumVal, isInsufficient && styles.sumValDanger]}>{after.toFixed(1)}</Text>
+                            </View>
+                        </View>
 
-                    <View style={styles.summaryGrid}>
-                        <View style={[styles.sumCell, styles.sumCellBorderR, styles.sumCellBorderB]}>
-                            <Text style={styles.sumLabel}>{t('gameBid.totalBids')}</Text>
-                            <Text style={styles.sumVal}>{totalBids || rows?.length || 0}</Text>
-                        </View>
-                        <View style={[styles.sumCell, styles.sumCellBorderB]}>
-                            <Text style={styles.sumLabel}>{t('gameBid.totalBetAmount')}</Text>
-                            <Text style={[styles.sumVal, styles.sumValGold]}>{amount}</Text>
-                        </View>
-                        <View style={[styles.sumCell, styles.sumCellBorderR]}>
-                            <Text style={styles.sumLabel}>{t('gameBid.walletBalanceBeforeDeduction')}</Text>
-                            <Text style={styles.sumVal}>{before.toFixed(1)}</Text>
-                        </View>
-                        <View style={styles.sumCell}>
-                            <Text style={styles.sumLabel}>{t('gameBid.walletBalanceAfterDeduction')}</Text>
-                            <Text style={[styles.sumVal, isInsufficient && styles.sumValDanger]}>{after.toFixed(1)}</Text>
+                        {!!error && <Text style={styles.error}>{error}</Text>}
+                        <Text style={styles.note}>{t('gameBid.betNoteCannotCancel')}</Text>
+
+                        <View style={styles.btns}>
+                            <TouchableOpacity style={styles.cancelBtn} onPress={handleClose} disabled={submitting}>
+                                <Text style={styles.cancelText}>{t('gameBid.cancel')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.confirmBtn, (submitting || isInsufficient) && styles.confirmBtnDisabled]}
+                                onPress={handleSubmit}
+                                disabled={submitting || isInsufficient}
+                            >
+                                {submitting ? (
+                                    <>
+                                        <ActivityIndicator size="small" color="#4b3608" style={{ marginRight: 6 }} />
+                                        <Text style={styles.confirmText}>{t('gameBid.placing')}</Text>
+                                    </>
+                                ) : (
+                                    <Text style={styles.confirmText}>{t('gameBid.submitBet')}</Text>
+                                )}
+                            </TouchableOpacity>
                         </View>
                     </View>
-
-                    {!!error && <Text style={styles.error}>{error}</Text>}
-                    <Text style={styles.note}>{t('gameBid.betNoteCannotCancel')}</Text>
-
-                    <View style={styles.btns}>
-                        <TouchableOpacity style={styles.cancelBtn} onPress={handleClose} disabled={submitting}>
-                            <Text style={styles.cancelText}>{t('gameBid.cancel')}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.confirmBtn, (submitting || isInsufficient) && styles.confirmBtnDisabled]}
-                            onPress={handleSubmit}
-                            disabled={submitting || isInsufficient}
-                        >
-                            {submitting ? (
-                                <>
-                                    <ActivityIndicator size="small" color="#4b3608" style={{ marginRight: 6 }} />
-                                    <Text style={styles.confirmText}>{t('gameBid.placing')}</Text>
-                                </>
-                            ) : (
-                                <Text style={styles.confirmText}>{t('gameBid.submitBet')}</Text>
-                            )}
-                        </TouchableOpacity>
-                    </View>
-                </View>
                 )}
             </View>
         </Modal>

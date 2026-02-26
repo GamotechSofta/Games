@@ -60,6 +60,89 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         return o;
     });
 
+    const [rowBulk, setRowBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
+    const [colBulk, setColBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
+    const bulkApplyTimers = useRef({});
+    const lastAppliedRow = useRef({});
+    const lastAppliedCol = useRef({});
+
+    useEffect(() => {
+        return () => {
+            Object.values(bulkApplyTimers.current).forEach(clearTimeout);
+            bulkApplyTimers.current = {};
+        };
+    }, []);
+
+    const scheduleBulkApply = (type, key, value, applyFn) => {
+        const id = `${type}-${key}`;
+        if (bulkApplyTimers.current[id]) clearTimeout(bulkApplyTimers.current[id]);
+        const val = sanitizePoints(String(value ?? ''));
+        if (val) {
+            bulkApplyTimers.current[id] = setTimeout(() => {
+                applyFn(key, val);
+                delete bulkApplyTimers.current[id];
+            }, 500);
+        }
+    };
+
+    const applyRow = (r, pts) => {
+        const p = Number(pts);
+        if (!p || p <= 0) {
+            showWarning('Please enter points.');
+            return;
+        }
+        const lastP = lastAppliedRow.current[r] || 0;
+        lastAppliedRow.current[r] = p;
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const c of DIGITS) {
+                const key = `${r}${c}`;
+                const cur = Number(next[key] || 0) || 0;
+                next[key] = String(Math.max(0, cur - lastP + p));
+            }
+            return next;
+        });
+    };
+
+    const applyCol = (c, pts) => {
+        const p = Number(pts);
+        if (!p || p <= 0) {
+            showWarning('Please enter points.');
+            return;
+        }
+        const lastP = lastAppliedCol.current[c] || 0;
+        lastAppliedCol.current[c] = p;
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const r of DIGITS) {
+                const key = `${r}${c}`;
+                const cur = Number(next[key] || 0) || 0;
+                next[key] = String(Math.max(0, cur - lastP + p));
+            }
+            return next;
+        });
+    };
+
+    const clearBulkAndCells = () => {
+        Object.values(bulkApplyTimers.current).forEach(clearTimeout);
+        bulkApplyTimers.current = {};
+        setCells(() => {
+            const o = {};
+            for (const r of DIGITS) for (const c of DIGITS) o[`${r}${c}`] = '';
+            return o;
+        });
+        setRowBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
+        setColBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
+        lastAppliedRow.current = {};
+        lastAppliedCol.current = {};
+    };
+
+    const clearAll = () => {
+        setIsReviewOpen(false);
+        clearBulkAndCells();
+        setSelectedDate(new Date().toISOString().split('T')[0]);
+    };
+
     const rows = useMemo(() => {
         const out = [];
         for (const r of DIGITS) {
@@ -76,16 +159,6 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const canSubmit = rows.length > 0;
     const marketTitle = market?.gameName || market?.marketName || title;
     const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
-
-    const clearAll = () => {
-        setIsReviewOpen(false);
-        setCells(() => {
-            const o = {};
-            for (const r of DIGITS) for (const c of DIGITS) o[`${r}${c}`] = '';
-            return o;
-        });
-        setSelectedDate(new Date().toISOString().split('T')[0]);
-    };
 
     const handleOpenReview = async () => {
         if (!rows.length) { showWarning('Please enter points for at least one Jodi.'); return; }
@@ -107,6 +180,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+        // Modal shows success screen; closing and clearAll happen when user taps OK (onClose)
     };
 
     return (
@@ -129,25 +203,64 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.scroll}>
                     <View style={s.grid}>
+                        {/* Header Row: Corner + Top Bulk Labels */}
                         <View style={s.headerRow}>
-                            <View style={s.corner} />
-                            {DIGITS.map((c) => <Text key={c} style={s.headerCell}>{c}</Text>)}
+                            <View style={s.cornerWrap}><Text style={s.cornerText}>Pts</Text></View>
+                            <View style={s.spacerRow} />
+                            {DIGITS.map((c) => (
+                                <View key={c} style={s.colHeader}>
+                                    <Text style={s.headerDigit}>{c}</Text>
+                                    <TextInput
+                                        style={s.bulkInput}
+                                        value={colBulk[c]}
+                                        onChangeText={(v) => {
+                                            const val = sanitizePoints(v);
+                                            setColBulk((p) => ({ ...p, [c]: val }));
+                                            if (!val) clearBulkAndCells();
+                                            else scheduleBulkApply('col', c, val, applyCol);
+                                        }}
+                                        placeholder="+"
+                                        placeholderTextColor="rgba(255,255,255,0.2)"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            ))}
                         </View>
+
+                        {/* Matrix Rows */}
                         {DIGITS.map((r) => (
                             <View key={r} style={s.row}>
-                                <Text style={s.rowLabel}>{r}</Text>
+                                <View style={s.rowHeader}>
+                                    <Text style={s.rowDigit}>{r}</Text>
+                                    <TextInput
+                                        style={s.bulkInput}
+                                        value={rowBulk[r]}
+                                        onChangeText={(v) => {
+                                            const val = sanitizePoints(v);
+                                            setRowBulk((p) => ({ ...p, [r]: val }));
+                                            if (!val) clearBulkAndCells();
+                                            else scheduleBulkApply('row', r, val, applyRow);
+                                        }}
+                                        placeholder="+"
+                                        placeholderTextColor="rgba(255,255,255,0.2)"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                                <View style={s.spacerRow} />
                                 {DIGITS.map((c) => {
                                     const key = `${r}${c}`;
                                     return (
-                                        <TextInput
-                                            key={key}
-                                            style={s.cell}
-                                            value={cells[key]}
-                                            onChangeText={(v) => setCells((p) => ({ ...p, [key]: sanitizePoints(v) }))}
-                                            placeholder={t('gameBid.pts')}
-                                            placeholderTextColor="rgba(255,255,255,0.3)"
-                                            keyboardType="number-pad"
-                                        />
+                                        <View key={key} style={s.cellWrap}>
+                                            <Text style={s.cellLabel}>{key}</Text>
+                                            <TextInput
+                                                style={s.cell}
+                                                value={cells[key]}
+                                                onChangeText={(v) => setCells((p) => ({ ...p, [key]: sanitizePoints(v) }))}
+                                                placeholder="."
+                                                placeholderTextColor="rgba(255,255,255,0.2)"
+                                                keyboardType="numeric"
+                                            />
+                                        </View>
                                     );
                                 })}
                             </View>
@@ -164,20 +277,27 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
 };
 
 const s = StyleSheet.create({
-    content: { paddingVertical: 8 },
+    content: { paddingHorizontal: 12, paddingTop: 16, paddingBottom: 24 },
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
-    warnText: { color: '#fca5a5', fontSize: 13 },
+    warnText: { color: '#fca5a5', fontSize: 13, textAlign: 'center' },
     scroll: { marginBottom: 16 },
     grid: { padding: 4 },
-    headerRow: { flexDirection: 'row', marginBottom: 4 },
-    corner: { width: 24, height: 28 },
-    headerCell: { width: 32, height: 28, textAlign: 'center', color: '#f2c14e', fontWeight: '700', fontSize: 11 },
-    row: { flexDirection: 'row', marginBottom: 4, alignItems: 'center' },
-    rowLabel: { width: 24, color: '#f2c14e', fontWeight: '700', fontSize: 11, textAlign: 'center' },
-    cell: { width: 32, height: 28, backgroundColor: 'rgba(0,0,0,0.4)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 4, color: '#fff', fontSize: 10, textAlign: 'center', marginHorizontal: 1 },
-    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
+    headerRow: { flexDirection: 'row', marginBottom: 6 },
+    cornerWrap: { width: 50, height: 48, justifyContent: 'center', alignItems: 'center' },
+    cornerText: { color: '#9ca3af', fontSize: 10, fontWeight: '700' },
+    spacerRow: { width: 8 },
+    colHeader: { width: 44, alignItems: 'center', gap: 2 },
+    headerDigit: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
+    bulkInput: { width: 36, height: 26, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', borderRadius: 4, color: '#fff', fontSize: 10, textAlign: 'center', padding: 0 },
+    row: { flexDirection: 'row', marginBottom: 6, alignItems: 'center' },
+    rowHeader: { width: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
+    rowDigit: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
+    cellWrap: { width: 44, alignItems: 'center', gap: 2 },
+    cellLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '700' },
+    cell: { width: 38, height: 28, backgroundColor: 'rgba(30,30,30,0.9)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.25)', borderRadius: 4, color: '#fff', fontSize: 12, textAlign: 'center', fontWeight: '600', padding: 0 },
+    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 52, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },
-    submitBtnText: { color: '#4b3608', fontWeight: '700' },
+    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 16 },
 });
 
 export default JodiBulkBid;

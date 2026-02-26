@@ -49,13 +49,15 @@ export function isBettingAllowed(market, now = new Date()) {
   return { allowed: true };
 }
 
+const istDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
 export function getTodayIST() {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Kolkata',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
+  return istDateFormatter.format(new Date());
 }
 
 export function getTomorrowIST() {
