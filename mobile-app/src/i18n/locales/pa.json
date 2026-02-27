@@ -34,7 +34,9 @@
     "comingSoon": "ਜਲਦੀ ਆ ਰਿਹਾ ਹੈ...",
     "openMenu": "ਮੇਨੂ ਖੋਲ੍ਹੋ",
     "closeMenu": "ਮੇਨੂ ਬੰਦ ਕਰੋ",
-    "selectDate": "ਤਾਰੀਖ ਚੁਣੋ"
+    "selectDate": "ਤਾਰੀਖ ਚੁਣੋ",
+    "today": "ਅੱਜ",
+    "loginRequired": "ਜਾਰੀ ਰੱਖਣ ਲਈ ਲੌਗ ਇਨ ਕਰੋ"
   },
   "datePicker": {
     "selectDate": "ਤਾਰੀਖ ਚੁਣੋ",
@@ -100,7 +102,8 @@
     "statusInProgress": "ਜਾਰੀ",
     "statusResolved": "ਹੱਲ ਹੋਇਆ",
     "statusClosed": "ਬੰਦ",
-    "supportRequestDefault": "ਸਪੋਰਟ ਬੇਨਤੀ"
+    "supportRequestDefault": "ਸਪੋਰਟ ਬੇਨਤੀ",
+    "noteSubtext": "ਸਕ੍ਰੀਨਸ਼ਾਟ ਅਪਲੋਡਾਂ ਲਈ ਪੂਰੀ ਐਪ ਚਾਹੀਦੀ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੀ ਸਮੱਸਿਆ ਵਿਸਤਾਰ ਨਾਲ ਵਰਣਨ ਕਰੋ।"
   },
   "funds": {
     "addFund": "ਫੰਡ ਜੋੜੋ",
@@ -183,6 +186,9 @@
     "maximumWithdrawal": "ਵੱਧ ਤੋਂ ਵੱਧ ਕੱਢਣ",
     "bankAccountDetails": "ਬੈਂਕ ਖਾਤਾ ਵੇਰਵੇ",
     "fundsTitle": "ਫੰਡ",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "ਬੈਂਕ ਵੇਰਵੇ ਸੇਵ ਹੋ ਗਏ!",
+    "failedToSaveBankDetails": "ਬੈਂਕ ਵੇਰਵੇ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
     "bankDetail": "ਬੈਂਕ ਵੇਰਵਾ",
     "addFundSubtitle": "ਤੁਸੀਂ ਆਪਣੇ ਵਾਲੇਟ ਵਿੱਚ ਫੰਡ ਜੋੜ ਸਕਦੇ ਹੋ",
     "withdrawFundSubtitle": "ਤੁਸੀਂ ਜਿੱਤੀ ਹੋਈ ਰਕਮ ਕੱਢ ਸਕਦੇ ਹੋ",
@@ -232,6 +238,9 @@
     "accountHolderName": "ਖਾਤਾ ਧਾਰਕ ਦਾ ਨਾਮ",
     "bankName": "ਬੈਂਕ ਦਾ ਨਾਮ",
     "branchName": "ਸ਼ਾਖਾ ਦਾ ਨਾਮ"
+  },
+  "home": {
+    "latestNews": "ਤਾਜ਼ਾ ਖਬਰਾਂ"
   },
   "navigation": {
     "home": "ਹੋਮ",
@@ -285,6 +294,11 @@
     "kingBazaarBetHistorySubtitle": "ਤੁਸੀਂ ਸਟਾਰਲਾਈਨ ਨਤੀਜਾ ਦੇਖ ਸਕਦੇ ਹੋ",
     "marketResultHistory": "ਮਾਰਕੀਟ ਨਤੀਜਾ ਇਤਿਹਾਸ",
     "filterBy": "ਫਿਲਟਰ ਕਰੋ",
+    "filterType": "ਫਿਲਟਰ ਕਿਸਮ",
+    "byGameType": "ਗੇਮ ਟਾਈਪ ਦੁਆਰਾ",
+    "byWinningStatus": "ਜਿੱਤ ਸਥਿਤੀ ਦੁਆਰਾ",
+    "byGames": "ਗੇਮਾਂ",
+    "filterApply": "ਫਿਲਟਰ",
     "selectDate": "ਤਾਰੀਖ ਚੁਣੋ",
     "selectItemFromLeftMenu": "ਖੱਬੇ ਮੀਨੂ ਤੋਂ ਇਕ ਆਈਟਮ ਚੁਣੋ।",
     "resultsFor": "ਨਤੀਜਿਆਂ ਲਈ",
@@ -369,7 +383,8 @@
     "security": "ਸੁਰੱਖਿਆ",
     "passwordSecuritySettings": "ਪਾਸਵਰਡ ਅਤੇ ਸੁਰੱਖਿਆ ਸੈਟਿੰਗਾਂ",
     "securitySettingsComingSoon": "ਸੁਰੱਖਿਆ ਸੈਟਿੰਗਾਂ ਜਲਦੀ ਆ ਰਹੀਆਂ ਹਨ",
-    "getHelpWithAccount": "ਆਪਣੇ ਖਾਤੇ ਨਾਲ ਮਦਦ ਪ੍ਰਾਪਤ ਕਰੋ"
+    "getHelpWithAccount": "ਆਪਣੇ ਖਾਤੇ ਨਾਲ ਮਦਦ ਪ੍ਰਾਪਤ ਕਰੋ",
+    "confirmLogout": "ਕੀ ਤੁਸੀਂ ਯਕੀਨਨ ਸਾਈਨ ਆਊਟ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ?"
   },
   "notifications": {
     "title": "ਸੂਚਨਾਵਾਂ",
@@ -414,6 +429,10 @@
   },
   "gameRate": {
     "title": "ਗੇਮ ਰੇਟ",
+    "subtitle": "1 ਯੂਨਿਟ ਬੇਟ ਪ੍ਰਤੀ ਭੁਗਤਾਨ ਦਰ (1 =)",
+    "srNo": "ਕ੍ਰ. ਨੰ.",
+    "game": "ਗੇਮ",
+    "rateHeader": "ਦਰ (1 =)",
     "singleDigit": "ਸਿੰਗਲ ਅੰਕ",
     "singleDigitBulk": "ਸਿੰਗਲ ਅੰਕ ਬਲਕ",
     "jodi": "ਜੋੜੀ",
@@ -469,7 +488,12 @@
     "digit": "ਅੰਕ",
     "selectGameType": "ਗੇਮ ਕਿਸਮ ਚੁਣੋ",
     "enterSingleDigit": "ਸਿੰਗਲ ਅੰਕ ਦਾਖਲ ਕਰੋ",
-    "submitBet": "ਬੇਟ ਸਬਮਿਟ ਕਰੋ"
+    "submitBet": "ਬੇਟ ਸਬਮਿਟ ਕਰੋ",
+    "selectSum": "ਜੋੜ ਚੁਣੋ",
+    "specialModeNotAvailable": "ਸਪੈਸ਼ਲ ਮੋਡ ਉਪਲਬਧ ਨਹੀਂ",
+    "scheduleBannerText": "{{tomorrow}} ਲਈ ਬੇਟ ਸ਼ੈਡਿਊਲ। ਤਾਰੀਖ ਅਗਲੇ ਦਿਨ (IST) ਨੂੰ ਸੈੱਟ ਕੀਤੀ ਗਈ।",
+    "scheduleBannerTomorrow": "ਕੱਲ੍ਹ",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "ਟਾਪ ਵਿਜੇਤਾ",
@@ -486,9 +510,14 @@
   "passbook": {
     "title": "ਪਾਸਬੁੱਕ",
     "transactionHistory": "ਲੈਣ-ਦੇਣ ਇਤਿਹਾਸ",
+    "allTransactions": "ਸਭ",
+    "credits": "ਕ੍ਰੈਡਿਟ",
+    "debits": "ਡੈਬਿਟ",
     "credit": "ਕ੍ਰੈਡਿਟ",
     "debit": "ਡੈਬਿਟ",
     "credited": "ਕ੍ਰੈਡਿਟ ਕੀਤਾ ਗਿਆ",
+    "creditEntry": "ਕ੍ਰੈਡਿਟ",
+    "debitEntry": "ਡੈਬਿਟ",
     "withdrawn": "ਕੱਢਿਆ ਗਿਆ",
     "date": "ਤਾਰੀਖ",
     "time": "ਸਮਾਂ",
@@ -531,6 +560,20 @@
     "comeNextDay": "ਖੇਡਣ ਲਈ ਕੱਲ੍ਹ ਆਓ।",
     "ok": "ਠੀਕ ਹੈ"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "ਕਿੰਗ ਬਜ਼ਾਰ ਮਾਰਕੀਟ",
+    "selectTimeSlot": "ਬੇਟ ਲਗਾਉਣ ਲਈ ਟਾਈਮ ਸਲਾਟ ਚੁਣੋ। ਹਰਾ = ਖੁੱਲ੍ਹਾ, ਲਾਲ = ਅੱਜ ਲਈ ਬੰਦ।",
+    "open": "ਖੁੱਲ੍ਹਾ",
+    "closed": "ਬੰਦ",
+    "closeForToday": "ਅੱਜ ਲਈ ਬੰਦ",
+    "playGame": "ਗੇਮ ਖੇਡੋ",
+    "noTimeSlots": "{{title}} ਲਈ ਅਜੇ ਟਾਈਮ ਸਲਾਟ ਨਹੀਂ।",
+    "slotsAddedIn": "ਸਲਾਟ ਐਡਮਿਨ → ਮਾਰਕੀਟ → ਕਿੰਗ ਬਜ਼ਾਰ ਮਾਰਕੀਟ ਵਿੱਚ ਜੋੜੇ ਜਾਂਦੇ ਹਨ। ਜੋੜਣ ਤੋਂ ਬਾਅਦ ਇੱਥੇ ਦਿਖਾਈ ਦੇਣਗੇ।",
+    "sorry": "ਮਾਫ਼ ਕਰੋ !",
+    "bettingClosed": "ਅੱਜ ਲਈ ਬੇਟਿੰਗ ਬੰਦ ਹੈ।",
+    "comeNextDay": "ਖੇਡਣ ਲਈ ਕੱਲ੍ਹ ਆਓ।",
+    "ok": "ਠੀਕ ਹੈ"
+  },
   "markets": {
     "markets": "ਮਾਰਕੀਟ",
     "starline": "ਸਟਾਰਲਾਈਨ",
@@ -565,6 +608,12 @@
       "mainBazar": "ਮੇਨ ਬਜ਼ਾਰ",
       "dhanlaxmi": "ਧਨਲਕਸ਼ਮੀ"
     }
+  },
+  "download": {
+    "title": "ਐਪ ਡਾਊਨਲੋਡ ਕਰੋ",
+    "heading": "ਸਾਡੀ ਮੋਬਾਈਲ ਐਪ ਪ੍ਰਾਪਤ ਕਰੋ",
+    "subheading": "ਬਿਹਤਰ ਮੋਬਾਈਲ ਅਨੁਭਵ ਲਈ ਅਧਿਕਾਰਤ ਐਪ ਡਾਊਨਲੋਡ ਕਰੋ।",
+    "downloadNow": "ਹੁਣ ਡਾਊਨਲੋਡ ਕਰੋ"
   },
   "language": {
     "english": "ਅੰਗਰੇਜ਼ੀ",

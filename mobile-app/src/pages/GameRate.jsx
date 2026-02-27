@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { getRatesCurrent } from '../api/bets';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { haptics } from '../utils/haptics';
+import { SkeletonBox, SkeletonRow } from '../components/Skeleton';
 
 const DEFAULT_RATES = {
   single: 10, jodi: 100, singlePatti: 150, doublePatti: 300,
@@ -17,7 +19,28 @@ export default function GameRate() {
   const { t } = useTranslation();
   const [rates, setRates] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+
+  const fetchRates = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await getRatesCurrent();
+      if (res.success && res.data) setRates(res.data);
+      else setRates(DEFAULT_RATES);
+    } catch { setRates(DEFAULT_RATES); } finally { setLoading(false); }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      setError('');
+      const res = await getRatesCurrent();
+      if (res.success && res.data) setRates(res.data);
+      else setRates(DEFAULT_RATES);
+    } catch { setRates(DEFAULT_RATES); } finally { setRefreshing(false); }
+  };
 
   const GAME_LABELS = [
     { key: 'single', label: t('gameRate.singleDigit') },
@@ -29,18 +52,7 @@ export default function GameRate() {
     { key: 'fullSangam', label: t('gameRate.fullSangam') },
   ];
 
-  useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await getRatesCurrent();
-        if (res.success && res.data) setRates(res.data);
-        else setRates(DEFAULT_RATES);
-      } catch { setRates(DEFAULT_RATES); } finally { setLoading(false); }
-    };
-    fetchRates();
-  }, []);
+  useEffect(() => { fetchRates(); }, []);
 
   const rateMap = rates || DEFAULT_RATES;
   const rows = GAME_LABELS.map((g, idx) => ({
@@ -51,12 +63,12 @@ export default function GameRate() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); navigation.goBack(); }} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View>
           <Text style={styles.title}>{t('header.updateRate')}</Text>
-          <Text style={styles.subtitle}>Payout rate per 1 unit bet (1 =)</Text>
+          <Text style={styles.subtitle}>{t('gameRate.subtitle')}</Text>
         </View>
       </View>
 
@@ -67,17 +79,29 @@ export default function GameRate() {
       ) : null}
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <ScrollView contentContainerStyle={styles.tableWrap} showsVerticalScrollIndicator={false}>
+          <View style={[styles.tableRow, styles.tableHeaderRow]}>
+            <SkeletonBox width={44} height={14} />
+            <SkeletonBox flex={1} height={14} style={{ marginHorizontal: 8 }} />
+            <SkeletonBox width={80} height={14} />
+          </View>
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
+        </ScrollView>
       ) : (
-        <ScrollView contentContainerStyle={styles.tableWrap} showsVerticalScrollIndicator={false} removeClippedSubviews={true}>
+        <ScrollView
+          contentContainerStyle={styles.tableWrap}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.goldLight} />}
+        >
           <View style={styles.table}>
             {/* Header Row */}
             <View style={[styles.tableRow, styles.tableHeaderRow]}>
-              <Text style={[styles.tableHeaderCell, { width: 44 }]}>Sr No</Text>
-              <Text style={[styles.tableHeaderCell, { flex: 1 }]}>Game</Text>
-              <Text style={[styles.tableHeaderCell, { width: 80, textAlign: 'right' }]}>Rate (1 =)</Text>
+              <Text style={[styles.tableHeaderCell, { width: 44 }]}>{t('gameRate.srNo')}</Text>
+              <Text style={[styles.tableHeaderCell, { flex: 1 }]}>{t('gameRate.game')}</Text>
+              <Text style={[styles.tableHeaderCell, { width: 80, textAlign: 'right' }]}>{t('gameRate.rateHeader')}</Text>
             </View>
             {/* Data Rows */}
             {rows.map((row, idx) => (

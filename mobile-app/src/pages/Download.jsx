@@ -24,7 +24,7 @@ export default function Download() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('download.title') || 'Download App'}</Text>
+        <Text style={styles.title}>{t('download.title')}</Text>
       </View>
 
       <View style={styles.content}>
@@ -33,12 +33,12 @@ export default function Download() {
           <Text style={styles.appIcon}>📱</Text>
         </View>
 
-        <Text style={styles.heading}>{t('download.heading') || 'Get Our Mobile App'}</Text>
-        <Text style={styles.subheading}>{t('download.subheading') || 'Download the official app for the best mobile experience.'}</Text>
+        <Text style={styles.heading}>{t('download.heading')}</Text>
+        <Text style={styles.subheading}>{t('download.subheading')}</Text>
 
         <TouchableOpacity onPress={handleDownload} style={styles.downloadBtn} activeOpacity={0.85}>
           <Text style={styles.downloadIcon}>⬇</Text>
-          <Text style={styles.downloadText}>{t('download.downloadNow') || 'Download Now'}</Text>
+          <Text style={styles.downloadText}>{t('download.downloadNow')}</Text>
         </TouchableOpacity>
       </View>
     </View>

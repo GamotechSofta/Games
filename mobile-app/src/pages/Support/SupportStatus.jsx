@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../../hooks/useTranslation';
 import { API_BASE_URL } from '../../config/api';
 import { storage } from '../../utils/storage';
 import { colors, spacing, borderRadius, fontSize } from '../../theme';
+import { SkeletonList } from '../../components/Skeleton';
+import { haptics } from '../../utils/haptics';
 
 const getStatusColors = (status) => {
   const map = {
@@ -49,12 +51,16 @@ export default function SupportStatus() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header - match frontend: rounded-full back, myTickets + statusAndReplies */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity
+          onPress={() => { haptics.light(); navigation.goBack(); }}
+          style={styles.backBtn}
+          activeOpacity={0.95}
+        >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerTextWrap}>
           <Text style={styles.title}>{t('support.myTickets')}</Text>
           <Text style={styles.subtitle}>{t('support.statusAndReplies')}</Text>
         </View>
@@ -65,14 +71,18 @@ export default function SupportStatus() {
           <Text style={styles.alertText}>{t('support.loginRequiredForTickets')}</Text>
         </View>
       ) : loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <SkeletonList count={6} />
+        </ScrollView>
       ) : myTickets.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyTitle}>{t('support.noTicketsYet')}</Text>
           <Text style={styles.emptySubtext}>{t('support.sendRequestFromSupport')}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SupportNew')} style={styles.submitBtn} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={() => { haptics.light(); navigation.navigate('Support'); }}
+            style={styles.submitBtn}
+            activeOpacity={0.8}
+          >
             <Text style={styles.submitText}>{t('support.askForHelp')}</Text>
           </TouchableOpacity>
         </View>
@@ -114,11 +124,12 @@ export default function SupportStatus() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[3] },
-  backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[4], marginBottom: spacing[2] },
+  backBtn: { minWidth: 44, minHeight: 44, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   backIcon: { color: colors.text, fontSize: 20, fontWeight: '600' },
+  headerTextWrap: { flex: 1 },
   title: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  subtitle: { color: '#6b7280', fontSize: 11 },
+  subtitle: { color: '#6b7280', fontSize: 12 },
   alertBox: { margin: spacing[4], padding: spacing[4], borderRadius: borderRadius['2xl'], backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)' },
   alertText: { color: '#fde68a', fontSize: fontSize.sm, textAlign: 'center' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -137,5 +148,5 @@ const styles = StyleSheet.create({
   ticketDesc: { color: '#9ca3af', fontSize: fontSize.sm, marginTop: spacing[2], lineHeight: 20 },
   replyBox: { marginTop: spacing[3], paddingTop: spacing[3], borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' },
   replyLabel: { color: '#6b7280', fontSize: 11, marginBottom: 4 },
-  replyText: { color: '#86efac', fontSize: fontSize.sm, lineHeight: 20 },
+  replyText: { color: 'rgba(134,239,172,0.9)', fontSize: fontSize.sm, lineHeight: 20 },
 });

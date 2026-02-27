@@ -34,7 +34,9 @@
     "comingSoon": "ഉടൻ വരുന്നു...",
     "openMenu": "മെനു തുറക്കുക",
     "closeMenu": "മെനു അടയ്ക്കുക",
-    "selectDate": "തീയതി തിരഞ്ഞെടുക്കുക"
+    "selectDate": "തീയതി തിരഞ്ഞെടുക്കുക",
+    "today": "ഇന്ന്",
+    "loginRequired": "തുടരാൻ ലോഗിൻ ചെയ്യുക"
   },
   "datePicker": {
     "selectDate": "തീയതി തിരഞ്ഞെടുക്കുക",
@@ -100,7 +102,8 @@
     "statusInProgress": "പുരോഗതിയിൽ",
     "statusResolved": "പരിഹരിച്ചു",
     "statusClosed": "അടച്ചു",
-    "supportRequestDefault": "സപോർട്ട് അഭ്യർത്ഥന"
+    "supportRequestDefault": "സപോർട്ട് അഭ്യർത്ഥന",
+    "noteSubtext": "സ്ക്രീൻഷോട്ട് അപ്‌ലോഡുകൾക്ക് പൂർണ്ണ ആപ്പ് ആവശ്യമാണ്. ദയവായി നിങ്ങളുടെ പ്രശ്നം വിശദമായി വിവരിക്കുക."
   },
   "funds": {
     "addFund": "ഫണ്ട് ചേർക്കുക",
@@ -183,6 +186,9 @@
     "maximumWithdrawal": "പരമാവധി പിൻവലിക്കൽ",
     "bankAccountDetails": "ബാങ്ക് അക്കൗണ്ട് വിവരങ്ങൾ",
     "fundsTitle": "ഫണ്ടുകൾ",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "ബാങ്ക് വിവരം സേവ് ചെയ്തു!",
+    "failedToSaveBankDetails": "ബാങ്ക് വിവരം സേവ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു",
     "bankDetail": "ബാങ്ക് വിവരം",
     "addFundSubtitle": "നിങ്ങളുടെ വാലറ്റിൽ ഫണ്ട് ചേർക്കാം",
     "withdrawFundSubtitle": "കിട്ടിയ തുക പിൻവലിക്കാം",
@@ -232,6 +238,9 @@
     "accountHolderName": "അക്കൗണ്ട് ഉടമയുടെ പേര്",
     "bankName": "ബാങ്ക് പേര്",
     "branchName": "ശാഖയുടെ പേര്"
+  },
+  "home": {
+    "latestNews": "ഏറ്റവും പുതിയ വാർത്തകൾ"
   },
   "navigation": {
     "home": "ഹോം",
@@ -285,6 +294,11 @@
     "kingBazaarBetHistorySubtitle": "നിങ്ങൾക്ക് സ്റ്റാർലൈൻ ഫലം കാണാം",
     "marketResultHistory": "മാർക്കറ്റ് ഫലം ചരിത്രം",
     "filterBy": "ഫിൽട്ടർ ചെയ്യുക",
+    "filterType": "ഫിൽട്ടർ തരം",
+    "byGameType": "ഗെയിം തരം അനുസരിച്ച്",
+    "byWinningStatus": "ജയ സ്ഥിതി അനുസരിച്ച്",
+    "byGames": "ഗെയിമുകൾ",
+    "filterApply": "ഫിൽട്ടർ",
     "selectDate": "തീയതി തിരഞ്ഞെടുക്കുക",
     "selectItemFromLeftMenu": "ഇടത് മെനുവിൽ നിന്ന് ഒരു ഇനം തിരഞ്ഞെടുക്കുക.",
     "resultsFor": "ഫലങ്ങൾക്ക്",
@@ -369,7 +383,8 @@
     "security": "സുരക്ഷ",
     "passwordSecuritySettings": "പാസ്‌വേഡ്, സുരക്ഷാ ക്രമീകരണങ്ങൾ",
     "securitySettingsComingSoon": "സുരക്ഷാ ക്രമീകരണങ്ങൾ ഉടൻ വരും",
-    "getHelpWithAccount": "നിങ്ങളുടെ അക്കൗണ്ടിനൊപ്പം സഹായം നേടുക"
+    "getHelpWithAccount": "നിങ്ങളുടെ അക്കൗണ്ടിനൊപ്പം സഹായം നേടുക",
+    "confirmLogout": "നിങ്ങൾക്ക് ഉറപ്പായും സൈൻ ഔട്ട് ചെയ്യണോ?"
   },
   "notifications": {
     "title": "അറിയിപ്പുകൾ",
@@ -414,6 +429,10 @@
   },
   "gameRate": {
     "title": "ഗെയിം റേറ്റുകൾ",
+    "subtitle": "1 യൂണിറ്റ് ബെറ്റിന് പേയ്‌മെന്റ് നിരക്ക് (1 =)",
+    "srNo": "ക്ര.നം.",
+    "game": "ഗെയിം",
+    "rateHeader": "നിരക്ക് (1 =)",
     "singleDigit": "സിംഗിൾ ഡിജിറ്റ്",
     "singleDigitBulk": "സിംഗിൾ ഡിജിറ്റ് ബൾക്ക്",
     "jodi": "ജോഡി",
@@ -469,7 +488,12 @@
     "digit": "അക്കം",
     "selectGameType": "ഗെയിം തരം തിരഞ്ഞെടുക്കുക",
     "enterSingleDigit": "സിംഗിൾ അക്കം നൽകുക",
-    "submitBet": "ബെറ്റ് സമർപ്പിക്കുക"
+    "submitBet": "ബെറ്റ് സമർപ്പിക്കുക",
+    "selectSum": "തുക തിരഞ്ഞെടുക്കുക",
+    "specialModeNotAvailable": "സ്പെഷ്യൽ മോഡ് ലഭ്യമല്ല",
+    "scheduleBannerText": "{{tomorrow}} ന് ബെറ്റ് ഷെഡ്യൂൾ ചെയ്യുന്നു. തീയതി നാളെ (IST) എന്ന് സെറ്റ് ചെയ്തിരിക്കുന്നു.",
+    "scheduleBannerTomorrow": "നാളെ",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "മുൻനിര വിജേതകൾ",
@@ -486,9 +510,14 @@
   "passbook": {
     "title": "പാസ്‌ബുക്ക്",
     "transactionHistory": "ഇടപാട് ചരിത്രം",
+    "allTransactions": "എല്ലാം",
+    "credits": "ക്രെഡിറ്റുകൾ",
+    "debits": "ഡെബിറ്റുകൾ",
     "credit": "ക്രെഡിറ്റ്",
     "debit": "ഡെബിറ്റ്",
     "credited": "ക്രെഡിറ്റ് ചെയ്തു",
+    "creditEntry": "ക്രെഡിറ്റ്",
+    "debitEntry": "ഡെബിറ്റ്",
     "withdrawn": "പിൻവലിച്ചു",
     "date": "തീയതി",
     "time": "സമയം",
@@ -531,6 +560,20 @@
     "comeNextDay": "കളിക്കാൻ നാളെ വരുക.",
     "ok": "ശരി"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "കിംഗ് ബസാർ മാർക്കറ്റ്",
+    "selectTimeSlot": "ബെറ്റ് വെയ്ക്കാൻ സമയ സ്ലോട്ട് തിരഞ്ഞെടുക്കുക. പച്ച = തുറന്നു, ചുവപ്പ് = ഇന്ന് അടച്ചു.",
+    "open": "തുറന്നു",
+    "closed": "അടച്ചു",
+    "closeForToday": "ഇന്ന് അടച്ചു",
+    "playGame": "ഗെയിം കളിക്കുക",
+    "noTimeSlots": "{{title}} ന് ഇതുവരെ സമയ സ്ലോട്ടുകൾ ഇല്ല.",
+    "slotsAddedIn": "സ്ലോട്ടുകൾ അഡ്മിൻ → മാർക്കറ്റുകൾ → കിംഗ് ബസാർ മാർക്കറ്റിൽ ചേർക്കും. ചേർത്ത ശേഷം ഇവിടെ കാണപ്പെടും.",
+    "sorry": "ക്ഷമിക്കണം !",
+    "bettingClosed": "ഇന്ന് ബെറ്റിംഗ് അടച്ചു.",
+    "comeNextDay": "കളിക്കാൻ നാളെ വരുക.",
+    "ok": "ശരി"
+  },
   "markets": {
     "markets": "മാർക്കറ്റുകൾ",
     "starline": "സ്റ്റാർലൈൻ",
@@ -565,6 +608,12 @@
       "mainBazar": "മെയിൻ ബസാർ",
       "dhanlaxmi": "ധനലക്ഷ്മി"
     }
+  },
+  "download": {
+    "title": "ആപ്പ് ഡൗൺലോഡ് ചെയ്യുക",
+    "heading": "ഞങ്ങളുടെ മൊബൈൽ ആപ്പ് നേടുക",
+    "subheading": "മികച്ച മൊബൈൽ അനുഭവത്തിനായി ഔദ്യോഗിക ആപ്പ് ഡൗൺലോഡ് ചെയ്യുക.",
+    "downloadNow": "ഇപ്പോൾ ഡൗൺലോഡ് ചെയ്യുക"
   },
   "language": {
     "english": "ഇംഗ്ലീഷ്",

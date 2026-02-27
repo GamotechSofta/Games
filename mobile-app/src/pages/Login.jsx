@@ -8,9 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
   ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
@@ -18,8 +18,6 @@ import { storage } from '../utils/storage';
 import { emit } from '../utils/events';
 import { resetToHome } from '../navigationRef';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
-
-const LOGIN_BANNER = 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1770101961/Black_and_Gold_Classy_Casino_Night_Party_Instagram_Post_1080_x_1080_px_d1n00g.png';
 
 // Eye icon components (simple SVG-like)
 const EyeOpen = () => (
@@ -33,6 +31,7 @@ export default function Login() {
   const { t } = useTranslation();
   const route = useRoute();
   const refParam = route.params?.ref ?? null;
+  const insets = useSafeAreaInsets();
 
   const [isLogin, setIsLogin] = useState(!refParam);
   const [formData, setFormData] = useState({
@@ -211,14 +210,22 @@ export default function Login() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[
+        styles.container,
+        {
+          paddingTop: Math.max(insets.top, spacing[4]),
+          paddingBottom: Math.max(insets.bottom, spacing[4]),
+        },
+      ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.inner}>
-          <Image source={{ uri: LOGIN_BANNER }} style={styles.banner} resizeMode="contain" />
           <View style={styles.titleSection}>
             <Text style={styles.title}>
               {isLogin ? t('login.title') : t('login.createAccount')}
@@ -431,9 +438,8 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },
-  scroll: { flexGrow: 1, paddingVertical: spacing[6], paddingHorizontal: spacing[4], minHeight: 500 },
+  scroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: spacing[6], paddingHorizontal: spacing[4], minHeight: 500 },
   inner: { width: '100%', maxWidth: 448, alignSelf: 'center' },
-  banner: { width: '100%', maxWidth: 240, height: 200, alignSelf: 'center', borderRadius: borderRadius.lg, marginBottom: spacing[6] },
   titleSection: { marginBottom: spacing[5] },
   title: { fontSize: fontSize['2xl'], fontWeight: '700', color: colors.goldText, textAlign: 'center', marginBottom: spacing[2] },
   subtitle: { fontSize: fontSize.sm, color: colors.textMuted, textAlign: 'center' },

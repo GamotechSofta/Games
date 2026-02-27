@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
+import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
 const BID_ICONS = {
@@ -152,7 +153,7 @@ export default function BidOptions() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={() => { haptics.light(); handleBack(); }} style={styles.backBtn} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerCenter}>
@@ -174,7 +175,7 @@ export default function BidOptions() {
           <TouchableOpacity
             key={option.id}
             style={styles.card}
-            onPress={() => handleOptionPress(option)}
+            onPress={() => { haptics.light(); handleOptionPress(option); }}
             activeOpacity={0.85}
           >
             <View style={styles.iconWrap}>

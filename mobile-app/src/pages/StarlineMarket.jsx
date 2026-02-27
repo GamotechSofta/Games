@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonSlotCard } from '../components/Skeleton';
+import { haptics } from '../utils/haptics';
 
 const formatTime12 = (time24) => {
   if (!time24) return '';
@@ -57,8 +59,15 @@ export default function StarlineMarket() {
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [tick, setTick] = useState(() => Date.now());
   const [showClosedModal, setShowClosedModal] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchItems(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     // Check slot closed status every 30s — 1s tick causes all cards to re-render every second
@@ -66,8 +75,8 @@ export default function StarlineMarket() {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchItems = async () => {
-    setLoading(true);
+  const fetchItems = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=startline`);
       const data = await res.json();
@@ -90,7 +99,7 @@ export default function StarlineMarket() {
         })
         .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
       setItems(mapped);
-    } catch { setItems([]); } finally { setLoading(false); }
+    } catch { setItems([]); } finally { if (showLoading) setLoading(false); }
   };
 
   useEffect(() => { fetchItems(); }, [marketKey]);
@@ -104,7 +113,7 @@ export default function StarlineMarket() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('StartlineDashboard')} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); navigation.navigate('StartlineDashboard'); }} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerInfo}>
@@ -120,6 +129,13 @@ export default function StarlineMarket() {
         </View>
       )}
 
+      {loading && items.length === 0 ? (
+        <View style={styles.list}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonSlotCard key={i} />
+          ))}
+        </View>
+      ) : (
       <FlatList
         data={items}
         renderItem={({ item }) => (
@@ -128,6 +144,7 @@ export default function StarlineMarket() {
             tick={tick}
             t={t}
             onPress={() => {
+              haptics.light();
               const hasDeclaredOpen = item.openingNumber != null && /^\d{3}$/.test(String(item.openingNumber));
               const slotClosed = isSlotClosedTodayIST(item.startingTime, tick);
               const isClosedForToday = slotClosed || hasDeclaredOpen;
@@ -155,10 +172,9 @@ export default function StarlineMarket() {
         initialNumToRender={10}
         maxToRenderPerBatch={10}
         windowSize={5}
-        ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => (
-          <View key={i} style={styles.skeletonCard} />
-        ))}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.goldLight} />}
       />
+      )}
       {/* Closed Modal */}
       <Modal visible={showClosedModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>

@@ -205,7 +205,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                     <View style={s.grid}>
                         {/* Header Row: Corner + Top Bulk Labels */}
                         <View style={s.headerRow}>
-                            <View style={s.cornerWrap}><Text style={s.cornerText}>Pts</Text></View>
+                            <View style={s.cornerWrap}><Text style={s.cornerText}>{t('gameBid.pts')}</Text></View>
                             <View style={s.spacerRow} />
                             {DIGITS.map((c) => (
                                 <View key={c} style={s.colHeader}>
@@ -284,7 +284,7 @@ const s = StyleSheet.create({
     grid: { padding: 4 },
     headerRow: { flexDirection: 'row', marginBottom: 6 },
     cornerWrap: { width: 50, height: 48, justifyContent: 'center', alignItems: 'center' },
-    cornerText: { color: '#9ca3af', fontSize: 10, fontWeight: '700' },
+    cornerText: { color: '#fff', fontSize: 10, fontWeight: '700' },
     spacerRow: { width: 8 },
     colHeader: { width: 44, alignItems: 'center', gap: 2 },
     headerDigit: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },

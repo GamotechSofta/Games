@@ -34,7 +34,9 @@
     "comingSoon": "लवकरच येत आहे...",
     "openMenu": "मेनू उघडा",
     "closeMenu": "मेनू बंद करा",
-    "selectDate": "तारीख निवडा"
+    "selectDate": "तारीख निवडा",
+    "today": "आज",
+    "loginRequired": "सुरू ठेवण्यासाठी लॉगिन करा"
   },
   "datePicker": {
     "selectDate": "तारीख निवडा",
@@ -61,6 +63,9 @@
     "signUp": "साइन अप",
     "version": "आवृत्ती: 1.0.0",
     "openMenu": "मेनू उघडा"
+  },
+  "home": {
+    "latestNews": "नवीन बातम्या"
   },
   "navigation": {
     "home": "होम",
@@ -140,7 +145,8 @@
     "statusInProgress": "प्रगतीत",
     "statusResolved": "निराकरण झाले",
     "statusClosed": "बंद",
-    "supportRequestDefault": "सपोर्ट विनंती"
+    "supportRequestDefault": "सपोर्ट विनंती",
+    "noteSubtext": "स्क्रीनशॉट अपलोडसाठी पूर्ण अॅप आवश्यक. कृपया तुमची समस्या तपशीलवार वर्णन करा."
   },
   "funds": {
     "addFund": "फंड जोडा",
@@ -232,6 +238,9 @@
     "maximumWithdrawal": "कमाल काढणे",
     "bankAccountDetails": "बँक खाते तपशील",
     "fundsTitle": "फंड",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "बँक तपशील सेव्ह झाले!",
+    "failedToSaveBankDetails": "बँक तपशील सेव्ह करण्यात अयशस्वी",
     "bankDetail": "बँक तपशील",
     "addFundSubtitle": "तुम्ही तुमच्या वॉलेटमध्ये फंड जोडू शकता",
     "withdrawFundSubtitle": "तुम्ही जिंकलेली रक्कम काढू शकता",
@@ -285,6 +294,11 @@
     "kingBazaarBetHistorySubtitle": "तुम्ही स्टारलाइन निकाल पाहू शकता",
     "marketResultHistory": "मार्केट निकाल इतिहास",
     "filterBy": "फिल्टर करा",
+    "filterType": "फिल्टर प्रकार",
+    "byGameType": "गेम प्रकारानुसार",
+    "byWinningStatus": "जिंकण्याची स्थिती",
+    "byGames": "गेम्स",
+    "filterApply": "फिल्टर",
     "selectDate": "तारीख निवडा",
     "selectItemFromLeftMenu": "डाव्या मेनूमधून एखादा आयटम निवडा.",
     "resultsFor": "निकाल साठी",
@@ -369,7 +383,8 @@
     "security": "सुरक्षा",
     "passwordSecuritySettings": "पासवर्ड आणि सुरक्षा सेटिंग्ज",
     "securitySettingsComingSoon": "सुरक्षा सेटिंग्ज लवकरच येतील",
-    "getHelpWithAccount": "तुमच्या खात्यासह मदत मिळवा"
+    "getHelpWithAccount": "तुमच्या खात्यासह मदत मिळवा",
+    "confirmLogout": "तुम्हाला खात्रीने साइन आउट करायचे आहे?"
   },
   "notifications": {
     "title": "सूचना",
@@ -414,6 +429,10 @@
   },
   "gameRate": {
     "title": "गेम दर",
+    "subtitle": "1 युनिट बेट प्रति भुगतान दर (1 =)",
+    "srNo": "क्र. नं.",
+    "game": "गेम",
+    "rateHeader": "दर (1 =)",
     "singleDigit": "सिंगल डिजिट",
     "singleDigitBulk": "सिंगल डिजिट बल्क",
     "jodi": "जोडी",
@@ -469,7 +488,12 @@
     "digit": "अंक",
     "selectGameType": "गेम प्रकार निवडा",
     "enterSingleDigit": "सिंगल अंक प्रविष्ट करा",
-    "submitBet": "बेट सबमिट करा"
+    "submitBet": "बेट सबमिट करा",
+    "selectSum": "बेरीज निवडा",
+    "specialModeNotAvailable": "स्पेशल मोड उपलब्ध नाही",
+    "scheduleBannerText": "{{tomorrow}} साठी बेट शेड्यूल. तारीख उद्याच्या दिवस (IST) सेट आहे.",
+    "scheduleBannerTomorrow": "उद्या",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "शीर्ष विजेते",
@@ -486,9 +510,14 @@
   "passbook": {
     "title": "पासबुक",
     "transactionHistory": "व्यवहार इतिहास",
+    "allTransactions": "सर्व",
+    "credits": "क्रेडिट",
+    "debits": "डेबिट",
     "credit": "क्रेडिट",
     "debit": "डेबिट",
     "credited": "क्रेडिट केले",
+    "creditEntry": "क्रेडिट",
+    "debitEntry": "डेबिट",
     "withdrawn": "काढले",
     "date": "तारीख",
     "time": "वेळ",
@@ -531,6 +560,20 @@
     "comeNextDay": "कृपया खेळण्यासाठी उद्या या.",
     "ok": "ठीक आहे"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "किंग बाजार मार्केट",
+    "selectTimeSlot": "बेट लावण्यासाठी वेळ स्लॉट निवडा. हिरवा = उघडे, लाल = आजसाठी बंद.",
+    "open": "उघडे",
+    "closed": "बंद",
+    "closeForToday": "आजसाठी बंद",
+    "playGame": "गेम खेळा",
+    "noTimeSlots": "{{title}} साठी अद्याप वेळ स्लॉट नाहीत.",
+    "slotsAddedIn": "स्लॉट एडमिन → मार्केट्स → किंग बाजार मार्केट मध्ये जोडले जातात. जोडल्यानंतर येथे दिसतील.",
+    "sorry": "क्षमा करा !",
+    "bettingClosed": "आजसाठी बेटिंग बंद आहे.",
+    "comeNextDay": "कृपया खेळण्यासाठी उद्या या.",
+    "ok": "ठीक आहे"
+  },
   "markets": {
     "markets": "मार्केट",
     "starline": "स्टारलाइन",
@@ -565,6 +608,12 @@
       "mainBazar": "मेन बाजार",
       "dhanlaxmi": "धनलक्ष्मी"
     }
+  },
+  "download": {
+    "title": "अॅप डाउनलोड करा",
+    "heading": "आमचा मोबाइल अॅप मिळवा",
+    "subheading": "उत्तम मोबाइल अनुभवासाठी अधिकृत अॅप डाउनलोड करा.",
+    "downloadNow": "आता डाउनलोड करा"
   },
   "language": {
     "english": "इंग्रजी",

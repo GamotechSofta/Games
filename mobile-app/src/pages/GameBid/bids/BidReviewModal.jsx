@@ -24,10 +24,11 @@ const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, da
     const handleSubmit = async (isRetry = false) => {
         setSubmitting(true);
         setError('');
+        setStage('success'); // Show success screen immediately so it feels faster
         try {
             await onSubmit();
-            setStage('success');
         } catch (e) {
+            setStage('review');
             const msg = e?.message || 'Failed to place bet';
             const isRateLimit = msg && String(msg).toLowerCase().includes('too many requests');
             if (isRateLimit && !isRetry) {
@@ -62,9 +63,16 @@ const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, da
                                 <Text style={styles.successCheck}>✓</Text>
                             </View>
                             <Text style={styles.successTitle}>{t('gameBid.betPlacedSuccessfully')}</Text>
-                            <TouchableOpacity style={styles.successOkBtn} onPress={handleClose} activeOpacity={0.9}>
-                                <Text style={styles.successOkText}>{t('gameBid.ok')}</Text>
-                            </TouchableOpacity>
+                            {submitting ? (
+                                <View style={styles.successConfirming}>
+                                    <ActivityIndicator size="small" color="#43b36a" style={{ marginRight: 8 }} />
+                                    <Text style={styles.successConfirmingText}>{t('gameBid.confirming', { defaultValue: 'Confirming...' })}</Text>
+                                </View>
+                            ) : (
+                                <TouchableOpacity style={styles.successOkBtn} onPress={handleClose} activeOpacity={0.9}>
+                                    <Text style={styles.successOkText}>{t('gameBid.ok')}</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
                 ) : (
@@ -143,29 +151,29 @@ const styles = StyleSheet.create({
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: spacing[4] },
     sheet: { backgroundColor: '#202124', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', width: '100%', maxWidth: 400, maxHeight: '90%' },
     titleBar: { backgroundColor: '#000', paddingVertical: 10, paddingHorizontal: spacing[3], borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-    title: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
+    title: { color: '#fff', fontSize: fontSize.sm, fontWeight: '600', textAlign: 'center' },
     headerRow: { flexDirection: 'row', paddingHorizontal: spacing[4], paddingTop: spacing[3], paddingBottom: spacing[2] },
-    col: { flex: 1, color: '#d4af37', fontSize: 11, fontWeight: '700', textAlign: 'center' },
+    col: { flex: 1, color: '#fff', fontSize: 11, fontWeight: '700', textAlign: 'center' },
     colLeft: { textAlign: 'left' },
     list: { maxHeight: 220, paddingHorizontal: spacing[3], paddingTop: spacing[2] },
     row: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 12, paddingVertical: 10, paddingHorizontal: spacing[3], marginBottom: spacing[2], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
     cell: { flex: 1, fontSize: 12, fontWeight: '600', textAlign: 'center' },
-    cellLeft: { textAlign: 'left', color: colors.text },
+    cellLeft: { textAlign: 'left', color: '#fff' },
     cellPoints: { color: '#f2c14e' },
-    cellType: { color: colors.textMuted, textTransform: 'uppercase' },
+    cellType: { color: '#fff', textTransform: 'uppercase' },
     summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing[3], paddingHorizontal: spacing[3], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 16, overflow: 'hidden' },
     sumCell: { width: '50%', padding: spacing[3], alignItems: 'center' },
     sumCellBorderR: { borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.1)' },
     sumCellBorderB: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
-    sumLabel: { color: colors.textMuted, fontSize: 10, marginBottom: 2, textAlign: 'center' },
-    sumVal: { color: colors.text, fontSize: fontSize.base, fontWeight: '700' },
+    sumLabel: { color: '#fff', fontSize: 10, marginBottom: 2, textAlign: 'center' },
+    sumVal: { color: '#fff', fontSize: fontSize.base, fontWeight: '700' },
     sumValGold: { color: '#f2c14e' },
     sumValDanger: { color: '#f87171' },
     note: { color: '#f87171', fontSize: 11, fontWeight: '600', textAlign: 'center', marginTop: spacing[3], paddingHorizontal: spacing[3] },
     error: { color: colors.red, fontSize: fontSize.xs, textAlign: 'center', marginTop: spacing[2], paddingHorizontal: spacing[3] },
     btns: { flexDirection: 'row', gap: spacing[3], marginTop: spacing[4], paddingHorizontal: spacing[3], paddingBottom: spacing[4] },
     cancelBtn: { flex: 1, padding: spacing[3], borderRadius: 12, backgroundColor: '#000', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
-    cancelText: { color: colors.text, fontWeight: '700' },
+    cancelText: { color: '#fff', fontWeight: '700' },
     confirmBtn: { flex: 1, padding: spacing[3], borderRadius: 12, backgroundColor: '#d4af37', alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
     confirmBtnDisabled: { opacity: 0.5 },
     confirmText: { color: '#4b3608', fontWeight: '700' },
@@ -175,6 +183,8 @@ const styles = StyleSheet.create({
     successTitle: { color: '#43b36a', fontSize: fontSize.lg, fontWeight: '600', textAlign: 'center', marginBottom: spacing[6] },
     successOkBtn: { backgroundColor: '#d4af37', paddingVertical: spacing[4], paddingHorizontal: spacing[8], borderRadius: 12, minWidth: 160, alignItems: 'center' },
     successOkText: { color: '#4b3608', fontWeight: '700', fontSize: fontSize.base },
+    successConfirming: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: spacing[2] },
+    successConfirmingText: { color: '#fff', fontSize: fontSize.sm, fontWeight: '600' },
 });
 
 export default BidReviewModal;

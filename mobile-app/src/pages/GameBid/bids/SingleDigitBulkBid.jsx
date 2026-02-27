@@ -215,7 +215,7 @@ const s = StyleSheet.create({
     row: { gap: 16 },
     formCol: { gap: 8 },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    label: { color: '#9ca3af', fontSize: 12, fontWeight: '500', width: 90 },
+    label: { color: '#fff', fontSize: 12, fontWeight: '500', width: 90 },
     readOnlyWrap: { flex: 1, minHeight: 36, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     readOnlyText: { color: '#fff', fontSize: 12, fontWeight: '700' },
     input: { flex: 1, minHeight: 36, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, fontWeight: '600', paddingHorizontal: 12 },

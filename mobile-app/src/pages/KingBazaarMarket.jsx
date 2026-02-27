@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, ActivityIndicator,
+  View, Text, FlatList, TouchableOpacity, Modal, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonSlotCard } from '../components/Skeleton';
+import { haptics } from '../utils/haptics';
 
 const formatTime12 = (time24) => {
   if (!time24) return '';
@@ -59,12 +61,18 @@ export default function KingBazaarMarket() {
 
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [tick, setTick] = useState(() => Date.now());
   const [showClosedModal, setShowClosedModal] = useState(false);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchItems(false);
+    setRefreshing(false);
+  };
+
   useEffect(() => {
-    // Check slot closed status every 30s — 1s is too frequent for all cards to re-render
-    const timer = setInterval(() => setTick(Date.now()), 30000);
+    const timer = setInterval(() => setTick(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -118,7 +126,7 @@ export default function KingBazaarMarket() {
 
   useEffect(() => { fetchItems(true); }, [marketKey]);
   useEffect(() => {
-    const id = setInterval(() => fetchItems(false), 30000);
+    const id = setInterval(() => fetchItems(false), 5000);
     return () => clearInterval(id);
   }, [marketKey]);
 
@@ -126,7 +134,7 @@ export default function KingBazaarMarket() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); navigation.navigate('Home'); }} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerInfo}>
@@ -135,40 +143,54 @@ export default function KingBazaarMarket() {
         </View>
       </View>
 
-      <FlatList
-        data={items}
-        renderItem={({ item }) => (
-          <SlotCard
-            m={item}
-            tick={tick}
-            t={t}
-            onPress={() => {
-              const slotClosed = isSlotClosedTodayIST(item.startingTime, tick);
-              const hasDeclaredOpen = item.openingNumber != null && /^\d{3}$/.test(String(item.openingNumber));
-              const hasDeclaredClose = item.closingNumber != null && /^\d{3}$/.test(String(item.closingNumber));
-              const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
-              const marketStatus = isClosedForToday ? 'closed' : 'open';
+      {loading && items.length === 0 ? (
+        <View style={styles.list}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonSlotCard key={i} />
+          ))}
+        </View>
+      ) : !loading && items.length === 0 ? (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyTitle}>{t('kingBazaarMarket.noTimeSlots', { title: marketLabel })}</Text>
+          <Text style={styles.emptySub}>{t('kingBazaarMarket.slotsAddedIn')}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={items}
+          renderItem={({ item }) => (
+            <SlotCard
+              m={item}
+              tick={tick}
+              t={t}
+              onPress={() => {
+                haptics.light();
+                const slotClosed = isSlotClosedTodayIST(item.startingTime, tick);
+                const hasDeclaredOpen = item.openingNumber != null && /^\d{3}$/.test(String(item.openingNumber));
+                const hasDeclaredClose = item.closingNumber != null && /^\d{3}$/.test(String(item.closingNumber));
+                const isClosedForToday = slotClosed || (hasDeclaredOpen && hasDeclaredClose);
+                const marketStatus = isClosedForToday ? 'closed' : 'open';
 
-              if (marketStatus === 'closed') { setShowClosedModal(true); return; }
-              const marketForBidOptions = item._raw
-                ? { ...(item._raw || {}), _id: item.id, marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: item.openingNumber, closingNumber: item.closingNumber, status: item.status === 'running' ? 'running' : 'open' }
-                : { _id: 'king-demo-market', marketType: 'king', marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: null, closingNumber: null, status: 'open' };
-              navigation.navigate('BidOptions', {
-                marketType: 'king', market: marketForBidOptions,
-                kingBazaarMarketKey: marketKey, kingBazaarMarketLabel: marketLabel || 'King Bazaar',
-              });
-            }}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        removeClippedSubviews={true}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        ListLoadingComponent={loading && Array.from({ length: 8 }).map((_, i) => <View key={i} style={styles.skeletonCard} />)}
-      />
+                if (marketStatus === 'closed') { setShowClosedModal(true); return; }
+                const marketForBidOptions = item._raw
+                  ? { ...(item._raw || {}), _id: item.id, marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: item.openingNumber, closingNumber: item.closingNumber, status: item.status === 'running' ? 'running' : 'open' }
+                  : { _id: 'king-demo-market', marketType: 'king', marketName: item.marketName, gameName: item.marketName, startingTime: item.startingTime, closingTime: item.closingTime, openingNumber: null, closingNumber: null, status: 'open' };
+                navigation.navigate('BidOptions', {
+                  marketType: 'king', market: marketForBidOptions,
+                  kingBazaarMarketKey: marketKey, kingBazaarMarketLabel: marketLabel || 'King Bazaar',
+                });
+              }}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.goldLight} />}
+        />
+      )}
       {/* Closed Modal */}
       <Modal visible={showClosedModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -236,7 +258,10 @@ const styles = StyleSheet.create({
   headerSubtitle: { color: 'rgba(255,255,255,0.6)', fontSize: 11 },
   headerTitle: { color: colors.text, fontSize: fontSize.xl, fontWeight: '800', letterSpacing: 0.5 },
   list: { paddingHorizontal: spacing[4], gap: spacing[2], paddingBottom: 100 },
-  skeletonCard: { height: 68, borderRadius: borderRadius.lg, backgroundColor: '#1f2937', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  emptyWrap: { paddingHorizontal: spacing[4], paddingVertical: spacing[6], backgroundColor: 'rgba(245,158,11,0.15)', borderRadius: borderRadius['2xl'], borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)', marginHorizontal: spacing[4], marginTop: spacing[4] },
+  emptyTitle: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600', marginBottom: spacing[1] },
+  emptySub: { color: 'rgba(253,230,138,0.9)', fontSize: fontSize.xs },
+  skeletonCard: { height: 68, borderRadius: borderRadius.lg, backgroundColor: '#1f2937', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginBottom: spacing[2] },
   slotCard: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], backgroundColor: '#1f2937', borderRadius: borderRadius.lg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', padding: spacing[3] },
   timeBlock: { flexShrink: 0 },
   timeText: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700' },

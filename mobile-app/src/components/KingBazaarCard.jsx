@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useTranslation } from '../hooks/useTranslation';
 import { navigate } from '../navigationRef';
+import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
 const KING_IMAGE = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771486141/Yellow_and_Black_Illustrative_Esports_The_Lion_King_Logo_1_chmwuq.png';
@@ -9,7 +10,7 @@ const KING_IMAGE = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v177148614
 export default function KingBazaarCard() {
   const { t } = useTranslation();
   return (
-    <TouchableOpacity style={styles.card} onPress={() => navigate('KingBazaarDashboard')} activeOpacity={0.95}>
+    <TouchableOpacity style={styles.card} onPress={() => { haptics.light(); navigate('KingBazaarMarket'); }} activeOpacity={0.95}>
       <View style={styles.inner}>
         <View style={styles.iconBox}>
           <Image source={{ uri: KING_IMAGE }} style={styles.icon} resizeMode="contain" />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-    View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet,
+    View, Text, FlatList, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../config/api';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { storage } from '../utils/storage';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonGroupGrid } from '../components/Skeleton';
 
 // Same image set as frontend KingBazaarMarket overrides
 const KING_IMG_OVERRIDES = [
@@ -97,6 +98,13 @@ export default function KingBazaarDashboard() {
             <View style={styles.divider} />
 
             {/* Groups Grid */}
+            {loadingGroups && groups.length === 0 ? (
+                <SkeletonGroupGrid count={9} />
+            ) : groups.length === 0 ? (
+                <View style={styles.emptyBox}>
+                    <Text style={styles.emptyText}>{t('startlineDashboard.noMarkets')}</Text>
+                </View>
+            ) : (
             <FlatList
                 data={groups}
                 renderItem={({ item, index }) => (
@@ -113,15 +121,8 @@ export default function KingBazaarDashboard() {
                 contentContainerStyle={styles.grid}
                 showsVerticalScrollIndicator={false}
                 removeClippedSubviews={true}
-                ListLoadingComponent={loadingGroups && [1, 2, 3].map((i) => (
-                    <View key={i} style={styles.skeletonCard} />
-                ))}
-                ListEmptyComponent={!loadingGroups && groups.length === 0 && (
-                    <View style={styles.emptyBox}>
-                        <Text style={styles.emptyText}>{t('startlineDashboard.noMarkets')}</Text>
-                    </View>
-                )}
             />
+            )}
         </View>
     );
 }

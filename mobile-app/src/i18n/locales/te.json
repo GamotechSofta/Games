@@ -34,7 +34,9 @@
     "comingSoon": "త్వరలో వస్తోంది...",
     "openMenu": "మెను తెరుచు",
     "closeMenu": "మెను మూసివేయి",
-    "selectDate": "తేదీ ఎంచుకోండి"
+    "selectDate": "తేదీ ఎంచుకోండి",
+    "today": "ఈ రోజు",
+    "loginRequired": "కొనసాగించడానికి లాగిన్ అవండి"
   },
   "datePicker": {
     "selectDate": "తేదీ ఎంచుకోండి",
@@ -61,6 +63,9 @@
     "signUp": "సైన్ అప్",
     "version": "వెర్షన్: 1.0.0",
     "openMenu": "మెను తెరుచు"
+  },
+  "home": {
+    "latestNews": "తాజా వార్తలు"
   },
   "navigation": {
     "home": "హోమ్",
@@ -140,7 +145,8 @@
     "statusInProgress": "ప్రగతిలో ఉంది",
     "statusResolved": "పరిష్కరించబడింది",
     "statusClosed": "క్లోజ్ చేయబడింది",
-    "supportRequestDefault": "సపోర్ట్ అభ్యర్థన"
+    "supportRequestDefault": "సపోర్ట్ అభ్యర్థన",
+    "noteSubtext": "స్క్రీన్‌షాట్ అప్‌లోడ్‌లకు పూర్తి యాప్ అవసరం. దయచేసి మీ సమస్యను వివరంగా వర్ణించండి."
   },
   "funds": {
     "addFund": "ఫండ్ జోడించండి",
@@ -231,6 +237,9 @@
     "maximumWithdrawal": "గరిష్ట ఉపసంహరణ",
     "bankAccountDetails": "బ్యాంక్ ఖాతా వివరాలు",
     "fundsTitle": "ఫండ్లు",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "బ్యాంక్ వివరాలు సేవ్ చేయబడ్డాయి!",
+    "failedToSaveBankDetails": "బ్యాంక్ వివరాలను సేవ్ చేయడం విఫలమైంది",
     "bankDetail": "బ్యాంక్ వివరం",
     "addFundSubtitle": "మీ వాలెట్‌కు ఫండ్ జోడించవచ్చు",
     "withdrawFundSubtitle": "గెలిచిన మొత్తాన్ని తిలక్కొనవచ్చు",
@@ -284,6 +293,11 @@
     "kingBazaarBetHistorySubtitle": "స్టార్‌లైన్ ఫలితాన్ని మీరు వీక్షించవచ్చు",
     "marketResultHistory": "మార్కెట్ ఫలిత చరిత్ర",
     "filterBy": "ఫిల్టర్ చేయండి",
+    "filterType": "ఫిల్టర్ రకం",
+    "byGameType": "గేమ్ రకం ద్వారా",
+    "byWinningStatus": "గెలుపు స్థితి ద్వారా",
+    "byGames": "గేమ్‌లు",
+    "filterApply": "ఫిల్టర్",
     "selectDate": "తేదీ ఎంచుకోండి",
     "selectItemFromLeftMenu": "ఎడమ మెనూ నుండి అంశాన్ని ఎంచుకోండి.",
     "resultsFor": "ఫలితాలకు",
@@ -368,7 +382,8 @@
     "security": "భద్రత",
     "passwordSecuritySettings": "పాస్‌వర్డ్ మరియు భద్రతా సెట్టింగ్‌లు",
     "securitySettingsComingSoon": "భద్రతా సెట్టింగ్‌లు త్వరలో వస్తాయి",
-    "getHelpWithAccount": "మీ ఖాతాతో సహాయం పొందండి"
+    "getHelpWithAccount": "మీ ఖాతాతో సహాయం పొందండి",
+    "confirmLogout": "మీరు ఖచ్చితంగా సైన్ అవుట్ చేయాలనుకుంటున్నారా?"
   },
   "notifications": {
     "title": "నోటిఫికేషన్‌లు",
@@ -413,6 +428,10 @@
   },
   "gameRate": {
     "title": "గేమ్ రేట్‌లు",
+    "subtitle": "1 యూనిట్ బెట్‌కు చెల్లింపు రేట్ (1 =)",
+    "srNo": "వ.నెం",
+    "game": "గేమ్",
+    "rateHeader": "రేట్ (1 =)",
     "singleDigit": "సింగిల్ డిజిట్",
     "singleDigitBulk": "సింగిల్ డిజిట్ బల్క్",
     "jodi": "జోడి",
@@ -468,7 +487,12 @@
     "digit": "అంకె",
     "selectGameType": "గేమ్ రకాన్ని ఎంచుకోండి",
     "enterSingleDigit": "సింగిల్ అంకె నమోదు చేయండి",
-    "submitBet": "బెట్ సమర్పించండి"
+    "submitBet": "బెట్ సమర్పించండి",
+    "selectSum": "మొత్తం ఎంచుకోండి",
+    "specialModeNotAvailable": "స్పెషల్ మోడ్ అందుబాటులో లేదు",
+    "scheduleBannerText": "{{tomorrow}} కోసం బెట్ షెడ్యూల్ చేయబడుతోంది. తేదీ తదుపరి రోజు (IST)కి సెట్ చేయబడింది.",
+    "scheduleBannerTomorrow": "రేపు",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "టాప్ విజేతలు",
@@ -485,9 +509,14 @@
   "passbook": {
     "title": "పాస్‌బుక్",
     "transactionHistory": "లావాదేవీ చరిత్ర",
+    "allTransactions": "అన్నీ",
+    "credits": "క్రెడిట్‌లు",
+    "debits": "డెబిట్‌లు",
     "credit": "క్రెడిట్",
     "debit": "డెబిట్",
     "credited": "క్రెడిట్ చేయబడింది",
+    "creditEntry": "క్రెడిట్",
+    "debitEntry": "డెబిట్",
     "withdrawn": "ఉపసంహరించబడింది",
     "date": "తేదీ",
     "time": "సమయం",
@@ -530,6 +559,20 @@
     "comeNextDay": "ఆడడానికి రేపటి రోజు రండి.",
     "ok": "సరే"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "కింగ్ బజార్ మార్కెట్",
+    "selectTimeSlot": "బెట్లు వేయడానికి సమయ స్లాట్ ఎంచుకోండి. ఆకుపచ్చ = ఓపెన్, ఎరుపు = ఈ రోజు మూసివేయబడింది.",
+    "open": "ఓపెన్",
+    "closed": "మూసివేయబడింది",
+    "closeForToday": "ఈ రోజు మూసివేయబడింది",
+    "playGame": "గేమ్ ఆడండి",
+    "noTimeSlots": "{{title}}కి ఇంకా సమయ స్లాట్‌లు లేవు.",
+    "slotsAddedIn": "స్లాట్‌లు అడ్మిన్ → మార్కెట్‌లు → కింగ్ బజార్ మార్కెట్‌లో జోడించబడతాయి. జోడించిన తర్వాత ఇక్కడ కనిపిస్తాయి.",
+    "sorry": "క్షమించండి !",
+    "bettingClosed": "ఈ రోజు బెట్టింగ్ మూసివేయబడింది.",
+    "comeNextDay": "ఆడడానికి రేపటి రోజు రండి.",
+    "ok": "సరే"
+  },
   "markets": {
     "markets": "మార్కెట్‌లు",
     "starline": "స్టార్‌లైన్",
@@ -564,6 +607,12 @@
       "mainBazar": "మెయిన్ బజార్",
       "dhanlaxmi": "ధనలక్ష్మి"
     }
+  },
+  "download": {
+    "title": "యాప్ డౌన్‌లోడ్ చేయండి",
+    "heading": "మా మొబైల్ యాప్ పొందండి",
+    "subheading": "ఉత్తమ మొబైల్ అనుభవానికి అధికారిక యాప్‌ను డౌన్‌లోడ్ చేయండి.",
+    "downloadNow": "ఇప్పుడే డౌన్‌లోడ్ చేయండి"
   },
   "language": {
     "english": "ఆంగ్లం",

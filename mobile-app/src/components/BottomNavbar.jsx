@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { haptics } from '../utils/haptics';
 
 // Match frontend BottomNavbar: same Cloudinary icons, center Home elevated (-mt-4), active gold, rounded-2xl border gray-700
 const NAV_ICONS = {
@@ -50,7 +51,10 @@ function BottomNavbar() {
               <TouchableOpacity
                 key={item.id}
                 style={[styles.centerBtn, active && styles.centerBtnActive]}
-                onPress={() => navigation.navigate(item.name)}
+                onPress={() => {
+                  haptics.light();
+                  navigation.navigate(item.name);
+                }}
                 activeOpacity={0.9}
               >
                 <View style={[styles.centerIconWrap, active && styles.centerIconWrapActive]}>
@@ -68,7 +72,11 @@ function BottomNavbar() {
             <TouchableOpacity
               key={item.id}
               style={styles.tab}
-              onPress={() => navigation.navigate(item.name)}
+              onPress={() => {
+                haptics.light();
+                // Support tab opens Raise help ticket (SupportNew) directly
+                navigation.navigate(item.name === 'Support' ? 'SupportNew' : item.name);
+              }}
               activeOpacity={0.95}
             >
               <Image

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Modal, StyleSheet, Clipboard, Alert, FlatList, Platform,
+  Modal, StyleSheet, Clipboard, Alert, FlatList, Platform, RefreshControl, Pressable,
+  Dimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -9,7 +10,9 @@ import { API_BASE_URL } from '../config/api';
 import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { storage } from '../utils/storage';
+import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonCardGrid } from '../components/Skeleton';
 
 /* ─── Helpers ─── */
 const safeParse = (raw, fallback) => { try { return JSON.parse(raw); } catch { return fallback; } };
@@ -127,6 +130,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
   const [localVersion, setLocalVersion] = useState(0);
   const [apiBets, setApiBets] = useState([]);
   const [betsLoading, setBetsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -243,22 +247,23 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     return () => { alive = false; };
   }, []);
 
+  const fetchBets = useCallback(async () => {
+    const result = await getMyBetHistory();
+    if (result?.success && Array.isArray(result?.data)) setApiBets(result.data);
+  }, []);
+
+  const onRefreshBets = useCallback(() => {
+    setRefreshing(true);
+    fetchBets().finally(() => setRefreshing(false));
+  }, [fetchBets]);
+
   useEffect(() => {
     let alive = true;
     setBetsLoading(true);
-    const fetchBets = async () => {
-      try {
-        const result = await getMyBetHistory();
-        if (!alive) return;
-        if (result?.success && Array.isArray(result?.data)) setApiBets(result.data);
-      } finally {
-        if (alive) setBetsLoading(false);
-      }
-    };
-    fetchBets();
+    fetchBets().finally(() => { if (alive) setBetsLoading(false); });
     const id = setInterval(fetchBets, 30000);
     return () => { alive = false; clearInterval(id); };
-  }, [localVersion]);
+  }, [localVersion, fetchBets]);
 
   const canCancelBet = (bet) => {
     if (!bet || bet.status !== 'pending') return { canCancel: false, reason: `Status: ${bet?.status || 'unknown'}` };
@@ -411,6 +416,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
 
   const copyBetId = (betId) => {
     Clipboard.setString(String(betId || ''));
+    haptics.success();
     setCopyToast(t('bids.betIdCopied'));
     setTimeout(() => setCopyToast(''), 2000);
   };
@@ -450,18 +456,20 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
   );
 
   const renderItem = useCallback(({ item, index }) => (
-    <BetCardKeyed
-      row={item}
-      idx={index}
-      t={t}
-      copyBetId={copyBetId}
-      setConfirmCancelBetId={setConfirmCancelBetId}
-      cancellingBetId={cancellingBetId}
-      labelForType={labelForTypeInner}
-      getStatusColor={getStatusColorInner}
-      getStatusText={getStatusTextInner}
-      getBorderColor={getBorderColorInner}
-    />
+    <View style={styles.cardColumn}>
+      <BetCardKeyed
+        row={item}
+        idx={index}
+        t={t}
+        copyBetId={copyBetId}
+        setConfirmCancelBetId={setConfirmCancelBetId}
+        cancellingBetId={cancellingBetId}
+        labelForType={labelForTypeInner}
+        getStatusColor={getStatusColorInner}
+        getStatusText={getStatusTextInner}
+        getBorderColor={getBorderColorInner}
+      />
+    </View>
   ), [t, cancellingBetId, copyBetId, setConfirmCancelBetId]);
 
   return (
@@ -511,44 +519,70 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
         </View>
       </Modal>
 
-      {/* Filter modal */}
-      <Modal visible={isFilterOpen} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.filterModal}>
-            <Text style={styles.filterModalTitle}>{t('bids.filterBy')}</Text>
-            <Text style={styles.filterSectionLabel}>{t('bids.session')}</Text>
-            <View style={styles.filterChipRow}>
-              {['OPEN', 'CLOSE'].map((s) => (
-                <FilterChip key={s} label={s} active={draftSessions.includes(s)} onPress={() => toggleDraft(draftSessions, s, setDraftSessions)} />
-              ))}
+      {/* Filter modal — match frontend: header, sections with dividers, scrollable body, Cancel + Filter footer */}
+      <Modal visible={isFilterOpen} transparent animationType="fade">
+        <View style={styles.filterModalOverlay}>
+          <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setIsFilterOpen(false)} />
+          <View style={styles.filterModalCard}>
+            <View style={styles.filterModalHeader}>
+              <Text style={styles.filterModalHeaderTitle}>{t('bids.filterType')}</Text>
+              <TouchableOpacity onPress={() => setIsFilterOpen(false)} style={styles.filterModalCloseBtn} hitSlop={12} activeOpacity={0.8}>
+                <Text style={styles.filterModalCloseText}>✕</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.filterSectionLabel}>{t('bids.status')}</Text>
-            <View style={styles.filterChipRow}>
-              {['Win', 'Loose', 'Pending', 'Cancelled'].map((s) => (
-                <FilterChip key={s} label={s} active={draftStatuses.includes(s)} onPress={() => toggleDraft(draftStatuses, s, setDraftStatuses)} />
-              ))}
-            </View>
-            {marketOptions.length > 0 && (
-              <>
-                <Text style={styles.filterSectionLabel}>{t('bids.market')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }}>
-                  <View style={styles.filterChipRow}>
-                    {marketOptions.map((m) => (
-                      <FilterChip key={m.key} label={m.label} active={draftMarkets.includes(m.key)} onPress={() => toggleDraft(draftMarkets, m.key, setDraftMarkets)} />
-                    ))}
+            <ScrollView
+              style={styles.filterModalScroll}
+              contentContainerStyle={styles.filterModalScrollContent}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.filterSectionTitle}>{t('bids.byGameType')}</Text>
+              <View style={styles.filterChipRow}>
+                {['OPEN', 'CLOSE'].map((s) => (
+                  <FilterChip key={s} label={s} active={draftSessions.includes(s)} onPress={() => toggleDraft(draftSessions, s, setDraftSessions)} />
+                ))}
+              </View>
+
+              <View style={styles.filterDivider} />
+
+              <Text style={styles.filterSectionTitle}>{t('bids.byWinningStatus')}</Text>
+              <View style={styles.filterChipRowWrap}>
+                {['Win', 'Loose', 'Pending', 'Cancelled'].map((s) => (
+                  <FilterChip key={s} label={s} active={draftStatuses.includes(s)} onPress={() => toggleDraft(draftStatuses, s, setDraftStatuses)} />
+                ))}
+              </View>
+
+              {marketOptions.length > 0 && (
+                <>
+                  <View style={styles.filterDivider} />
+                  <Text style={styles.filterSectionTitle}>{t('bids.byGames')}</Text>
+                  <View style={styles.filterMarketList}>
+                    {marketOptions.map((m) => {
+                      const active = draftMarkets.includes(m.key);
+                      return (
+                        <TouchableOpacity
+                          key={m.key}
+                          style={[styles.filterMarketRow, active && styles.filterMarketRowActive]}
+                          onPress={() => toggleDraft(draftMarkets, m.key, setDraftMarkets)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={[styles.filterCheckbox, active && styles.filterCheckboxActive]}>
+                            {active ? <Text style={styles.filterCheckmark}>✓</Text> : null}
+                          </View>
+                          <Text style={styles.filterMarketLabel} numberOfLines={1}>{m.label.toUpperCase()}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                </ScrollView>
-              </>
-            )}
-            <View style={styles.filterModalBtns}>
-              <TouchableOpacity onPress={resetFilters} style={styles.filterResetBtn} activeOpacity={0.8}>
-                <Text style={styles.filterResetText}>{t('common.reset')}</Text>
+                </>
+              )}
+            </ScrollView>
+            <View style={styles.filterModalFooter}>
+              <TouchableOpacity onPress={() => setIsFilterOpen(false)} style={styles.filterCancelBtn} activeOpacity={0.8}>
+                <Text style={styles.filterCancelBtnText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={applyFilters} style={styles.filterApplyBtn} activeOpacity={0.8}>
-                <Text style={styles.filterApplyText}>{t('common.apply')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setIsFilterOpen(false)} style={styles.filterCloseBtn} activeOpacity={0.8}>
-                <Text style={styles.filterCloseText}>✕</Text>
+                <Text style={styles.filterApplyBtnText}>{t('bids.filterApply')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -557,9 +591,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
 
       {/* Bet list optimized with FlatList */}
       {betsLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <SkeletonCardGrid count={8} columns={2} />
       ) : !userId ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>{t('bids.loginToSeeHistory')}</Text>
@@ -581,6 +613,9 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
           maxToRenderPerBatch={8}
           initialNumToRender={10}
           windowSize={5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefreshBets} tintColor={colors.goldLight} />
+          }
         />
       )}
     </View>
@@ -677,9 +712,10 @@ const styles = StyleSheet.create({
   emptyBox: { margin: spacing[4], borderRadius: borderRadius['2xl'], borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: '#202124', padding: spacing[6], alignItems: 'center' },
   emptyText: { color: '#d1d5db', fontSize: fontSize.base },
   listColumnWrapper: { justifyContent: 'space-between', marginBottom: spacing[3] },
-  columnWrapper: { justifyContent: 'space-between' },
-  listGrid: { paddingBottom: spacing[6] },
-  betCard: { width: '48.5%', backgroundColor: '#202124', borderRadius: borderRadius.lg, borderWidth: 2, padding: spacing[2], gap: 6 },
+  columnWrapper: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing[2] },
+  cardColumn: { width: '48.5%' },
+  listGrid: { paddingBottom: 100 },
+  betCard: { width: '100%', backgroundColor: '#202124', borderRadius: borderRadius.lg, borderWidth: 2, padding: spacing[2], gap: 6, minHeight: 180 },
   betCardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 4 },
   betIdxText: { color: colors.goldText, fontSize: 10, fontWeight: '600' },
   sessionBadge: { borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2 },
@@ -706,19 +742,32 @@ const styles = StyleSheet.create({
   modalBtnCancelText: { color: colors.text, fontWeight: '600' },
   modalBtnConfirm: { flex: 1, paddingVertical: spacing[3], borderRadius: borderRadius.xl, backgroundColor: '#f59e0b', alignItems: 'center' },
   modalBtnConfirmText: { color: colors.black, fontWeight: '700' },
-  filterModal: { width: '100%', backgroundColor: '#202124', borderRadius: borderRadius['2xl'], padding: spacing[5], gap: spacing[3] },
-  filterModalTitle: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
-  filterSectionLabel: { color: '#9ca3af', fontSize: fontSize.xs, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.5 },
-  filterChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2] },
-  filterChip: { paddingHorizontal: spacing[3], paddingVertical: spacing[2], borderRadius: borderRadius.full, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  filterModalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing[4] },
+  filterModalCard: { width: '100%', maxWidth: 400, height: Dimensions.get('window').height * 0.82, maxHeight: 600, backgroundColor: '#202124', borderRadius: 28, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 25 }, shadowOpacity: 0.65, shadowRadius: 80, elevation: 24 },
+  filterModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.black, paddingVertical: spacing[4], paddingHorizontal: spacing[5], borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
+  filterModalHeaderTitle: { color: colors.text, fontSize: 22, fontWeight: '800' },
+  filterModalCloseBtn: { position: 'absolute', right: spacing[4], top: 0, bottom: 0, justifyContent: 'center', paddingVertical: spacing[4], paddingHorizontal: spacing[2] },
+  filterModalCloseText: { color: colors.text, fontSize: 22, fontWeight: '600' },
+  filterModalScroll: { flex: 1, maxHeight: 400 },
+  filterModalScrollContent: { paddingHorizontal: spacing[5], paddingTop: spacing[4], paddingBottom: spacing[4] },
+  filterSectionTitle: { color: colors.goldLight, fontSize: fontSize.lg, fontWeight: '700', marginBottom: spacing[3] },
+  filterDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: spacing[4] },
+  filterChipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2], marginBottom: spacing[2] },
+  filterChipRowWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing[2], marginBottom: spacing[2] },
+  filterChip: { paddingHorizontal: spacing[4], paddingVertical: spacing[2], borderRadius: 999, backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   filterChipActive: { backgroundColor: colors.goldLight, borderColor: colors.goldLight },
   filterChipText: { color: '#9ca3af', fontSize: fontSize.sm, fontWeight: '600' },
   filterChipTextActive: { color: colors.black },
-  filterModalBtns: { flexDirection: 'row', gap: spacing[2], marginTop: spacing[2] },
-  filterResetBtn: { flex: 1, paddingVertical: spacing[3], borderRadius: borderRadius.xl, backgroundColor: '#1a1a1a', alignItems: 'center' },
-  filterResetText: { color: '#9ca3af', fontWeight: '600' },
-  filterApplyBtn: { flex: 2, paddingVertical: spacing[3], borderRadius: borderRadius.xl, backgroundColor: colors.goldLight, alignItems: 'center' },
-  filterApplyText: { color: colors.black, fontWeight: '700' },
-  filterCloseBtn: { paddingVertical: spacing[3], paddingHorizontal: spacing[4], borderRadius: borderRadius.xl, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
-  filterCloseText: { color: colors.text, fontWeight: '700' },
+  filterMarketList: { gap: spacing[2], marginBottom: spacing[2] },
+  filterMarketRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[3], backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: borderRadius.xl, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingVertical: spacing[4], paddingHorizontal: spacing[4] },
+  filterMarketRowActive: { borderColor: 'rgba(212,175,55,0.4)' },
+  filterCheckbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
+  filterCheckboxActive: { backgroundColor: colors.goldLight, borderColor: colors.goldLight },
+  filterCheckmark: { color: colors.black, fontSize: 14, fontWeight: '800' },
+  filterMarketLabel: { flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: '600', letterSpacing: 0.5 },
+  filterModalFooter: { flexDirection: 'row', gap: spacing[4], paddingHorizontal: spacing[5], paddingTop: spacing[3], paddingBottom: spacing[5], borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  filterCancelBtn: { flex: 1, paddingVertical: spacing[4], borderRadius: 999, backgroundColor: colors.black, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
+  filterCancelBtnText: { color: colors.text, fontWeight: '700', fontSize: fontSize.base },
+  filterApplyBtn: { flex: 1, paddingVertical: spacing[4], borderRadius: 999, backgroundColor: colors.goldLight, alignItems: 'center' },
+  filterApplyBtnText: { color: colors.black, fontWeight: '800', fontSize: fontSize.base },
 });

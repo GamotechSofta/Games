@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import {
   setNotificationsClearedAt,
 } from '../utils/notificationCount';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonList } from '../components/Skeleton';
 
 const toDateKeyIST = (d) => {
   try {
@@ -288,9 +289,9 @@ export default function Notifications() {
       </ScrollView>
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <SkeletonList count={10} />
+        </ScrollView>
       ) : !userId ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>{t('notifications.loginToSee')}</Text>

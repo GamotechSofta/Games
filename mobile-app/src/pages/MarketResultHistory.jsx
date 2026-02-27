@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, FlatList, TouchableOpacity, ScrollView, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonResultRow } from '../components/Skeleton';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import { haptics } from '../utils/haptics';
 
 const toDateKeyIST = (d) => {
   try {
@@ -21,8 +23,15 @@ export default function MarketResultHistory() {
   const { t } = useTranslation();
   const [results, setResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const todayKey = useMemo(() => toDateKeyIST(new Date()), []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchResults();
+    setRefreshing(false);
+  };
 
   const selectedKey = toDateKeyIST(selectedDate);
   const displayDateStr = selectedDate.toLocaleDateString('en-GB');
@@ -79,48 +88,53 @@ export default function MarketResultHistory() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Bids')} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); navigation.navigate('Bids'); }} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>MARKET RESULT HISTORY</Text>
+        <Text style={styles.title}>{t('bids.marketResultHistory')}</Text>
       </View>
 
       {/* Date Picker Row */}
       <View style={styles.datePicker}>
-        <TouchableOpacity onPress={goToPrevDay} style={styles.dateBtnArrow} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); goToPrevDay(); }} style={styles.dateBtnArrow} activeOpacity={0.8}>
           <Text style={styles.dateArrowText}>‹</Text>
         </TouchableOpacity>
         <View style={styles.dateCenter}>
           <Text style={styles.dateLabel}>{t('bids.selectDate')}</Text>
           <Text style={styles.dateValue}>{displayDateStr}</Text>
         </View>
-        <TouchableOpacity onPress={canGoNext ? goToNextDay : undefined} style={[styles.dateBtnArrow, !canGoNext && { opacity: 0.3 }]} activeOpacity={0.8} disabled={!canGoNext}>
+        <TouchableOpacity onPress={() => { haptics.light(); canGoNext && goToNextDay(); }} style={[styles.dateBtnArrow, !canGoNext && { opacity: 0.3 }]} activeOpacity={0.8} disabled={!canGoNext}>
           <Text style={styles.dateArrowText}>›</Text>
         </TouchableOpacity>
         {selectedKey !== todayKey && (
-          <TouchableOpacity onPress={goToToday} style={styles.todayBtn} activeOpacity={0.8}>
-            <Text style={styles.todayText}>Today</Text>
+          <TouchableOpacity onPress={() => { haptics.light(); goToToday(); }} style={styles.todayBtn} activeOpacity={0.8}>
+            <Text style={styles.todayText}>{t('common.today')}</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Results */}
-      <FlatList
-        data={rows}
-        renderItem={({ item }) => <ResultRow r={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        removeClippedSubviews={true}
-        ListLoadingComponent={resultsLoading && [1, 2, 3, 4, 5].map((i) => (
-          <View key={i} style={styles.skeletonCard} />
-        ))}
-        ListEmptyComponent={!resultsLoading && rows.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>{t('bids.noMarketsFound')}</Text>
-          </View>
-        )}
-      />
+      {resultsLoading ? (
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <SkeletonResultRow key={i} />
+          ))}
+        </ScrollView>
+      ) : rows.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>{t('bids.noMarketsFound')}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={rows}
+          renderItem={({ item }) => <ResultRow r={item} />}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          removeClippedSubviews={true}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.goldLight} />}
+        />
+      )}
     </View>
   );
 }

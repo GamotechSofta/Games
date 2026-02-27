@@ -34,7 +34,9 @@
     "comingSoon": "Coming Soon...",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "selectDate": "Select Date"
+    "selectDate": "Select Date",
+    "today": "Today",
+    "loginRequired": "Please login to continue"
   },
   "datePicker": {
     "selectDate": "SELECT DATE",
@@ -62,6 +64,9 @@
     "signUp": "Sign Up",
     "version": "Version: 1.0.0",
     "openMenu": "Open menu"
+  },
+  "home": {
+    "latestNews": "Latest News"
   },
   "navigation": {
     "home": "Home",
@@ -113,6 +118,8 @@
     "descriptionPlaceholder": "Describe your issue in a few lines...",
     "photosLabel": "Add photos (optional)",
     "chooseFiles": "Choose Files",
+    "photosPermissionTitle": "Permission needed",
+    "photosPermissionMessage": "Please allow photo library access to attach screenshots.",
     "noFileChosen": "No file chosen",
     "photosAdded": "{{count}} photo(s) added",
     "sendRequest": "Send request",
@@ -142,7 +149,8 @@
     "statusInProgress": "In progress",
     "statusResolved": "Resolved",
     "statusClosed": "Closed",
-    "supportRequestDefault": "Support Request"
+    "supportRequestDefault": "Support Request",
+    "noteSubtext": "You can add up to 5 images. Describe your issue in detail for a faster response."
   },
   "funds": {
     "addFund": "Add Fund",
@@ -228,6 +236,8 @@
     "bankAccountUpdated": "Bank account updated successfully",
     "bankAccountDeleted": "Bank account deleted successfully",
     "bankAccountSetAsDefault": "Bank account set as default",
+    "bankDetailsSaved": "Bank details saved!",
+    "failedToSaveBankDetails": "Failed to save bank details",
     "withdrawMax": "Withdraw Max",
     "withdrawalInfo": "Withdrawal Info",
     "withdrawalsProcessed24h": "Withdrawals are processed within 24 hours",
@@ -236,6 +246,7 @@
     "maximumWithdrawal": "Maximum withdrawal",
     "bankAccountDetails": "Bank Account Details",
     "fundsTitle": "Funds",
+    "txnPrefix": "TXN",
     "bankDetail": "Bank Detail",
     "addFundSubtitle": "You can add fund to your wallet",
     "withdrawFundSubtitle": "You can withdraw winnings",
@@ -289,6 +300,11 @@
     "kingBazaarBetHistorySubtitle": "You can view starline result",
     "marketResultHistory": "Market Result History",
     "filterBy": "Filter By",
+    "filterType": "Filter Type",
+    "byGameType": "By Game Type",
+    "byWinningStatus": "By Winning Status",
+    "byGames": "By Games",
+    "filterApply": "Filter",
     "selectDate": "Select Date",
     "selectItemFromLeftMenu": "Select an item from the left menu.",
     "resultsFor": "Results for",
@@ -378,7 +394,8 @@
     "security": "Security",
     "passwordSecuritySettings": "Password & security settings",
     "securitySettingsComingSoon": "Security settings coming soon",
-    "getHelpWithAccount": "Get help with your account"
+    "getHelpWithAccount": "Get help with your account",
+    "confirmLogout": "Are you sure you want to sign out?"
   },
   "notifications": {
     "title": "Notifications",
@@ -423,6 +440,10 @@
   },
   "gameRate": {
     "title": "Game Rates",
+    "subtitle": "Payout rate per 1 unit bet (1 =)",
+    "srNo": "Sr No",
+    "game": "Game",
+    "rateHeader": "Rate (1 =)",
     "singleDigit": "Single Digit",
     "singleDigitBulk": "Single Digit Bulk",
     "jodi": "Jodi",
@@ -491,6 +512,7 @@
     "sangam": "Sangam",
     "cancel": "Cancel",
     "placing": "Placing...",
+    "confirming": "Confirming...",
     "reviewBet": "Review Bet",
     "totalBetAmount": "Total Bet Amount",
     "walletBalanceBeforeDeduction": "Wallet Before",
@@ -503,7 +525,12 @@
     "flip": "Flip",
     "apply": "Apply",
     "allPts": "All pts",
-    "clear": "Clear"
+    "clear": "Clear",
+    "selectSum": "Select Sum",
+    "specialModeNotAvailable": "Special mode not available",
+    "scheduleBannerText": "Scheduling bet for {{tomorrow}}. Date is set to next day (IST).",
+    "scheduleBannerTomorrow": "tomorrow",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "Top Winners",
@@ -520,10 +547,15 @@
   "passbook": {
     "title": "Passbook",
     "transactionHistory": "Transaction History",
+    "allTransactions": "All",
+    "credits": "Credits",
+    "debits": "Debits",
     "credit": "Credit",
     "debit": "Debit",
     "credited": "Credited",
     "withdrawn": "Withdrawn",
+    "creditEntry": "Credit",
+    "debitEntry": "Debit",
     "date": "Date",
     "time": "Time",
     "description": "Description",
@@ -560,6 +592,20 @@
     "playGame": "Play Game",
     "noTimeSlots": "No time slots for {{title}} yet.",
     "slotsAddedIn": "Slots are added in Admin → Markets → Starline Market. Once added, they will appear here.",
+    "sorry": "Sorry !",
+    "bettingClosed": "Betting is Closed for today.",
+    "comeNextDay": "Please come next day to play.",
+    "ok": "OK"
+  },
+  "kingBazaarMarket": {
+    "pageTitle": "King Bazaar Market",
+    "selectTimeSlot": "Select a time slot to place bets. Green = open, red = closed for today.",
+    "open": "Open",
+    "closed": "Closed",
+    "closeForToday": "Close for today",
+    "playGame": "Play Game",
+    "noTimeSlots": "No time slots for {{title}} yet.",
+    "slotsAddedIn": "Slots are added in Admin → Markets → King Bazaar Market. Once added, they will appear here.",
     "sorry": "Sorry !",
     "bettingClosed": "Betting is Closed for today.",
     "comeNextDay": "Please come next day to play.",
@@ -604,6 +650,12 @@
       "mainBazar": "Main Bazar",
       "dhanlaxmi": "Dhanlaxmi"
     }
+  },
+  "download": {
+    "title": "Download App",
+    "heading": "Get Our Mobile App",
+    "subheading": "Download the official app for the best mobile experience.",
+    "downloadNow": "Download Now"
   },
   "language": {
     "english": "English",

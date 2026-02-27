@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTranslation } from '../hooks/useTranslation';
 import { colors, spacing, fontSize } from '../theme';
 
 const NEWS = [
@@ -13,12 +14,13 @@ const NEWS = [
 // Label: from-[#1a2332] to-[#1f2a3a], border-r yellow-500/30, video icon + "Latest News"
 // Items: icon circle (from-yellow-500/20 to-yellow-600/10 border yellow-500/30), text, amount, separator dot (w-1.5 h-1.5 bg-yellow-500/60)
 export default function LatestNews() {
+  const { t } = useTranslation();
   const items = [...NEWS, ...NEWS, ...NEWS];
   return (
     <View style={styles.container}>
       <View style={styles.label}>
         <Text style={styles.videoIcon}>▶</Text>
-        <Text style={styles.labelText}>Latest News</Text>
+        <Text style={styles.labelText}>{t('home.latestNews')}</Text>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         {items.map((item, i) => (

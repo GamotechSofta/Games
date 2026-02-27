@@ -130,8 +130,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
+        // Keep modal open to show success screen; user taps OK → onClose (clearAll) closes and clears
     };
 
     const marketTitle = market?.gameName || market?.marketName || title;
@@ -144,7 +143,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
             <View style={s.content}>
                 {scheduleForTomorrow ? (
                     <View style={s.scheduleBanner}>
-                        <Text style={s.scheduleBannerText}>Scheduling bet for <Text style={s.scheduleBannerStrong}>tomorrow</Text>. Date is set to next day (IST).</Text>
+                        <Text style={s.scheduleBannerText}>{t('gameBid.scheduleBannerText', { tomorrow: t('gameBid.scheduleBannerTomorrow') })}</Text>
                     </View>
                 ) : null}
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
@@ -229,9 +228,9 @@ const s = StyleSheet.create({
     panaLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
     panaInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
     submitBtnWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 12, paddingHorizontal: 12, backgroundColor: '#000' },
-    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, height: 52, alignItems: 'center', justifyContent: 'center' },
+    submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },
-    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 16 },
+    submitBtnText: { color: '#4b3608', fontWeight: '700', fontSize: 14 },
 });
 
 export default SinglePanaBulkBid;

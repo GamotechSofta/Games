@@ -319,7 +319,7 @@ const EasyModeBid = ({
                                 </View>
 
                                 <View style={s.keypadBox}>
-                                    <Text style={s.keypadTitle}>Select Sum</Text>
+                                    <Text style={s.keypadTitle}>{t('gameBid.selectSum')}</Text>
                                     <View style={s.keypadGrid}>
                                         {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                                             <TouchableOpacity key={num} style={s.keyBtn} onPress={() => handleKeypadClick(num)}>
@@ -341,7 +341,7 @@ const EasyModeBid = ({
                                 )}
                             </ScrollView>
                         ) : (
-                            <View style={s.readOnlyWrap}><Text style={s.readOnlyText}>Special mode not available</Text></View>
+                            <View style={s.readOnlyWrap}><Text style={s.readOnlyText}>{t('gameBid.specialModeNotAvailable')}</Text></View>
                         )}
                         {bidsList}
                     </>
@@ -386,9 +386,9 @@ const s = StyleSheet.create({
     modeBtnActive: { backgroundColor: '#d4af37', borderColor: '#d4af37' },
     modeBtnText: { fontWeight: '700', fontSize: 14 },
     modeTextActive: { color: '#4b3608' },
-    modeTextInactive: { color: '#9ca3af' },
+    modeTextInactive: { color: '#fff' },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-    label: { color: '#9ca3af', fontSize: 14, width: 128 },
+    label: { color: '#fff', fontSize: 14, width: 128 },
     readOnlyWrap: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     readOnlyText: { color: '#fff', fontWeight: '700', fontSize: 13 },
     input: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
@@ -417,7 +417,7 @@ const s = StyleSheet.create({
     bidRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderRadius: 8, padding: 10, marginTop: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
     bidCell: { flex: 1, color: '#fff', fontSize: 12, fontWeight: '600', textAlign: 'center' },
     bidCellGold: { flex: 1, color: '#f2c14e', fontSize: 12, fontWeight: '600', textAlign: 'center' },
-    bidCellMuted: { flex: 1, color: '#9ca3af', fontSize: 12, textAlign: 'center' },
+    bidCellMuted: { flex: 1, color: '#fff', fontSize: 12, textAlign: 'center' },
     deleteText: { color: '#f87171', fontSize: 16, padding: 4 },
 });
 

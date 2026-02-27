@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { View, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { haptics } from '../utils/haptics';
 
 const BANNER_HEIGHT = 168;
 const CAROUSEL_RADIUS = 16;
@@ -21,11 +22,13 @@ function BannersSection() {
 
   const bannerIdxRef = useRef(0);
   bannerIdxRef.current = bannerIdx;
+  const lastAutoScrollAt = useRef(0);
 
   useEffect(() => {
     if (BANNERS.length <= 1) return;
     const id = setInterval(() => {
       const next = (bannerIdxRef.current + 1) % BANNERS.length;
+      lastAutoScrollAt.current = Date.now();
       setBannerIdx(next);
       scrollRef.current?.scrollTo({ x: next * carouselWidth, animated: true });
     }, 4000);
@@ -36,6 +39,8 @@ function BannersSection() {
     const x = e.nativeEvent.contentOffset.x;
     const index = Math.round(x / carouselWidth);
     if (index >= 0 && index < BANNERS.length && index !== bannerIdx) {
+      const isFromAutoSlide = Date.now() - lastAutoScrollAt.current < 600;
+      if (!isFromAutoSlide) haptics.light();
       setBannerIdx(index);
     }
   };

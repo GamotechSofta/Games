@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { useTranslation } from '../hooks/useTranslation';
 import { navigate } from '../navigationRef';
+import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
 const STARLINE_IMAGE = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771486283/Black_and_White_Vintage_Star_Company_Logo_nbhlfi.png';
@@ -10,7 +11,7 @@ const STARLINE_IMAGE = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v17714
 export default function StarlineCard() {
   const { t } = useTranslation();
   return (
-    <TouchableOpacity style={styles.card} onPress={() => navigate('StartlineDashboard')} activeOpacity={0.95}>
+    <TouchableOpacity style={styles.card} onPress={() => { haptics.light(); navigate('StartlineDashboard'); }} activeOpacity={0.95}>
       <View style={styles.inner}>
         <View style={styles.iconBox}>
           <Image source={{ uri: STARLINE_IMAGE }} style={styles.icon} resizeMode="contain" />

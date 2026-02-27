@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, FlatList, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
@@ -9,6 +9,7 @@ import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { storage } from '../utils/storage';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonGroupGrid } from '../components/Skeleton';
 
 const STARLINE_IMG = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1770722975/Untitled_design_16_1_palesh_qef2qd.png';
 
@@ -97,6 +98,13 @@ export default function StartlineDashboard() {
       <View style={styles.divider} />
 
       {/* Starline Groups Grid */}
+      {loadingGroups && starlineGroups.length === 0 ? (
+        <SkeletonGroupGrid count={9} />
+      ) : starlineGroups.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>{t('startlineDashboard.noMarkets')}</Text>
+        </View>
+      ) : (
       <FlatList
         data={starlineGroups}
         renderItem={({ item }) => (
@@ -111,15 +119,8 @@ export default function StartlineDashboard() {
         contentContainerStyle={styles.grid}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
-        ListLoadingComponent={loadingGroups && [1, 2, 3].map((i) => (
-          <View key={i} style={styles.skeletonCard} />
-        ))}
-        ListEmptyComponent={!loadingGroups && starlineGroups.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>{t('startlineDashboard.noMarkets')}</Text>
-          </View>
-        )}
       />
+      )}
     </View>
   );
 }

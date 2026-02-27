@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Dimensions, RefreshControl, Animated } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Dimensions, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
@@ -7,6 +7,8 @@ import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { navigate } from '../navigationRef';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonMarketGrid } from './Skeleton';
+import { haptics } from '../utils/haptics';
 
 function formatTime(time24) {
   if (!time24) return '';
@@ -47,6 +49,7 @@ const MarketCard = React.memo(function MarketCard({ item, t }) {
     <TouchableOpacity
       style={[styles.card, !isClickable && styles.cardClosed]}
       onPress={() => {
+        haptics.light();
         const marketWithStatus = { ...item.market, status: item.status };
         const params = { market: marketWithStatus, marketId: item.id };
         if (isClickable) navigate('BidOptions', params);
@@ -95,8 +98,6 @@ const GAMENAME_MB = IS_MIN_375 ? 10 : 8;
 // Frontend: result text-base min-[375px]:text-lg → 16 | 18; footer text-[10px] min-[375px]:text-[11px] → 10 | 11
 const RESULT_FONT = IS_MIN_375 ? 18 : 16;
 const FOOTER_FONT = IS_MIN_375 ? 11 : 10;
-// Frontend skeleton: p-2 min-[375px]:p-3
-const SKELETON_CONTENT_P = IS_MIN_375 ? 12 : 8;
 
 const REFRESH_INTERVAL_MS = 30000;
 
@@ -191,48 +192,15 @@ function Section1({ refreshKey, ListHeaderComponent, onRefresh, refreshing }) {
     return null;
   }, [markets.length, loading, t]);
 
-  // Pulse animation (admin: animate-pulse)
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.5, duration: 600, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulseAnim]);
-
-  // Single skeleton card – same structure as admin Skeleton.jsx SkeletonCard: bg-gray-800/50 rounded-xl p-6 border border-gray-700/50; row (h-4 w-24 + w-12 h-12); h-8 w-32 mb-4; space-y-2 (h-3 w-full, h-3 w-3/4)
-  const SkeletonCard = () => (
-    <Animated.View style={[styles.skeletonCard, { opacity: pulseAnim }]}>
-      <View style={styles.skeletonCardRow1}>
-        <View style={styles.skeletonBlockA} />
-        <View style={styles.skeletonBlockB} />
-      </View>
-      <View style={styles.skeletonBlockC} />
-      <View style={styles.skeletonCardLines}>
-        <View style={styles.skeletonLineFull} />
-        <View style={styles.skeletonLineThreeQuarters} />
-      </View>
-    </Animated.View>
-  );
-
-  const skeletonGrid = useMemo(
-    () => (
-      <View style={styles.skeletonGrid}>
-        {[1, 2, 3, 4].map((i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </View>
-    ),
-    []
-  );
-
+  // YouTube-style loading: multiple skeleton cards in 2-column grid (was single/4 – now 8 with shimmer)
   const listEmptyComponent = useMemo(
-    () => (loading ? skeletonGrid : null),
-    [loading, skeletonGrid]
+    () =>
+      loading ? (
+        <View style={styles.skeletonEmptyWrap}>
+          <SkeletonMarketGrid count={8} gap={GRID_GAP} />
+        </View>
+      ) : null,
+    [loading]
   );
 
   return (
@@ -381,69 +349,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  // Admin Skeleton.jsx SkeletonCard: grid + card layout
-  skeletonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GRID_GAP,
-    justifyContent: 'space-between',
-  },
-  // Admin: bg-gray-800/50 rounded-xl p-6 border border-gray-700/50
-  skeletonCard: {
-    width: '48.5%',
-    backgroundColor: 'rgba(31,41,55,0.5)',
-    borderRadius: 12,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(55,65,81,0.5)',
-    marginBottom: GRID_GAP,
-  },
-  // Admin: flex items-center justify-between mb-4
-  skeletonCardRow1: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  // Admin: h-4 bg-gray-700 rounded w-24
-  skeletonBlockA: {
-    height: 16,
-    width: 96,
-    borderRadius: 4,
-    backgroundColor: '#374151',
-  },
-  // Admin: w-12 h-12 bg-gray-700 rounded-xl
-  skeletonBlockB: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#374151',
-  },
-  // Admin: h-8 bg-gray-700 rounded w-32 mb-4
-  skeletonBlockC: {
-    height: 32,
-    width: 128,
-    borderRadius: 4,
-    backgroundColor: '#374151',
-    marginBottom: 16,
-  },
-  // Admin: space-y-2
-  skeletonCardLines: {
-    gap: 8,
-  },
-  // Admin: h-3 bg-gray-700 rounded w-full
-  skeletonLineFull: {
-    height: 12,
-    borderRadius: 4,
-    backgroundColor: '#374151',
+  skeletonEmptyWrap: {
     width: '100%',
-  },
-  // Admin: h-3 bg-gray-700 rounded w-3/4
-  skeletonLineThreeQuarters: {
-    height: 12,
-    borderRadius: 4,
-    backgroundColor: '#374151',
-    width: '75%',
+    paddingHorizontal: 0,
   },
 });
 

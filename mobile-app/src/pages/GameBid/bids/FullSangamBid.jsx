@@ -150,7 +150,7 @@ const s = StyleSheet.create({
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-    label: { color: '#9ca3af', fontSize: 13, width: 130 },
+    label: { color: '#fff', fontSize: 13, width: 130 },
     input: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
     inputInvalid: { borderColor: '#ef4444' },
     btnRow: { flexDirection: 'row', gap: 12, marginTop: 12 },

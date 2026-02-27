@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useBettingWindow } from './BettingWindowContext';
 import { colors, spacing, borderRadius, fontSize } from '../../theme';
 import { storage } from '../../utils/storage';
+import { haptics } from '../../utils/haptics';
 
 const walletFormatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
 const todayDateFormatter = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -105,10 +106,10 @@ const BidLayout = ({
     const paddingHR = Math.max(12, insets.right || 0);
 
     return (
-        <View style={[styles.container, { paddingTop: Math.max(insets.top, 16), paddingLeft: paddingH, paddingRight: paddingHR }]}>
+        <View style={[styles.container, { paddingLeft: paddingH, paddingRight: paddingHR }]}>
             {/* Header – frontend: bg-[#202124] border-b border-white/10 py-2 sticky */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.95} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <TouchableOpacity onPress={() => { haptics.light(); handleBack(); }} style={styles.backBtn} activeOpacity={0.95} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <Text style={styles.backBtnIcon}>←</Text>
                 </TouchableOpacity>
                 <Text style={styles.title} numberOfLines={1}>{headerTitle?.toUpperCase()}</Text>
@@ -158,7 +159,7 @@ const BidLayout = ({
                             ) : (
                                 <TouchableOpacity
                                     style={styles.sessionBtn}
-                                    onPress={() => setSession(session === 'OPEN' ? 'CLOSE' : 'OPEN')}
+                                    onPress={() => { haptics.light(); setSession(session === 'OPEN' ? 'CLOSE' : 'OPEN'); }}
                                     disabled={lockSessionSelect || isRunning}
                                 >
                                     <Text style={styles.sessionBtnText}>
@@ -249,14 +250,14 @@ const styles = StyleSheet.create({
     errorText: { color: '#fecaca', fontSize: 14, fontWeight: '500' },
     dateSessionRow: { flexDirection: 'row', flexWrap: 'nowrap', paddingTop: 8, paddingBottom: 16, gap: 8 },
     dateInputWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 24, paddingLeft: 36, paddingRight: 10, minHeight: 44, height: 44 },
-    dateIcon: { position: 'absolute', left: 12, fontSize: 16, color: '#9ca3af' },
+    dateIcon: { position: 'absolute', left: 12, fontSize: 16, color: colors.white },
     dateText: { flex: 1, color: colors.white, fontSize: 12, fontWeight: '700', textAlign: 'center' },
     scheduledBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(245,158,11,0.2)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.4)', marginLeft: 6 },
     scheduledText: { color: '#fbbf24', fontSize: 10, fontWeight: '600' },
     sessionWrap: { flex: 1, minWidth: 0 },
     sessionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 24, minHeight: 44, height: 44, paddingHorizontal: 16 },
     sessionBtnText: { color: colors.white, fontSize: 12, fontWeight: '700', textAlign: 'center', flex: 1 },
-    caret: { color: '#9ca3af', fontSize: 10, marginLeft: 4 },
+    caret: { color: colors.white, fontSize: 10, marginLeft: 4 },
     contentScroll: { flex: 1 },
     contentInner: { paddingHorizontal: 0 },
     footerContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 12, backgroundColor: 'transparent' },
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     footerCardNoBg: { backgroundColor: 'transparent', borderWidth: 0, padding: 0, shadowOpacity: 0, elevation: 0 },
     statsWrap: { flexDirection: 'row', gap: 24, marginRight: 16 },
     statBlock: { alignItems: 'center' },
-    statLabel: { color: '#9ca3af', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
+    statLabel: { color: colors.white, fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 },
     statVal: { color: '#f2c14e', fontSize: 16, fontWeight: '700' },
     submitBtn: { flex: 1, backgroundColor: '#d4af37', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },
     submitBtnDisabled: { opacity: 0.5 },

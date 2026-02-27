@@ -34,7 +34,9 @@
     "comingSoon": "ಶೀಘ್ರದಲ್ಲೇ ಬರುತ್ತಿದೆ...",
     "openMenu": "ಮೆನು ತೆರೆಯಿರಿ",
     "closeMenu": "ಮೆನು ಮುಚ್ಚಿ",
-    "selectDate": "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ"
+    "selectDate": "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ",
+    "today": "ಇಂದು",
+    "loginRequired": "ಮುಂದುವರಿಸಲು ಲಾಗ್ ಇನ್ ಮಾಡಿ"
   },
   "datePicker": {
     "selectDate": "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ",
@@ -100,7 +102,8 @@
     "statusInProgress": "ಪ್ರಗತಿಯಲ್ಲಿ",
     "statusResolved": "ಪರಿಹರಿಸಲಾಗಿದೆ",
     "statusClosed": "ಮುಚ್ಚಲಾಗಿದೆ",
-    "supportRequestDefault": "ಸಪೋರ್ಟ್ ವಿನಂತಿ"
+    "supportRequestDefault": "ಸಪೋರ್ಟ್ ವಿನಂತಿ",
+    "noteSubtext": "ಸ್ಕ್ರೀನ್‌ಶಾಟ್ ಅಪ್‌ಲೋಡ್‌ಗಳಿಗೆ ಪೂರ್ಣ ಅಪ್ಲಿಕೇಶನ್ ಅಗತ್ಯ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ವಿವರವಾಗಿ ವಿವರಿಸಿ."
   },
   "funds": {
     "addFund": "ನಿಧಿ ಸೇರಿಸಿ",
@@ -183,6 +186,9 @@
     "maximumWithdrawal": "ಗರಿಷ್ಠ ಹಿಂಪಡೆಯುವಿಕೆ",
     "bankAccountDetails": "ಬ್ಯಾಂಕ್ ಖಾತೆ ವಿವರಗಳು",
     "fundsTitle": "ನಿಧಿಗಳು",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "ಬ್ಯಾಂಕ್ ವಿವರ ಉಳಿಸಲಾಗಿದೆ!",
+    "failedToSaveBankDetails": "ಬ್ಯಾಂಕ್ ವಿವರ ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
     "bankDetail": "ಬ್ಯಾಂಕ್ ವಿವರ",
     "addFundSubtitle": "ನಿಮ್ಮ ವಾಲೆಟ್‌ಗೆ ನಿಧಿ ಸೇರಿಸಬಹುದು",
     "withdrawFundSubtitle": "ಗೆದ್ದ ಮೊತ್ತವನ್ನು ಹಿಂಪಡೆಯಬಹುದು",
@@ -232,6 +238,9 @@
     "accountHolderName": "ಖಾತೆ ಹೊಂದಿರುವವರ ಹೆಸರು",
     "bankName": "ಬ್ಯಾಂಕ್ ಹೆಸರು",
     "branchName": "ಶಾಖೆಯ ಹೆಸರು"
+  },
+  "home": {
+    "latestNews": "ಇತ್ತೀಚಿನ ಸುದ್ದಿ"
   },
   "navigation": {
     "home": "ಮುಖಪುಟ",
@@ -285,6 +294,11 @@
     "kingBazaarBetHistorySubtitle": "ನೀವು ಸ್ಟಾರ್‌ಲೈನ್ ಫಲಿತಾಂಶವನ್ನು ನೋಡಬಹುದು",
     "marketResultHistory": "ಮಾರ್ಕೆಟ್ ಫಲಿತಾಂಶ ಇತಿಹಾಸ",
     "filterBy": "ಫಿಲ್ಟರ್ ಮಾಡಿ",
+    "filterType": "ಫಿಲ್ಟರ್ ಪ್ರಕಾರ",
+    "byGameType": "ಆಟದ ಪ್ರಕಾರ",
+    "byWinningStatus": "ಗೆಲುವಿನ ಸ್ಥಿತಿ",
+    "byGames": "ಆಟಗಳು",
+    "filterApply": "ಫಿಲ್ಟರ್",
     "selectDate": "ದಿನಾಂಕ ಆಯ್ಕೆಮಾಡಿ",
     "selectItemFromLeftMenu": "ಎಡ ಮೆನುವಿನಿಂದ ಒಂದು ವಸ್ತುವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
     "resultsFor": "ಫಲಿತಾಂಶಗಳಿಗಾಗಿ",
@@ -369,7 +383,8 @@
     "security": "ಭದ್ರತೆ",
     "passwordSecuritySettings": "ಪಾಸ್‌ವರ್ಡ್ ಮತ್ತು ಭದ್ರತಾ ಸೆಟ್ಟಿಂಗ್ಗಳು",
     "securitySettingsComingSoon": "ಭದ್ರತಾ ಸೆಟ್ಟಿಂಗ್ಗಳು ಶೀಘ್ರದಲ್ಲೇ ಬರುತ್ತವೆ",
-    "getHelpWithAccount": "ನಿಮ್ಮ ಖಾತೆಯೊಂದಿಗೆ ಸಹಾಯ ಪಡೆಯಿರಿ"
+    "getHelpWithAccount": "ನಿಮ್ಮ ಖಾತೆಯೊಂದಿಗೆ ಸಹಾಯ ಪಡೆಯಿರಿ",
+    "confirmLogout": "ನೀವು ಖಚಿತವಾಗಿ ಸೈನ್ ಔಟ್ ಮಾಡಲು ಬಯಸುವಿರಾ?"
   },
   "notifications": {
     "title": "ಅಧಿಸೂಚನೆಗಳು",
@@ -414,6 +429,10 @@
   },
   "gameRate": {
     "title": "ಗೇಮ್ ರೇಟ್‌ಗಳು",
+    "subtitle": "1 ಯೂನಿಟ್ ಬೆಟ್‌ಗೆ ಪಾವತಿ ದರ (1 =)",
+    "srNo": "ಕ್ರ.ನಂ.",
+    "game": "ಆಟ",
+    "rateHeader": "ದರ (1 =)",
     "singleDigit": "ಸಿಂಗಲ್ ಅಂಕಿ",
     "singleDigitBulk": "ಸಿಂಗಲ್ ಅಂಕಿ ಬಲ್ಕ್",
     "jodi": "ಜೋಡಿ",
@@ -469,7 +488,12 @@
     "digit": "ಅಂಕಿ",
     "selectGameType": "ಗೇಮ್ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     "enterSingleDigit": "ಸಿಂಗಲ್ ಅಂಕಿ ನಮೂದಿಸಿ",
-    "submitBet": "ಬೆಟ್ ಸಲ್ಲಿಸಿ"
+    "submitBet": "ಬೆಟ್ ಸಲ್ಲಿಸಿ",
+    "selectSum": "ಮೊತ್ತ ಆಯ್ಕೆಮಾಡಿ",
+    "specialModeNotAvailable": "ಸ್ಪೆಷಲ್ ಮೋಡ್ ಲಭ್ಯವಿಲ್ಲ",
+    "scheduleBannerText": "{{tomorrow}} ಗಾಗಿ ಬೆಟ್ ಷೆಡ್ಯೂಲ್. ದಿನಾಂಕ ನಾಳೆ (IST) ಗೆ ಹೊಂದಿಸಲಾಗಿದೆ.",
+    "scheduleBannerTomorrow": "ನಾಳೆ",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "ಟಾಪ್ ವಿಜೇತರು",
@@ -486,9 +510,14 @@
   "passbook": {
     "title": "ಪಾಸ್‌ಬುಕ್",
     "transactionHistory": "ವಹಿವಾಟು ಇತಿಹಾಸ",
+    "allTransactions": "ಎಲ್ಲಾ",
+    "credits": "ಕ್ರೆಡಿಟ್‌ಗಳು",
+    "debits": "ಡೆಬಿಟ್‌ಗಳು",
     "credit": "ಕ್ರೆಡಿಟ್",
     "debit": "ಡೆಬಿಟ್",
     "credited": "ಕ್ರೆಡಿಟ್ ಮಾಡಲಾಗಿದೆ",
+    "creditEntry": "ಕ್ರೆಡಿಟ್",
+    "debitEntry": "ಡೆಬಿಟ್",
     "withdrawn": "ಹಿಂಪಡೆಯಲಾಗಿದೆ",
     "date": "ದಿನಾಂಕ",
     "time": "ಸಮಯ",
@@ -531,6 +560,20 @@
     "comeNextDay": "ಆಡಲು ನಾಳೆ ಬನ್ನಿ.",
     "ok": "ಸರಿ"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "ಕಿಂಗ್ ಬಜಾರ್ ಮಾರ್ಕೆಟ್",
+    "selectTimeSlot": "ಬೆಟ್ ಮಾಡಲು ಸಮಯ ಸ್ಲಾಟ್ ಆಯ್ಕೆಮಾಡಿ. ಹಸಿರು = ತೆರೆದ, ಕೆಂಪು = ಇಂದು ಮುಚ್ಚಲಾಗಿದೆ.",
+    "open": "ತೆರೆದ",
+    "closed": "ಮುಚ್ಚಲಾಗಿದೆ",
+    "closeForToday": "ಇಂದು ಮುಚ್ಚಲಾಗಿದೆ",
+    "playGame": "ಗೇಮ್ ಆಡಿ",
+    "noTimeSlots": "{{title}} ಗಾಗಿ ಇನ್ನೂ ಸಮಯ ಸ್ಲಾಟ್‌ಗಳು ಇಲ್ಲ.",
+    "slotsAddedIn": "ಸ್ಲಾಟ್‌ಗಳನ್ನು ಅಡ್ಮಿನ್ → ಮಾರ್ಕೆಟ್‌ಗಳು → ಕಿಂಗ್ ಬಜಾರ್ ಮಾರ್ಕೆಟ್‌ನಲ್ಲಿ ಸೇರಿಸಲಾಗುತ್ತದೆ. ಸೇರಿಸಿದ ನಂತರ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
+    "sorry": "ಕ್ಷಮಿಸಿ !",
+    "bettingClosed": "ಇಂದು ಬೆಟ್ಟಿಂಗ್ ಮುಚ್ಚಲಾಗಿದೆ.",
+    "comeNextDay": "ಆಡಲು ನಾಳೆ ಬನ್ನಿ.",
+    "ok": "ಸರಿ"
+  },
   "markets": {
     "markets": "ಮಾರ್ಕೆಟ್‌ಗಳು",
     "starline": "ಸ್ಟಾರ್‌ಲೈನ್",
@@ -565,6 +608,12 @@
       "mainBazar": "ಮೇನ್ ಬಜಾರ್",
       "dhanlaxmi": "ಧನಲಕ್ಷ್ಮಿ"
     }
+  },
+  "download": {
+    "title": "ಅಪ್ಲಿಕೇಶನ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    "heading": "ನಮ್ಮ ಮೊಬೈಲ್ ಅಪ್ಲಿಕೇಶನ್ ಪಡೆಯಿರಿ",
+    "subheading": "ಉತ್ತಮ ಮೊಬೈಲ್ ಅನುಭವಕ್ಕಾಗಿ ಅಧಿಕೃತ ಅಪ್ಲಿಕೇಶನ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ.",
+    "downloadNow": "ಈಗ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ"
   },
   "language": {
     "english": "ಆಂಗ್ಲ",

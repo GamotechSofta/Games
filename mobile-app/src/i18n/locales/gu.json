@@ -34,7 +34,9 @@
     "comingSoon": "જલ્દી આવી રહ્યું છે...",
     "openMenu": "મેનૂ ખોલો",
     "closeMenu": "મેનૂ બંધ કરો",
-    "selectDate": "તારીખ પસંદ કરો"
+    "selectDate": "તારીખ પસંદ કરો",
+    "today": "આજે",
+    "loginRequired": "ચાલુ રાખવા લોગિન કરો"
   },
   "datePicker": {
     "selectDate": "તારીખ પસંદ કરો",
@@ -61,6 +63,9 @@
     "signUp": "સાઇન અપ",
     "version": "આવૃત્તિ: 1.0.0",
     "openMenu": "મેનૂ ખોલો"
+  },
+  "home": {
+    "latestNews": "નવીન સમાચાર"
   },
   "navigation": {
     "home": "હોમ",
@@ -140,7 +145,8 @@
     "statusInProgress": "ચાલુ છે",
     "statusResolved": "ઉકેલાઈ ગયું",
     "statusClosed": "બંધ",
-    "supportRequestDefault": "સપોર્ટ વિનંતી"
+    "supportRequestDefault": "સપોર્ટ વિનંતી",
+    "noteSubtext": "સ્ક્રીનશોટ અપલોડ માટે પૂર્ણ એપ જરૂરી. કૃપા કરીને તમારી સમસ્યા વિગતે વર્ણવો."
   },
   "funds": {
     "addFund": "ફંડ ઉમેરો",
@@ -231,6 +237,9 @@
     "maximumWithdrawal": "મહત્તમ કાઢવાની રકમ",
     "bankAccountDetails": "બેંક એકાઉન્ટ વિગતો",
     "fundsTitle": "ફંડ",
+    "txnPrefix": "TXN",
+    "bankDetailsSaved": "બેંક વિગત સાચવ્યા!",
+    "failedToSaveBankDetails": "બેંક વિગત સાચવવામાં નિષ્ફળ",
     "bankDetail": "બેંક વિગત",
     "addFundSubtitle": "તમે તમારા વોલેટમાં ફંડ ઉમેરી શકો છો",
     "withdrawFundSubtitle": "તમે જીતેલી રકમ કાઢી શકો છો",
@@ -284,6 +293,11 @@
     "kingBazaarBetHistorySubtitle": "તમે સ્ટારલાઇન નતિજા જોઈ શકો છો",
     "marketResultHistory": "માર્કેટ નતિજા ઇતિહાસ",
     "filterBy": "ફિલ્ટર કરો",
+    "filterType": "ફિલ્ટર પ્રકાર",
+    "byGameType": "ગેમ પ્રકાર દ્વારા",
+    "byWinningStatus": "જીત સ્થિતિ દ્વારા",
+    "byGames": "ગેમ્સ",
+    "filterApply": "ફિલ્ટર",
     "selectDate": "તારીખ પસંદ કરો",
     "selectItemFromLeftMenu": "ડાબી મેનૂમાંથી આઇટમ પસંદ કરો.",
     "resultsFor": "પરિણામ માટે",
@@ -368,7 +382,8 @@
     "security": "સુરક્ષા",
     "passwordSecuritySettings": "પાસવર્ડ અને સુરક્ષા સેટિંગ્સ",
     "securitySettingsComingSoon": "સુરક્ષા સેટિંગ્સ ટૂંક સમયમાં આવશે",
-    "getHelpWithAccount": "તમારા એકાઉન્ટ સાથે મદદ મેળવો"
+    "getHelpWithAccount": "તમારા એકાઉન્ટ સાથે મદદ મેળવો",
+    "confirmLogout": "શું તમે ખરેખર સાઇન આઉટ કરવા માંગો છો?"
   },
   "notifications": {
     "title": "સૂચનાઓ",
@@ -413,6 +428,10 @@
   },
   "gameRate": {
     "title": "ગેમ દર",
+    "subtitle": "1 યુનિટ બેટ દીઠ ચુકવણી દર (1 =)",
+    "srNo": "ક્ર. નં.",
+    "game": "ગેમ",
+    "rateHeader": "દર (1 =)",
     "singleDigit": "સિંગલ ડિજિટ",
     "singleDigitBulk": "સિંગલ ડિજિટ બલ્ક",
     "jodi": "જોડી",
@@ -468,7 +487,12 @@
     "digit": "અંક",
     "selectGameType": "ગેમ પ્રકાર પસંદ કરો",
     "enterSingleDigit": "સિંગલ અંક દાખલ કરો",
-    "submitBet": "બેટ સબમિટ કરો"
+    "submitBet": "બેટ સબમિટ કરો",
+    "selectSum": "આકર સિલેક્ટ કરો",
+    "specialModeNotAvailable": "સ્પેશિયલ મોડ ઉપલબ્ધ નથી",
+    "scheduleBannerText": "{{tomorrow}} માટે બેટ શેડ્યૂલ. તારીખ આગામી દિવસ (IST) પર સેટ છે.",
+    "scheduleBannerTomorrow": "આવતીકાલ",
+    "digitPlaceholder": "0-9"
   },
   "topWinners": {
     "title": "ટોચના વિજેતા",
@@ -485,9 +509,14 @@
   "passbook": {
     "title": "પાસબુક",
     "transactionHistory": "વ્યવહાર ઇતિહાસ",
+    "allTransactions": "બધા",
+    "credits": "ક્રેડિટ",
+    "debits": "ડેબિટ",
     "credit": "ક્રેડિટ",
     "debit": "ડેબિટ",
     "credited": "ક્રેડિટ કર્યું",
+    "creditEntry": "ક્રેડિટ",
+    "debitEntry": "ડેબિટ",
     "withdrawn": "કાઢ્યું",
     "date": "તારીખ",
     "time": "સમય",
@@ -530,6 +559,20 @@
     "comeNextDay": "કૃપા કરીને ખેલવા આવતી કાલે આવો.",
     "ok": "ઠીક છે"
   },
+  "kingBazaarMarket": {
+    "pageTitle": "કિંગ બજાર માર્કેટ",
+    "selectTimeSlot": "દાવ લગાવવા સમય સ્લોટ પસંદ કરો. લીલો = ખુલ્લો, લાલ = આજના માટે બંધ.",
+    "open": "ખુલ્લું",
+    "closed": "બંધ",
+    "closeForToday": "આજના માટે બંધ",
+    "playGame": "ગેમ ખેલો",
+    "noTimeSlots": "{{title}} માટે હજી સમય સ્લોટ નથી.",
+    "slotsAddedIn": "સ્લોટ એડમિન → માર્કેટ્સ → કિંગ બજાર માર્કેટમાં ઉમેરાય છે. ઉમેર્યા પછી અહીં દેખાશે.",
+    "sorry": "માફ કરો !",
+    "bettingClosed": "આજના માટે બેટિંગ બંધ છે.",
+    "comeNextDay": "કૃપા કરીને ખેલવા આવતી કાલે આવો.",
+    "ok": "ઠીક છે"
+  },
   "markets": {
     "markets": "માર્કેટ",
     "starline": "સ્ટારલાઇન",
@@ -564,6 +607,12 @@
       "mainBazar": "મેન બજાર",
       "dhanlaxmi": "ધનલક્ષ્મી"
     }
+  },
+  "download": {
+    "title": "એપ ડાઉનલોડ કરો",
+    "heading": "અમારી મોબાઇલ એપ મેળવો",
+    "subheading": "શ્રેષ્ઠ મોબાઇલ અનુભવ માટે ઓફિશિયલ એપ ડાઉનલોડ કરો।",
+    "downloadNow": "હવે ડાઉનલોડ કરો"
   },
   "language": {
     "english": "અંગ્રેજી",

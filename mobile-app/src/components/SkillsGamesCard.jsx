@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, StyleSheet } from 'react-native';
 import { useTranslation } from '../hooks/useTranslation';
 import { navigate } from '../navigationRef';
+import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 
 const SKILLS_BG =
@@ -13,7 +14,7 @@ export default function SkillsGamesCard() {
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigate('Games', { category: 'upcoming' })}
+      onPress={() => { haptics.light(); navigate('Games', { category: 'upcoming' }); }}
       activeOpacity={0.95}
     >
       <ImageBackground source={{ uri: SKILLS_BG }} style={styles.bg} imageStyle={styles.bgImage}>

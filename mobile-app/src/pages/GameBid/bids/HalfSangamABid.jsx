@@ -121,7 +121,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
                 {slotBetweenPanaAndAnk ? <View style={s.slotWrap}>{slotBetweenPanaAndAnk}</View> : null}
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterCloseAnk')}:</Text>
-                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder="0-9" placeholderTextColor="#6b7280" maxLength={1} keyboardType="numeric" />
+                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder={t('gameBid.digitPlaceholder')} placeholderTextColor="#6b7280" maxLength={1} keyboardType="numeric" />
                 </View>
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
@@ -153,7 +153,7 @@ const s = StyleSheet.create({
     warnBox: { marginBottom: 12, backgroundColor: 'rgba(239,68,68,0.1)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 12, padding: 12 },
     warnText: { color: '#fca5a5', fontSize: 13 },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-    label: { color: '#9ca3af', fontSize: 13, width: 130 },
+    label: { color: '#fff', fontSize: 13, width: 130 },
     input: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
     inputInvalid: { borderColor: '#ef4444' },
     slotWrap: { marginVertical: 8 },

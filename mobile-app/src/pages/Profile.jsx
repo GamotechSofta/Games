@@ -87,8 +87,6 @@ export default function Profile() {
 
   const menuItems = [
     { icon: '🏦', label: t('funds.bankDetails'), desc: t('profile.managePaymentMethods'), nav: 'Bank' },
-    { icon: '🪪', label: t('profile.kycVerification'), desc: t('profile.verifyYourIdentity'), onPress: () => showToast(t('profile.kycComingSoon') || 'KYC coming soon') },
-    { icon: '🔒', label: t('profile.security'), desc: t('profile.passwordSecuritySettings'), onPress: () => showToast(t('profile.securitySettingsComingSoon') || 'Security settings coming soon') },
     { icon: '❓', label: t('header.helpDesk'), desc: t('profile.getHelpWithAccount'), nav: 'Support' },
   ];
 
@@ -249,11 +247,6 @@ export default function Profile() {
           ))}
         </View>
 
-        {/* Sign Out (mobile footer) */}
-        <TouchableOpacity onPress={handleLogout} style={styles.signOutBtn} activeOpacity={0.8}>
-          <Text style={styles.signOutText}>{t('profile.signOut')}</Text>
-        </TouchableOpacity>
-
         <View style={{ height: 60 }} />
       </ScrollView>
     </View>
@@ -305,6 +298,4 @@ const styles = StyleSheet.create({
   menuLabel: { color: colors.text, fontSize: fontSize.sm, fontWeight: '600' },
   menuDesc: { color: '#6b7280', fontSize: 12, marginTop: 2 },
   menuChevron: { color: '#6b7280', fontSize: 22, fontWeight: '300' },
-  signOutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing[2], paddingVertical: spacing[4], borderRadius: borderRadius['2xl'], backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)' },
-  signOutText: { color: '#f87171', fontWeight: '600', fontSize: fontSize.base },
 });

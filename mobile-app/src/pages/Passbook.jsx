@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ActivityIndicator,
+  View, Text, TouchableOpacity, ScrollView,
   StyleSheet, RefreshControl, SectionList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,8 @@ import { API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
 import { updateUserBalance } from '../api/bets';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonPassbook } from '../components/Skeleton';
+import { haptics } from '../utils/haptics';
 
 const dateCardFormatter = new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 const timeFormatter = new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -138,19 +140,19 @@ export default function Passbook() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.backBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); navigation.navigate('Home'); }} style={styles.backBtn} activeOpacity={0.8}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.title}>{t('passbook.title')}</Text>
-        <TouchableOpacity onPress={() => fetchData(true)} disabled={refreshing} style={styles.refreshBtn} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => { haptics.light(); fetchData(true); }} disabled={refreshing} style={styles.refreshBtn} activeOpacity={0.8}>
           <Text style={[styles.refreshIcon, refreshing && { opacity: 0.5 }]}>⟳</Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <SkeletonPassbook />
+        </ScrollView>
       ) : (
         <SectionList
           sections={sections}

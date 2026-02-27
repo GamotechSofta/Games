@@ -39,6 +39,12 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow the app to access your photos to attach screenshots to support tickets."
+        }
       ]
     ],
     "experiments": {

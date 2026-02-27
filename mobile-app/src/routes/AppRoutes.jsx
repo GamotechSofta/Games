@@ -53,6 +53,11 @@ const HIDE_TOP_NAV_SCREENS = [
   'KingBazaarBetHistory',
   'MarketResultHistory',
   'Funds',
+  'AddFund',
+  'WithdrawFund',
+  'Bank',
+  'AddFundHistory',
+  'WithdrawFundHistory',
   'Profile',
   'Notifications',
   'BidOptions',
@@ -85,7 +90,7 @@ function Layout({ children }) {
       <View
         style={[
           styles.content,
-          { paddingBottom: bottomPad, paddingTop: hideTopNav ? Math.max(8, insets.top) : 4 },
+          { paddingBottom: bottomPad, paddingTop: hideTopNav ? Math.max(4, insets.top) : 4 },
         ]}
       >
         {children}
@@ -108,7 +113,7 @@ const withLayout = (Component) => {
 const navigationOptions = {
   headerShown: false,
   contentStyle: { backgroundColor: '#000' },
-  animation: 'default',
+  animation: 'fade',
   freezeOnBlur: true,
 };
 
@@ -191,8 +196,8 @@ export default function AppRoutes() {
         <Stack.Screen name="Notifications" component={NotificationsWithLayout} />
         <Stack.Screen name="TopWinners" component={TopWinnersWithLayout} />
         <Stack.Screen name="GameRate" component={GameRateWithLayout} />
-        <Stack.Screen name="SupportNew" component={SupportNewWithLayout} />
-        <Stack.Screen name="SupportStatus" component={SupportStatusWithLayout} />
+        <Stack.Screen name="SupportNew" component={SupportNewWithLayout} options={tabScreenOptions} />
+        <Stack.Screen name="SupportStatus" component={SupportStatusWithLayout} options={tabScreenOptions} />
         <Stack.Screen name="Support" component={SupportWithLayout} options={tabScreenOptions} />
         <Stack.Screen name="AddFund" component={AddFundWithLayout} />
         <Stack.Screen name="WithdrawFund" component={WithdrawFundWithLayout} />

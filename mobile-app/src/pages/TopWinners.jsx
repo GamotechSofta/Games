@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from '../hooks/useTranslation';
 import { API_BASE_URL } from '../config/api';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
+import { SkeletonList } from '../components/Skeleton';
 
 const INR = (n) => {
   const num = Number(n);
@@ -101,9 +102,9 @@ export default function TopWinners() {
       ) : null}
 
       {loading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.goldLight} />
-        </View>
+        <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
+          <SkeletonList count={8} />
+        </ScrollView>
       ) : normalized.length === 0 ? (
         <View style={styles.emptyBox}>
           <Text style={styles.emptyText}>{t('topWinners.noWinners')}</Text>

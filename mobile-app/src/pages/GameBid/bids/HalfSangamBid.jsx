@@ -40,7 +40,7 @@ const HalfSangamBid = ({ market, title, scheduleForTomorrow }) => {
 
 const s = StyleSheet.create({
     flipBtn: { paddingVertical: 10, paddingHorizontal: 16, minHeight: 40, borderRadius: 24, backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
-    flipBtnText: { color: '#d1d5db', fontSize: 14, fontWeight: '600' },
+    flipBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });
 
 export default HalfSangamBid;
