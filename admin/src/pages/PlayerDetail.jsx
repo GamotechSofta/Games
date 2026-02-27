@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet, FaBuilding, FaLock } from 'react-icons/fa';
+import { FaArrowLeft, FaCalendarAlt, FaUserSlash, FaUserCheck, FaTrash, FaWallet, FaBuilding, FaLock, FaKey } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TABS = [
@@ -90,6 +90,12 @@ const PlayerDetail = () => {
     const [walletAdjustAmount, setWalletAdjustAmount] = useState('');
     const [walletActionLoading, setWalletActionLoading] = useState(false);
     const [walletActionError, setWalletActionError] = useState('');
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordActionLoading, setPasswordActionLoading] = useState(false);
+    const [passwordActionError, setPasswordActionError] = useState('');
+    const [passwordActionSuccess, setPasswordActionSuccess] = useState('');
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -359,6 +365,44 @@ const PlayerDetail = () => {
         }
     };
 
+    const handleChangePassword = async () => {
+        setPasswordActionError('');
+        setPasswordActionSuccess('');
+
+        if (!newPassword || newPassword.length < 6) {
+            setPasswordActionError('Password must be at least 6 characters');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordActionError('Passwords do not match');
+            return;
+        }
+
+        setPasswordActionLoading(true);
+        try {
+            const res = await adminFetch(`${API_BASE_URL}/users/${userId}/password`, {
+                method: 'PATCH',
+                body: JSON.stringify({ newPassword }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPasswordActionSuccess('Password changed successfully');
+                setNewPassword('');
+                setConfirmPassword('');
+                setTimeout(() => {
+                    setPasswordModalOpen(false);
+                    setPasswordActionSuccess('');
+                }, 1500);
+            } else {
+                setPasswordActionError(data.message || 'Failed to change password');
+            }
+        } catch (err) {
+            setPasswordActionError('Network error. Please try again.');
+        } finally {
+            setPasswordActionLoading(false);
+        }
+    };
+
     const performDeletePlayer = async (secretDeclarePasswordValue) => {
         if (!userId || !player?.username) return;
         if (!window.confirm(`Delete player "${player.username}"? This will remove their account and wallet. This cannot be undone.`)) return;
@@ -503,6 +547,14 @@ const PlayerDetail = () => {
                                 <FaWallet className="w-4 h-4" /> Edit Wallet
                             </button>
                         )}
+                        <button
+                            type="button"
+                            onClick={() => { setPasswordModalOpen(true); setPasswordActionError(''); setPasswordActionSuccess(''); setNewPassword(''); setConfirmPassword(''); }}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-blue-700 hover:bg-blue-600 text-white transition-colors"
+                            title="Change player password"
+                        >
+                            <FaKey className="w-4 h-4" /> Edit Password
+                        </button>
                         <button
                             type="button"
                             onClick={handleDeletePlayer}
@@ -834,6 +886,67 @@ const PlayerDetail = () => {
                                     <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold disabled:opacity-50">Add</button>
                                     <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-semibold disabled:opacity-50">Deduct</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Password Modal */}
+            {passwordModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60">
+                    <div className="bg-gray-800 rounded-xl border border-gray-600 shadow-xl w-full max-w-md">
+                        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-yellow-500">Change Password</h3>
+                            <button type="button" onClick={() => setPasswordModalOpen(false)} className="text-gray-400 hover:text-white p-1">×</button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="rounded-lg bg-gray-700/50 px-3 py-2">
+                                <p className="text-gray-400 text-xs uppercase tracking-wider">Player</p>
+                                <p className="text-white font-medium">{player?.username}</p>
+                            </div>
+                            {passwordActionError && (
+                                <div className="rounded-lg bg-red-900/30 border border-red-600/50 text-red-200 text-sm px-3 py-2">{passwordActionError}</div>
+                            )}
+                            {passwordActionSuccess && (
+                                <div className="rounded-lg bg-green-900/30 border border-green-600/50 text-green-200 text-sm px-3 py-2">{passwordActionSuccess}</div>
+                            )}
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-1">New Password</label>
+                                <input
+                                    type="password"
+                                    placeholder="Enter new password (min 6 characters)"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-400 text-sm mb-1">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    placeholder="Confirm new password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500"
+                                />
+                            </div>
+                            <div className="flex gap-2 justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordModalOpen(false)}
+                                    className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white font-semibold"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleChangePassword}
+                                    disabled={passwordActionLoading}
+                                    className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold disabled:opacity-50"
+                                >
+                                    {passwordActionLoading ? <span className="animate-spin">⏳</span> : 'Change Password'}
+                                </button>
                             </div>
                         </div>
                     </div>

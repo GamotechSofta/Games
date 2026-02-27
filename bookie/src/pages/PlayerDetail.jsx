@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { API_BASE_URL, bookieFetch } from '../utils/api';
-import { FaArrowLeft, FaCalendarAlt, FaWallet } from 'react-icons/fa';
+import { FaArrowLeft, FaCalendarAlt, FaWallet, FaKey } from 'react-icons/fa';
 
 const TABS = [
     { id: 'statement', label: 'Account Statement' },
@@ -99,6 +99,12 @@ const PlayerDetail = () => {
     const [walletAdjustAmount, setWalletAdjustAmount] = useState('');
     const [walletActionLoading, setWalletActionLoading] = useState(false);
     const [walletActionError, setWalletActionError] = useState('');
+    const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordActionLoading, setPasswordActionLoading] = useState(false);
+    const [passwordActionError, setPasswordActionError] = useState('');
+    const [passwordActionSuccess, setPasswordActionSuccess] = useState('');
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -299,6 +305,44 @@ const PlayerDetail = () => {
         }
     };
 
+    const handleChangePassword = async () => {
+        setPasswordActionError('');
+        setPasswordActionSuccess('');
+
+        if (!newPassword || newPassword.length < 6) {
+            setPasswordActionError('Password must be at least 6 characters');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordActionError('Passwords do not match');
+            return;
+        }
+
+        setPasswordActionLoading(true);
+        try {
+            const res = await bookieFetch(`${API_BASE_URL}/users/${userId}/password`, {
+                method: 'PATCH',
+                body: JSON.stringify({ newPassword }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPasswordActionSuccess('Password changed successfully');
+                setNewPassword('');
+                setConfirmPassword('');
+                setTimeout(() => {
+                    setPasswordModalOpen(false);
+                    setPasswordActionSuccess('');
+                }, 1500);
+            } else {
+                setPasswordActionError(data.message || 'Failed to change password');
+            }
+        } catch (err) {
+            setPasswordActionError('Network error. Please try again.');
+        } finally {
+            setPasswordActionLoading(false);
+        }
+    };
+
     const formatCurrency = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
     const formatIpDisplay = (ip) => {
@@ -367,13 +411,22 @@ const PlayerDetail = () => {
                                 <p className="text-slate-400 text-sm">Manage profile and wallet</p>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); }}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
-                        >
-                            <FaWallet className="w-4 h-4" /> Manage Wallet
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => { setPasswordModalOpen(true); setPasswordActionError(''); setPasswordActionSuccess(''); setNewPassword(''); setConfirmPassword(''); }}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
+                            >
+                                <FaKey className="w-4 h-4" /> Edit Password
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); }}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
+                            >
+                                <FaWallet className="w-4 h-4" /> Manage Wallet
+                            </button>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -677,6 +730,81 @@ const PlayerDetail = () => {
                                     <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50">Credit (+)</button>
                                     <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50">Debit (-)</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Password Modal */}
+            {passwordModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="glass-panel glass-panel-card bg-[#0B1120]/80 rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+                        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <FaKey className="text-blue-500" /> Change Password
+                            </h3>
+                            <button type="button" onClick={() => setPasswordModalOpen(false)} className="text-slate-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+                        </div>
+                        <div className="p-6 space-y-5">
+                            <div className="rounded-xl bg-black/30 border border-white/5 p-4">
+                                <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Player</p>
+                                <p className="text-white font-bold">{player?.username}</p>
+                            </div>
+
+                            {passwordActionError && (
+                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm px-4 py-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                    {passwordActionError}
+                                </div>
+                            )}
+                            {passwordActionSuccess && (
+                                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-sm px-4 py-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    {passwordActionSuccess}
+                                </div>
+                            )}
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">New Password</label>
+                                    <input
+                                        type="password"
+                                        placeholder="Enter new password (min 6 characters)"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirm Password</label>
+                                    <input
+                                        type="password"
+                                        placeholder="Confirm new password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setPasswordModalOpen(false)}
+                                    className="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleChangePassword}
+                                    disabled={passwordActionLoading}
+                                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors disabled:opacity-50"
+                                >
+                                    {passwordActionLoading ? <span className="animate-spin">⏳</span> : 'Change Password'}
+                                </button>
                             </div>
                         </div>
                     </div>

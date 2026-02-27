@@ -678,6 +678,75 @@ export const deletePlayer = async (req, res) => {
 };
 
 /**
+ * Change player password (Admin/Bookie).
+ * Admin can change any player's password.
+ * Bookie can only change password for their own referred users.
+ * Body: { newPassword: string }
+ */
+export const changePlayerPassword = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword || typeof newPassword !== 'string') {
+            return res.status(400).json({
+                success: false,
+                message: 'New password is required',
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters',
+            });
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Player not found',
+            });
+        }
+
+        const bookieUserIds = await getBookieUserIds(req.admin);
+        if (bookieUserIds !== null) {
+            const allowed = bookieUserIds.some((uid) => uid.toString() === id);
+            if (!allowed) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied. You can only change password for your own players.',
+                });
+            }
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await User.updateOne({ _id: id }, { $set: { password: hashedPassword, updatedAt: new Date() } });
+
+        await logActivity({
+            action: 'change_player_password',
+            performedBy: req.admin?.username || 'Admin',
+            performedByType: req.admin?.role || 'admin',
+            targetType: 'user',
+            targetId: id,
+            details: `Password changed for player "${user.username}"`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully',
+            data: { id, username: user.username },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * Clear login devices list for a player (Admin only).
  */
 export const clearLoginDevices = async (req, res) => {
