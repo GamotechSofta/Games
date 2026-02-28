@@ -8,6 +8,7 @@ import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../u
 import { useFocusEffect } from '@react-navigation/native';
 import { placeBet, updateUserBalance, getBalanceForDisplay } from '../../../api/bets';
 import { storage } from '../../../utils/storage';
+import { haptics } from '../../../utils/haptics';
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -220,7 +221,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             else scheduleBulkApply('col', c, val, applyCol);
                                         }}
                                         placeholder="+"
-                                        placeholderTextColor="rgba(255,255,255,0.2)"
+                                        placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff"
                                         keyboardType="numeric"
                                     />
                                 </View>
@@ -242,7 +243,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             else scheduleBulkApply('row', r, val, applyRow);
                                         }}
                                         placeholder="+"
-                                        placeholderTextColor="rgba(255,255,255,0.2)"
+                                        placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff"
                                         keyboardType="numeric"
                                     />
                                 </View>
@@ -257,7 +258,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                                 value={cells[key]}
                                                 onChangeText={(v) => setCells((p) => ({ ...p, [key]: sanitizePoints(v) }))}
                                                 placeholder="."
-                                                placeholderTextColor="rgba(255,255,255,0.2)"
+                                                placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff"
                                                 keyboardType="numeric"
                                             />
                                         </View>
@@ -267,7 +268,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                         ))}
                     </View>
                 </ScrollView>
-                <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={handleOpenReview} disabled={!canSubmit}>
+                <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={() => { haptics.medium(); handleOpenReview(); }} disabled={!canSubmit} activeOpacity={0.98}>
                     <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
                 </TouchableOpacity>
             </View>
@@ -288,7 +289,7 @@ const s = StyleSheet.create({
     spacerRow: { width: 8 },
     colHeader: { width: 44, alignItems: 'center', gap: 2 },
     headerDigit: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
-    bulkInput: { width: 36, height: 26, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', borderRadius: 4, color: '#fff', fontSize: 10, textAlign: 'center', padding: 0 },
+    bulkInput: { width: 36, minHeight: 36, backgroundColor: 'rgba(212,175,55,0.1)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', borderRadius: 4, color: '#fff', fontSize: 10, textAlign: 'center', padding: 0 },
     row: { flexDirection: 'row', marginBottom: 6, alignItems: 'center' },
     rowHeader: { width: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
     rowDigit: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },

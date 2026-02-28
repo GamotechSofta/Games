@@ -116,16 +116,16 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
                 {warning ? <View style={s.warnBox}><Text style={s.warnText}>{warning}</Text></View> : null}
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterOpenPana')}:</Text>
-                    <TextInput style={[s.input, openPanaInvalid && s.inputInvalid]} value={openPana} onChangeText={(v) => { const next = sanitizeDigits(v, 3); setOpenPana(next); setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next)); }} placeholder={t('gameBid.pana')} placeholderTextColor="#6b7280" maxLength={3} keyboardType="numeric" />
+                    <TextInput style={[s.input, openPanaInvalid && s.inputInvalid]} value={openPana} onChangeText={(v) => { const next = sanitizeDigits(v, 3); setOpenPana(next); setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next)); }} placeholder={t('gameBid.pana')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" maxLength={3} keyboardType="numeric" />
                 </View>
                 {slotBetweenPanaAndAnk ? <View style={s.slotWrap}>{slotBetweenPanaAndAnk}</View> : null}
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterCloseAnk')}:</Text>
-                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder={t('gameBid.digitPlaceholder')} placeholderTextColor="#6b7280" maxLength={1} keyboardType="numeric" />
+                    <TextInput style={s.input} value={closeAnk} onChangeText={(v) => setCloseAnk(sanitizeDigits(v, 1))} placeholder={t('gameBid.digitPlaceholder')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" maxLength={1} keyboardType="numeric" />
                 </View>
                 <View style={s.inputRow}>
                     <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                    <TextInput style={s.input} value={points} onChangeText={(v) => setPoints(sanitizePoints(v))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" keyboardType="numeric" />
+                    <TextInput style={s.input} value={points} onChangeText={(v) => setPoints(sanitizePoints(v))} placeholder={t('gameBid.point')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" />
                 </View>
                 <View style={s.btnRow}>
                     <TouchableOpacity style={s.addBtn} onPress={handleAdd}><Text style={s.addBtnText}>{t('gameBid.addToList')}</Text></TouchableOpacity>
@@ -137,7 +137,7 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenPanaAnd
                             <View key={b.id} style={s.listRow}>
                                 <Text style={s.listCell}>{b.number}</Text>
                                 <Text style={s.listCellGold}>{b.points}</Text>
-                                <TouchableOpacity onPress={() => handleDelete(b.id)}><Text style={s.deleteText}>✕</Text></TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDelete(b.id)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}><Text style={s.deleteText}>✕</Text></TouchableOpacity>
                             </View>
                         ))}
                     </View>

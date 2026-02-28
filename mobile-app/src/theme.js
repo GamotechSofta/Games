@@ -25,6 +25,7 @@ export const colors = {
   amberText: 'rgba(251,191,36,0.9)',
   yellow: '#eab308',
   // Text
+  white: '#ffffff',
   text: '#ffffff',
   textSecondary: '#d1d5db',   // gray-300
   textMuted: '#9ca3af',       // gray-400
@@ -78,4 +79,18 @@ export const fontSize = {
   xl: 20,
   '2xl': 24,
   '3xl': 30,
+};
+
+/** Shared Game Bid design tokens for alignment & touch targets */
+export const bidTokens = {
+  touchMin: 44,
+  inputHeight: 44,
+  buttonHeight: 48,
+  inputRowGap: 12,
+  labelWidth: 120,
+  contentPaddingH: 12,
+  contentPaddingTop: 16,
+  contentPaddingBottom: 24,
+  borderRadius: 24,
+  borderRadiusSm: 8,
 };

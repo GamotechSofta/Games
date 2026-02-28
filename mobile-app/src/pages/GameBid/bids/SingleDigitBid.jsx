@@ -202,11 +202,11 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterSingleDigit')}:</Text>
-                            <TextInput style={s.input} keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.digit')} maxLength={1} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.digit')} maxLength={1} />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} />
                         </View>
                         <TouchableOpacity style={s.submitBtn} onPress={handleAddBid}>
                             <Text style={s.submitBtnText}>{t('gameBid.add')}</Text>
@@ -219,7 +219,7 @@ const SingleDigitBid = ({ market, title, scheduleForTomorrow }) => {
                                 {pair.map((num) => (
                                     <View key={num} style={s.specCell}>
                                         <View style={s.specLabel}><Text style={s.specLabelText}>{num}</Text></View>
-                                        <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialModeInputs[num]} onChangeText={(val) => setSpecialModeInputs((p) => ({ ...p, [num]: val.replace(/\D/g, '') }))} />
+                                        <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={specialModeInputs[num]} onChangeText={(val) => setSpecialModeInputs((p) => ({ ...p, [num]: val.replace(/\D/g, '') }))} />
                                     </View>
                                 ))}
                             </View>

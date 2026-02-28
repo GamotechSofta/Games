@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../hooks/useTranslation';
 import BidLayout from '../BidLayout';
@@ -9,6 +9,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { placeBet, updateUserBalance, getBalanceForDisplay } from '../../../api/bets';
 import { storage } from '../../../utils/storage';
 import { DOUBLE_PANAS, doublePanasBySumDigit } from '../panaRules';
+import { bidTokens } from '../../../theme';
+import { haptics } from '../../../utils/haptics';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
@@ -26,6 +28,7 @@ const getWalletFromStorage = async () => {
 const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     const { t } = useTranslation();
     const insets = useSafeAreaInsets();
+    const { width } = useWindowDimensions();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -124,14 +127,14 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             <View key={groupKey} style={s.group}>
                                 <View style={s.groupHeader}>
                                     <View style={s.groupLabel}><Text style={s.groupLabelText}>{groupKey}</Text></View>
-                                    <TextInput style={s.groupInput} value={groupBulk[groupKey]} onChangeText={(v) => setGroupBulk((p) => ({ ...p, [groupKey]: sanitizePoints(v) }))} onBlur={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])} placeholder={t('gameBid.allPts')} placeholderTextColor="#6b7280" keyboardType="numeric" />
-                                    <TouchableOpacity style={s.applyBtn} onPress={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])}><Text style={s.applyBtnText}>{t('gameBid.apply')}</Text></TouchableOpacity>
+                                    <TextInput style={s.groupInput} value={groupBulk[groupKey]} onChangeText={(v) => setGroupBulk((p) => ({ ...p, [groupKey]: sanitizePoints(v) }))} onBlur={() => groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey])} placeholder={t('gameBid.allPts')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" />
+                                    <TouchableOpacity style={s.applyBtn} onPress={() => { haptics.light(); groupBulk[groupKey] && applyGroup(groupKey, groupBulk[groupKey]); }}><Text style={s.applyBtnText}>{t('gameBid.apply')}</Text></TouchableOpacity>
                                 </View>
                                 <View style={s.panaRow}>
                                     {list.map((num) => (
-                                        <View key={num} style={s.panaCell}>
+                                        <View key={num} style={[s.panaCell, { minWidth: Math.min(width * 0.3, 110) }]}>
                                             <View style={s.panaLabel}><Text style={s.panaLabelText}>{num}</Text></View>
-                                            <TextInput style={s.panaInput} value={specialInputs[num]} onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: sanitizePoints(v) }))} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" />
+                                            <TextInput style={s.panaInput} value={specialInputs[num]} onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: sanitizePoints(v) }))} placeholder={t('gameBid.pts')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" />
                                         </View>
                                     ))}
                                 </View>
@@ -141,7 +144,7 @@ const DoublePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 </ScrollView>
                 {/* Frontend: fixed bottom-[88px], always visible; disabled = opacity-50 */}
                 <View style={[s.submitBtnWrap, { paddingBottom: bottomPadding }]}>
-                    <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={openReview} disabled={!canSubmit} activeOpacity={0.98}>
+                    <TouchableOpacity style={[s.submitBtn, !canSubmit && s.submitBtnDisabled]} onPress={() => { haptics.medium(); openReview(); }} disabled={!canSubmit} activeOpacity={0.98}>
                         <Text style={s.submitBtnText}>{t('gameBid.submitBet')}</Text>
                     </TouchableOpacity>
                 </View>
@@ -159,16 +162,16 @@ const s = StyleSheet.create({
     scrollContent: { paddingBottom: 16 },
     group: { marginBottom: 16 },
     groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-    groupLabel: { width: 36, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    groupLabel: { width: 44, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     groupLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
-    groupInput: { width: 80, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
-    applyBtn: { paddingHorizontal: 12, height: 36, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', alignItems: 'center', justifyContent: 'center' },
+    groupInput: { width: 80, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
+    applyBtn: { paddingHorizontal: 12, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderRadius: 6, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', alignItems: 'center', justifyContent: 'center' },
     applyBtnText: { color: '#f2c14e', fontWeight: '700', fontSize: 12 },
-    panaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-    panaCell: { flexDirection: 'row', alignItems: 'center', width: '30%', minWidth: 90 },
-    panaLabel: { width: 40, height: 36, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    panaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: bidTokens.inputRowGap },
+    panaCell: { flexDirection: 'row', alignItems: 'center' },
+    panaLabel: { width: 44, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     panaLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
-    panaInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
+    panaInput: { flex: 1, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12 },
     moreHint: { color: '#fff', fontSize: 11 },
     submitBtnWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 12, paddingHorizontal: 12, backgroundColor: '#000' },
     submitBtn: { backgroundColor: '#d4af37', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },

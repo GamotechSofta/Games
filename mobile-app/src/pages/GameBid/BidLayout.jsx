@@ -175,34 +175,25 @@ const BidLayout = ({
                 </View>
             )}
 
-            {/* Content – when hideFooter (e.g. Single Pana Bulk), use KeyboardAvoidingView so Submit stays visible while entering digits */}
-            {hideFooter ? (
-                <KeyboardAvoidingView
-                    style={styles.contentScroll}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-                >
-                    <ScrollView
-                        ref={scrollViewRef}
-                        style={styles.contentScroll}
-                        contentContainerStyle={[styles.contentInner, { paddingBottom: 24, flexGrow: 1 }]}
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        {children}
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            ) : (
+            {/* Content – KeyboardAvoidingView keeps inputs visible when keyboard is open */}
+            <KeyboardAvoidingView
+                style={styles.contentScroll}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            >
                 <ScrollView
                     ref={scrollViewRef}
                     style={styles.contentScroll}
-                    contentContainerStyle={[styles.contentInner, { paddingBottom: 112 + Math.max(insets.bottom, 0) }]}
+                    contentContainerStyle={[
+                        styles.contentInner,
+                        hideFooter ? { paddingBottom: spacing[6], flexGrow: 1 } : { paddingBottom: 112 + Math.max(insets.bottom, 0) },
+                    ]}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
                 >
                     {children}
                 </ScrollView>
-            )}
+            </KeyboardAvoidingView>
 
             {/* Footer – frontend: rounded-2xl card, stats (bets/points), gradient submit */}
             {!hideFooter && (
@@ -222,7 +213,7 @@ const BidLayout = ({
                         )}
                         <TouchableOpacity
                             style={[styles.submitBtn, (!bidsCount || !bettingAllowed) && styles.submitBtnDisabled]}
-                            onPress={onSubmit}
+                            onPress={() => { haptics.medium(); onSubmit(); }}
                             disabled={!bidsCount || !bettingAllowed}
                             activeOpacity={0.98}
                         >

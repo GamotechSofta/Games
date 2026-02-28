@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { useTranslation } from '../../../hooks/useTranslation';
+import { bidTokens } from '../../../theme';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
@@ -165,7 +166,7 @@ const SingleDigitBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                 value={inputPoints}
                                 onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))}
                                 placeholder={t('gameBid.point')}
-                                placeholderTextColor="#6b7280"
+                                placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff"
                                 keyboardType="numeric"
                             />
                         </View>
@@ -216,9 +217,9 @@ const s = StyleSheet.create({
     formCol: { gap: 8 },
     inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     label: { color: '#fff', fontSize: 12, fontWeight: '500', width: 90 },
-    readOnlyWrap: { flex: 1, minHeight: 36, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    readOnlyWrap: { flex: 1, minHeight: bidTokens.inputHeight, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     readOnlyText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-    input: { flex: 1, minHeight: 36, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, fontWeight: '600', paddingHorizontal: 12 },
+    input: { flex: 1, minHeight: bidTokens.inputHeight, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, fontWeight: '600', paddingHorizontal: 12 },
     digitGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 260, alignSelf: 'center' },
     digitBtn: { width: 56, height: 56, backgroundColor: '#202124', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
     digitBtnZero: { width: 80 },

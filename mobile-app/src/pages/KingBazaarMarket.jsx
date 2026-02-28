@@ -214,7 +214,7 @@ export default function KingBazaarMarket() {
   );
 }
 
-const SlotCard = React.memo(({ m, tick, t, onPress }) => {
+const SlotCard = React.memo(function SlotCard({ m, tick, t, onPress }) {
   const timeLabel = formatTime12(m.startingTime) || '-';
   const slotClosed = isSlotClosedTodayIST(m.startingTime, tick);
   const hasDeclaredOpen = m.openingNumber != null && /^\d{3}$/.test(String(m.openingNumber));

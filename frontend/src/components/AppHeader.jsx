@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
 import { clearUserAuth } from '../utils/auth';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
+import { triggerApkDownload } from '../utils/downloads';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const AppHeader = () => {
@@ -22,6 +23,7 @@ const AppHeader = () => {
   const menuItems = [
     { key: 'myBets', label: t('header.myBets'), path: '/bids' },
     { key: 'funds', label: t('header.funds'), path: '/funds' },
+    { key: 'downloadApp', label: t('header.downloadApp'), path: '/download' },
     { key: 'updateRate', label: t('header.updateRate'), path: '/game-rate' },
     { key: 'telegramChannel', label: t('header.telegramChannel'), path: '/support' },
     { key: 'helpDesk', label: t('header.helpDesk'), path: '/support' },
@@ -183,6 +185,18 @@ const AppHeader = () => {
             {/* Language Switcher */}
             <LanguageSwitcher />
 
+            {/* Download App - middle (blink so user notices) */}
+            <button
+              onClick={triggerApkDownload}
+              className="animate-download-blink shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 touch-manipulation"
+              aria-label={t('header.downloadApp')}
+              title={t('header.downloadApp')}
+            >
+              <svg className="w-4 h-4 md:w-[18px] md:h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+
             {/* Notification */}
             <button
               onClick={() => navigate('/notifications')}
@@ -303,6 +317,8 @@ const AppHeader = () => {
                     setIsMenuOpen(false);
                     if (item.key === 'logout') {
                       handleLogout();
+                    } else if (item.key === 'downloadApp') {
+                      triggerApkDownload();
                     } else {
                       navigate(item.path);
                     }
@@ -351,6 +367,10 @@ const AppHeader = () => {
                         alt="Logout"
                         className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
                       />
+                    ) : item.key === 'downloadApp' ? (
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
                     ) : (
                       <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white/40"></div>
                     )}

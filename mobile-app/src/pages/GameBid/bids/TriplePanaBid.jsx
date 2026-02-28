@@ -174,11 +174,11 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPana')}:</Text>
-                            <TextInput style={[s.input, isPanaInvalid && s.inputError]} keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.pana')} maxLength={3} placeholderTextColor="#6b7280" />
+                            <TextInput style={[s.input, isPanaInvalid && s.inputError]} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputNumber} onChangeText={handleNumberInputChange} placeholder={t('gameBid.pana')} maxLength={3} />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputPoints} onChangeText={(val) => setInputPoints(val.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} />
                         </View>
                         <TouchableOpacity style={s.submitBtn} onPress={handleAddBid}>
                             <Text style={s.submitBtnText}>{t('gameBid.add')}</Text>
@@ -190,7 +190,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                             {[0, 1, 2, 3, 4].map((num) => (
                                 <View key={num} style={s.specCell}>
                                     <View style={s.specLabel}><Text style={s.specLabelText}>{tripleNumbers[num]}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
+                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
                                 </View>
                             ))}
                         </View>
@@ -198,7 +198,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                             {[5, 6, 7, 8, 9].map((num) => (
                                 <View key={num} style={s.specCell}>
                                     <View style={s.specLabel}><Text style={s.specLabelText}>{tripleNumbers[num]}</Text></View>
-                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="#6b7280" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
+                                    <TextInput style={s.specInput} placeholder={t('gameBid.pts')} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={specialInputs[tripleNumbers[num]]} onChangeText={(val) => setSpecialInputs((p) => ({ ...p, [tripleNumbers[num]]: val.replace(/\D/g, '') }))} />
                                 </View>
                             ))}
                         </View>

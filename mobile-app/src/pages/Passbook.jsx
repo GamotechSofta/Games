@@ -213,25 +213,27 @@ export default function Passbook() {
   );
 }
 
-const TxItem = React.memo(({ tx, isCredit, isLast, t, formatTime, formatAmount }) => (
-  <View style={[styles.txCard, !isLast && styles.txCardBorder]}>
-    <View style={[styles.txIconWrap, { backgroundColor: isCredit ? 'rgba(67,179,106,0.1)' : 'rgba(248,113,113,0.1)' }]}>
-      <Text style={{ fontSize: 18 }}>{isCredit ? '↓' : '↑'}</Text>
+const TxItem = React.memo(function TxItem({ tx, isCredit, isLast, t, formatTime, formatAmount }) {
+  return (
+    <View style={[styles.txCard, !isLast && styles.txCardBorder]}>
+      <View style={[styles.txIconWrap, { backgroundColor: isCredit ? 'rgba(67,179,106,0.1)' : 'rgba(248,113,113,0.1)' }]}>
+        <Text style={{ fontSize: 18 }}>{isCredit ? '↓' : '↑'}</Text>
+      </View>
+      <View style={styles.txInfo}>
+        <Text style={styles.txDesc} numberOfLines={1}>{tx.description || (isCredit ? t('passbook.creditEntry') : t('passbook.debitEntry'))}</Text>
+        <Text style={styles.txTime}>{formatTime(tx.createdAt)}</Text>
+      </View>
+      <View style={styles.txAmtWrap}>
+        <Text style={[styles.txAmount, { color: isCredit ? '#43b36a' : '#f87171' }]}>
+          {isCredit ? '+' : '-'}₹{formatAmount(tx.amount)}
+        </Text>
+        {tx.balanceAfter != null && (
+          <Text style={styles.txBalance}>₹{formatAmount(tx.balanceAfter)}</Text>
+        )}
+      </View>
     </View>
-    <View style={styles.txInfo}>
-      <Text style={styles.txDesc} numberOfLines={1}>{tx.description || (isCredit ? t('passbook.creditEntry') : t('passbook.debitEntry'))}</Text>
-      <Text style={styles.txTime}>{formatTime(tx.createdAt)}</Text>
-    </View>
-    <View style={styles.txAmtWrap}>
-      <Text style={[styles.txAmount, { color: isCredit ? '#43b36a' : '#f87171' }]}>
-        {isCredit ? '+' : '-'}₹{formatAmount(tx.amount)}
-      </Text>
-      {tx.balanceAfter != null && (
-        <Text style={styles.txBalance}>₹{formatAmount(tx.balanceAfter)}</Text>
-      )}
-    </View>
-  </View>
-));
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a0a0b' },

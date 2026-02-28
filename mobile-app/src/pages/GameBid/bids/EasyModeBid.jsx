@@ -7,6 +7,8 @@ import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../u
 import { useFocusEffect } from '@react-navigation/native';
 import { placeBet, updateUserBalance, getBalanceForDisplay } from '../../../api/bets';
 import { storage } from '../../../utils/storage';
+import { bidTokens } from '../../../theme';
+import { haptics } from '../../../utils/haptics';
 
 const getWalletFromStorage = async () => {
     try {
@@ -253,7 +255,7 @@ const EasyModeBid = ({
                     <Text style={s.bidCell}>{bid.number}</Text>
                     <Text style={s.bidCellGold}>{bid.points}</Text>
                     <Text style={s.bidCellMuted}>{bid.type}</Text>
-                    <TouchableOpacity onPress={() => handleDeleteBid(bid.id)}>
+                    <TouchableOpacity onPress={() => { haptics.light(); handleDeleteBid(bid.id); }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                         <Text style={s.deleteText}>✕</Text>
                     </TouchableOpacity>
                 </View>
@@ -293,7 +295,9 @@ const EasyModeBid = ({
                                             <TextInput
                                                 style={s.specialInput}
                                                 placeholder={t('gameBid.pts')}
-                                                placeholderTextColor="#6b7280"
+                                                placeholderTextColor="rgba(255,255,255,0.85)"
+                                                selectionColor="#f2c14e"
+                                                cursorColor="#fff"
                                                 keyboardType="numeric"
                                                 value={specialInputs[num] || ''}
                                                 onChangeText={(v) => setSpecialInputs((p) => ({ ...p, [num]: v.replace(/\D/g, '').slice(0, 6) }))}
@@ -315,7 +319,7 @@ const EasyModeBid = ({
                                 </View>
                                 <View style={s.inputRow}>
                                     <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                                    <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                                    <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} />
                                 </View>
 
                                 <View style={s.keypadBox}>
@@ -353,11 +357,11 @@ const EasyModeBid = ({
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{label}:</Text>
-                            <TextInput style={s.input} keyboardType="numeric" value={inputNumber} onChangeText={(v) => setInputNumber(v.replace(/\D/g, '').slice(0, maxLength))} placeholder={labelKey} placeholderTextColor="#6b7280" maxLength={maxLength} />
+                            <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputNumber} onChangeText={(v) => setInputNumber(v.replace(/\D/g, '').slice(0, maxLength))} placeholder={labelKey} maxLength={maxLength} />
                         </View>
                         <View style={s.inputRow}>
                             <Text style={s.label}>{t('gameBid.enterPoints')}:</Text>
-                            <TextInput style={s.input} keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} placeholderTextColor="#6b7280" />
+                            <TextInput style={s.input} placeholderTextColor="rgba(255,255,255,0.85)" selectionColor="#f2c14e" cursorColor="#fff" keyboardType="numeric" value={inputPoints} onChangeText={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))} placeholder={t('gameBid.point')} />
                         </View>
                         <View style={s.btnRow}>
                             <TouchableOpacity style={s.addBtn} onPress={handleAddBid}><Text style={s.addBtnText}>{t('gameBid.addToList')}</Text></TouchableOpacity>
@@ -387,11 +391,11 @@ const s = StyleSheet.create({
     modeBtnText: { fontWeight: '700', fontSize: 14 },
     modeTextActive: { color: '#4b3608' },
     modeTextInactive: { color: '#fff' },
-    inputRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+    inputRow: { flexDirection: 'row', alignItems: 'center', gap: bidTokens.inputRowGap, marginBottom: 12 },
     label: { color: '#fff', fontSize: 14, width: 128 },
-    readOnlyWrap: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    readOnlyWrap: { flex: 1, minHeight: bidTokens.inputHeight, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     readOnlyText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-    input: { flex: 1, minHeight: 40, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
+    input: { flex: 1, minHeight: bidTokens.inputHeight, backgroundColor: '#202124', borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 13, paddingHorizontal: 12 },
     btnRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
     addBtn: { flex: 1, backgroundColor: '#d4af37', borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
     addBtnText: { color: '#4b3608', fontWeight: '700' },
@@ -401,24 +405,24 @@ const s = StyleSheet.create({
     specialScroll: { maxHeight: '100%' },
     specialGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
     specialCell: { flexDirection: 'row', alignItems: 'center', width: '30%', minWidth: 100 },
-    specialLabel: { width: 44, height: 36, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    specialLabel: { width: 44, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderTopLeftRadius: 6, borderBottomLeftRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     specialLabelText: { color: '#f2c14e', fontWeight: '700', fontSize: 11 },
-    specialInput: { flex: 1, height: 36, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, padding: 0 },
+    specialInput: { flex: 1, minHeight: bidTokens.touchMin, backgroundColor: '#202124', borderTopRightRadius: 6, borderBottomRightRadius: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center', fontSize: 12, padding: 0 },
     keypadBox: { backgroundColor: '#202124', borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 12, marginBottom: 16 },
     keypadTitle: { color: '#f2c14e', fontSize: 14, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 },
     keypadGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
-    keyBtn: { width: '18%', aspectRatio: 1, backgroundColor: '#2a2d32', borderRadius: 12, borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+    keyBtn: { width: '18%', minWidth: 44, aspectRatio: 1, backgroundColor: '#2a2d32', borderRadius: 12, borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     keyBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
     keyBadge: { position: 'absolute', top: -4, right: -4, backgroundColor: '#d4af37', borderRadius: 8, minWidth: 16, height: 16, paddingHorizontal: 2, alignItems: 'center', justifyContent: 'center' },
     keyBadgeText: { color: '#4b3608', fontSize: 8, fontWeight: 'bold' },
     bidsListWrap: { marginTop: 16, paddingBottom: 100 },
     bidsListHeader: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' },
     bidsListHeaderText: { flex: 1, color: '#d4af37', fontSize: 11, fontWeight: '700', textAlign: 'center' },
-    bidRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderRadius: 8, padding: 10, marginTop: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+    bidRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#202124', borderRadius: 8, padding: 10, marginTop: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', minHeight: 44 },
     bidCell: { flex: 1, color: '#fff', fontSize: 12, fontWeight: '600', textAlign: 'center' },
     bidCellGold: { flex: 1, color: '#f2c14e', fontSize: 12, fontWeight: '600', textAlign: 'center' },
     bidCellMuted: { flex: 1, color: '#fff', fontSize: 12, textAlign: 'center' },
-    deleteText: { color: '#f87171', fontSize: 16, padding: 4 },
+    deleteText: { color: '#f87171', fontSize: 16, padding: 8 },
 });
 
 export default EasyModeBid;

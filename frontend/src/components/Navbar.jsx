@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
+import { triggerApkDownload } from '../utils/downloads';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -66,6 +69,13 @@ const Navbar = () => {
 
       {/* Right side - Buttons and User info */}
       <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+        {/* Download App Button - direct APK download */}
+        <button
+          onClick={triggerApkDownload}
+          className="bg-gray-800 text-[#f3b61b] border border-[#f3b61b]/50 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg shadow-md hover:bg-[#f3b61b]/10 transition-colors font-medium text-xs sm:text-sm md:text-base"
+        >
+          {t('header.downloadApp')}
+        </button>
         {/* Bank Button */}
         <button 
           onClick={() => navigate('/bank')}

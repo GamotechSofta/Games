@@ -139,12 +139,14 @@ export default function MarketResultHistory() {
   );
 }
 
-const ResultRow = React.memo(({ r }) => (
-  <View style={styles.resultCard}>
-    <Text style={styles.marketName} numberOfLines={1}>{r.name.toUpperCase()}</Text>
-    <Text style={styles.resultValue}>{r.result}</Text>
-  </View>
-));
+const ResultRow = React.memo(function ResultRow({ r }) {
+  return (
+    <View style={styles.resultCard}>
+      <Text style={styles.marketName} numberOfLines={1}>{r.name.toUpperCase()}</Text>
+      <Text style={styles.resultValue}>{r.result}</Text>
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },

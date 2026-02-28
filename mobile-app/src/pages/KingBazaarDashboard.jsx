@@ -144,6 +144,7 @@ const GroupCard = React.memo(({ item, imgUrl, t, onPress }) => (
         <Text style={styles.marketLabel} numberOfLines={2}>{item.label}</Text>
     </TouchableOpacity>
 ));
+GroupCard.displayName = 'GroupCard';
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.black },

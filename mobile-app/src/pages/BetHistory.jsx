@@ -622,7 +622,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
   );
 }
 
-const BetCardKeyed = React.memo(({ row, idx, t, copyBetId, setConfirmCancelBetId, cancellingBetId, labelForType, getStatusColor, getStatusText, getBorderColor }) => {
+const BetCardKeyed = React.memo(function BetCardKeyed({ row, idx, t, copyBetId, setConfirmCancelBetId, cancellingBetId, labelForType, getStatusColor, getStatusText, getBorderColor }) {
   const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
   const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
   const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);

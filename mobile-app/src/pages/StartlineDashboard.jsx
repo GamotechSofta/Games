@@ -125,20 +125,22 @@ export default function StartlineDashboard() {
   );
 }
 
-const StarlineGroupCard = React.memo(({ item, onPress }) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={styles.marketCard}
-    activeOpacity={0.85}
-  >
-    <View style={styles.marketImageWrap}>
-      <View style={styles.marketImageBg}>
-        <Text style={styles.marketImageText}>⭐</Text>
+const StarlineGroupCard = React.memo(function StarlineGroupCard({ item, onPress }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={styles.marketCard}
+      activeOpacity={0.85}
+    >
+      <View style={styles.marketImageWrap}>
+        <View style={styles.marketImageBg}>
+          <Text style={styles.marketImageText}>⭐</Text>
+        </View>
       </View>
-    </View>
-    <Text style={styles.marketLabel} numberOfLines={2}>{item.label}</Text>
-  </TouchableOpacity>
-));
+      <Text style={styles.marketLabel} numberOfLines={2}>{item.label}</Text>
+    </TouchableOpacity>
+  );
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.black },

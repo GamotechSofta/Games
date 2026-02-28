@@ -109,12 +109,14 @@ function Section1({ refreshKey, ListHeaderComponent, onRefresh, refreshing }) {
   const insets = useSafeAreaInsets();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
   const sectionPaddingBottom = Math.max(insets.bottom, 0);
   const isInitialLoad = useRef(true);
 
   const fetchMarkets = useCallback(async () => {
     const showLoading = isInitialLoad.current;
     if (showLoading) setLoading(true);
+    setNetworkError(false);
     try {
       const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
       const data = await response.json();
@@ -144,6 +146,7 @@ function Section1({ refreshKey, ListHeaderComponent, onRefresh, refreshing }) {
       }
     } catch (error) {
       console.error('Error fetching markets:', error);
+      setNetworkError(true);
     } finally {
       if (showLoading) {
         isInitialLoad.current = false;
@@ -188,9 +191,16 @@ function Section1({ refreshKey, ListHeaderComponent, onRefresh, refreshing }) {
   const renderMarketItem = useCallback((item) => <MarketCard key={item.id} item={item} t={t} />, [t]);
 
   const listHeader = useMemo(() => {
+    if (networkError) {
+      return (
+        <View style={styles.networkErrorWrap}>
+          <Text style={styles.networkErrorText}>{t('markets.networkError', { defaultValue: "Couldn't reach server. Pull down to retry." })}</Text>
+        </View>
+      );
+    }
     if (markets.length === 0 && !loading) return <Text style={styles.empty}>{t('markets.noMarketsAvailable')}</Text>;
     return null;
-  }, [markets.length, loading, t]);
+  }, [markets.length, loading, networkError, t]);
 
   // YouTube-style loading: multiple skeleton cards in 2-column grid (was single/4 – now 8 with shimmer)
   const listEmptyComponent = useMemo(
@@ -272,6 +282,8 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   empty: { color: colors.textMuted, textAlign: 'center', padding: spacing[6] },
+  networkErrorWrap: { padding: spacing[4], marginHorizontal: spacing[4], marginBottom: spacing[2], backgroundColor: 'rgba(245,158,11,0.15)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(245,158,11,0.4)' },
+  networkErrorText: { color: '#fcd34d', textAlign: 'center', fontSize: 13 },
   cardGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',

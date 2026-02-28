@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, ActivityIndicator, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { colors, spacing, borderRadius, fontSize } from '../../../theme';
+import { colors, spacing, borderRadius, fontSize, bidTokens } from '../../../theme';
+import { haptics } from '../../../utils/haptics';
 
 const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, dateText, labelKey, onClose, onSubmit, totalBids }) => {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const [stage, setStage] = useState('review'); // 'review' | 'success' (frontend reference)
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
@@ -22,11 +25,13 @@ const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, da
     const isInsufficient = after < 0;
 
     const handleSubmit = async (isRetry = false) => {
+        haptics.medium();
         setSubmitting(true);
         setError('');
         setStage('success'); // Show success screen immediately so it feels faster
         try {
             await onSubmit();
+            haptics.success();
         } catch (e) {
             setStage('review');
             const msg = e?.message || 'Failed to place bet';
@@ -47,15 +52,18 @@ const BidReviewModal = ({ open, rows, totalAmount, walletBefore, marketTitle, da
     };
 
     const handleClose = () => {
+        haptics.light();
         setStage('review');
         onClose?.();
     };
 
     const titleText = (marketTitle && dateText) ? `${marketTitle} - ${dateText}` : (marketTitle || dateText || t('gameBid.reviewBet'));
 
+    const bottomSafe = Math.max(insets.bottom, spacing[3]);
+
     return (
         <Modal visible={open} transparent animationType="fade" onRequestClose={handleClose}>
-            <View style={styles.overlay}>
+            <View style={[styles.overlay, { paddingBottom: bottomSafe, paddingTop: Math.max(insets.top, spacing[4]) }]}>
                 {stage === 'success' ? (
                     <View style={styles.sheet}>
                         <View style={styles.successContent}>
@@ -172,16 +180,16 @@ const styles = StyleSheet.create({
     note: { color: '#f87171', fontSize: 11, fontWeight: '600', textAlign: 'center', marginTop: spacing[3], paddingHorizontal: spacing[3] },
     error: { color: colors.red, fontSize: fontSize.xs, textAlign: 'center', marginTop: spacing[2], paddingHorizontal: spacing[3] },
     btns: { flexDirection: 'row', gap: spacing[3], marginTop: spacing[4], paddingHorizontal: spacing[3], paddingBottom: spacing[4] },
-    cancelBtn: { flex: 1, padding: spacing[3], borderRadius: 12, backgroundColor: '#000', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center' },
+    cancelBtn: { flex: 1, minHeight: bidTokens.touchMin, padding: spacing[3], borderRadius: 12, backgroundColor: '#000', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
     cancelText: { color: '#fff', fontWeight: '700' },
-    confirmBtn: { flex: 1, padding: spacing[3], borderRadius: 12, backgroundColor: '#d4af37', alignItems: 'center', flexDirection: 'row', justifyContent: 'center' },
+    confirmBtn: { flex: 1, minHeight: bidTokens.touchMin, padding: spacing[3], borderRadius: 12, backgroundColor: '#d4af37', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
     confirmBtnDisabled: { opacity: 0.5 },
     confirmText: { color: '#4b3608', fontWeight: '700' },
     successContent: { padding: spacing[6], alignItems: 'center' },
     successIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#43b36a', alignItems: 'center', justifyContent: 'center', marginBottom: spacing[4] },
     successCheck: { color: '#fff', fontSize: 40, fontWeight: '700' },
     successTitle: { color: '#43b36a', fontSize: fontSize.lg, fontWeight: '600', textAlign: 'center', marginBottom: spacing[6] },
-    successOkBtn: { backgroundColor: '#d4af37', paddingVertical: spacing[4], paddingHorizontal: spacing[8], borderRadius: 12, minWidth: 160, alignItems: 'center' },
+    successOkBtn: { backgroundColor: '#d4af37', minHeight: bidTokens.touchMin, paddingVertical: spacing[4], paddingHorizontal: spacing[8], borderRadius: 12, minWidth: 160, alignItems: 'center', justifyContent: 'center' },
     successOkText: { color: '#4b3608', fontWeight: '700', fontSize: fontSize.base },
     successConfirming: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: spacing[2] },
     successConfirmingText: { color: '#fff', fontSize: fontSize.sm, fontWeight: '600' },

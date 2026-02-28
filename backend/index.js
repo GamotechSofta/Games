@@ -40,6 +40,17 @@ app.use(express.json());
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve downloadable files (e.g. APK) from public folder at /downloads
+const publicDir = path.join(__dirname, 'public');
+app.use('/downloads', express.static(publicDir));
+// Optional: force download for APK (Content-Disposition) so browsers don't open it
+app.get('/downloads/myapp.apk', (req, res) => {
+  const filePath = path.join(publicDir, 'myapp.apk');
+  res.download(filePath, 'myapp.apk', (err) => {
+    if (err && !res.headersSent) res.status(404).send('File not found');
+  });
+});
+
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
