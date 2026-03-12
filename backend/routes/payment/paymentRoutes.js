@@ -11,6 +11,9 @@ import {
     approvePayment,
     rejectPayment,
     updatePaymentStatus,
+    createPayULink,
+    verifyPayUPayment,
+    payuRedirect,
 } from '../../controllers/paymentController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
@@ -36,9 +39,14 @@ const router = express.Router();
 
 // ===== Public APIs =====
 router.get('/config', getPaymentConfig);
+router.get('/payu/redirect', payuRedirect);
+router.post('/payu/redirect', payuRedirect);
 
 // ===== User APIs (no admin auth, just userId in body/query) =====
 router.post('/deposit', upload.single('screenshot'), createDepositRequest);
+router.post('/payu/create-link', createPayULink);
+router.get('/payu/verify', verifyPayUPayment);
+router.post('/payu/verify', verifyPayUPayment);
 router.post('/withdraw', createWithdrawalRequest);
 router.get('/my-deposits', getMyDeposits);
 router.get('/my-withdrawals', getMyWithdrawals);

@@ -36,6 +36,7 @@ app.set('trust proxy', 1);
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -114,6 +115,17 @@ app.use('/api/v1/rates', rateRoutes);
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
+
+// Global error handler: ensure API always returns JSON (no HTML 500)
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (!res.headersSent) {
+        res.status(500).json({
+            success: false,
+            message: err.message || 'Internal server error',
+        });
+    }
+});
 
 // Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
 // Runs every day at 00:00 IST to clear opening/closing numbers for fresh day

@@ -25,7 +25,7 @@ const paymentSchema = new mongoose.Schema({
     method: {
         type: String,
         required: true,
-        enum: ['upi', 'bank_transfer', 'wallet', 'cash'],
+        enum: ['upi', 'bank_transfer', 'wallet', 'cash', 'payu'],
         default: 'upi',
     },
     status: {
@@ -45,6 +45,11 @@ const paymentSchema = new mongoose.Schema({
     },
     // Legacy field
     transactionId: {
+        type: String,
+        trim: true,
+    },
+    // PayU payment link invoice number (from PayU response)
+    payuInvoiceNumber: {
         type: String,
         trim: true,
     },

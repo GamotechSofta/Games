@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import AppHeader from '../components/AppHeader';
@@ -27,6 +27,20 @@ import KingBazaarMarket from '../pages/KingBazaarMarket';
 import Notifications from '../pages/Notifications';
 import GameRate from '../pages/GameRate';
 import Games from '../pages/Games';
+
+// When PayU redirects to /?payu_failed=1 or payu_success=1, send user to /funds so the app loads and AddFund can show the modal
+const PayURedirect = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (location.pathname !== '/' || !location.search) return;
+    const params = new URLSearchParams(location.search);
+    if (params.get('payu_failed') === '1' || params.get('payu_success') === '1') {
+      navigate(`/funds?tab=add-fund&${params.toString()}`, { replace: true });
+    }
+  }, [location.pathname, location.search, navigate]);
+  return null;
+};
 
 // Scroll to top on every route/screen change (pathname or search params)
 const ScrollToTop = () => {
@@ -206,6 +220,7 @@ const AppRoutes = () => {
   useHeartbeat();
   return (
     <Router>
+      <PayURedirect />
       <ScrollToTop />
       <Layout>
         <Routes>

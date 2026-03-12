@@ -10,22 +10,66 @@ const AddFund = () => {
     const [config, setConfig] = useState(null);
     const [configLoading, setConfigLoading] = useState(true);
     const [amount, setAmount] = useState('');
-    const [upiTransactionId, setUpiTransactionId] = useState('');
-    const [screenshot, setScreenshot] = useState(null);
-    const [screenshotPreview, setScreenshotPreview] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [submittedAmount, setSubmittedAmount] = useState(0);
-    const [showCopyNotification, setShowCopyNotification] = useState(false);
-    const stepFromUrl = searchParams.get('step');
-    const step = stepFromUrl === '2' ? 2 : 1; // 1 = Amount, 2 = Payment Details (synced with URL for device back)
-    const [addCashLoading, setAddCashLoading] = useState(false);
+    const [showFailedModal, setShowFailedModal] = useState(false);
+    const [creditedAmount, setCreditedAmount] = useState(0);
 
     useEffect(() => {
         fetchConfig();
     }, []);
+
+    // Handle return from PayU: verify payment and show result
+    useEffect(() => {
+        const payuSuccess = searchParams.get('payu_success');
+        const payuFailed = searchParams.get('payu_failed');
+        const paymentId = searchParams.get('paymentId') || searchParams.get('paymentid');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!paymentId || !user?.id) return;
+
+        if (payuSuccess === '1') {
+            (async () => {
+                try {
+                    // Pass all URL params to verify (PayU Hosted sends status, hash, txnid, amount, etc.)
+                    const verifyParams = new URLSearchParams({ paymentId, userId: user.id });
+                    searchParams.forEach((value, key) => {
+                        if (key !== 'tab' && key !== 'payu_success') verifyParams.set(key, value);
+                    });
+                    const res = await fetch(`${API_BASE_URL}/payments/payu/verify?${verifyParams.toString()}`);
+                    const data = await res.json();
+                    if (data.success && data.data?.amount) {
+                        setCreditedAmount(data.data.amount);
+                        setShowSuccessModal(true);
+                        if (data.data.balance != null) {
+                            const u = JSON.parse(localStorage.getItem('user') || '{}');
+                            if (u.id) {
+                                u.balance = u.walletBalance = data.data.balance;
+                                localStorage.setItem('user', JSON.stringify(u));
+                            }
+                        }
+                    } else {
+                        setError(data.message || (t('funds.payuVerifyFailed') || 'Payment could not be verified. If you paid, it may reflect shortly.'));
+                    }
+                    setSearchParams({ tab: 'add-fund' }, { replace: true });
+                } catch (err) {
+                    setError(t('funds.networkError') || 'Network error. Please check your payment history.');
+                    setSearchParams({ tab: 'add-fund' }, { replace: true });
+                }
+            })();
+        } else if (payuFailed === '1') {
+            setError(t('funds.payuPaymentFailed') || 'Payment was cancelled or failed. You can try again.');
+            setShowFailedModal(true);
+            setSearchParams((p) => {
+                const next = new URLSearchParams(p);
+                next.delete('payu_failed');
+                next.delete('paymentId');
+                next.delete('paymentid');
+                return next;
+            }, { replace: true });
+        }
+    }, [searchParams]);
 
     const fetchConfig = async () => {
         try {
@@ -43,19 +87,7 @@ const AddFund = () => {
         }
     };
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            setError(t('funds.fileSizeError'));
-            return;
-        }
-            setScreenshot(file);
-            setScreenshotPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const handleSubmit = async (e) => {
+    const handlePayWithPayU = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
@@ -67,124 +99,58 @@ const AddFund = () => {
         }
 
         const numAmount = parseFloat(amount);
-        if (!numAmount || numAmount < (config?.minDeposit || 100) || numAmount > (config?.maxDeposit || 50000)) {
-            setError(t('funds.amountRequired', { min: config?.minDeposit || 100, max: config?.maxDeposit || 50000 }));
-            return;
-        }
-
-        const utr = String(upiTransactionId || '').trim();
-        if (!utr) {
-            setError(t('funds.utrRequired'));
-            return;
-        }
-        if (!/^\d{12}$/.test(utr)) {
-            setError(t('funds.utrInvalid'));
-            return;
-        }
-
-        if (!screenshot) {
-            setError(t('funds.screenshotRequired'));
+        const minDeposit = config?.minDeposit || 100;
+        const maxDeposit = config?.maxDeposit || 50000;
+        if (!numAmount || numAmount < minDeposit || numAmount > maxDeposit) {
+            setError(t('funds.amountRequired', { min: minDeposit, max: maxDeposit }));
             return;
         }
 
         setLoading(true);
-
         try {
-            const formData = new FormData();
-            formData.append('userId', user.id);
-            formData.append('amount', numAmount);
-            formData.append('upiTransactionId', utr);
-            formData.append('screenshot', screenshot);
-
-            const res = await fetch(`${API_BASE_URL}/payments/deposit`, {
+            const res = await fetch(`${API_BASE_URL}/payments/payu/create-link`, {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: numAmount, userId: user.id }),
             });
-
-            const data = await res.json();
-            if (data.success) {
-                setSubmittedAmount(numAmount);
-                setShowSuccessModal(true);
-                setAmount('');
-                setUpiTransactionId('');
-                setScreenshot(null);
-                setScreenshotPreview(null);
-                setSearchParams((p) => {
-                    const next = new URLSearchParams(p);
-                    next.delete('step');
-                    return next;
-                }, { replace: true });
-            } else {
-                setError(data.message || t('funds.failedToSubmit'));
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch {
+                setError(res.status === 500 ? (t('funds.payuLinkFailed') || 'Payment service error. Please try again later.') : (t('funds.networkError') || 'Network error. Please try again.'));
+                return;
             }
+            if (data.success && data.data?.formActionUrl && data.data?.formData) {
+                // PayU Hosted Checkout: submit form to PayU
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = data.data.formActionUrl;
+                Object.entries(data.data.formData).forEach(([k, v]) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = k;
+                    input.value = String(v ?? '');
+                    form.appendChild(input);
+                });
+                document.body.appendChild(form);
+                form.submit();
+                return;
+            }
+            setError(data.message || (t('funds.payuLinkFailed') || 'Failed to create payment link. Please try again.'));
         } catch (err) {
-            setError(t('funds.networkError'));
+            setError(err.message || t('funds.networkError') || 'Network error. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    const quickAmounts = [100, 500, 1000, 2000, 5000, 10000];
     const quickAmountsStep1 = [200, 500, 1000, 2000];
     const minDeposit = config?.minDeposit || 100;
     const maxDeposit = config?.maxDeposit || 50000;
-    const qrAmount = (() => {
-        const n = Number(amount);
-        return Number.isFinite(n) && n > 0 ? n : null;
-    })();
-
-    const validateAmount = () => {
-        const numAmount = Number(amount);
-        if (!numAmount || numAmount < minDeposit || numAmount > maxDeposit) {
-            setError(t('funds.amountRequired', { min: minDeposit, max: maxDeposit }));
-            return false;
-        }
-        return true;
-    };
-
-    const handleAddCash = () => {
-        setError('');
-        if (!validateAmount()) return;
-        setAddCashLoading(true);
-        window.setTimeout(() => {
-            setAddCashLoading(false);
-            setSearchParams((p) => {
-                const next = new URLSearchParams(p);
-                next.set('tab', 'add-fund');
-                next.set('step', '2');
-                return next;
-            }, { replace: false });
-        }, 3000);
-    };
-
-    const handleBackToAmount = () => {
-        setSearchParams((p) => {
-            const next = new URLSearchParams(p);
-            next.delete('step');
-            return next;
-        }, { replace: true });
-    };
 
     return (
-        <div className={`space-y-4 sm:space-y-6 ${step === 2 ? 'pb-32 sm:pb-28' : ''}`}>
-            {/* Step 2 only: in-content back to amount (header back still goes to Funds list) */}
-            {step === 2 && (
-                <div className="flex items-center gap-2 -mt-1 sm:mt-0">
-                    <button
-                        type="button"
-                        onClick={handleBackToAmount}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-medium transition-colors py-1 -mx-1 min-h-[44px] min-w-[44px] touch-manipulation"
-                        aria-label="Back to amount"
-                    >
-                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>{t('funds.backToAmount')}</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Messages */}
+        <div className="space-y-4 sm:space-y-6 pb-[calc(2rem+env(safe-area-inset-bottom,0px))]">
             {error && (
                 <div className="p-4 bg-red-900/50 border border-red-600 rounded-xl text-red-300 text-sm">
                     {error}
@@ -196,30 +162,21 @@ const AddFund = () => {
                 </div>
             )}
 
-            {step === 1 ? (
-                <div className="space-y-4 sm:space-y-5">
-                    {configLoading ? (
-                        <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 space-y-6">
-                            <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
-                                <div className="h-8 bg-white/10 mx-4 mt-3 w-32 rounded" />
-                                <div className="h-14 bg-white/10 mx-4 my-3 rounded-xl w-3/4" />
-                                <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-24" />
-                            </div>
-                            <div className="flex justify-center gap-2">
-                                <div className="h-11 w-11 rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
-                                <div className="h-11 flex-1 max-w-[320px] rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 max-w-[520px] mx-auto">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i} className="h-9 rounded-md bg-[#202124] border border-white/10 skeleton-shimmer" />
-                                ))}
-                            </div>
-                            <div className="max-w-[520px] mx-auto h-10 rounded-md bg-[#202124] border border-white/10 skeleton-shimmer" />
-                        </div>
-                    ) : (
-                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start">
-                        {/* Left: Wallet card (GoldenBets.com, ₹, balance, user name) — desktop shows this on left */}
-                        <div className="md:max-w-[340px]">
+            {configLoading ? (
+                <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 space-y-6">
+                    <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
+                        <div className="h-8 bg-white/10 mx-4 mt-3 w-32 rounded" />
+                        <div className="h-14 bg-white/10 mx-4 my-3 rounded-xl w-3/4" />
+                        <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-24" />
+                    </div>
+                    <div className="flex justify-center gap-2">
+                        <div className="h-11 w-11 rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
+                        <div className="h-11 flex-1 max-w-[320px] rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
+                    </div>
+                </div>
+            ) : (
+                <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start">
+                    <div className="md:max-w-[340px]">
                         <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
                             <div className="px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 flex items-center justify-center gap-2 text-[13px] sm:text-sm text-gray-300">
                                 <svg className="w-4 h-4 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -229,12 +186,9 @@ const AddFund = () => {
                                 </svg>
                                 <span className="font-semibold tracking-wide">GoldenBets.com</span>
                             </div>
-
                             <div className="bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-3">
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/25 border border-black/20 flex items-center justify-center shrink-0">
-                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 flex items-center justify-center text-[13px] sm:text-sm font-extrabold text-black">
-                                        ₹
-                                    </div>
+                                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 flex items-center justify-center text-[13px] sm:text-sm font-extrabold text-black">₹</div>
                                 </div>
                                 <div className="text-black font-extrabold">
                                     ₹{' '}
@@ -249,7 +203,6 @@ const AddFund = () => {
                                     })()}
                                 </div>
                             </div>
-
                             <div className="px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between">
                                 <div className="text-[13px] sm:text-sm text-white/90">
                                     {(() => {
@@ -267,11 +220,9 @@ const AddFund = () => {
                                 </div>
                             </div>
                         </div>
-                        </div>
+                    </div>
 
-                        {/* Right: Enter Amount, quick amounts, Add Cash, deposit note — desktop shows this on right */}
-                        <div className="mt-6 sm:mt-8 md:mt-0 flex flex-col">
-                        {/* Amount input */}
+                    <div className="mt-6 sm:mt-8 md:mt-0 flex flex-col">
                         <div className="flex items-center justify-center md:justify-start gap-2">
                             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#202124] border border-white/10 flex items-center justify-center shadow-sm shrink-0">
                                 <svg className="w-5 h-5 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -289,7 +240,6 @@ const AddFund = () => {
                             />
                         </div>
 
-                        {/* Quick buttons */}
                         <div className="mt-2.5 sm:mt-3 grid grid-cols-2 gap-2 max-w-[520px] md:max-w-none mx-auto md:mx-0">
                             {quickAmountsStep1.map((amt) => (
                                 <button
@@ -307,250 +257,48 @@ const AddFund = () => {
                             ))}
                         </div>
 
-                        {/* Add Cash */}
                         <div className="mt-2.5 sm:mt-3 max-w-[520px] md:max-w-none mx-auto md:mx-0">
                             <button
                                 type="button"
-                                onClick={handleAddCash}
-                                disabled={addCashLoading}
+                                onClick={handlePayWithPayU}
+                                disabled={loading}
                                 className={`w-full h-9 sm:h-10 rounded-md bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] text-black font-extrabold shadow-[0_10px_22px_rgba(212,175,55,0.35)] ${
-                                    addCashLoading ? 'opacity-70 cursor-not-allowed' : ''
+                                    loading ? 'opacity-70 cursor-not-allowed' : ''
                                 }`}
                             >
-                                {addCashLoading ? t('common.loading') : t('funds.addCash')}
+                                {loading ? (t('common.loading') || 'Loading...') : (t('funds.payWithPayU') || 'Pay with PayU')}
                             </button>
                         </div>
 
-                        {/* Note: Deposit time use only phone pay App — right side on desktop */}
                         <div className="mt-2.5 sm:mt-3 max-w-[520px] md:max-w-none mx-auto md:mx-0 bg-[#202124] rounded-md border border-white/10 px-3 py-2 text-[10px] sm:text-[11px] text-gray-300">
-                            {t('funds.depositNoteText')}
+                            {t('funds.payuNote') || 'You will be redirected to PayU to complete the payment securely. Amount will be added to your wallet after successful payment.'}
                         </div>
-                        </div>
-                    </div>
-                    )}
-                </div>
-            ) : configLoading ? (
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between gap-3 bg-[#1a1a1a] rounded-2xl p-4 border border-white/10 skeleton-shimmer">
-                        <div className="space-y-2">
-                            <div className="h-4 w-24 bg-white/10 rounded" />
-                            <div className="h-6 w-28 bg-white/10 rounded" />
-                        </div>
-                    </div>
-                    <div className="rounded-2xl bg-[#202124] border border-white/10 p-4 space-y-4 skeleton-shimmer">
-                        <div className="h-4 w-32 bg-white/10 rounded" />
-                        <div className="h-12 bg-white/10 rounded" />
-                        <div className="h-12 bg-white/10 rounded" />
-                        <div className="h-12 bg-white/10 rounded-xl" />
-                    </div>
-                </div>
-            ) : (
-                <div className="space-y-6">
-                    {/* Amount summary + edit */}
-                    <div className="flex items-center justify-between gap-3 bg-[#1a1a1a] rounded-2xl p-4 border border-white/10">
-                        <div className="min-w-0">
-                            <div className="text-gray-400 text-sm">{t('funds.selectedAmount')}</div>
-                            <div className="text-white font-extrabold text-lg truncate">₹{Number(amount || 0).toLocaleString('en-IN')}</div>
-                            <div className="text-gray-500 text-xs mt-0.5">
-                                {t('common.min')}: ₹{minDeposit.toLocaleString('en-IN')} | {t('common.max')}: ₹{maxDeposit.toLocaleString('en-IN')}
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleBackToAmount}
-                            className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-semibold border border-white/10"
-                            aria-label={t('funds.backToAmount')}
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                            {t('funds.changeAmount')}
-                        </button>
-                    </div>
-
-                    {/* Payment Details */}
-                    <div className="bg-[#202124] rounded-2xl p-5 border border-white/10 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
-                        <h3 className="text-lg font-bold text-[#d4af37] mb-4">{t('funds.paymentDetails')}</h3>
-
-                        {/* QR Code Section */}
-                        <div className="flex flex-col items-center mb-5">
-                            <div className="bg-white p-3 rounded-xl mb-3">
-                                {config?.upiId ? (
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                                            `upi://pay?pa=${config.upiId}&pn=${encodeURIComponent(config.upiName || 'Golden Games')}${qrAmount != null ? `&am=${qrAmount}` : ''}&cu=INR`
-                                        )}`}
-                                        alt="UPI QR Code"
-                                        className="w-[180px] h-[180px]"
-                                    />
-                                ) : (
-                                    <div className="w-[180px] h-[180px] flex items-center justify-center bg-gray-200 rounded">
-                                        <span className="text-gray-500 text-sm">{t('common.loading')}</span>
-                                    </div>
-                                )}
-                            </div>
-                            <p className="text-gray-400 text-sm text-center">
-                                {t('funds.scanQRCode')}
-                            </p>
-                        </div>
-
-                        {/* OR Divider */}
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="flex-1 h-px bg-white/10"></div>
-                            <span className="text-gray-500 text-sm">{t('funds.or')}</span>
-                            <div className="flex-1 h-px bg-white/10"></div>
-                        </div>
-
-                        <div className="space-y-3">
-                            {(config?.upiIds?.length > 0 ? config.upiIds : (config?.upiId ? [config.upiId] : [])).map((upiId, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-black/30 rounded-xl p-4 border border-white/10">
-                                    <div>
-                                        <p className="text-gray-400 text-sm">{t('funds.upiId')}{config?.upiIds?.length > 1 ? ` ${idx + 1}` : ''}</p>
-                                        <p className="text-white font-mono text-lg">{upiId || t('common.loading')}</p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={async () => {
-                                            if (!upiId) {
-                                                setError(t('funds.upiId') + ' ' + t('common.error'));
-                                                return;
-                                            }
-                                            try {
-                                                await navigator.clipboard.writeText(upiId);
-                                                setShowCopyNotification(true);
-                                                setTimeout(() => setShowCopyNotification(false), 3000);
-                                            } catch (err) {
-                                                const textArea = document.createElement('textarea');
-                                                textArea.value = upiId;
-                                                textArea.style.position = 'fixed';
-                                                textArea.style.opacity = '0';
-                                                document.body.appendChild(textArea);
-                                                textArea.select();
-                                                try {
-                                                    document.execCommand('copy');
-                                                    setShowCopyNotification(true);
-                                                    setTimeout(() => setShowCopyNotification(false), 3000);
-                                                } catch (fallbackErr) {
-                                                    setError(t('common.error'));
-                                                }
-                                                document.body.removeChild(textArea);
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] hover:brightness-105 text-black rounded-lg text-sm font-extrabold border border-black/20 shadow-[0_10px_18px_rgba(212,175,55,0.25)]"
-                                    >
-                                        {t('common.copy')}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Add Fund Form (Step 2) */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* UTR / Transaction ID */}
-                        <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-2">
-                                {t('funds.utrTransactionId')} <span className="text-red-400">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={upiTransactionId}
-                                onChange={(e) => setUpiTransactionId(e.target.value)}
-                                placeholder={t('funds.utrPlaceholder')}
-                                inputMode="numeric"
-                                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#d4af37]/20"
-                                required
-                            />
-                        </div>
-
-                        {/* Screenshot Upload */}
-                        <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-2">
-                                {t('funds.paymentScreenshot')} <span className="text-red-400">*</span>
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type="file"
-                                    accept="image/jpeg,image/png,image/webp"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                    id="screenshot-upload"
-                                />
-                                <label
-                                    htmlFor="screenshot-upload"
-                                    className="flex flex-col items-center justify-center w-full h-40 bg-[#1a1a1a] border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#d4af37]/40 transition-colors"
-                                >
-                                    {screenshotPreview ? (
-                                        <img
-                                            src={screenshotPreview}
-                                            alt="Screenshot preview"
-                                            className="h-full w-full object-contain rounded-xl"
-                                        />
-                                    ) : (
-                                        <>
-                                            <svg className="w-10 h-10 text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            <p className="text-gray-400 text-sm">{t('funds.clickToUpload')}</p>
-                                            <p className="text-gray-500 text-xs mt-1">{t('funds.fileFormats')}</p>
-                                        </>
-                                    )}
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-4 bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] hover:brightness-105 text-black font-extrabold rounded-xl transition-all disabled:opacity-50 shadow-[0_14px_26px_rgba(212,175,55,0.22)]"
-                        >
-                            {loading ? t('funds.submitting') : t('funds.submitDepositRequest')}
-                        </button>
-                    </form>
-
-                    {/* Instructions */}
-                    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-white/10 mb-6">
-                        <h4 className="text-yellow-400 font-semibold mb-2">{t('funds.howToAddFunds')}</h4>
-                        <ol className="text-gray-400 text-sm space-y-2 list-decimal list-inside">
-                            <li>{t('funds.step1')}</li>
-                            <li>{t('funds.step2')}</li>
-                            <li>{t('funds.step3')}</li>
-                            <li>{t('funds.step4')}</li>
-                            <li>{t('funds.step5')}</li>
-                        </ol>
                     </div>
                 </div>
             )}
 
-            {/* Success Modal */}
             {showSuccessModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
                     <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-green-500/30 text-center">
-                        {/* Success Icon */}
                         <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-
-                        <h3 className="text-xl font-bold text-white mb-2">{t('funds.requestSubmitted')}</h3>
-                        
+                        <h3 className="text-xl font-bold text-white mb-2">{t('funds.paymentSuccess') || 'Payment successful'}</h3>
                         <div className="bg-green-900/30 rounded-xl p-4 mb-4">
-                            <p className="text-gray-400 text-sm">{t('funds.selectedAmount')}</p>
-                            <p className="text-2xl font-bold text-green-400">₹{submittedAmount.toLocaleString()}</p>
+                            <p className="text-gray-400 text-sm">{t('funds.creditedAmount') || 'Amount credited'}</p>
+                            <p className="text-2xl font-bold text-green-400">₹{creditedAmount.toLocaleString()}</p>
                         </div>
-
                         <p className="text-gray-400 text-sm mb-6">
-                            {t('funds.depositNote')}
+                            {t('funds.depositNote') || 'Your wallet has been updated. You can place bets now.'}
                         </p>
-
                         <div className="space-y-3">
                             <button
                                 onClick={() => setShowSuccessModal(false)}
                                 className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors"
                             >
-                                {t('common.done')}
+                                {t('common.done') || 'Done'}
                             </button>
                             <button
                                 onClick={() => {
@@ -559,21 +307,45 @@ const AddFund = () => {
                                 }}
                                 className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
                             >
-                                {t('funds.viewHistory')}
+                                {t('funds.viewHistory') || 'View history'}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Copy Notification Toast */}
-            {showCopyNotification && (
-                <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ease-in-out">
-                    <div className="bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-green-400">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span className="font-semibold text-sm">{t('funds.upiIdCopied')}</span>
+            {showFailedModal && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-red-500/30 text-center">
+                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">{t('funds.paymentFailed') || 'Payment failed'}</h3>
+                        <p className="text-gray-400 text-sm mb-6">
+                            {t('funds.payuPaymentFailed') || 'Payment was cancelled or failed. You can try again.'}
+                        </p>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => {
+                                    setShowFailedModal(false);
+                                    setError('');
+                                }}
+                                className="w-full py-3 bg-[#d4af37] hover:bg-[#c9a227] text-black font-semibold rounded-xl transition-colors"
+                            >
+                                {t('funds.tryAgain') || 'Try again'}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowFailedModal(false);
+                                    setError('');
+                                }}
+                                className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
+                            >
+                                {t('common.done') || 'Done'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
