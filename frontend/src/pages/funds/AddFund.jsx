@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
@@ -8,6 +8,7 @@ const AddFund = () => {
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
     const [config, setConfig] = useState(null);
+    const paySubmitInProgress = useRef(false);
     const [configLoading, setConfigLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
@@ -89,12 +90,17 @@ const AddFund = () => {
 
     const handlePayWithPayU = async (e) => {
         e.preventDefault();
+        if (paySubmitInProgress.current) return;
+        paySubmitInProgress.current = true;
         setError('');
         setSuccess('');
+        setLoading(true);
 
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         if (!user.id) {
             setError(t('funds.loginRequired'));
+            paySubmitInProgress.current = false;
+            setLoading(false);
             return;
         }
 
@@ -103,10 +109,12 @@ const AddFund = () => {
         const maxDeposit = config?.maxDeposit || 50000;
         if (!numAmount || numAmount < minDeposit || numAmount > maxDeposit) {
             setError(t('funds.amountRequired', { min: minDeposit, max: maxDeposit }));
+            paySubmitInProgress.current = false;
+            setLoading(false);
             return;
         }
 
-        setLoading(true);
+        let formSubmitted = false;
         try {
             const res = await fetch(`${API_BASE_URL}/payments/payu/create-link`, {
                 method: 'POST',
@@ -118,11 +126,23 @@ const AddFund = () => {
             try {
                 data = JSON.parse(text);
             } catch {
-                setError(res.status === 500 ? (t('funds.payuLinkFailed') || 'Payment service error. Please try again later.') : (t('funds.networkError') || 'Network error. Please try again.'));
+                const msg = res.status === 429
+                    ? (t('funds.tooManyRequests') || 'Too many attempts. Please wait a minute and try again.')
+                    : res.status === 500
+                        ? (t('funds.payuLinkFailed') || 'Payment service error. Please try again later.')
+                        : (t('funds.networkError') || 'Network error. Please try again.');
+                setError(msg);
+                paySubmitInProgress.current = false;
+                setLoading(false);
+                return;
+            }
+            if (res.status === 429) {
+                setError(t('funds.tooManyRequests') || 'Too many attempts. Please wait a minute and try again.');
+                paySubmitInProgress.current = false;
+                setLoading(false);
                 return;
             }
             if (data.success && data.data?.formActionUrl && data.data?.formData) {
-                // PayU Hosted Checkout: submit form to PayU
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = data.data.formActionUrl;
@@ -134,6 +154,7 @@ const AddFund = () => {
                     form.appendChild(input);
                 });
                 document.body.appendChild(form);
+                formSubmitted = true;
                 form.submit();
                 return;
             }
@@ -141,7 +162,10 @@ const AddFund = () => {
         } catch (err) {
             setError(err.message || t('funds.networkError') || 'Network error. Please try again.');
         } finally {
-            setLoading(false);
+            if (!formSubmitted) {
+                paySubmitInProgress.current = false;
+                setLoading(false);
+            }
         }
     };
 
@@ -273,7 +297,7 @@ const AddFund = () => {
                                     loading ? 'opacity-70 cursor-not-allowed' : ''
                                 }`}
                             >
-                                {loading ? (t('common.loading') || 'Loading...') : (t('funds.payWithPayU') || 'Pay with PayU')}
+                                {loading ? (t('common.loading') || 'Loading...') : (t('funds.payWithPayU') || 'Pay')}
                             </button>
                         </div>
 

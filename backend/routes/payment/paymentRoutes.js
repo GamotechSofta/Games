@@ -14,6 +14,8 @@ import {
     createPayULink,
     verifyPayUPayment,
     payuRedirect,
+    getPaymentLimitsAdmin,
+    updatePaymentLimits,
 } from '../../controllers/paymentController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
@@ -52,6 +54,8 @@ router.get('/my-deposits', getMyDeposits);
 router.get('/my-withdrawals', getMyWithdrawals);
 
 // ===== Admin APIs =====
+router.get('/limits', verifyAdmin, getPaymentLimitsAdmin);
+router.patch('/limits', verifyAdmin, updatePaymentLimits);
 router.get('/', verifyAdmin, getPayments);
 router.get('/pending-count', verifyAdmin, getPendingCount);
 router.post('/:id/approve', verifyAdmin, approvePayment);

@@ -22,6 +22,12 @@ const Settings = () => {
     const [upiDistributionType, setUpiDistributionType] = useState('all');
     const [upiBatchSize, setUpiBatchSize] = useState(10);
 
+    // Payment limits (admin-only: min/max deposit & withdrawal)
+    const [limits, setLimits] = useState({ minDeposit: 100, maxDeposit: 50000, minWithdrawal: 500, maxWithdrawal: 25000 });
+    const [limitsLoading, setLimitsLoading] = useState(false);
+    const [limitsMsg, setLimitsMsg] = useState('');
+    const [limitsSecretPassword, setLimitsSecretPassword] = useState('');
+
     useEffect(() => {
         adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
             .then((res) => res.json())
@@ -42,6 +48,14 @@ const Settings = () => {
                     setUpiDistributionType(json.data.upiDistributionType || 'all');
                     setUpiBatchSize(json.data.upiBatchSize ?? 10);
                 }
+            })
+            .catch(() => {});
+
+        // Fetch payment limits (admin-set)
+        adminFetch(`${API_BASE_URL}/payments/limits`)
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.success && json.data) setLimits(json.data);
             })
             .catch(() => {});
     }, []);
@@ -127,6 +141,49 @@ const Settings = () => {
 
     const addUpiRow = () => setUpiIds((prev) => [...prev, '']);
     const removeUpiRow = (idx) => setUpiIds((prev) => prev.filter((_, i) => i !== idx));
+
+    const handleSaveLimits = async (e) => {
+        e.preventDefault();
+        setLimitsMsg('');
+        const minDeposit = parseInt(limits.minDeposit, 10);
+        const maxDeposit = parseInt(limits.maxDeposit, 10);
+        const minWithdrawal = parseInt(limits.minWithdrawal, 10);
+        const maxWithdrawal = parseInt(limits.maxWithdrawal, 10);
+        if (Number.isNaN(minDeposit) || minDeposit < 1 || Number.isNaN(maxDeposit) || maxDeposit < minDeposit) {
+            setLimitsMsg('Invalid deposit limits (min/max must be positive, max ≥ min)');
+            return;
+        }
+        if (Number.isNaN(minWithdrawal) || minWithdrawal < 1 || Number.isNaN(maxWithdrawal) || maxWithdrawal < minWithdrawal) {
+            setLimitsMsg('Invalid withdrawal limits (min/max must be positive, max ≥ min)');
+            return;
+        }
+        if (hasSecret && !limitsSecretPassword.trim()) {
+            setLimitsMsg('Secret declare password is required to save payment limits');
+            return;
+        }
+        setLimitsLoading(true);
+        setLimitsMsg('');
+        try {
+            const body = { minDeposit, maxDeposit, minWithdrawal, maxWithdrawal };
+            if (hasSecret) body.secretDeclarePassword = limitsSecretPassword.trim();
+            const res = await adminFetch(`${API_BASE_URL}/payments/limits`, {
+                method: 'PATCH',
+                body: JSON.stringify(body),
+            });
+            const json = await res.json();
+            if (json.success) {
+                if (json.data) setLimits(json.data);
+                setLimitsSecretPassword('');
+                setLimitsMsg('Payment limits saved successfully');
+            } else {
+                setLimitsMsg(json.message || 'Failed to save limits');
+            }
+        } catch {
+            setLimitsMsg('Network error');
+        } finally {
+            setLimitsLoading(false);
+        }
+    };
     const updateUpiRow = (idx, val) => setUpiIds((prev) => {
         const next = [...prev];
         next[idx] = val;
@@ -321,6 +378,89 @@ const Settings = () => {
                                 className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg disabled:opacity-50 transition-colors"
                             >
                                 {upiLoading ? 'Saving...' : 'Save UPI IDs'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                {/* Payment limits – admin only: min/max for Add Fund & Withdraw */}
+                <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden min-w-0">
+                    <h2 className="text-lg font-bold text-yellow-500 bg-gray-800 px-4 py-3 border-b border-gray-700">
+                        Payment Limits (Add Fund &amp; Withdraw)
+                    </h2>
+                    <div className="p-4 space-y-3">
+                        <p className="text-gray-400 text-sm">
+                            Set minimum and maximum amounts for deposits (Add Fund) and withdrawals. Only admins can change these. Users see these limits on the Add Fund and Withdraw screens.
+                            {hasSecret && <span className="block mt-1 text-amber-400">Secret declare password required to save.</span>}
+                        </p>
+                        <form onSubmit={handleSaveLimits} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">Min deposit (₹)</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={limits.minDeposit}
+                                        onChange={(e) => setLimits((p) => ({ ...p, minDeposit: e.target.value }))}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">Max deposit (₹)</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={limits.maxDeposit}
+                                        onChange={(e) => setLimits((p) => ({ ...p, maxDeposit: e.target.value }))}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">Min withdrawal (₹)</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={limits.minWithdrawal}
+                                        onChange={(e) => setLimits((p) => ({ ...p, minWithdrawal: e.target.value }))}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">Max withdrawal (₹)</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        value={limits.maxWithdrawal}
+                                        onChange={(e) => setLimits((p) => ({ ...p, maxWithdrawal: e.target.value }))}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+                            {hasSecret && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-300 mb-1">Secret declare password *</label>
+                                    <input
+                                        type="password"
+                                        value={limitsSecretPassword}
+                                        onChange={(e) => { setLimitsSecretPassword(e.target.value); setLimitsMsg(''); }}
+                                        placeholder="Enter secret password to confirm"
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                                        autoComplete="current-password"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">Same password you use for declaring results.</p>
+                                </div>
+                            )}
+                            {limitsMsg && (
+                                <p className={`text-sm ${limitsMsg.includes('success') ? 'text-green-400' : 'text-red-400'}`}>
+                                    {limitsMsg}
+                                </p>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={limitsLoading}
+                                className="px-6 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg disabled:opacity-50 transition-colors"
+                            >
+                                {limitsLoading ? 'Saving...' : 'Save Payment Limits'}
                             </button>
                         </form>
                     </div>

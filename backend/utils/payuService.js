@@ -13,12 +13,22 @@ try {
     payuHasher = null;
 }
 
-const PAYU_MODE = (process.env.PAYU_MODE || 'test').toLowerCase();
-const isTest = PAYU_MODE !== 'live' && PAYU_MODE !== 'production';
+function getPayUMode() {
+    return (process.env.PAYU_MODE || 'test').toLowerCase();
+}
+function isPayUTest() {
+    const mode = getPayUMode();
+    return mode !== 'live' && mode !== 'production';
+}
+function getHostedPaymentUrl() {
+    return isPayUTest() ? 'https://test.payu.in/_payment' : 'https://secure.payu.in/_payment';
+}
 
+const PAYU_MODE = getPayUMode();
+const isTest = isPayUTest();
 const ACCOUNTS_BASE = isTest ? 'https://uat-accounts.payu.in' : 'https://accounts.payu.in';
 const ONEAPI_BASE = isTest ? 'https://uatoneapi.payu.in' : 'https://oneapi.payu.in';
-const HOSTED_PAYMENT_URL = isTest ? 'https://test.payu.in/_payment' : 'https://secure.payu.in/_payment';
+const HOSTED_PAYMENT_URL = getHostedPaymentUrl();
 
 let cachedToken = null;
 let tokenExpiry = 0;
@@ -229,10 +239,16 @@ const safe = (v) => String(v ?? '').replace(/\|/g, '').trim() || '';
  * Build form data for PayU. Hash and form are built from the SAME paymentData so they always match.
  * @returns {{ formActionUrl: string, formData: Record<string, string> }}
  */
+let liveModeWarned = false;
 function buildHostedCheckoutForm(opts) {
     const { amount, txnid, productinfo, firstname, email, phone, surl, furl } = opts;
     const rawKey = (process.env.PAYU_KEY || '').trim();
     const rawSalt = (process.env.PAYU_SALT || '').trim();
+    const hostedUrl = getHostedPaymentUrl();
+    if (!isPayUTest() && !liveModeWarned) {
+        liveModeWarned = true;
+        console.warn('[PayU] LIVE mode: using', hostedUrl, '- Ensure PAYU_KEY and PAYU_SALT are Production credentials from PayU Dashboard (Integration → Live). Test credentials will cause errors.');
+    }
     console.log('PAYU_KEY length:', rawKey.length, '(expected ~6–20; if larger, check .env for space/newline)');
     console.log('PAYU_SALT length:', rawSalt.length, '(expected ~16–32; if larger, check .env for space/newline)');
     const key = safe(rawKey);
@@ -273,7 +289,7 @@ function buildHostedCheckoutForm(opts) {
 
     console.log('FINAL FORM DATA:', formData);
 
-    return { formActionUrl: HOSTED_PAYMENT_URL, formData };
+    return { formActionUrl: hostedUrl, formData };
 }
 
 export {

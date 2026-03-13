@@ -3,6 +3,7 @@ import BankDetail from '../models/bankDetail/bankDetail.js';
 import { Wallet } from '../models/wallet/wallet.js';
 import Admin from '../models/admin/admin.js';
 import User from '../models/user/user.js';
+import Settings from '../models/settings/settings.js';
 import bcrypt from 'bcryptjs';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
@@ -17,9 +18,34 @@ import {
 
 // ============ CONFIG API ============
 
+/** Get min/max deposit and withdrawal from Settings (admin-set) or env fallback. */
+async function getPaymentLimits() {
+    const defaults = {
+        minDeposit: parseInt(process.env.MIN_DEPOSIT, 10) || 100,
+        maxDeposit: parseInt(process.env.MAX_DEPOSIT, 10) || 50000,
+        minWithdrawal: parseInt(process.env.MIN_WITHDRAWAL, 10) || 500,
+        maxWithdrawal: parseInt(process.env.MAX_WITHDRAWAL, 10) || 25000,
+    };
+    try {
+        const keys = ['minDeposit', 'maxDeposit', 'minWithdrawal', 'maxWithdrawal'];
+        const docs = await Settings.find({ key: { $in: keys } }).lean();
+        const result = { ...defaults };
+        for (const d of docs) {
+            if (d && d.key && d.value !== undefined && d.value !== '') {
+                const num = parseInt(d.value, 10);
+                if (!Number.isNaN(num)) result[d.key] = num;
+            }
+        }
+        return result;
+    } catch {
+        return defaults;
+    }
+}
+
 /**
  * Get payment configuration (UPI details, limits)
  * Public API - accepts optional ?userId to resolve correct UPI based on bookie type
+ * Limits (min/max deposit & withdrawal) are admin-set via Settings; only admin can change them.
  */
 export const getPaymentConfig = async (req, res) => {
     try {
@@ -134,16 +160,17 @@ export const getPaymentConfig = async (req, res) => {
             console.error('Error resolving UPI for user:', userId, err.message);
         }
 
+        const limits = await getPaymentLimits();
         res.status(200).json({
             success: true,
             data: {
                 upiId: upiIds[0] || UPI_FALLBACK_ID,
                 upiIds,
                 upiName,
-                minDeposit: parseInt(process.env.MIN_DEPOSIT) || 100,
-                maxDeposit: parseInt(process.env.MAX_DEPOSIT) || 50000,
-                minWithdrawal: parseInt(process.env.MIN_WITHDRAWAL) || 500,
-                maxWithdrawal: parseInt(process.env.MAX_WITHDRAWAL) || 25000,
+                minDeposit: limits.minDeposit,
+                maxDeposit: limits.maxDeposit,
+                minWithdrawal: limits.minWithdrawal,
+                maxWithdrawal: limits.maxWithdrawal,
             },
         });
     } catch (error) {
@@ -164,10 +191,7 @@ export const createDepositRequest = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required' });
         }
-
-        const minDeposit = parseInt(process.env.MIN_DEPOSIT) || 100;
-        const maxDeposit = parseInt(process.env.MAX_DEPOSIT) || 50000;
-
+        const { minDeposit, maxDeposit } = await getPaymentLimits();
         if (!amount || amount < minDeposit || amount > maxDeposit) {
             return res.status(400).json({
                 success: false,
@@ -243,9 +267,7 @@ export const createWithdrawalRequest = async (req, res) => {
             return res.status(400).json({ success: false, message: 'User ID is required' });
         }
 
-        const minWithdrawal = parseInt(process.env.MIN_WITHDRAWAL) || 500;
-        const maxWithdrawal = parseInt(process.env.MAX_WITHDRAWAL) || 25000;
-
+        const { minWithdrawal, maxWithdrawal } = await getPaymentLimits();
         if (!amount || amount < minWithdrawal || amount > maxWithdrawal) {
             return res.status(400).json({
                 success: false,
@@ -377,6 +399,63 @@ export const getMyWithdrawals = async (req, res) => {
 // ============ PayU Payment Gateway ============
 
 /**
+ * Admin: Get payment limits (min/max deposit & withdrawal). Used by admin panel to show/edit.
+ */
+export const getPaymentLimitsAdmin = async (req, res) => {
+    try {
+        const limits = await getPaymentLimits();
+        res.status(200).json({ success: true, data: limits });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Admin: Update payment limits. Only admin can set min/max deposit and withdrawal.
+ * Body: { minDeposit?, maxDeposit?, minWithdrawal?, maxWithdrawal?, secretDeclarePassword? } – secret required if admin has it set
+ */
+export const updatePaymentLimits = async (req, res) => {
+    try {
+        if (req.admin) {
+            const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+            if (adminWithSecret?.secretDeclarePassword) {
+                const provided = (req.body.secretDeclarePassword ?? '').toString().trim();
+                const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
+                if (!isValid) {
+                    return res.status(400).json({ success: false, message: 'Invalid secret declare password. Enter the same password you use for declaring results.' });
+                }
+            }
+        }
+        const { minDeposit, maxDeposit, minWithdrawal, maxWithdrawal } = req.body;
+        const keys = [
+            minDeposit !== undefined && { key: 'minDeposit', value: String(minDeposit) },
+            maxDeposit !== undefined && { key: 'maxDeposit', value: String(maxDeposit) },
+            minWithdrawal !== undefined && { key: 'minWithdrawal', value: String(minWithdrawal) },
+            maxWithdrawal !== undefined && { key: 'maxWithdrawal', value: String(maxWithdrawal) },
+        ].filter(Boolean);
+        if (keys.length === 0) {
+            return res.status(400).json({ success: false, message: 'Provide at least one limit: minDeposit, maxDeposit, minWithdrawal, maxWithdrawal' });
+        }
+        const limits = await getPaymentLimits();
+        for (const { key, value } of keys) {
+            const num = parseInt(value, 10);
+            if (Number.isNaN(num) || num < 0) {
+                return res.status(400).json({ success: false, message: `Invalid value for ${key}` });
+            }
+            await Settings.findOneAndUpdate(
+                { key },
+                { key, value: String(num), description: `Payment limit: ${key}`, updatedAt: new Date() },
+                { upsert: true, new: true }
+            );
+        }
+        const updated = await getPaymentLimits();
+        res.status(200).json({ success: true, data: updated, message: 'Payment limits updated' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * PayU redirect landing: backend receives redirect from PayU (GET or POST), then 302 to frontend.
  * No auth required.
  */
@@ -402,8 +481,7 @@ export const createPayULink = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'User ID is required' });
         }
-        const minDeposit = parseInt(process.env.MIN_DEPOSIT) || 100;
-        const maxDeposit = parseInt(process.env.MAX_DEPOSIT) || 50000;
+        const { minDeposit, maxDeposit } = await getPaymentLimits();
         const numAmount = Number(amount);
         if (!numAmount || numAmount < minDeposit || numAmount > maxDeposit) {
             return res.status(400).json({
