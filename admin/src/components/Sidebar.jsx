@@ -18,6 +18,7 @@ import {
     FaCog,
     FaMoneyBillWave,
     FaUserShield,
+    FaGamepad,
 } from 'react-icons/fa';
 
 const ALL_MENU_ITEMS = [
@@ -31,6 +32,7 @@ const ALL_MENU_ITEMS = [
     { path: '/reports', label: 'Report', icon: FaChartLine },
     { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
     { path: '/payment-management', label: 'Payments', icon: FaCreditCard },
+    { path: '/game-management', label: 'Games', icon: FaGamepad },
     { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
     { path: '/wallet', label: 'Wallet', icon: FaWallet },
     { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },

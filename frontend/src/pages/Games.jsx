@@ -1,28 +1,79 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { GAMES } from '../config/games';
-
-const PROVIDER_NAME = 'DPBOSS KING';
+import { API_BASE_URL } from '../config/api';
 
 const Games = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const category = searchParams.get('category') || 'all';
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [launchingGameId, setLaunchingGameId] = useState('');
 
-  const filteredGames = GAMES.filter((game) => {
-    if (category === 'highEarning') return game.highEarning;
-    if (category === 'upcoming') return game.upcoming;
-    if (category === 'other') return !game.highEarning && !game.upcoming;
-    return true;
-  });
+  const baseApi = useMemo(() => API_BASE_URL.replace(/\/api\/v1\/?$/, ''), []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await fetch(`${baseApi}/api/game/list`);
+        const data = await res.json();
+        if (!res.ok || !data?.success) {
+          throw new Error(data?.message || 'Failed to load games');
+        }
+        setGames(data.data || []);
+      } catch (e) {
+        setError(e.message || 'Unable to fetch games');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [baseApi]);
+
+  const filteredGames = useMemo(() => {
+    // Keep category behavior in case query param is used.
+    if (category === 'highEarning') return games.filter((g) => g.highEarning);
+    if (category === 'upcoming') return games.filter((g) => g.upcoming);
+    if (category === 'other') return games.filter((g) => !g.highEarning && !g.upcoming);
+    return games;
+  }, [games, category]);
+
+  const launchGame = async (gameId) => {
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!currentUser?._id && !currentUser?.id) {
+      setError('Please login first');
+      return;
+    }
+
+    setLaunchingGameId(gameId);
+    setError('');
+    const res = await fetch(`${baseApi}/api/game/launch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: currentUser._id || currentUser.id,
+        gameId,
+      }),
+    });
+
+    const data = await res.json();
+    if (data.success && data.launchUrl) {
+      window.open(data.launchUrl, '_blank');
+    } else {
+      setError(data?.message || 'Failed to launch game');
+    }
+    setLaunchingGameId('');
+  };
 
   const handleGameClick = (game) => {
-    if (game.upcoming) return;
-    if (game.url) {
-      window.open(game.url, '_blank');
-    }
+    launchGame(game.gameId || game.id).catch((e) => {
+      setError(e.message || 'Failed to launch game');
+      setLaunchingGameId('');
+    });
   };
 
   const pageTitle =
@@ -48,16 +99,21 @@ const Games = () => {
           {pageTitle}
         </h1>
       </div>
+      {error && (
+        <div className="mb-3 p-3 rounded-lg bg-red-900/40 border border-red-700 text-red-200 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Games Grid */}
+      {loading ? (
+        <div className="text-gray-300 text-sm">Loading games...</div>
+      ) : (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
         {filteredGames.map((game) => (
           <div
-            key={game.id}
-            onClick={() => handleGameClick(game)}
-            className={`rounded-2xl overflow-hidden border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.3)] hover:shadow-[0_0_12px_rgba(255,255,255,0.4)] transition-all bg-black ${
-              game.upcoming ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'
-            }`}
+            key={game._id || game.gameId || game.id}
+            className="rounded-2xl overflow-hidden border-2 border-white shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all bg-black"
           >
             {/* Game Image */}
             <div className="relative aspect-[4/3] bg-black">
@@ -72,12 +128,6 @@ const Games = () => {
                   <span className="text-5xl">{game.icon}</span>
                 </div>
               )}
-              {/* Coming Soon badge */}
-              {game.upcoming && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                  <span className="text-amber-400 text-xs font-bold px-2 py-1 bg-black/80 rounded">{t('games.comingSoon')}</span>
-                </div>
-              )}
             </div>
 
             {/* Game Info */}
@@ -86,12 +136,23 @@ const Games = () => {
                 {game.name}
               </h3>
               <p className="text-gray-400 text-xs mt-0.5">
-                {PROVIDER_NAME}
+                {game.provider || 'GAP'}
               </p>
+              <button
+                onClick={() => handleGameClick(game)}
+                disabled={launchingGameId === (game.gameId || game.id)}
+                className="mt-2 w-full py-1.5 rounded bg-yellow-500 text-black text-xs font-semibold hover:bg-yellow-400 disabled:opacity-60"
+              >
+                {launchingGameId === (game.gameId || game.id) ? 'Launching...' : (t('common.play') || 'Play')}
+              </button>
             </div>
           </div>
         ))}
+        {filteredGames.length === 0 && (
+          <div className="text-gray-400 text-sm">No active games available.</div>
+        )}
       </div>
+      )}
     </div>
   );
 };

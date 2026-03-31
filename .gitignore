@@ -80,3 +80,6 @@ specific-admin/
 *.pem
 *.key
 *.crt
+
+keys/private.pem
+.env

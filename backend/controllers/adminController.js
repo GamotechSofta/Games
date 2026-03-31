@@ -865,11 +865,19 @@ export const getAdminUpi = async (req, res) => {
         if (!admin) {
             return res.status(404).json({ success: false, message: 'Admin not found' });
         }
+        const safeDecrypt = (value) => {
+            try {
+                return value ? decrypt(value) : '';
+            } catch {
+                // If value is already plain text or malformed encrypted text, fallback to raw string.
+                return value ? String(value).trim() : '';
+            }
+        };
         let upiIds = [];
         if (admin.upiIds && Array.isArray(admin.upiIds) && admin.upiIds.length > 0) {
-            upiIds = admin.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
+            upiIds = admin.upiIds.map((enc) => safeDecrypt(enc)).filter(Boolean);
         } else if (admin.upiId) {
-            const dec = decrypt(admin.upiId);
+            const dec = safeDecrypt(admin.upiId);
             if (dec) upiIds = [dec];
         }
         res.status(200).json({

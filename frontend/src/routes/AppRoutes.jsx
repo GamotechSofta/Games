@@ -27,6 +27,10 @@ import KingBazaarMarket from '../pages/KingBazaarMarket';
 import Notifications from '../pages/Notifications';
 import GameRate from '../pages/GameRate';
 import Games from '../pages/Games';
+import Wallet from '../pages/Wallet';
+import AdminDashboard from '../admin/AdminDashboard';
+import GameManager from '../admin/GameManager';
+import Transactions from '../admin/Transactions';
 
 // When PayU redirects to /?payu_failed=1 or payu_success=1, send user to /funds so the app loads and AddFund can show the modal
 const PayURedirect = () => {
@@ -99,6 +103,7 @@ const Layout = ({ children }) => {
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const isLoginPage = location.pathname === '/login';
   const isHomePage = location.pathname === '/';
+  const isAdminPanel = location.pathname.startsWith('/admin-panel');
 
   // Hide top nav on mobile only (CSS) for My Bets landing + Bet History list + related history screens
   const hideTopNavMobileOnly =
@@ -126,6 +131,9 @@ const Layout = ({ children }) => {
   }, []);
 
   const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
+  if (isAdminPanel) {
+    return <>{children}</>;
+  }
   if (!hasUser && !isPublicPath) {
     return <Navigate to="/login" replace />;
   }
@@ -248,6 +256,11 @@ const AppRoutes = () => {
           <Route path="/top-winners" element={<TopWinners />} />
           <Route path="/game-rate" element={<GameRate />} />
           <Route path="/games" element={<Games />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />
+          <Route path="/admin-panel/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-panel/games" element={<GameManager />} />
+          <Route path="/admin-panel/transactions" element={<Transactions />} />
         </Routes>
       </Layout>
     </Router>

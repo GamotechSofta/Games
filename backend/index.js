@@ -9,10 +9,12 @@ import userRoutes from './routes/user/userRoutes.js';
 import betRoutes from './routes/bet/betRoutes.js';
 import paymentRoutes from './routes/payment/paymentRoutes.js';
 import walletRoutes from './routes/wallet/walletRoutes.js';
+import gapWalletRoutes from './routes/wallet.routes.js';
 import reportRoutes from './routes/report/reportRoutes.js';
 import helpDeskRoutes from './routes/helpDesk/helpDeskRoutes.js';
 import dashboardRoutes from './routes/dashboard/dashboardRoutes.js';
 import rateRoutes from './routes/rate/rateRoutes.js';
+import gameRoutes, { adminGameRoutes } from './routes/game.routes.js';
 
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
@@ -107,6 +109,11 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/bets', betRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/wallet', walletRoutes);
+app.use('/api/wallet', gapWalletRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/v1/game', gameRoutes); // compatibility alias
+app.use('/api/admin/game', adminGameRoutes);
+app.use('/api/v1/admin/game', adminGameRoutes); // compatibility alias for admin panel
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/help-desk', helpDeskRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);

@@ -27,6 +27,7 @@ import MarketDetail from './pages/MarketDetail';
 import Settings from './pages/Settings';
 import TopWinners from './pages/TopWinners';
 import SpecificAdminManagement from './pages/SpecificAdminManagement';
+import GameManagement from './pages/GameManagement';
 
 // Scroll to top on route change
 const ScrollToTop = () => {
@@ -250,6 +251,14 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <BookieManagement />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/game-management"
+                    element={
+                        <PrivateRoute>
+                            <GameManagement />
                         </PrivateRoute>
                     }
                 />
