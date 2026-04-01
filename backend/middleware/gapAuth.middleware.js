@@ -3,11 +3,13 @@ import { decryptWithPrivateKey } from '../services/gap.service.js';
 import { gapConfig } from '../services/gap.service.js';
 import fs from 'fs';
 import path from 'path';
-import logger from '../utils/logger.js';
+import logger, { sanitizeForLog } from '../utils/logger.js';
 
 const resolvePemPath = (filePath) => (path.isAbsolute(filePath) ? filePath : path.resolve(process.cwd(), filePath));
 
 function getGapPublicKey() {
+    const inlineKey = String(process.env.GAP_PUBLIC_KEY || '').trim();
+    if (inlineKey) return inlineKey;
     const publicPath = resolvePemPath(gapConfig.GAP_PUBLIC_KEY_PATH || '');
     if (!publicPath || !fs.existsSync(publicPath)) {
         throw new Error('GAP public key file not found. Check GAP_PUBLIC_KEY_PATH');
@@ -26,61 +28,95 @@ function getGapPublicKey() {
  */
 export const verifyGapSignature = (req, res, next) => {
     try {
-        const encryptedData = req.body?.data;
-        const signature =
-            req.headers['x-signature'] ||
-            req.headers['x-gap-signature'] ||
-            req.headers.signature;
-
-        // Backward compatibility mode: plain JSON body (existing integration).
-        if (!encryptedData) {
-            req.gapPayload = null;
+        const enabled = String(process.env.GAP_SIGNATURE_ENABLED || 'false').toLowerCase() === 'true';
+        if (!enabled) {
+            logger.info('GAP signature bypassed (testing mode)', {
+                route: req.originalUrl,
+                method: req.method,
+            });
+            req.gapPayload = req.body || null;
             return next();
         }
 
+        const encryptedData = req.body?.data;
+        const signature =
+            req.get('Signature') ||
+            req.get('x-signature') ||
+            req.get('x-gap-signature') ||
+            req.headers.signature ||
+            req.headers['x-signature'] ||
+            req.headers['x-gap-signature'];
+
         if (!signature) {
+            logger.warn('GAP signature missing', {
+                route: req.originalUrl,
+                method: req.method,
+                ip: req.ip,
+            });
             return res.status(401).json({
-                status: 'FAILED',
+                success: false,
+                code: 'MISSING_SIGNATURE',
                 message: 'Missing signature',
             });
         }
 
         const publicKey = getGapPublicKey();
         const verifier = crypto.createVerify('RSA-SHA256');
-        verifier.update(String(encryptedData), 'utf8');
+        const payloadForVerify = encryptedData ? String(encryptedData) : JSON.stringify(req.body || {});
+        verifier.update(payloadForVerify, 'utf8');
         verifier.end();
         const ok = verifier.verify(publicKey, String(signature), 'base64');
 
         if (!ok) {
-            logger.warn('GAP signature verification failed', { ip: req.ip });
+            logger.warn('GAP signature verification failed', {
+                route: req.originalUrl,
+                method: req.method,
+                ip: req.ip,
+            });
             return res.status(401).json({
-                status: 'FAILED',
+                success: false,
+                code: 'INVALID_SIGNATURE',
                 message: 'Invalid signature',
             });
         }
 
-        // Decrypt and expose payload for controllers.
-        const decryptedText = decryptWithPrivateKey(String(encryptedData));
-        let parsed = {};
-        try {
-            parsed = JSON.parse(decryptedText);
-        } catch {
-            return res.status(400).json({
-                status: 'FAILED',
-                message: 'Invalid encrypted payload JSON',
-            });
+        // If encrypted payload exists, decrypt; otherwise trust signed JSON body.
+        if (encryptedData) {
+            const decryptedText = decryptWithPrivateKey(String(encryptedData));
+            let parsed = {};
+            try {
+                parsed = JSON.parse(decryptedText);
+            } catch {
+                return res.status(400).json({
+                    success: false,
+                    code: 'INVALID_ENCRYPTED_PAYLOAD',
+                    message: 'Invalid encrypted payload JSON',
+                });
+            }
+            req.gapPayload = parsed?.payload && typeof parsed.payload === 'object' ? parsed.payload : parsed;
+        } else {
+            req.gapPayload = req.body || null;
         }
 
-        req.gapPayload = parsed?.payload && typeof parsed.payload === 'object'
-            ? parsed.payload
-            : parsed;
+        logger.info('GAP signature verification passed', sanitizeForLog({
+            route: req.originalUrl,
+            method: req.method,
+            ip: req.ip,
+            hasEncryptedData: !!encryptedData,
+        }));
 
         return next();
     } catch (error) {
-        logger.error('GAP auth middleware error', { error: error.message });
+        logger.error('GAP auth middleware error', sanitizeForLog({
+            route: req.originalUrl,
+            method: req.method,
+            ip: req.ip,
+            error: error.message,
+        }));
         return res.status(401).json({
-            status: 'FAILED',
-            message: 'Unauthorized GAP request',
+            success: false,
+            code: 'SIGNATURE_VERIFICATION_ERROR',
+            message: 'Invalid signature',
         });
     }
 };

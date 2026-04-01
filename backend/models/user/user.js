@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'bookie'],
         default: 'user',
     },
+    // Legacy/deprecated: wallet source of truth is Wallet.balance.
+    // Keep only for backward compatibility/migration safety.
     balance: {
         type: Number,
         default: 0,

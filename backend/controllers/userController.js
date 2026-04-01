@@ -226,7 +226,7 @@ export const userSignup = async (req, res) => {
             password: hashedPassword,
             phone: trimmedPhone,
             role: 'user',
-            balance: 0,
+            balance: 0, // legacy mirror only; live wallet is Wallet.balance
             isActive: true,
             source,
             referredBy,
@@ -398,7 +398,7 @@ export const createUser = async (req, res) => {
             password: hashedPassword,
             phone: trimmedPhone,
             role: role || 'user',
-            balance: initialBalance,
+            balance: initialBalance, // legacy mirror only; live wallet is Wallet.balance
             isActive: true,
             source,
             referredBy: finalReferredBy || null,

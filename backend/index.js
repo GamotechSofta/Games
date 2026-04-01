@@ -32,6 +32,33 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3010;
 
+const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+const signatureEnabled = String(process.env.GAP_SIGNATURE_ENABLED || 'false').toLowerCase() === 'true';
+
+function validateEnvConfig() {
+    const warnings = [];
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+    if (!mongoUri) warnings.push('Missing MONGODB_URI (or MONGO_URI)');
+    if (!process.env.PORT) warnings.push('PORT not set (using default 3010)');
+
+    if (!process.env.GAP_BASE_URL) warnings.push('Missing GAP_BASE_URL');
+    if (!process.env.OPERATOR_ID) warnings.push('Missing OPERATOR_ID');
+    if (signatureEnabled) {
+        const hasInline = String(process.env.GAP_PUBLIC_KEY || '').trim().length > 0;
+        const hasPath = String(process.env.GAP_PUBLIC_KEY_PATH || '').trim().length > 0;
+        if (!hasInline && !hasPath) {
+            warnings.push('GAP_SIGNATURE_ENABLED=true but GAP_PUBLIC_KEY or GAP_PUBLIC_KEY_PATH is missing');
+        }
+    }
+
+    if (warnings.length > 0) {
+        const level = isProd ? '[WARN][PROD]' : '[WARN]';
+        for (const w of warnings) console.warn(`${level} ${w}`);
+    }
+}
+
+validateEnvConfig();
+
 connectDB();
 
 app.set('trust proxy', 1);
@@ -58,8 +85,23 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
+app.get('/health', (req, res) => {
+    return res.status(200).json({
+        success: true,
+        status: 'ok',
+        service: 'games-backend',
+        timestamp: new Date().toISOString(),
+    });
+});
+
 // Temporary: verify real client IP behind Render proxy
 app.get('/test-ip', (req, res) => {
+    if (isProd) {
+        return res.status(404).json({
+            success: false,
+            message: 'Route not available',
+        });
+    }
     res.json({
         'req.ip': req.ip ?? null,
         'req.headers[\'x-forwarded-for\']': req.headers['x-forwarded-for'] ?? null,
@@ -69,6 +111,12 @@ app.get('/test-ip', (req, res) => {
 
 // Test endpoint: manually trigger market reset (for testing/debugging)
 app.get('/test-reset', async (req, res) => {
+    if (isProd) {
+        return res.status(404).json({
+            success: false,
+            message: 'Route not available',
+        });
+    }
     const now = new Date();
     const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
     
@@ -109,9 +157,10 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/bets', betRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/wallet', walletRoutes);
+// GAP partner callbacks (signed POST): /api/wallet/balance|debit|credit|rollback ; lookup GET /api/wallet/transaction/:id
 app.use('/api/wallet', gapWalletRoutes);
 app.use('/api/game', gameRoutes);
-app.use('/api/v1/game', gameRoutes); // compatibility alias
+app.use('/api/v1/game', gameRoutes); // POST /api/v1/game/launch — same handlers as /api/game/launch
 app.use('/api/admin/game', adminGameRoutes);
 app.use('/api/v1/admin/game', adminGameRoutes); // compatibility alias for admin panel
 app.use('/api/v1/reports', reportRoutes);
@@ -129,7 +178,7 @@ app.use((err, req, res, next) => {
     if (!res.headersSent) {
         res.status(500).json({
             success: false,
-            message: err.message || 'Internal server error',
+            message: isProd ? 'Internal server error' : (err.message || 'Internal server error'),
         });
     }
 });
@@ -162,6 +211,8 @@ console.log('══════════════════════�
 console.log('[CRON] ✓ Scheduled market reset job');
 console.log('[CRON] Schedule: Every day at 00:00 IST (18:30 UTC)');
 console.log('[CRON] Next run will reset all market results at midnight IST');
+console.log(`[BOOT] GAP signature mode: ${signatureEnabled ? 'enabled' : 'disabled'}`);
+console.log('[BOOT] Mounted routes: /api/wallet, /api/game, /api/v1/wallet, /api/v1/game');
 console.log('═══════════════════════════════════════════════════════════');
 
 app.listen(PORT, () => {

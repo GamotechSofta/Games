@@ -5,6 +5,13 @@ import { verifyAdmin } from '../middleware/adminAuth.js';
 const gameRoutes = express.Router();
 const adminGameRoutes = express.Router();
 
+gameRoutes.get('/health', (req, res) => {
+  return res.status(200).json({
+    success: true,
+    status: 'game-api-ok',
+  });
+});
+
 // Public/user game launch
 gameRoutes.post('/launch', launchGame);
 gameRoutes.get('/list', listActiveGames);

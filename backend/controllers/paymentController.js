@@ -15,6 +15,7 @@ import {
     buildHostedCheckoutForm,
     verifyHostedResponseHash,
 } from '../utils/payuService.js';
+import logger from '../utils/logger.js';
 
 // ============ CONFIG API ============
 
@@ -580,6 +581,7 @@ export const verifyPayUPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Not a PayU payment' });
         }
         if (payment.status === 'approved') {
+            logger.info('PayU verify duplicate callback (already approved)', { paymentId, userId });
             return res.status(200).json({
                 success: true,
                 alreadyProcessed: true,
@@ -588,6 +590,7 @@ export const verifyPayUPayment = async (req, res) => {
             });
         }
         if (payment.status === 'rejected') {
+            logger.warn('PayU verify callback for rejected payment', { paymentId, userId });
             return res.status(200).json({
                 success: false,
                 message: 'Payment was rejected',
@@ -629,15 +632,40 @@ export const verifyPayUPayment = async (req, res) => {
                     data: { status },
                 });
             }
-            // Hash valid and status success – credit wallet
-            payment.status = 'approved';
-            payment.adminRemarks = 'Auto-approved via PayU Hosted';
-            payment.processedAt = new Date();
-            await payment.save();
-            let wallet = await Wallet.findOne({ userId: payment.userId._id });
-            if (!wallet) wallet = new Wallet({ userId: payment.userId._id, balance: 0 });
-            wallet.balance += payment.amount;
-            await wallet.save();
+            // Hash valid and status success – idempotent status transition + wallet credit.
+            const approvedPayment = await Payment.findOneAndUpdate(
+                { _id: paymentId, status: 'pending', method: 'payu' },
+                {
+                    $set: {
+                        status: 'approved',
+                        adminRemarks: 'Auto-approved via PayU Hosted',
+                        processedAt: new Date(),
+                    },
+                },
+                { new: true }
+            );
+            if (!approvedPayment) {
+                const current = await Payment.findById(paymentId).select('status').lean();
+                if (current?.status === 'approved') {
+                    logger.info('PayU verify duplicate callback (status already approved)', { paymentId, userId });
+                    return res.status(200).json({
+                        success: true,
+                        alreadyProcessed: true,
+                        message: 'Payment already credited',
+                        data: { amount: payment.amount },
+                    });
+                }
+                return res.status(200).json({
+                    success: false,
+                    message: 'Payment not in pending state',
+                    data: { status: current?.status || 'unknown' },
+                });
+            }
+            const wallet = await Wallet.findOneAndUpdate(
+                { userId: payment.userId._id },
+                { $inc: { balance: payment.amount } },
+                { new: true, upsert: true }
+            );
             await logActivity({
                 action: 'payu_deposit_verified',
                 performedBy: userId,
@@ -665,14 +693,39 @@ export const verifyPayUPayment = async (req, res) => {
                 data: { status: 'pending' },
             });
         }
-        payment.status = 'approved';
-        payment.adminRemarks = 'Auto-approved via PayU';
-        payment.processedAt = new Date();
-        await payment.save();
-        let wallet = await Wallet.findOne({ userId: payment.userId._id });
-        if (!wallet) wallet = new Wallet({ userId: payment.userId._id, balance: 0 });
-        wallet.balance += payment.amount;
-        await wallet.save();
+        const approvedPayment = await Payment.findOneAndUpdate(
+            { _id: paymentId, status: 'pending', method: 'payu' },
+            {
+                $set: {
+                    status: 'approved',
+                    adminRemarks: 'Auto-approved via PayU',
+                    processedAt: new Date(),
+                },
+            },
+            { new: true }
+        );
+        if (!approvedPayment) {
+            const current = await Payment.findById(paymentId).select('status').lean();
+            if (current?.status === 'approved') {
+                logger.info('PayU verify duplicate callback (links status already approved)', { paymentId, userId });
+                return res.status(200).json({
+                    success: true,
+                    alreadyProcessed: true,
+                    message: 'Payment already credited',
+                    data: { amount: payment.amount },
+                });
+            }
+            return res.status(200).json({
+                success: false,
+                message: 'Payment not in pending state',
+                data: { status: current?.status || 'unknown' },
+            });
+        }
+        const wallet = await Wallet.findOneAndUpdate(
+            { userId: payment.userId._id },
+            { $inc: { balance: payment.amount } },
+            { new: true, upsert: true }
+        );
         await logActivity({
             action: 'payu_deposit_verified',
             performedBy: userId,
@@ -857,26 +910,50 @@ export const approvePayment = async (req, res) => {
             }
         }
 
-        // Update payment status
-        payment.status = 'approved';
-        payment.adminRemarks = adminRemarks || 'Approved';
-        payment.processedBy = req.admin._id;
-        payment.processedByType = req.admin?.role === 'bookie' ? 'bookie' : 'admin';
-        payment.processedAt = new Date();
-        await payment.save();
+        // Update payment status atomically to avoid double-approval in concurrent requests.
+        const now = new Date();
+        const statusUpdate = await Payment.updateOne(
+            { _id: id, status: 'pending' },
+            {
+                $set: {
+                    status: 'approved',
+                    adminRemarks: adminRemarks || 'Approved',
+                    processedBy: req.admin._id,
+                    processedByType: req.admin?.role === 'bookie' ? 'bookie' : 'admin',
+                    processedAt: now,
+                },
+            }
+        );
+        if (!statusUpdate.modifiedCount) {
+            logger.warn('Approve payment skipped: already processed', { paymentId: id });
+            return res.status(409).json({ success: false, message: 'Payment is already processed' });
+        }
 
         // Update wallet
-        let wallet = await Wallet.findOne({ userId: payment.userId._id });
-        if (!wallet) {
-            wallet = new Wallet({ userId: payment.userId._id, balance: 0 });
-        }
-
+        let wallet;
         if (payment.type === 'deposit') {
-            wallet.balance += payment.amount;
+            wallet = await Wallet.findOneAndUpdate(
+                { userId: payment.userId._id },
+                { $inc: { balance: payment.amount } },
+                { new: true, upsert: true }
+            );
         } else if (payment.type === 'withdrawal') {
-            wallet.balance -= payment.amount;
+            wallet = await Wallet.findOneAndUpdate(
+                { userId: payment.userId._id, balance: { $gte: payment.amount } },
+                { $inc: { balance: -payment.amount } },
+                { new: true }
+            );
+            if (!wallet) {
+                await Payment.updateOne(
+                    { _id: id, status: 'approved' },
+                    { $set: { status: 'pending', processedAt: null }, $unset: { processedBy: 1, processedByType: 1 } }
+                );
+                return res.status(400).json({
+                    success: false,
+                    message: 'User has insufficient balance for this withdrawal',
+                });
+            }
         }
-        await wallet.save();
 
         await logActivity({
             action: `payment_${payment.type}_approved`,

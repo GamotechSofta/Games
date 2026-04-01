@@ -17,7 +17,7 @@ const gapWalletTransactionSchema = new mongoose.Schema(
         },
         type: {
             type: String,
-            enum: ['debit', 'credit'],
+            enum: ['DEBIT', 'CREDIT', 'ROLLBACK', 'debit', 'credit', 'rollback'],
             required: true,
             index: true,
         },
@@ -39,6 +39,43 @@ const gapWalletTransactionSchema = new mongoose.Schema(
         requestMeta: {
             type: mongoose.Schema.Types.Mixed,
             default: null,
+        },
+        gameId: {
+            type: String,
+            default: '',
+            trim: true,
+            index: true,
+        },
+        roundId: {
+            type: String,
+            default: '',
+            trim: true,
+            index: true,
+        },
+        originalTransactionId: {
+            type: String,
+            default: '',
+            trim: true,
+            index: true,
+        },
+        rolledBack: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+        rawPayload: {
+            type: mongoose.Schema.Types.Mixed,
+            default: null,
+        },
+        provider: {
+            type: String,
+            default: 'GAP',
+            trim: true,
+        },
+        remarks: {
+            type: String,
+            default: '',
+            trim: true,
         },
         createdAt: {
             type: Date,
