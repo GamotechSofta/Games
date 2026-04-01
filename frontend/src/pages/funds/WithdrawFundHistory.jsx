@@ -18,10 +18,42 @@ const WithdrawFundHistory = () => {
         if (!user.id) return;
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/payments/my-withdrawals?userId=${user.id}`);
-            const data = await res.json();
-            if (data.success) {
-                setWithdrawals(data.data || []);
+            const [withdrawRes, walletTxRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/payments/my-withdrawals?userId=${user.id}`),
+                fetch(`${API_BASE_URL}/wallet/my-transactions?userId=${user.id}&limit=500`),
+            ]);
+            const withdrawData = await withdrawRes.json();
+            const walletTxData = await walletTxRes.json();
+            const paymentWithdrawals = withdrawData.success ? (withdrawData.data || []) : [];
+            const walletDebits = walletTxData.success
+                ? (walletTxData.data || [])
+                    .filter((tx) => {
+                        const desc = String(tx.description || '').toLowerCase();
+                        if (tx.type !== 'debit') return false;
+                        if (desc.includes('bet placed')) return false;
+                        return (
+                            desc.includes('admin') ||
+                            desc.includes('bookie') ||
+                            desc.includes('withdrawal')
+                        );
+                    })
+                    .map((tx) => ({
+                        _id: `wallet-debit-${tx._id || tx.createdAt}`,
+                        amount: Number(tx.amount) || 0,
+                        status: 'approved',
+                        createdAt: tx.createdAt,
+                        processedAt: tx.createdAt,
+                        adminRemarks: tx.description || 'Wallet debit',
+                        method: 'wallet',
+                        isWalletHistory: true,
+                    }))
+                : [];
+
+            const merged = [...paymentWithdrawals, ...walletDebits].sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            if (withdrawData.success || walletTxData.success) {
+                setWithdrawals(merged);
             }
         } catch (err) {
             console.error('Failed to fetch withdrawals:', err);

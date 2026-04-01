@@ -1,6 +1,6 @@
 import Payment from '../models/payment/payment.js';
 import BankDetail from '../models/bankDetail/bankDetail.js';
-import { Wallet } from '../models/wallet/wallet.js';
+import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import Admin from '../models/admin/admin.js';
 import User from '../models/user/user.js';
 import Settings from '../models/settings/settings.js';
@@ -666,6 +666,13 @@ export const verifyPayUPayment = async (req, res) => {
                 { $inc: { balance: payment.amount } },
                 { new: true, upsert: true }
             );
+            await WalletTransaction.create({
+                userId: payment.userId._id,
+                type: 'credit',
+                amount: Number(payment.amount) || 0,
+                description: 'PayU deposit credited',
+                referenceId: String(paymentId),
+            });
             await logActivity({
                 action: 'payu_deposit_verified',
                 performedBy: userId,
@@ -726,6 +733,13 @@ export const verifyPayUPayment = async (req, res) => {
             { $inc: { balance: payment.amount } },
             { new: true, upsert: true }
         );
+        await WalletTransaction.create({
+            userId: payment.userId._id,
+            type: 'credit',
+            amount: Number(payment.amount) || 0,
+            description: 'PayU deposit credited',
+            referenceId: String(paymentId),
+        });
         await logActivity({
             action: 'payu_deposit_verified',
             performedBy: userId,
@@ -937,6 +951,13 @@ export const approvePayment = async (req, res) => {
                 { $inc: { balance: payment.amount } },
                 { new: true, upsert: true }
             );
+            await WalletTransaction.create({
+                userId: payment.userId._id,
+                type: 'credit',
+                amount: Number(payment.amount) || 0,
+                description: 'Deposit approved',
+                referenceId: String(id),
+            });
         } else if (payment.type === 'withdrawal') {
             wallet = await Wallet.findOneAndUpdate(
                 { userId: payment.userId._id, balance: { $gte: payment.amount } },
@@ -953,6 +974,13 @@ export const approvePayment = async (req, res) => {
                     message: 'User has insufficient balance for this withdrawal',
                 });
             }
+            await WalletTransaction.create({
+                userId: payment.userId._id,
+                type: 'debit',
+                amount: Number(payment.amount) || 0,
+                description: 'Withdrawal approved',
+                referenceId: String(id),
+            });
         }
 
         await logActivity({

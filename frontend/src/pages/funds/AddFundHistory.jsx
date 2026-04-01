@@ -18,10 +18,44 @@ const AddFundHistory = () => {
         if (!user.id) return;
         try {
             setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/payments/my-deposits?userId=${user.id}`);
-            const data = await res.json();
-            if (data.success) {
-                setDeposits(data.data || []);
+            const [depositRes, walletTxRes] = await Promise.all([
+                fetch(`${API_BASE_URL}/payments/my-deposits?userId=${user.id}`),
+                fetch(`${API_BASE_URL}/wallet/my-transactions?userId=${user.id}&limit=500`),
+            ]);
+            const depositData = await depositRes.json();
+            const walletTxData = await walletTxRes.json();
+            const paymentDeposits = depositData.success ? (depositData.data || []) : [];
+            const walletCredits = walletTxData.success
+                ? (walletTxData.data || [])
+                    .filter((tx) => {
+                        const desc = String(tx.description || '').toLowerCase();
+                        if (tx.type !== 'credit') return false;
+                        if (desc.includes('win')) return false;
+                        if (desc.includes('bet cancelled')) return false;
+                        return (
+                            desc.includes('admin') ||
+                            desc.includes('bookie') ||
+                            desc.includes('payu') ||
+                            desc.includes('deposit')
+                        );
+                    })
+                    .map((tx) => ({
+                        _id: `wallet-credit-${tx._id || tx.createdAt}`,
+                        amount: Number(tx.amount) || 0,
+                        status: 'approved',
+                        createdAt: tx.createdAt,
+                        processedAt: tx.createdAt,
+                        adminRemarks: tx.description || 'Wallet credit',
+                        method: 'wallet',
+                        isWalletHistory: true,
+                    }))
+                : [];
+
+            const merged = [...paymentDeposits, ...walletCredits].sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            if (depositData.success || walletTxData.success) {
+                setDeposits(merged);
             }
         } catch (err) {
             console.error('Failed to fetch deposits:', err);
