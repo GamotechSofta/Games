@@ -148,7 +148,7 @@ const Layout = ({ children }) => {
       <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
         <AppHeader />
         <SubHeader />
-        <div className="pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(80px+env(safe-area-inset-top,0px))] md:pt-[calc(88px+env(safe-area-inset-top,0px))]">
+        <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))] md:pt-[calc(4rem+env(safe-area-inset-top,0px))]">
           {children}
         </div>
         <BottomNavbar />

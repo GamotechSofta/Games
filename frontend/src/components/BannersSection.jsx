@@ -49,7 +49,7 @@ const BannersSection = () => {
   };
 
   return (
-    <div className="mt-2 sm:hidden">
+    <div className="mt-0 sm:hidden">
       <div
         className="relative overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)] touch-pan-y"
         onTouchStart={handleTouchStart}
@@ -57,18 +57,18 @@ const BannersSection = () => {
         onTouchEnd={handleTouchEnd}
       >
         <div
-          className="flex will-change-transform"
+          className="flex items-start will-change-transform"
           style={{
             transform: `translateX(-${bannerIdx * 100}%)`,
             transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         >
           {BANNERS.map((b, i) => (
-            <div key={i} className="w-full shrink-0 grow-0 basis-full">
+            <div key={i} className="w-full shrink-0 grow-0 basis-full self-start">
               <img
                 src={b.src}
                 alt={b.alt}
-                className="w-full h-[180px] object-cover"
+                className="block w-full h-auto max-w-full"
                 loading="eager"
                 draggable="false"
               />

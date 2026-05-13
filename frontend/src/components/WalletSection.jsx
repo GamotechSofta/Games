@@ -10,9 +10,10 @@ const WalletSection = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full bg-black pt-1.5 pb-1 sm:pb-3 sm:pt-4 px-2 min-[375px]:px-4 sm:px-6 max-w-full overflow-x-hidden">
+    <section className="w-full bg-black pt-0 pb-1 sm:pb-3 sm:pt-0 max-w-full overflow-x-hidden">
       <BannersSection />
 
+      <div className="px-2 min-[375px]:px-4 sm:px-6">
       {/* Other Games section title - Markets-style design (mobile only) */}
       <div className="md:hidden flex items-center justify-center mt-4 min-[375px]:mt-5 sm:mt-6 mb-4 min-[375px]:mb-5 sm:mb-6 w-full max-w-lg mx-auto gap-1 min-[375px]:gap-2 sm:gap-4">
         <div className="flex-1 h-[2px] bg-white shrink min-w-0" />
@@ -35,6 +36,7 @@ const WalletSection = () => {
         <SkillsGamesCard />
         <StarlineCard />
         <KingBazaarCard />
+      </div>
       </div>
     </section>
   );
