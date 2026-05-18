@@ -1,11 +1,10 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
-const QUICK_POINT_OPTIONS = [10, 20, 30, 40, 50];
-
 // Valid Single Panna chart (as per screenshots) grouped by sum digit (0-9)
 const SINGLE_PANA_BY_SUM = {
     '0': ['127','136','145','190','235','280','370','389','460','479','569','578'],
@@ -335,34 +334,20 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         Clear
                                     </button>
                                 </div>
-                                <div className="flex items-center gap-2 w-full">
-                                    <span className="text-[11px] font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
-                                        <span>Quick</span>
-                                        <span>Points :</span>
-                                    </span>
-                                    <div className="grid grid-cols-5 gap-2 flex-1">
-                                    {QUICK_POINT_OPTIONS.map((pts) => (
-                                        <button
-                                            key={`${groupKey}-${pts}`}
-                                            type="button"
-                                            onClick={() =>
-                                                setGroupQuickSelected((p) => ({
-                                                    ...p,
-                                                    [groupKey]:
-                                                        p[groupKey] === String(pts) ? null : String(pts),
-                                                }))
-                                            }
-                                            className={`h-7 rounded-md font-semibold text-[11px] border border-white/10 transition-colors active:scale-95 ${
-                                                groupQuickSelected[groupKey] === String(pts)
-                                                    ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                                                    : 'text-[#f2c14e] bg-[#202124] hover:bg-white/10'
-                                            }`}
-                                        >
-                                            {pts}
-                                        </button>
-                                    ))}
-                                    </div>
-                                </div>
+                                <QuickPointsRow
+                                    className="w-full"
+                                    stackedLabel
+                                    stackedLabelSecondLine="Points :"
+                                    value={groupQuickSelected[groupKey]}
+                                    onSelect={(pts) =>
+                                        setGroupQuickSelected((p) => ({
+                                            ...p,
+                                            [groupKey]:
+                                                p[groupKey] === String(pts) ? null : String(pts),
+                                        }))
+                                    }
+                                    labelClassName="text-[11px] font-semibold text-gray-300 shrink-0"
+                                />
 
                                 {/* Two-column layout: tighten + left align only on desktop */}
                                 <div className="grid grid-cols-2 gap-3 md:grid-cols-[max-content_max-content] md:justify-start md:gap-x-4 md:gap-y-2">

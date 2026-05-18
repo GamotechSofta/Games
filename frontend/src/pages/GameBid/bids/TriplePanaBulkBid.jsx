@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const isValidTriplePana = (n) => {
@@ -45,7 +46,6 @@ const TriplePanaBulkBid = ({ market, title }) => {
         showWarning._t = window.setTimeout(() => setWarning(''), 2200);
     };
 
-    const quickPointValues = [10, 20, 30, 40, 50];
     const handleQuickPointClick = (pts) => setInputPoints(String(pts));
 
     const isRunning = market?.status === 'running';
@@ -288,16 +288,11 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                         </button>
                                     </div>
                                 </div>
-                                <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
-                                    <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                                        {quickPointValues.map((pts) => (
-                                            <button key={pts} type="button" onClick={() => handleQuickPointClick(pts)} className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95">
-                                                {pts}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                <QuickPointsRow
+                                    value={inputPoints}
+                                    onSelect={handleQuickPointClick}
+                                    labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                />
                             </div>
                             <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
                                 <button type="button" disabled={!bids.length} onClick={() => bids.length && setIsReviewOpen(true)} className={submitBtnClass(!!bids.length)}>

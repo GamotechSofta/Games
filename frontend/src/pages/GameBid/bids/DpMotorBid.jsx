@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { useBettingWindow } from '../BettingWindowContext';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
@@ -341,28 +342,7 @@ const DpMotorBid = ({ market, title }) => {
                 Clear
               </button>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-400">Quick Points</label>
-              <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                {[10, 20, 30, 40, 50].map((pts) => {
-                  const selected = String(pointsInput || '') === String(pts);
-                  return (
-                    <button
-                      key={pts}
-                      type="button"
-                      onClick={() => setPointsInput(String(pts))}
-                      className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base border transition-all active:scale-[0.98] ${
-                        selected
-                          ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                          : 'bg-[#202124] text-[#f2c14e] border-white/10 hover:bg-[#d4af37]/5'
-                      }`}
-                    >
-                      {pts}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            <QuickPointsRow value={pointsInput} onSelect={(pts) => setPointsInput(String(pts))} />
             <div className="flex gap-3">
               <button
                 type="button"

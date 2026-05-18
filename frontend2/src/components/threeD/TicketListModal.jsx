@@ -1,0 +1,193 @@
+import React, { useMemo } from 'react';
+import { compareTicketsByDrawTimeDesc } from './helpers';
+
+const drawTimeFormatter = new Intl.DateTimeFormat('en-IN', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+});
+
+const TicketListModal = ({
+  open,
+  onClose,
+  tickets = [],
+  onView,
+  title = 'TICKET',
+  loading = false,
+  loadingMessage = 'Loading...',
+  emptyMessage = 'No tickets available yet.',
+  combineByDrawTime = false,
+}) => {
+  const normalizedTickets = useMemo(() => {
+    const safeTickets = Array.isArray(tickets) ? tickets : [];
+    const normalized = [...safeTickets]
+      .map((ticket) => {
+        const createdAt = ticket?.createdAt ? new Date(ticket.createdAt) : new Date(Number(ticket?.id) || Date.now());
+        const drawDateFallback = Number.isNaN(createdAt.getTime())
+          ? '-'
+          : `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, '0')}-${String(createdAt.getDate()).padStart(2, '0')}`;
+        const drawTimeFallback = Number.isNaN(createdAt.getTime())
+          ? '-'
+          : drawTimeFormatter
+            .format(createdAt)
+            .replace(/\s?(am|pm)$/i, (m) => ` ${m.trim().toUpperCase()}`);
+        return {
+          ...ticket,
+          createdAtMs: Number.isNaN(createdAt.getTime()) ? 0 : createdAt.getTime(),
+          userName: ticket?.userName || 'user',
+          drawDate: ticket?.drawDate || drawDateFallback,
+          drawTime: ticket?.drawTime || drawTimeFallback,
+          gameId: ticket?.gameId || '-',
+          outcome:
+            String(ticket?.outcome || '').toLowerCase() === 'win'
+              ? 'win'
+              : String(ticket?.outcome || '').toLowerCase() === 'pending'
+                ? 'pending'
+                : String(ticket?.outcome || '').toLowerCase() === 'cancelled'
+                  ? 'cancelled'
+                  : 'loss',
+          totalPoints: Number(ticket?.totalPoints || 0),
+          totalWin: Number(ticket?.totalWin || 0),
+          isAdvanceDraw: String(ticket?.isAdvanceDraw || '').toLowerCase() === 'true' || ticket?.isAdvanceDraw === true,
+        };
+      });
+
+    if (!combineByDrawTime) {
+      return normalized.sort(compareTicketsByDrawTimeDesc);
+    }
+
+    const groupByDraw = new Map();
+    normalized.forEach((ticket) => {
+      const drawKey = `${ticket.drawDate}|${ticket.drawTime}|${ticket.userName}`;
+      if (!groupByDraw.has(drawKey)) {
+        groupByDraw.set(drawKey, []);
+      }
+      groupByDraw.get(drawKey).push(ticket);
+    });
+
+    const combined = [];
+    groupByDraw.forEach((drawTickets, drawKey) => {
+      const active = drawTickets.filter((t) => t.outcome !== 'cancelled');
+      const cancelled = drawTickets.filter((t) => t.outcome === 'cancelled');
+
+      const buildMerged = (rows, outcomeOverride = '') => {
+        if (!rows.length) return null;
+        const latest = [...rows].sort((a, b) => b.createdAtMs - a.createdAtMs)[0];
+        const ticketIds = rows.map((r) => String(r.ticketId || '').trim()).filter(Boolean);
+        const uniqueTicketIds = Array.from(new Set(ticketIds));
+        const mergedBets = rows.flatMap((r) => (Array.isArray(r.bets) ? r.bets : []));
+        const totalPoints = rows.reduce((sum, r) => sum + Number(r.totalPoints || 0), 0);
+        const totalWin = rows.reduce((sum, r) => sum + Number(r.totalWin || 0), 0);
+        const hasPending = rows.some((r) => r.outcome === 'pending');
+        const hasWin = rows.some((r) => r.outcome === 'win');
+        const mergedOutcome = outcomeOverride || (hasPending ? 'pending' : (hasWin ? 'win' : 'loss'));
+        const drawLabel = drawKey.split('|').slice(0, 2).join(' ');
+        return {
+          ...latest,
+          id: `merged:${drawKey}:${outcomeOverride || 'active'}`,
+          ticketId: uniqueTicketIds.join(',') || latest.ticketId || '',
+          gameId: uniqueTicketIds.length === 1 ? uniqueTicketIds[0] : `MULTI (${rows.length} tickets)`,
+          totalPoints,
+          totalWin,
+          bets: mergedBets,
+          outcome: mergedOutcome,
+          mergedTicketCount: rows.length,
+          drawLabel,
+        };
+      };
+
+      const activeMerged = buildMerged(active);
+      const cancelledMerged = buildMerged(cancelled, 'cancelled');
+      if (activeMerged) combined.push(activeMerged);
+      if (cancelledMerged) combined.push(cancelledMerged);
+    });
+
+    return combined.sort(compareTicketsByDrawTimeDesc);
+  }, [combineByDrawTime, tickets]);
+
+  const renderTicketRow = (ticket, rowKey) => (
+    <div
+      key={rowKey}
+      className="flex flex-col items-start justify-between gap-3 rounded-xl border border-[#6f6f6f] bg-[#4f4f4f] px-3 py-3 text-white sm:flex-row sm:items-center sm:gap-4 sm:px-4"
+    >
+      <div className="grid w-full grid-cols-1 gap-x-8 gap-y-1.5 text-[16px] sm:grid-cols-2 sm:text-[17px]">
+        <div>User Name : <span className="font-semibold">{ticket.userName}</span></div>
+        <div>Dr Time : <span className="font-semibold">{ticket.drawTime}</span></div>
+        <div>Dr Date : <span className="font-semibold">{ticket.drawDate}</span></div>
+        <div>Game ID : <span className="font-semibold">{ticket.gameId}</span></div>
+        <div>Total Point : <span className="font-semibold">{ticket.totalPoints}</span></div>
+        <div>Total Win : <span className="font-semibold">{ticket.totalWin}</span></div>
+      </div>
+      <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+        {ticket.isAdvanceDraw ? (
+          <span className="rounded-md bg-[#1d4ed8] px-3 py-2.5 text-[15px] font-extrabold text-white shadow sm:text-[16px]">
+            Advance Draw
+          </span>
+        ) : null}
+        <span
+          className={`rounded-md px-4 py-2.5 text-[16px] font-bold text-white shadow sm:text-[17px] ${
+            ticket.outcome === 'win'
+              ? 'bg-[#19a34a]'
+              : ticket.outcome === 'pending'
+                ? 'bg-[#d97706]'
+                : ticket.outcome === 'cancelled'
+                  ? 'bg-[#475569]'
+                  : 'bg-[#dc2626]'
+          }`}
+        >
+          {ticket.outcome === 'win' ? 'Win' : ticket.outcome === 'pending' ? 'Pending' : ticket.outcome === 'cancelled' ? 'Cancelled' : 'Loss'}
+        </span>
+        <button
+          type="button"
+          onClick={() => onView?.(ticket)}
+          className="rounded-md bg-[#db2f2f] px-4 py-2.5 text-[16px] font-bold text-white shadow hover:brightness-110 sm:text-[17px]"
+        >
+          View
+        </button>
+      </div>
+    </div>
+  );
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/60 p-2 sm:p-4">
+      <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-[#7b7b7b] bg-[#c7c7c7] shadow-2xl">
+        <div className="flex items-center justify-between bg-[#c71616] px-3 py-2 text-white sm:px-5 sm:py-3">
+          <h3 className="text-[22px] font-extrabold tracking-wide sm:text-[28px]">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded bg-black/20 px-3 py-1 text-[20px] font-bold leading-none hover:bg-black/35 sm:text-[22px]"
+            aria-label="Close ticket list"
+          >
+            ×
+          </button>
+        </div>
+        <div className="space-y-3 overflow-y-auto bg-[#b5b5b5] p-3 sm:p-4">
+          {loading ? (
+            <div className="rounded-lg bg-[#4f4f4f] px-4 py-8 text-center text-[18px] font-semibold text-white">
+              <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+              {loadingMessage}
+            </div>
+          ) : normalizedTickets.length ? (
+            <div className="space-y-3">
+              {normalizedTickets.map((ticket, idx) =>
+                renderTicketRow(
+                  ticket,
+                  String(ticket?.id ?? ticket?.gameId ?? ticket?.ticketId ?? `ticket-${idx}`),
+                ),
+              )}
+            </div>
+          ) : (
+            <div className="rounded-lg bg-[#4f4f4f] px-4 py-8 text-center text-[18px] font-semibold text-white">
+              {emptyMessage}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TicketListModal;

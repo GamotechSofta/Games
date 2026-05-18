@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const ODD_DIGITS = [1, 3, 5, 7, 9];
@@ -32,7 +33,6 @@ const OddEvenBid = ({ market, title }) => {
         } catch (e) {}
         setSelectedDate(newDate);
     };
-    const quickPointValues = [10, 20, 30, 40, 50];
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -202,21 +202,11 @@ const OddEvenBid = ({ market, title }) => {
                     </button>
                 </div>
             </div>
-            <div className="flex items-center gap-3">
-                <label className="text-gray-300 text-sm font-medium shrink-0">Quick Points</label>
-                <div className="grid grid-cols-5 gap-2 flex-1 min-w-0">
-                    {quickPointValues.map((pts) => (
-                        <button
-                            key={pts}
-                            type="button"
-                            onClick={() => setInputPoints(String(pts))}
-                            className="h-10 rounded-lg border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-semibold hover:border-[#d4af37] active:scale-95"
-                        >
-                            {pts}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <QuickPointsRow
+                value={inputPoints}
+                onSelect={(pts) => setInputPoints(String(pts))}
+                labelClassName="text-gray-300 text-sm font-medium shrink-0"
+            />
             <div className="flex gap-3">
                 <button
                     onClick={handleAddBid}

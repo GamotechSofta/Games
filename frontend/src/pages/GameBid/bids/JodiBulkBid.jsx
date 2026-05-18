@@ -1,11 +1,10 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import { QuickPointsInline } from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
-const QUICK_POINT_OPTIONS = [10, 20, 30, 40, 50];
-
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
 const JodiBulkBid = ({ market, title }) => {
@@ -425,26 +424,13 @@ const JodiBulkBid = ({ market, title }) => {
 
                 <div className="hidden md:flex md:items-center md:gap-2 mb-3 px-1">
                     <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap flex-1">
-                        <span className="mr-1 text-sm font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
-                            <span>Quick</span>
-                            <span>Points</span>
-                        </span>
-                        {QUICK_POINT_OPTIONS.map((pts) => (
-                            <button
-                                key={`jodi-quick-desktop-${pts}`}
-                                type="button"
-                                onClick={() =>
-                                    setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
-                                }
-                                className={`h-8 px-3 rounded-md font-semibold text-xs border transition-colors shrink-0 ${
-                                    selectedQuickPoint === pts
-                                        ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
-                                        : 'border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10'
-                                }`}
-                            >
-                                {pts}
-                            </button>
-                        ))}
+                        <QuickPointsInline
+                            stackedLabel
+                            selectedValue={selectedQuickPoint}
+                            onSelect={(pts) =>
+                                setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
+                            }
+                        />
                         <button
                             type="button"
                             onClick={clearAll}
@@ -466,26 +452,13 @@ const JodiBulkBid = ({ market, title }) => {
                 <div className="bg-transparent border-0 rounded-none p-0 md:bg-[#202124] md:border md:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5">
                     <div className="mb-2 md:hidden">
                         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap">
-                            <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
-                                <span>Quick</span>
-                                <span>Points</span>
-                            </span>
-                            {QUICK_POINT_OPTIONS.map((pts) => (
-                                <button
-                                    key={`jodi-quick-${pts}`}
-                                    type="button"
-                                    onClick={() =>
-                                        setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
-                                    }
-                                    className={`h-7 px-2.5 rounded-md font-semibold text-[11px] border transition-colors shrink-0 ${
-                                        selectedQuickPoint === pts
-                                            ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
-                                            : 'border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10'
-                                    }`}
-                                >
-                                    {pts}
-                                </button>
-                            ))}
+                            <QuickPointsInline
+                                stackedLabel
+                                selectedValue={selectedQuickPoint}
+                                onSelect={(pts) =>
+                                    setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
+                                }
+                            />
                             <button
                                 type="button"
                                 onClick={clearAll}
@@ -495,12 +468,12 @@ const JodiBulkBid = ({ market, title }) => {
                             </button>
                         </div>
                     </div>
-                    <div className="md:hidden overflow-x-hidden rounded-md border border-[#b9c0c7] bg-[#d9dde1] p-1">
+                    <div className="md:hidden overflow-x-hidden rounded-md border border-white/10 bg-[#202124] p-1">
                         <div
                             className="grid w-full gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"
                             style={{ gridTemplateColumns: `56px repeat(${visibleDigits.length}, minmax(0, 1fr))` }}
                         >
-                            <div className="h-6 sm:h-7 flex items-center justify-center text-[#2a9cd9] font-extrabold text-[11px] sm:text-sm tracking-wide">
+                            <div className="h-6 sm:h-7 flex items-center justify-center text-[#f2c14e] font-extrabold text-[11px] sm:text-sm tracking-wide">
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -526,7 +499,7 @@ const JodiBulkBid = ({ market, title }) => {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                     }}
-                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-[#2a9cd9] bg-[#e8f6ff] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                 />
                             ))}
 
@@ -555,7 +528,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                             }}
-                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-[#2a9cd9] bg-[#e8f6ff] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                         />
                                     </div>
 
@@ -566,7 +539,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             <div key={key} className="grid grid-rows-[10px_minmax(24px,1fr)] sm:grid-rows-[12px_minmax(28px,1fr)]">
                                                 <div
                                                     className={`pointer-events-none text-[9px] sm:text-[11px] font-bold leading-none text-center ${
-                                                        hasBet ? 'text-[#0f2f56]' : 'text-[#353b42]'
+                                                        hasBet ? 'text-[#d4af37]' : 'text-gray-400'
                                                     }`}
                                                 >
                                                     {key}
@@ -590,10 +563,10 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] focus:outline-none focus:ring-1 focus:ring-[#2a9cd9] ${
+                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
                                                         hasBet
-                                                            ? 'border border-[#2a9cd9] bg-[#eaf6ff]'
-                                                            : 'border border-[#8e9499] bg-white'
+                                                            ? 'border border-[#d4af37] bg-[#d4af37]/10'
+                                                            : 'border border-white/10 bg-black'
                                                     }`}
                                                 />
                                             </div>
@@ -604,9 +577,9 @@ const JodiBulkBid = ({ market, title }) => {
                         </div>
                     </div>
 
-                    <div className="hidden md:block rounded-md border border-[#d1d5db] bg-[#e5e7eb] p-2">
+                    <div className="hidden md:block rounded-md border border-white/10 bg-[#202124] p-2">
                         <div className="mb-3 grid grid-cols-[84px_repeat(10,minmax(0,1fr))] gap-2">
-                            <div className="h-8 flex items-center justify-center text-[#2a9cd9] font-extrabold text-xs tracking-wide">
+                            <div className="h-8 flex items-center justify-center text-[#f2c14e] font-extrabold text-xs tracking-wide">
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -633,7 +606,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                         }}
-                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-[#2a9cd9] bg-[#e8f6ff] px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                     />
                                 </div>
                             ))}
@@ -664,7 +637,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                         }}
-                                        className="no-spinner h-8 w-full rounded-md border border-[#2a9cd9] bg-[#e8f6ff] px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                        className="no-spinner h-8 w-full rounded-md border border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                     />
                                 ))}
                             </div>
@@ -679,8 +652,8 @@ const JodiBulkBid = ({ market, title }) => {
                                                 <button
                                                     type="button"
                                                     onClick={() => applyQuickPointToCell(key)}
-                                                    className={`h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide text-white ${
-                                                        hasBet ? 'bg-[#0f4d8a]' : 'bg-[#1b3558]'
+                                                    className={`h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide ${
+                                                        hasBet ? 'bg-[#f2c14e] text-[#4b3608]' : 'bg-[#d4af37] text-[#4b3608]'
                                                     }`}
                                                 >
                                                     {key}
@@ -705,8 +678,8 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9] ${
-                                                        hasBet ? 'border border-[#2a9cd9] bg-[#eaf6ff]' : 'border border-[#c6cbd2] bg-white'
+                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
+                                                        hasBet ? 'border border-[#d4af37] bg-[#d4af37]/10' : 'border border-white/10 bg-black'
                                                     }`}
                                                 />
                                             </div>

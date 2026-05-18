@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const EasyModeBid = ({
@@ -434,7 +435,6 @@ const EasyModeBid = ({
             ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
             : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
-    const quickPointValues = [10, 20, 30, 40, 50];
     const handleQuickPointClick = (pts) => {
         setInputPoints(String(pts));
     };
@@ -490,26 +490,16 @@ const EasyModeBid = ({
             </div>
             {specialModeType === 'jodi' && activeTab === 'special' && (
                 <div className="flex flex-row items-center gap-2">
-                    <label className="text-gray-300 text-xs sm:text-sm font-medium shrink-0 w-24 sm:w-28">Quick Points</label>
-                    <div className="flex-1 min-w-0 grid grid-cols-5 gap-1.5 sm:gap-2">
-                        {quickPointValues.map((pts) => (
-                            <button
-                                key={pts}
-                                type="button"
-                                onClick={() => {
-                                    const val = String(pts);
-                                    setJodiSpecialQuickSelected((prev) => (prev === val ? null : val));
-                                }}
-                                className={`py-2 min-h-[36px] rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors active:scale-95 ${
-                                    jodiSpecialQuickSelected === String(pts)
-                                        ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
-                                        : 'border-white/10 bg-white text-[#f2c14e] hover:border-[#d4af37]'
-                                }`}
-                            >
-                                {pts}
-                            </button>
-                        ))}
-                    </div>
+                    <QuickPointsRow
+                        className="flex-1 min-w-0"
+                        value={jodiSpecialQuickSelected}
+                        onSelect={(pts) => {
+                            const val = String(pts);
+                            setJodiSpecialQuickSelected((prev) => (prev === val ? null : val));
+                        }}
+                        isSelected={(pts) => jodiSpecialQuickSelected === String(pts)}
+                        labelClassName="text-gray-300 text-xs sm:text-sm font-medium shrink-0 w-24 sm:w-28"
+                    />
                     <button
                         type="button"
                         onClick={() => {
@@ -788,21 +778,11 @@ const EasyModeBid = ({
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
-                                                <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                                                    {quickPointValues.map((pts) => (
-                                                        <button
-                                                            key={pts}
-                                                            type="button"
-                                                            onClick={() => handleQuickPointClick(pts)}
-                                                            className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
-                                                        >
-                                                            {pts}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            <QuickPointsRow
+                                                value={inputPoints}
+                                                onSelect={handleQuickPointClick}
+                                                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                            />
                                         </div>
 
                                         {/* Select Sum Keypad (Single Pana styled like Single Digit Bulk) */}
@@ -945,21 +925,11 @@ const EasyModeBid = ({
                 <div className="flex flex-col gap-3 mb-4">
                     {(specialModeType === 'singlePana' || specialModeType === 'doublePana' || specialModeType === 'jodi') ? (
                         <>
-                            <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
-                                <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                                    {quickPointValues.map((pts) => (
-                                        <button
-                                            key={pts}
-                                            type="button"
-                                            onClick={() => handleQuickPointClick(pts)}
-                                            className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
-                                        >
-                                            {pts}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                            <QuickPointsRow
+                                value={inputPoints}
+                                onSelect={handleQuickPointClick}
+                                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                            />
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
@@ -1036,21 +1006,11 @@ const EasyModeBid = ({
                         </>
                     )}
                     {!(specialModeType === 'singlePana' || specialModeType === 'doublePana' || specialModeType === 'jodi') && (
-                        <div className="flex flex-row items-center gap-2">
-                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
-                            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                                {quickPointValues.map((pts) => (
-                                    <button
-                                        key={pts}
-                                        type="button"
-                                        onClick={() => handleQuickPointClick(pts)}
-                                        className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
-                                    >
-                                        {pts}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        <QuickPointsRow
+                            value={inputPoints}
+                            onSelect={handleQuickPointClick}
+                            labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                        />
                     )}
                 </div>
 

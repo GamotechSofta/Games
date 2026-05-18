@@ -1,13 +1,13 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { isValidAnyPana } from './panaRules';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').slice(0, maxLen);
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
-const quickPointValues = [10, 20, 30, 40, 50];
 
 const emptyAnkPts = () =>
     Object.fromEntries(Array.from({ length: 10 }, (_, i) => [String(i), '']));
@@ -463,21 +463,11 @@ function HalfSangamEasyForm({
                     </button>
                 </div>
             </div>
-            <div className="flex flex-row items-center gap-2">
-                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
-                <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                    {quickPointValues.map((pts) => (
-                        <button
-                            key={pts}
-                            type="button"
-                            onClick={() => handleQuickPointClick(pts)}
-                            className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
-                        >
-                            {pts}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <QuickPointsRow
+                value={points}
+                onSelect={handleQuickPointClick}
+                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+            />
             <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6">
                 <button type="button" disabled={!bidsLength} onClick={onSubmitClick} className={submitBtnClass(!!bidsLength)}>
                     Submit Bet

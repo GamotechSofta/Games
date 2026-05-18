@@ -1,6 +1,7 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
+import QuickPointsRow from './QuickPointsRow';
 import { useBettingWindow } from '../BettingWindowContext';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import { chartData, getNumbersForChartDigit } from './chartData';
@@ -8,7 +9,6 @@ import { chartData, getNumbersForChartDigit } from './chartData';
 const CHART_OPTIONS = Object.keys(chartData);
 /** Digit order: 1 → 0 as requested */
 const DIGIT_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-const QUICK_POINTS = [10, 20, 30, 40, 50];
 
 const ChartBid = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
@@ -264,28 +264,11 @@ const ChartBid = ({ market, title }) => {
 
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch md:items-start">
                     <div className="flex flex-col gap-3 w-full md:w-1/2 shrink-0 min-w-0">
-                        <div className="flex items-center gap-2">
-                            <label className="shrink-0 w-20 sm:w-24 text-xs sm:text-sm font-semibold text-gray-400">Quick Points</label>
-                            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
-                                {QUICK_POINTS.map((pts) => {
-                                    const selected = String(pointsInput || '') === String(pts);
-                                    return (
-                                        <button
-                                            key={pts}
-                                            type="button"
-                                            onClick={() => setPointsInput(String(pts))}
-                                            className={`min-h-[34px] h-9 rounded-md text-xs sm:text-sm font-semibold border transition-all active:scale-[0.98] ${
-                                                selected
-                                                    ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                                                    : 'bg-[#202124] text-[#f2c14e] border-white/10 hover:bg-[#d4af37]/5'
-                                            }`}
-                                        >
-                                            {pts}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        <QuickPointsRow
+                            value={pointsInput}
+                            onSelect={(pts) => setPointsInput(String(pts))}
+                            labelClassName="shrink-0 w-20 sm:w-24 text-xs sm:text-sm font-semibold text-gray-400"
+                        />
 
                         <div className="flex flex-wrap items-center gap-2">
                             <label className="shrink-0 w-20 sm:w-24 text-xs sm:text-sm font-semibold text-gray-400">Points</label>
