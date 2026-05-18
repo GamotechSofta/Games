@@ -226,7 +226,7 @@ const SpDpMotorBid = ({ market, title }) => {
     const payload = reviewRows
       .map((r) => ({
         // Keep triple bets as panna for backward compatibility with older backend betType validators.
-        betType: r.kind === 'DP' ? 'dp-motor' : (r.kind === 'TP' ? 'panna' : 'sp-motor'),
+        betType: r.kind === 'DP' ? 'sp-dp-motor-dp' : (r.kind === 'TP' ? 'sp-dp-motor-tp' : 'sp-dp-motor'),
         betNumber: String(r.number ?? '').trim(),
         amount: Number(r.points) || 0,
         betOn: String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',

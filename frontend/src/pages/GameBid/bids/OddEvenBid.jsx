@@ -97,7 +97,7 @@ const OddEvenBid = ({ market, title }) => {
         const marketId = market?._id || market?.id;
         if (!marketId) throw new Error('Market not found');
         const bets = bids.map((b) => ({
-            betType: 'single',
+            betType: 'odd-even',
             betNumber: String(b.number),
             amount: Number(b.points) || 0,
             betOn: String(b?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',

@@ -28,6 +28,15 @@ function getPannaRateKey(threeDigitStr) {
     return 'singlePatti';
 }
 
+/** Double patti: exactly two of three digits match (not triple). */
+function isDoublePatti(num) {
+    if (!/^[0-9]{3}$/.test(num)) return false;
+    const a = num[0], b = num[1], c = num[2];
+    const allSame = a === b && b === c;
+    const twoSame = a === b || b === c || a === c;
+    return twoSame && !allSame;
+}
+
 const toDateKeyIST = (d = new Date()) => {
     return new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Kolkata',
@@ -1117,7 +1126,8 @@ export const getMarketResultHistory = async (req, res) => {
 
 /**
  * Get market statistics (amount and no. of bets per option) for admin market detail view.
- * Returns: singleDigit, jodi, singlePatti, doublePatti, triplePatti with per-option amount/count and totals.
+ * Returns: singleDigit, jodi, singlePatti, doublePatti, triplePatti, halfSangam, fullSangam (per-option amount/count and totals).
+ * CP / motors / chart-game / odd-even are folded into digit + patti buckets like regular panna bets.
  * Ensures result reset at midnight IST so Market overview & result screen shows cleared data after midnight.
  */
 export const getMarketStats = async (req, res) => {
@@ -1181,10 +1191,94 @@ export const getMarketStats = async (req, res) => {
             fullSangam: { items: {}, totalAmount: 0, totalBets: 0 },
         });
 
+        const addItemBet = (bucket, key, amount) => {
+            if (!bucket.items[key]) bucket.items[key] = { amount: 0, count: 0 };
+            bucket.items[key].amount += amount;
+            bucket.items[key].count += 1;
+            bucket.totalAmount += amount;
+            bucket.totalBets += 1;
+        };
+
+        const addDigitBet = (bucket, digit, amount) => {
+            if (!bucket.digits[digit]) bucket.digits[digit] = { amount: 0, count: 0 };
+            bucket.digits[digit].amount += amount;
+            bucket.digits[digit].count += 1;
+            bucket.totalAmount += amount;
+            bucket.totalBets += 1;
+        };
+
+        /** Same routing as type "panna": triple / double / single patti buckets */
+        const addThreeDigitPannaBet = (stats, threeDigit, amount) => {
+            const p = threeDigit;
+            if (!/^[0-9]{3}$/.test(p)) return false;
+            const a = p[0], b_ = p[1], c = p[2];
+            const allSame = a === b_ && b_ === c;
+            const twoSame = a === b_ || b_ === c || a === c;
+            if (allSame) {
+                addItemBet(stats.triplePatti, p, amount);
+                return true;
+            }
+            if (twoSame) {
+                addItemBet(stats.doublePatti, p, amount);
+                return true;
+            }
+            if (isSinglePatti(p)) {
+                addItemBet(stats.singlePatti, p, amount);
+                return true;
+            }
+            return false;
+        };
+
+        /** Chart bets store e.g. "BR-127"; aggregate by trailing 3-digit panna */
+        const chartGamePannaKey = (raw) => {
+            const s = String(raw || '').trim();
+            if (/^[0-9]{3}$/.test(s)) return s;
+            const m = s.match(/([0-9]{3})$/);
+            return m ? m[1] : null;
+        };
+
         const applyBet = (stats, bet) => {
             const amount = Number(bet.amount) || 0;
             const num = (bet.betNumber || '').toString().trim();
             const type = (bet.betType || '').toLowerCase();
+
+            if (type === 'odd-even' && /^[0-9]$/.test(num)) {
+                addDigitBet(stats.singleDigit, num, amount);
+                return;
+            }
+
+            if (type === 'chart-game' && num) {
+                const pannaKey = chartGamePannaKey(num);
+                if (pannaKey) addThreeDigitPannaBet(stats, pannaKey, amount);
+                return;
+            }
+
+            // SP Common → count under Single Patti (same panna numbers)
+            if (type === 'sp-common' && /^[0-9]{3}$/.test(num) && isSinglePatti(num)) {
+                addItemBet(stats.singlePatti, num, amount);
+                return;
+            }
+            // DP Common → count under Double Patti (same panna numbers)
+            if (type === 'dp-common' && isDoublePatti(num)) {
+                addItemBet(stats.doublePatti, num, amount);
+                return;
+            }
+            if (type === 'cp-common' && /^[0-9]{3}$/.test(num)) {
+                addThreeDigitPannaBet(stats, num, amount);
+                return;
+            }
+            if (type === 'sp-motor' && /^[0-9]{3}$/.test(num)) {
+                addThreeDigitPannaBet(stats, num, amount);
+                return;
+            }
+            if (type === 'dp-motor' && /^[0-9]{3}$/.test(num)) {
+                addThreeDigitPannaBet(stats, num, amount);
+                return;
+            }
+            if ((type === 'sp-dp-motor' || type === 'sp-dp-motor-dp' || type === 'sp-dp-motor-tp') && /^[0-9]{3}$/.test(num)) {
+                addThreeDigitPannaBet(stats, num, amount);
+                return;
+            }
 
             if (type === 'single' && /^[0-9]$/.test(num)) {
                 if (!stats.singleDigit.digits[num]) stats.singleDigit.digits[num] = { amount: 0, count: 0 };
@@ -1205,32 +1299,7 @@ export const getMarketStats = async (req, res) => {
             }
 
             if (type === 'panna' && /^[0-9]{3}$/.test(num)) {
-                const a = num[0], b_ = num[1], c = num[2];
-                const allSame = a === b_ && b_ === c;
-                const twoSame = a === b_ || b_ === c || a === c;
-                if (allSame) {
-                    if (!stats.triplePatti.items[num]) stats.triplePatti.items[num] = { amount: 0, count: 0 };
-                    stats.triplePatti.items[num].amount += amount;
-                    stats.triplePatti.items[num].count += 1;
-                    stats.triplePatti.totalAmount += amount;
-                    stats.triplePatti.totalBets += 1;
-                    return;
-                }
-                if (twoSame) {
-                    if (!stats.doublePatti.items[num]) stats.doublePatti.items[num] = { amount: 0, count: 0 };
-                    stats.doublePatti.items[num].amount += amount;
-                    stats.doublePatti.items[num].count += 1;
-                    stats.doublePatti.totalAmount += amount;
-                    stats.doublePatti.totalBets += 1;
-                    return;
-                }
-                if (isSinglePatti(num)) {
-                    if (!stats.singlePatti.items[num]) stats.singlePatti.items[num] = { amount: 0, count: 0 };
-                    stats.singlePatti.items[num].amount += amount;
-                    stats.singlePatti.items[num].count += 1;
-                    stats.singlePatti.totalAmount += amount;
-                    stats.singlePatti.totalBets += 1;
-                }
+                addThreeDigitPannaBet(stats, num, amount);
                 return;
             }
 

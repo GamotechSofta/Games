@@ -101,7 +101,7 @@ const SINGLE_PANA_BY_ANK = {
     '4': ['130', '149', '158', '167', '239', '248', '257', '347', '356', '590', '680', '789'],
     '5': ['140', '159', '168', '230', '249', '258', '267', '348', '357', '456', '690', '780'],
     '6': ['123', '150', '169', '178', '240', '259', '268', '349', '358', '367', '457', '790'],
-    '7': ['124', '133', '142', '151', '160', '179', '250', '278', '340', '359', '467', '890'],
+    '7': ['124', '160', '179', '250', '269', '278', '340', '359', '368', '458', '467', '890'],
     '8': ['125', '134', '170', '189', '260', '279', '350', '369', '378', '459', '468', '567'],
     '9': ['126', '135', '180', '234', '270', '289', '360', '379', '450', '469', '478', '568'],
 };
@@ -443,25 +443,24 @@ const HalfSangamCSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
                                 <table className="w-full text-sm border-collapse min-w-[320px]">
                                     <thead>
                                         <tr className="bg-gray-700/80 border-b-2 border-gray-600">
-                                            <th className="py-2 px-2 text-center font-semibold text-yellow-500 border-r-2 border-gray-600 bg-gray-700/90 w-14">Open Ank ↓</th>
-                                            {formatB.closePanas.map((pana) => (
-                                                <th key={pana} className="py-2 px-1.5 text-center font-bold text-yellow-500 border-r border-gray-600 min-w-[3.5rem]" title={`Close Pana ${pana}`}>{pana}</th>
+                                            <th className="py-2 px-2 text-center font-semibold text-yellow-500 border-r-2 border-gray-600 bg-gray-700/90 w-14">Close Pana ↓</th>
+                                            {DIGITS.map((d) => (
+                                                <th key={d} className="py-2 px-1.5 text-center font-bold text-yellow-500 border-r border-gray-600 min-w-[3.5rem]" title={`Open Ank ${d}`}>{d}</th>
                                             ))}
                                             <th className="py-2 px-2 text-center font-semibold text-amber-400 bg-amber-500/10 border-l-2 min-w-[4rem]">Row total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {DIGITS.map((ank) => {
-                                            const rowTotal = formatB.closePanas.reduce((sum, pana) => sum + (formatB.grid[ank][pana]?.amount ?? 0), 0);
-                                            const rowBets = formatB.closePanas.reduce((sum, pana) => sum + (formatB.grid[ank][pana]?.count ?? 0), 0);
-                                            if (rowTotal === 0 && rowBets === 0) return null;
+                                        {formatB.closePanas.map((pana) => {
+                                            const rowTotal = DIGITS.reduce((sum, d) => sum + (formatB.grid[d][pana]?.amount ?? 0), 0);
+                                            const rowBets = DIGITS.reduce((sum, d) => sum + (formatB.grid[d][pana]?.count ?? 0), 0);
                                             return (
-                                                <tr key={ank} className="border-b border-gray-700 hover:bg-gray-700/25">
-                                                    <td className="py-1.5 px-2 text-center font-bold text-amber-400 border-r-2 border-gray-600 bg-gray-700/50 font-mono text-xs">{ank}</td>
-                                                    {formatB.closePanas.map((pana) => {
-                                                        const cell = formatB.grid[ank][pana];
+                                                <tr key={pana} className="border-b border-gray-700 hover:bg-gray-700/25">
+                                                    <td className="py-1.5 px-2 text-center font-bold text-amber-400 border-r-2 border-gray-600 bg-gray-700/50 font-mono text-xs">{pana}</td>
+                                                    {DIGITS.map((d) => {
+                                                        const cell = formatB.grid[d][pana];
                                                         return (
-                                                            <td key={pana} className="p-1 border-r border-gray-700 text-center">
+                                                            <td key={d} className="p-1 border-r border-gray-700 text-center">
                                                                 <div className="rounded bg-gray-700/40 border border-gray-600 px-1.5 py-1 min-h-[2.5rem] flex flex-col items-center justify-center gap-0">
                                                                     <span className="font-mono text-amber-400 text-xs font-semibold">₹{formatNum(cell?.amount)}</span>
                                                                     <span className="font-mono text-gray-400 text-[10px]">{cell?.count ?? 0}</span>

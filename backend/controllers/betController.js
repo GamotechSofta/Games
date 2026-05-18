@@ -7,7 +7,23 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 
-const VALID_BET_TYPES = ['single', 'jodi', 'panna', 'half-sangam', 'full-sangam'];
+const VALID_BET_TYPES = [
+    'single',
+    'jodi',
+    'panna',
+    'half-sangam',
+    'full-sangam',
+    'sp-common',
+    'dp-common',
+    'cp-common',
+    'sp-motor',
+    'dp-motor',
+    'sp-dp-motor',
+    'sp-dp-motor-dp',
+    'sp-dp-motor-tp',
+    'odd-even',
+    'chart-game',
+];
 const THREE_DIGITS = /^\d{3}$/;
 
 const normalizeBetOn = (v) => {
@@ -203,10 +219,18 @@ export const placeBet = async (req, res) => {
         const labelForType = (t) => {
             const s = String(t || '').toLowerCase();
             if (s === 'single') return 'Single Ank';
-            if (s === 'jodi') return 'Digit';
+            if (s === 'jodi') return 'Jodi';
             if (s === 'panna') return 'Panna';
             if (s === 'half-sangam') return 'Half Sangam';
             if (s === 'full-sangam') return 'Full Sangam';
+            if (s === 'sp-common') return 'SP Common';
+            if (s === 'dp-common') return 'DP Common';
+            if (s === 'cp-common') return 'CP';
+            if (s === 'sp-motor') return 'SP Motor';
+            if (s === 'dp-motor') return 'DP Motor';
+            if (s === 'sp-dp-motor' || s === 'sp-dp-motor-dp') return 'SP DP Motor';
+            if (s === 'odd-even') return 'Odd Even';
+            if (s === 'chart-game') return 'Chart Game';
             return 'Bet';
         };
 
@@ -459,10 +483,18 @@ export const cancelBet = async (req, res) => {
         const labelForType = (t) => {
             const s = String(t || '').toLowerCase();
             if (s === 'single') return 'Single Ank';
-            if (s === 'jodi') return 'Digit';
+            if (s === 'jodi') return 'Jodi';
             if (s === 'panna') return 'Panna';
             if (s === 'half-sangam') return 'Half Sangam';
             if (s === 'full-sangam') return 'Full Sangam';
+            if (s === 'sp-common') return 'SP Common';
+            if (s === 'dp-common') return 'DP Common';
+            if (s === 'cp-common') return 'CP';
+            if (s === 'sp-motor') return 'SP Motor';
+            if (s === 'dp-motor') return 'DP Motor';
+            if (s === 'sp-dp-motor' || s === 'sp-dp-motor-dp') return 'SP DP Motor';
+            if (s === 'odd-even') return 'Odd Even';
+            if (s === 'chart-game') return 'Chart Game';
             return 'Bet';
         };
 

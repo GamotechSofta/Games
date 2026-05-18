@@ -157,12 +157,14 @@ const ChartBid = ({ market, title }) => {
         const betOn = String(session).toUpperCase() === 'CLOSE' ? 'close' : 'open';
         const payload = reviewRows
             .map((row) => ({
-                betType: 'panna',
-                betNumber: String(row.number || '').trim(),
+                betType: 'chart-game',
+                betNumber: row.chart && row.number
+                    ? `${row.chart}-${String(row.number).trim()}`
+                    : String(row.number || '').trim(),
                 amount: Number(row.points) || 0,
                 betOn,
             }))
-            .filter((bet) => bet.amount > 0 && /^[0-9]{3}$/.test(bet.betNumber));
+            .filter((bet) => bet.amount > 0 && bet.betNumber.length > 0);
         if (!payload.length) throw new Error('No valid bets to place');
 
         const today = new Date();
