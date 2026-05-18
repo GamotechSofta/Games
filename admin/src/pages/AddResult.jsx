@@ -300,6 +300,8 @@ const AddResult = () => {
                     profit: safeNum(previewData.data.profit),
                     totalBetAmountHalfSangam: safeNum(previewData.data.totalBetAmountHalfSangam),
                     totalBetsHalfSangam: safeNum(previewData.data.totalBetsHalfSangam),
+                    totalBetAmountMarketOpen: safeNum(previewData.data.totalBetAmountMarketOpen),
+                    totalBetAmountMarketClose: safeNum(previewData.data.totalBetAmountMarketClose),
                 });
             } else {
                 setPreview({
@@ -309,6 +311,10 @@ const AddResult = () => {
                     noOfPlayers: 0,
                     totalPlayersBetOnPatti: 0,
                     profit: 0,
+                    totalBetAmountHalfSangam: 0,
+                    totalBetsHalfSangam: 0,
+                    totalBetAmountMarketOpen: 0,
+                    totalBetAmountMarketClose: 0,
                 });
             }
         } catch (err) {
@@ -344,6 +350,8 @@ const AddResult = () => {
                     totalBetAmountHalfSangam: safeNum(data.data.totalBetAmountHalfSangam),
                     totalWinAmountHalfSangam: safeNum(data.data.totalWinAmountHalfSangam),
                     totalBetsHalfSangam: safeNum(data.data.totalBetsHalfSangam),
+                    totalBetAmountMarketOpen: safeNum(data.data.totalBetAmountMarketOpen),
+                    totalBetAmountMarketClose: safeNum(data.data.totalBetAmountMarketClose),
                 });
             } else {
                 setPreviewClose({
@@ -356,6 +364,8 @@ const AddResult = () => {
                     totalBetAmountHalfSangam: 0,
                     totalWinAmountHalfSangam: 0,
                     totalBetsHalfSangam: 0,
+                    totalBetAmountMarketOpen: 0,
+                    totalBetAmountMarketClose: 0,
                 });
             }
         } catch (err) {
@@ -822,8 +832,7 @@ const AddResult = () => {
                                     </div>
                                     {preview != null && (
                                         <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span></div>
-                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount (1st digit + 2nd digit + Jodi)</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span></div>
@@ -869,9 +878,21 @@ const AddResult = () => {
                                     </div>
                                     {preview != null && (
                                         <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmount)}</span></div>
-                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountOnPatti)}</span></div>
-                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalWinAmountOnPatti)}</span></div>
+                                            <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total bet amount on market (Open)</span><span className="font-mono text-amber-200/90 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.totalBetAmountMarketOpen)}</span></div>
+                                            <div className="flex justify-between items-start gap-3">
+                                                <div className="text-gray-400 text-xs sm:text-sm min-w-0 flex-1 leading-snug">
+                                                    <div>Total Bet Amount on Patti (Open)</div>
+                                                    <div>+ Single Digit (Open)</div>
+                                                </div>
+                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm shrink-0 whitespace-nowrap text-right">{formatNum(preview.totalBetAmountOnPatti)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-start gap-3">
+                                                <div className="text-gray-400 text-xs sm:text-sm min-w-0 flex-1 leading-snug">
+                                                    <div>Total Win Amount on Patti (Open)</div>
+                                                    <div>+ Single Digit (Open)</div>
+                                                </div>
+                                                <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm shrink-0 whitespace-nowrap text-right">{formatNum(preview.totalWinAmountOnPatti)}</span>
+                                            </div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span></div>
@@ -909,9 +930,21 @@ const AddResult = () => {
                                         </div>
                                         {previewClose != null && (
                                             <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">
-                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmount)}</span></div>
-                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Bet Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmountOnPatti)}</span></div>
-                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Amount</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalWinAmountOnPatti)}</span></div>
+                                                <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total bet amount on market (Close)</span><span className="font-mono text-amber-200/90 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.totalBetAmountMarketClose)}</span></div>
+                                                <div className="flex justify-between items-start gap-3">
+                                                    <div className="text-gray-400 text-xs sm:text-sm min-w-0 flex-1 leading-snug">
+                                                        <div>Total Bet Amount on Patti (Close)</div>
+                                                        <div>+ Single Digit (Close)</div>
+                                                    </div>
+                                                    <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm shrink-0 whitespace-nowrap text-right">{formatNum(previewClose.totalBetAmountOnPatti)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-start gap-3">
+                                                    <div className="text-gray-400 text-xs sm:text-sm min-w-0 flex-1 leading-snug">
+                                                        <div>Total Win Amount on Patti (Close)</div>
+                                                        <div>+ Single Digit (Close)</div>
+                                                    </div>
+                                                    <span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm shrink-0 whitespace-nowrap text-right">{formatNum(previewClose.totalWinAmountOnPatti)}</span>
+                                                </div>
                                                 <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.noOfPlayers)}</span></div>
                                                 <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Win Players</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(previewClose.totalPlayersBetOnPatti)}</span></div>
                                                 <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(previewClose.profit)}</span></div>
