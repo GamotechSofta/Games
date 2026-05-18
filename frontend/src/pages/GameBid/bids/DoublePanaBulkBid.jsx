@@ -392,13 +392,13 @@ const DoublePanaBulkBid = ({ market, title }) => {
                                                 className={`flex items-center gap-1.5 rounded-lg p-0.5 transition-all duration-200 ${
                                                     groupQuickSelected[groupKey] ? 'cursor-pointer' : ''
                                                 } ${
-                                                    hasBet ? 'shadow-md bg-sky-50/80' : 'focus-within:bg-sky-50/40'
+                                                    hasBet ? 'shadow-md ring-1 ring-[#d4af37]/40 bg-[#d4af37]/10' : 'focus-within:bg-white/5'
                                                 }`}
                                                 onClick={() => applyQuickToPanaCell(groupKey, num)}
                                             >
                                                 <div
-                                                    className={`w-10 h-9 border-0 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
-                                                        hasBet ? 'bg-[#0f4d8a] shadow-inner' : 'bg-[#d4af37]'
+                                                    className={`w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
+                                                        hasBet ? 'bg-[#f2c14e] text-[#4b3608] shadow-inner' : 'bg-[#d4af37] text-white'
                                                     }`}
                                                 >
                                                     {num}
@@ -419,7 +419,7 @@ const DoublePanaBulkBid = ({ market, title }) => {
                                                         }))
                                                     }
                                                     className={`no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${
-                                                        hasBet ? 'bg-white/10 shadow-inner' : 'bg-[#202124]'
+                                                        hasBet ? 'bg-[#d4af37]/15 text-[#f2c14e] shadow-inner border border-[#d4af37]/30' : 'bg-[#202124]'
                                                     }`}
                                                 />
                                             </div>
