@@ -1,9 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { useScheduling } from '../BettingWindowContext';
-import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { isValidAnyPana } from './panaRules';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
@@ -11,32 +8,31 @@ const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').sl
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
 // Half Sangam (O): Open Pana (3 digits) + Close Ank (1 digit)
-// Cross-side matching: User guesses Open Pana AND Close Ank separately
-const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSession, slotBetweenPanaAndAnk, bids: bidsProp, setBids: setBidsProp }) => {
-    const { t } = useTranslation();
-    const { setSelectedDateIST } = useScheduling();
+const HalfSangamABid = ({ market, title }) => {
     const [session, setSession] = useState('OPEN');
     const [openPana, setOpenPana] = useState('');
     const [closeAnk, setCloseAnk] = useState('');
     const [points, setPoints] = useState('');
     const pointsInputRef = useRef(null);
-    const closeAnkInputRef = useRef(null);
     const [openPanaInvalid, setOpenPanaInvalid] = useState(false);
-    const [internalBids, setInternalBids] = useState([]);
-    const bids = bidsProp !== undefined ? bidsProp : internalBids;
-    const setBids = setBidsProp !== undefined ? setBidsProp : setInternalBids;
+    const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
     const [selectedDate, setSelectedDate] = useState(() => {
-        if (scheduleForTomorrow) return getTomorrowIST();
         try {
             const savedDate = localStorage.getItem('betSelectedDate');
             if (savedDate) {
                 const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
+                // Only restore if saved date is in the future (not today)
+                if (savedDate > today) {
+                    return savedDate;
+                }
             }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
+        } catch (e) {
+            // Ignore errors
+        }
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     });
     
     // Save to localStorage when date changes
@@ -54,10 +50,6 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
         window.clearTimeout(showWarning._t);
         showWarning._t = window.setTimeout(() => setWarning(''), 2200);
     };
-
-    useEffect(() => {
-        setSelectedDateIST(selectedDate || null);
-    }, [selectedDate, setSelectedDateIST]);
 
     const walletBefore = useMemo(() => {
         try {
@@ -78,14 +70,13 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
+    const dateText = new Date().toLocaleDateString('en-GB');
 
     const totalPoints = useMemo(() => bids.reduce((sum, b) => sum + Number(b.points || 0), 0), [bids]);
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]'
-            : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
-
+            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
+            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
     const clearAll = () => {
         setIsReviewOpen(false);
@@ -120,8 +111,8 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
         today.setHours(0, 0, 0, 0);
         const selectedDateObj = new Date(selectedDate);
         selectedDateObj.setHours(0, 0, 0, 0);
-        let scheduledDate = selectedDateObj > today ? selectedDate : null;
-        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -138,12 +129,13 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
             showWarning('Open Pana must be a valid Pana (Single / Double / Triple).');
             return;
         }
-        if (!/^[0-9]$/.test(closeAnk)) {
-            showWarning('Please enter Close Ank (0-9).');
+        const enteredCloseAnk = (closeAnk ?? '').toString().trim();
+        if (!/^[0-9]$/.test(enteredCloseAnk)) {
+            showWarning('Please enter a valid Close Ank (0-9).');
             return;
         }
 
-        const numberKey = `${openPana}-${closeAnk}`;
+        const numberKey = `${openPana}-${enteredCloseAnk}`;
         setBids((prev) => {
             const next = [...prev];
             const idx = next.findIndex((b) => String(b.number) === numberKey && String(b.type) === String(session));
@@ -167,6 +159,21 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
         setPoints('');
     };
 
+    const lastAutoAddKeyRef = useRef('');
+
+    // Auto-add when inputs are valid and points entered (no Add-to-List button).
+    useEffect(() => {
+        const pts = Number(points);
+        if (!Number.isFinite(pts) || pts <= 0) return;
+        if (!isValidAnyPana(openPana)) return;
+        const enteredCloseAnk = (closeAnk ?? '').toString().trim();
+        if (!/^[0-9]$/.test(enteredCloseAnk)) return;
+        const key = `${openPana}-${enteredCloseAnk}|${session}|${pts}`;
+        if (lastAutoAddKeyRef.current === key) return;
+        lastAutoAddKeyRef.current = key;
+        handleAdd();
+    }, [openPana, closeAnk, points, session]);
+
     const handleDelete = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
 
     const openReview = () => {
@@ -186,14 +193,12 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
             showDateSession={true}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            displayDate={formatDateDisplay(selectedDate)}
             session={session}
             setSession={setSession}
             sessionOptionsOverride={['OPEN']}
             lockSessionSelect
             hideSessionSelectCaret
             hideFooter
-            slotBetweenDateSession={slotBetweenDateSession}
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -202,118 +207,93 @@ const HalfSangamABid = ({ market, title, scheduleForTomorrow, slotBetweenDateSes
                     {/* Left: inputs + actions */}
                     <div className="space-y-4">
                         {warning && (
-                            <div className="bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
+                            <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
                                 {warning}
                             </div>
                         )}
 
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterOpenPana')}:</label>
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Open Pana:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
                                     value={openPana}
-onChange={(e) => {
-                                                        const prevLen = (openPana ?? '').toString().length;
-                                                        const next = sanitizeDigits(e.target.value, 3);
-                                                        setOpenPana(next);
-                                                        setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
-                                                        if (next.length === 3 && prevLen < 3) {
-                                                            if (!isValidAnyPana(next)) {
-                                                                showWarning('Open Pana must be a valid Single / Double / Triple Pana (3 digits).');
-                                                                return;
-                                                            }
-                                                            window.requestAnimationFrame(() => {
-                                                                closeAnkInputRef.current?.focus?.();
-                                                            });
-                                                        }
-                                                    }}
-                                    placeholder={t('gameBid.pana')}
-                                    className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
-                                        openPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
-                                    }`}
-                                />
-                            </div>
-
-                            {slotBetweenPanaAndAnk && (
-                                <div className="flex flex-row items-center gap-2 py-2">
-                                    <div className="shrink-0 w-40" />
-                                    <div className="flex-1 min-w-0">{slotBetweenPanaAndAnk}</div>
-                                </div>
-                            )}
-
-                            <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterCloseAnk')}:</label>
-                                <input
-                                    ref={closeAnkInputRef}
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={closeAnk}
                                     onChange={(e) => {
-                                        const prevLen = (closeAnk ?? '').toString().length;
-                                        const next = sanitizeDigits(e.target.value, 1);
-                                        setCloseAnk(next);
-                                        if (next.length === 1 && prevLen < 1) {
+                                        const prevLen = (openPana ?? '').toString().length;
+                                        const next = sanitizeDigits(e.target.value, 3);
+                                        setOpenPana(next);
+                                        setOpenPanaInvalid(!!next && next.length === 3 && !isValidAnyPana(next));
+                                        if (next.length === 3 && prevLen < 3) {
+                                            if (!isValidAnyPana(next)) {
+                                                showWarning('Open Pana must be a valid Single / Double / Triple Pana (3 digits).');
+                                                return;
+                                            }
                                             window.requestAnimationFrame(() => {
                                                 pointsInputRef.current?.focus?.();
                                             });
                                         }
                                     }}
-                                    placeholder={t('gameBid.ank')}
-                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
+                                    placeholder="Pana"
+                                    className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
+                                        openPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-white/10'
+                                    }`}
                                 />
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-sm font-medium shrink-0 w-40">{t('gameBid.enterPoints')}:</label>
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Close Ank:</label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={closeAnk}
+                                    onChange={(e) => setCloseAnk(sanitizeDigits(e.target.value, 1))}
+                                    placeholder="Ank"
+                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-white/10 focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Points:</label>
                                 <input
                                     ref={pointsInputRef}
                                     type="text"
                                     inputMode="numeric"
                                     value={points}
                                     onChange={(e) => setPoints(sanitizePoints(e.target.value))}
-                                    placeholder={t('gameBid.point')}
-                                    className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
+                                    placeholder="Point"
+                                    className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-white/10 focus:outline-none"
                                 />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
-                            <button
-                                type="button"
-                                onClick={handleAdd}
-                                className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
-                            >
-                                {t('gameBid.addToList')}
-                            </button>
-
+                        <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
                             <button
                                 type="button"
                                 onClick={openReview}
                                 disabled={!bids.length}
                                 className={submitBtnClass(!!bids.length)}
                             >
-                                {t('gameBid.submitBet')}
+                                Submit Bet
                             </button>
                         </div>
                     </div>
 
                     {/* Right: list */}
                     <div className="mt-10 md:mt-0">
-                        <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center text-[#d4af37] font-bold text-xs sm:text-sm mb-2 px-2">
-                            <div className="truncate">{t('gameBid.sangam')}</div>
-                            <div className="truncate">{t('gameBid.amount')}</div>
-                            <div className="truncate">{t('gameBid.delete')}</div>
+                        <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-2">
+                            <div className="truncate">Sangam</div>
+                            <div className="truncate">Amount</div>
+                            <div className="truncate">Delete</div>
                         </div>
-                        <div className="h-px bg-white/10 w-full mb-2" />
+                        <div className="h-px bg-[#d4af37] w-full mb-2" />
 
                         {bids.length === 0 ? null : (
                             <div className="space-y-2">
                                 {bids.map((b) => (
                                     <div
                                         key={b.id}
-                                        className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center items-center py-2.5 px-3 bg-[#202124] rounded-lg border border-white/10 text-sm"
+                                        className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center items-center py-2.5 px-3 bg-white/5 rounded-lg border border-white/10 text-sm"
                                     >
                                         <div className="font-bold text-white truncate">{b.number}</div>
                                         <div className="font-bold text-[#f2c14e] truncate">{b.points}</div>
@@ -321,8 +301,8 @@ onChange={(e) => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDelete(b.id)}
-                                                className="p-2 text-red-400 hover:text-red-300 active:scale-95"
-                                                aria-label={t('gameBid.delete')}
+                                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                                aria-label="Delete"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                     <path
@@ -347,7 +327,7 @@ onChange={(e) => {
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey={t('gameBid.sangam')}
+                labelKey="Sangam"
                 rows={bids}
                 walletBefore={walletBefore}
                 totalBids={bids.length}

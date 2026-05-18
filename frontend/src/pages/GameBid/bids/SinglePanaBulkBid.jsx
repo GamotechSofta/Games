@@ -1,12 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { useScheduling } from '../BettingWindowContext';
-import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
+const QUICK_POINT_OPTIONS = [10, 20, 30, 40, 50];
 
 // Valid Single Panna chart (as per screenshots) grouped by sum digit (0-9)
 const SINGLE_PANA_BY_SUM = {
@@ -17,7 +15,7 @@ const SINGLE_PANA_BY_SUM = {
     '4': ['130','149','158','167','239','248','257','347','356','590','680','789'],
     '5': ['140','159','168','230','249','258','267','348','357','456','690','780'],
     '6': ['123','150','169','178','240','259','268','349','358','367','457','790'],
-    '7': ['124','133','142','151','160','179','250','278','340','359','467','890'],
+    '7': ['124','160','179','250','269','278','340','359','368','458','467','890'],
     '8': ['125','134','170','189','260','279','350','369','378','459','468','567'],
     '9': ['126','135','180','234','270','289','360','379','450','469','478','568'],
 };
@@ -27,22 +25,25 @@ const buildSinglePanas = () =>
         .sort()
         .flatMap((k) => SINGLE_PANA_BY_SUM[k]);
 
-const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
-    const { t } = useTranslation();
-    const { setSelectedDateIST } = useScheduling();
+const SinglePanaBulkBid = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(() => {
-        if (scheduleForTomorrow) return getTomorrowIST();
         try {
             const savedDate = localStorage.getItem('betSelectedDate');
             if (savedDate) {
                 const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
+                // Only restore if saved date is in the future (not today)
+                if (savedDate > today) {
+                    return savedDate;
+                }
             }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
+        } catch (e) {
+            // Ignore errors
+        }
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     });
     
     // Save to localStorage when date changes
@@ -67,10 +68,6 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         if (isRunning) setSession('CLOSE');
     }, [isRunning]);
 
-    useEffect(() => {
-        setSelectedDateIST(selectedDate || null);
-    }, [selectedDate, setSelectedDateIST]);
-
     const walletBefore = useMemo(() => {
         try {
             const u = JSON.parse(localStorage.getItem('user') || 'null');
@@ -90,7 +87,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
+    const dateText = new Date().toLocaleDateString('en-GB');
 
     const singlePanas = useMemo(() => buildSinglePanas(), []);
     const [specialInputs, setSpecialInputs] = useState(() =>
@@ -98,6 +95,10 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
     );
     const [groupBulk, setGroupBulk] = useState(() =>
         Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), '']))
+    );
+    /** Per sum-digit column: selected Quick Points brush (does not fill cells until you tap a pana). */
+    const [groupQuickSelected, setGroupQuickSelected] = useState(() =>
+        Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), null]))
     );
 
     const panasBySumDigit = useMemo(() => ({ ...SINGLE_PANA_BY_SUM }), []);
@@ -119,6 +120,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         setReviewRows([]);
         setSpecialInputs(Object.fromEntries(singlePanas.map((n) => [n, ''])));
         setGroupBulk(Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), ''])));
+        setGroupQuickSelected(Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), null])));
         // Reset scheduled date to today after bet is placed
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
@@ -145,8 +147,8 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
         today.setHours(0, 0, 0, 0);
         const selectedDateObj = new Date(selectedDate);
         selectedDateObj.setHours(0, 0, 0, 0);
-        let scheduledDate = selectedDateObj > today ? selectedDate : null;
-        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -180,20 +182,33 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg transition-all active:scale-[0.98]'
-            : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg opacity-50 cursor-not-allowed';
+            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg transition-all active:scale-[0.98]'
+            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg opacity-50 cursor-not-allowed';
+
+    const applyQuickToPanaCell = (groupKey, num) => {
+        const sel = groupQuickSelected[groupKey];
+        const delta = Number(sel);
+        if (!sel || !Number.isFinite(delta) || delta <= 0) {
+            return;
+        }
+        setSpecialInputs((prev) => {
+            const cur = Number(prev[num] || 0) || 0;
+            const next = Math.min(cur + delta, 999999);
+            return { ...prev, [num]: String(next) };
+        });
+    };
 
     return (
         <BidLayout
             market={market}
             title={title}
-            bidsCount={reviewRows.length}
-            totalPoints={totalPoints}
+            bidsCount={specialCount}
+            totalPoints={selectedTotalPoints}
             session={session}
             setSession={setSession}
+            showSessionOnMobile
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            displayDate={formatDateDisplay(selectedDate)}
             sessionRightSlot={
                 <button
                     type="button"
@@ -201,11 +216,11 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                     disabled={!canSubmit}
                     className={`hidden md:inline-flex items-center justify-center font-bold min-h-[44px] min-w-[220px] px-6 rounded-full shadow-lg transition-all whitespace-nowrap ${
                         canSubmit
-                            ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
-                            : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
+                            ? 'bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
+                            : 'bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
                     }`}
                 >
-                    {t('gameBid.submitBet')}
+                    Submit Bet
                 </button>
             }
             walletBalance={walletBefore}
@@ -214,25 +229,31 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
             contentPaddingClass="pb-28 md:pb-8"
         >
             <div className="px-3 sm:px-6 py-3">
-                {scheduleForTomorrow && (
-                    <div className="mb-3 bg-amber-500/10 border border-amber-500/30 text-amber-200 rounded-xl px-4 py-2 text-sm">
-                        Scheduling bet for <strong>tomorrow</strong>. Date is set to next day (IST).
-                    </div>
-                )}
                 {warning && (
-                    <div className="mb-3 bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
+                    <div className="mb-3 bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
                         {warning}
                     </div>
                 )}
 
+                <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1 mb-3">
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{specialCount}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{selectedTotalPoints}</div>
+                    </div>
+                </div>
+
                 {/* Same visual style as Jodi Special Mode: flat grid + small cells */}
-                <div className="space-y-5 md:space-y-0 md:grid md:grid-cols-4 md:gap-x-5 md:gap-y-10 md:items-start">
+                <div className="space-y-7 md:space-y-0 md:grid md:grid-cols-4 md:gap-x-5 md:gap-y-10 md:items-start">
                     {Array.from({ length: 10 }, (_, d) => String(d)).map((groupKey) => {
                         const list = panasBySumDigit[groupKey] || [];
                         if (!list.length) return null;
 
-                        const applyGroup = (pts) => {
-                            const p = sanitizePoints(pts);
+                        const applyGroup = (rawPts) => {
+                            const p = sanitizePoints(rawPts);
                             const n = Number(p);
                             if (!n || n <= 0) {
                                 showWarning('Please enter points.');
@@ -241,19 +262,27 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             setSpecialInputs((prev) => {
                                 const next = { ...prev };
                                 for (const num of list) {
-                                    const cur = Number(next[num] || 0) || 0;
-                                    next[num] = String(cur + n);
+                                    next[num] = String(n);
                                 }
                                 return next;
                             });
                             setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
                         };
+                        const clearGroup = () => {
+                            setSpecialInputs((prev) => {
+                                const next = { ...prev };
+                                for (const num of list) next[num] = '';
+                                return next;
+                            });
+                            setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
+                            setGroupQuickSelected((prev) => ({ ...prev, [groupKey]: null }));
+                        };
 
                         return (
-                            <div key={groupKey} className="space-y-3">
+                            <div key={groupKey} className="space-y-3 pb-1">
                                 {/* Group header: same "box + input" style */}
                                 <div className="flex items-center gap-2">
-                                    <div className="w-10 h-9 bg-[#202124] border border-white/10 text-[#f2c14e] flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
+                                    <div className="w-10 h-9 bg-[#d4af37] border-2 border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
                                         {groupKey}
                                     </div>
                                     <input
@@ -263,69 +292,122 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                         onChange={(e) =>
                                             setGroupBulk((p) => ({ ...p, [groupKey]: sanitizePoints(e.target.value) }))
                                         }
-                                        onBlur={() => {
-                                            if (groupBulk[groupKey]) applyGroup(groupBulk[groupKey]);
+                                        onBlur={(e) => {
+                                            const v = sanitizePoints(e.currentTarget.value);
+                                            if (v && Number(v) > 0) applyGroup(v);
                                         }}
                                         onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && groupBulk[groupKey]) applyGroup(groupBulk[groupKey]);
+                                            if (e.key === 'Enter') {
+                                                const v = sanitizePoints(e.currentTarget.value);
+                                                if (v && Number(v) > 0) applyGroup(v);
+                                            }
                                         }}
-                                        placeholder={t('gameBid.allPts')}
+                                        onClick={(e) => {
+                                            const v = sanitizePoints(e.currentTarget.value);
+                                            if (v && Number(v) > 0) applyGroup(v);
+                                        }}
+                                        placeholder="All pts"
+                                        title="Type points, then tap here, Apply, Enter, or leave the field — fills this column; you can still edit each Pts box."
                                         className="no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => groupBulk[groupKey] && applyGroup(groupBulk[groupKey])}
+                                        onClick={() => {
+                                            const v = groupBulk[groupKey];
+                                            if (v) applyGroup(v);
+                                        }}
                                         disabled={!groupBulk[groupKey]}
-                                        className={`h-9 px-3 rounded-md font-bold text-xs border transition-colors ${
+                                        className={`h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors ${
                                             groupBulk[groupKey]
-                                                ? 'bg-[#202124] border-[#d4af37]/40 text-[#f2c14e] hover:border-[#d4af37]'
-                                                : 'bg-[#202124] border-white/10 text-gray-500 cursor-not-allowed'
+                                                ? 'bg-white border-gray-400 text-[#f2c14e] hover:border-gray-500 hover:bg-white/10'
+                                                : 'bg-white/10 border-white/10 text-gray-400 cursor-not-allowed'
                                         }`}
-                                        title={t('gameBid.applyPointsToAll')}
+                                        title="Apply points to all numbers in this group"
                                     >
-                                        {t('gameBid.apply')}
+                                        Apply
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setSpecialInputs((prev) => {
-                                                const next = { ...prev };
-                                                for (const num of list) {
-                                                    next[num] = '';
-                                                }
-                                                return next;
-                                            });
-                                            setGroupBulk((prev) => ({ ...prev, [groupKey]: '' }));
-                                        }}
-                                        className="h-9 px-3 rounded-md font-bold text-xs border bg-[#202124] border-red-500/40 text-red-400 hover:border-red-500 transition-colors"
-                                        title={t('gameBid.clearAllPoints')}
+                                        onClick={clearGroup}
+                                        className="h-9 px-3 rounded-md font-bold text-xs border-2 border-white/10 text-gray-400 bg-[#202124] hover:bg-white/10 transition-colors"
+                                        title="Clear this group"
                                     >
-                                        {t('gameBid.clear')}
+                                        Clear
                                     </button>
+                                </div>
+                                <div className="flex items-center gap-2 w-full">
+                                    <span className="text-[11px] font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
+                                        <span>Quick</span>
+                                        <span>Points :</span>
+                                    </span>
+                                    <div className="grid grid-cols-5 gap-2 flex-1">
+                                    {QUICK_POINT_OPTIONS.map((pts) => (
+                                        <button
+                                            key={`${groupKey}-${pts}`}
+                                            type="button"
+                                            onClick={() =>
+                                                setGroupQuickSelected((p) => ({
+                                                    ...p,
+                                                    [groupKey]:
+                                                        p[groupKey] === String(pts) ? null : String(pts),
+                                                }))
+                                            }
+                                            className={`h-7 rounded-md font-semibold text-[11px] border border-white/10 transition-colors active:scale-95 ${
+                                                groupQuickSelected[groupKey] === String(pts)
+                                                    ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
+                                                    : 'text-[#f2c14e] bg-[#202124] hover:bg-white/10'
+                                            }`}
+                                        >
+                                            {pts}
+                                        </button>
+                                    ))}
+                                    </div>
                                 </div>
 
                                 {/* Two-column layout: tighten + left align only on desktop */}
                                 <div className="grid grid-cols-2 gap-3 md:grid-cols-[max-content_max-content] md:justify-start md:gap-x-4 md:gap-y-2">
-                                    {list.map((num) => (
-                                        <div key={num} className="flex items-center gap-1.5">
-                                            <div className="w-10 h-9 bg-[#202124] border border-white/10 text-[#f2c14e] flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
+                                    {list.map((num) => {
+                                        const hasBet = Number(specialInputs[num] || 0) > 0;
+                                        return (
+                                        <div
+                                            key={num}
+                                            role="presentation"
+                                            className={`flex items-center gap-1.5 rounded-lg p-0.5 transition-all duration-200 ${
+                                                groupQuickSelected[groupKey] ? 'cursor-pointer' : ''
+                                            } ${
+                                                hasBet ? 'shadow-md bg-sky-50/80' : 'focus-within:bg-sky-50/40'
+                                            }`}
+                                            onClick={() => applyQuickToPanaCell(groupKey, num)}
+                                        >
+                                            <div
+                                                className={`w-10 h-9 border-0 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
+                                                    hasBet ? 'bg-[#0f4d8a] shadow-inner' : 'bg-[#d4af37]'
+                                                }`}
+                                            >
                                                 {num}
                                             </div>
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
-                                                placeholder={t('gameBid.pts')}
+                                                placeholder="Pts"
                                                 value={specialInputs[num]}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    applyQuickToPanaCell(groupKey, num);
+                                                }}
                                                 onChange={(e) =>
                                                     setSpecialInputs((p) => ({
                                                         ...p,
                                                         [num]: sanitizePoints(e.target.value),
                                                     }))
                                                 }
-                                                className="no-spinner w-full md:w-[64px] lg:w-[72px] h-9 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
+                                                className={`no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${
+                                                    hasBet ? 'bg-white/10 shadow-inner' : 'bg-[#202124]'
+                                                }`}
                                             />
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         );
@@ -333,10 +415,10 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 </div>
             </div>
 
-            {/* {t('gameBid.submitBet')}: match Jodi Special Mode (mobile sticky, desktop inline) */}
-            <div className="md:hidden fixed left-0 right-0 bottom-[88px] z-20 px-3">
+            {/* Submit Bet: match Jodi Special Mode (mobile sticky, desktop inline) */}
+            <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3">
                 <button type="button" onClick={openReview} disabled={!canSubmit} className={submitBtnClass(canSubmit)}>
-                    {t('gameBid.submitBet')}
+                    Submit Bet
                 </button>
             </div>
 
@@ -346,7 +428,7 @@ const SinglePanaBulkBid = ({ market, title, scheduleForTomorrow }) => {
                 onSubmit={handleSubmit}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey={t('gameBid.pana')}
+                labelKey="Pana"
                 rows={reviewRows}
                 walletBefore={walletBefore}
                 totalBids={reviewRows.length}

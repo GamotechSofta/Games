@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const EasyModeBid = ({
@@ -20,10 +18,10 @@ const EasyModeBid = ({
     desktopSplit = false,
     validDoublePanas = [],
     validSinglePanas = [],
-    scheduleForTomorrow,
+    apiBetType = null, // when set, used in payload instead of derived betType (e.g. 'sp-common')
 }) => {
-    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
+    const [jodiSpecialQuickSelected, setJodiSpecialQuickSelected] = useState(null);
     const lockSessionToOpen = specialModeType === 'jodi';
     const [session, setSession] = useState(() => (lockSessionToOpen ? 'OPEN' : (market?.status === 'running' ? 'CLOSE' : 'OPEN')));
     const [bids, setBids] = useState([]);
@@ -35,6 +33,32 @@ const EasyModeBid = ({
     const [warning, setWarning] = useState('');
     const [matchingPanas, setMatchingPanas] = useState([]);
     const [selectedSum, setSelectedSum] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(() => {
+        try {
+            const savedDate = localStorage.getItem('betSelectedDate');
+            if (savedDate) {
+                const today = new Date().toISOString().split('T')[0];
+                // Only restore if saved date is in the future (not today)
+                if (savedDate > today) {
+                    return savedDate;
+                }
+            }
+        } catch (e) {
+            // Ignore errors
+        }
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    });
+    
+    // Save to localStorage when date changes
+    const handleDateChange = (newDate) => {
+        try {
+            localStorage.setItem('betSelectedDate', newDate);
+        } catch (e) {
+            // Ignore errors
+        }
+        setSelectedDate(newDate);
+    };
     const showWarning = (msg) => {
         setWarning(msg);
         window.clearTimeout(showWarning._t);
@@ -49,6 +73,10 @@ const EasyModeBid = ({
         }
         if (isRunning) setSession('CLOSE');
     }, [isRunning, lockSessionToOpen, session]);
+
+    useEffect(() => {
+        if (activeTab === 'easy') setJodiSpecialQuickSelected(null);
+    }, [activeTab]);
 
     const jodiNumbers = useMemo(
         () => Array.from({ length: 100 }, (_, i) => String(i).padStart(2, '0')),
@@ -140,7 +168,13 @@ const EasyModeBid = ({
         setInputPoints('');
     };
 
+    const lastAutoAddKeyRef = useRef('');
+
     const handleDeleteBid = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
+    const handleUpdateBidPoint = (id, value) => {
+        const clean = (value ?? '').toString().replace(/\D/g, '').slice(0, 6);
+        setBids((prev) => prev.map((b) => (b.id === id ? { ...b, points: clean } : b)));
+    };
 
     const handleAddSpecialToList = () => {
         if (specialModeType !== 'jodi' && specialModeType !== 'doublePana' && specialModeType !== 'singlePana') return;
@@ -161,7 +195,7 @@ const EasyModeBid = ({
         }
         setBids((prev) => mergeBids(prev, toAdd));
         if (specialModeType === 'jodi') {
-            setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
+            resetSpecialInputs();
         } else if (isPanaSumMode && validPanasForSumMode.length > 0) {
             setSpecialInputs(Object.fromEntries(validPanasForSumMode.map((n) => [n, ''])));
         }
@@ -194,6 +228,7 @@ const EasyModeBid = ({
         });
         if (specialModeType === 'jodi') {
             setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
+            setJodiSpecialQuickSelected(null);
         } else if (isPanaSumMode && validPanasForSumMode.length > 0) {
             setSpecialInputs(Object.fromEntries(validPanasForSumMode.map((n) => [n, ''])));
         }
@@ -321,11 +356,48 @@ const EasyModeBid = ({
     };
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
+    const specialLiveStats = useMemo(() => {
+        const isSpecialTab = showModeTabs && activeTab === 'special';
+        const canTrackSpecial =
+            specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana';
+        if (!isSpecialTab || !canTrackSpecial) return { count: bids.length, total: totalPoints };
+
+        const map = new Map();
+        for (const b of bids) {
+            const num = String(b?.number ?? '').trim();
+            const type = String(b?.type ?? session).trim() || session;
+            if (!num) continue;
+            map.set(`${num}__${type}`, { points: Number(b?.points || 0) || 0 });
+        }
+        for (const [num, pts] of Object.entries(specialInputs || {})) {
+            const p = Number(pts || 0);
+            if (!num || p <= 0) continue;
+            const key = `${String(num).trim()}__${session}`;
+            const cur = map.get(key);
+            if (cur) cur.points += p;
+            else map.set(key, { points: p });
+        }
+        let total = 0;
+        for (const item of map.values()) total += Number(item.points || 0);
+        return { count: map.size, total };
+    }, [showModeTabs, activeTab, specialModeType, bids, totalPoints, specialInputs, session]);
     const labelKey = label?.split(' ').pop() || 'Number';
-    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
+
+    // Auto-add when number + points are valid (no Add-to-List button).
+    useEffect(() => {
+        const pts = Number(inputPoints);
+        const n = inputNumber?.toString().trim() || '';
+        if (!Number.isFinite(pts) || pts <= 0) return;
+        if (!n) return;
+        if (maxLength === 2 && n.length !== 2) return;
+        if (!isValid(n)) return;
+        const key = `${n}|${pts}|${session}|${maxLength}|${labelKey}`;
+        if (lastAutoAddKeyRef.current === key) return;
+        lastAutoAddKeyRef.current = key;
+        handleAddBid();
+    }, [inputNumber, inputPoints, session, maxLength, labelKey]);
+    const dateText = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
     const marketTitle = market?.gameName || market?.marketName || title;
-    const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
     const showInvalidNumberStyle = maxLength === 3; // Pana inputs
     const isNumberComplete = !!inputNumber && (!!maxLength ? String(inputNumber).length === maxLength : true);
     const isNumberInvalid = showInvalidNumberStyle && isNumberComplete && !isValid(inputNumber);
@@ -359,121 +431,114 @@ const EasyModeBid = ({
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]'
-            : 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
+            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+
+    const quickPointValues = [10, 20, 30, 40, 50];
+    const handleQuickPointClick = (pts) => {
+        setInputPoints(String(pts));
+    };
+
+    /** Jodi special mode: add selected Quick Points to one cell (repeat clicks stack). */
+    const applyJodiQuickToCell = (num) => {
+        const delta = Number(jodiSpecialQuickSelected);
+        if (!jodiSpecialQuickSelected || !Number.isFinite(delta) || delta <= 0) {
+            return;
+        }
+        setSpecialInputs((prev) => {
+            const cur = Number(prev[num] || 0) || 0;
+            const next = Math.min(cur + delta, 999999);
+            return { ...prev, [num]: String(next) };
+        });
+    };
 
     const modeHeader = showModeTabs ? (
-        <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2 md:space-y-3">
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
                 <button
                     type="button"
                     onClick={() => setActiveTab('easy')}
-                    className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${
+                    className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
                         activeTab === 'easy'
                             ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                            : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
+                            : 'bg-[#202124] text-gray-400 border-white/10 hover:border-gray-400'
                     }`}
                 >
-                    {t('gameBid.easyMode')}
+                    EASY MODE
                 </button>
                 <button
                     type="button"
                     onClick={() => setActiveTab('special')}
-                    className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${
+                    className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
                         activeTab === 'special'
                             ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                            : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
+                            : 'bg-[#202124] text-gray-400 border-white/10 hover:border-gray-400'
                     }`}
                 >
-                    {t('gameBid.specialMode')}
+                    SPECIAL MODE
                 </button>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <div
-                            className={`${
-                                specialModeType === 'jodi' && activeTab === 'special'
-                                    ? 'w-9 h-9 rounded-full bg-black/25 flex items-center justify-center'
-                                    : ''
-                            }`}
-                        >
-                            <svg
-                                className={`${
-                                    specialModeType === 'jodi' && activeTab === 'special'
-                                        ? 'h-4 w-4 text-gray-300'
-                                        : 'h-5 w-5 text-gray-400'
-                                }`}
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <input
-                        type="text"
-                        value={formDateDisplay}
-                        readOnly
-                        className="w-full pl-12 py-3 sm:py-2.5 min-h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-sm font-bold text-center focus:outline-none"
-                    />
+            <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center">
+                    <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{specialLiveStats.count}</div>
                 </div>
-                <div className="relative">
-                    <select
-                        value={session}
-                        onChange={(e) => setSession(e.target.value)}
-                        disabled={isRunning || lockSessionToOpen}
-                        className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 ${
-                            specialModeType === 'jodi' && activeTab === 'special' && !lockSessionToOpen ? 'pr-12' : ''
-                        } rounded-full text-center focus:outline-none focus:border-[#d4af37] ${(isRunning || lockSessionToOpen) ? 'opacity-80 cursor-not-allowed' : ''}`}
-                    >
-                        {lockSessionToOpen ? (
-                            <option value="OPEN">{t('gameBid.open')}</option>
-                        ) : isRunning ? (
-                            <option value="CLOSE">{t('gameBid.close')}</option>
-                        ) : (
-                            <>
-<option value="OPEN">{t('gameBid.open')}</option>
-                            <option value="CLOSE">{t('gameBid.close')}</option>
-                            </>
-                        )}
-                    </select>
-                    {!lockSessionToOpen && (
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                            <div
-                                className={`${
-                                    specialModeType === 'jodi' && activeTab === 'special'
-                                        ? 'w-9 h-9 rounded-full bg-black/25 flex items-center justify-center'
-                                        : ''
-                                }`}
-                            >
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </div>
-                        </div>
-                    )}
+                <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center">
+                    <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{specialLiveStats.total}</div>
                 </div>
             </div>
+            {specialModeType === 'jodi' && activeTab === 'special' && (
+                <div className="flex flex-row items-center gap-2">
+                    <label className="text-gray-300 text-xs sm:text-sm font-medium shrink-0 w-24 sm:w-28">Quick Points</label>
+                    <div className="flex-1 min-w-0 grid grid-cols-5 gap-1.5 sm:gap-2">
+                        {quickPointValues.map((pts) => (
+                            <button
+                                key={pts}
+                                type="button"
+                                onClick={() => {
+                                    const val = String(pts);
+                                    setJodiSpecialQuickSelected((prev) => (prev === val ? null : val));
+                                }}
+                                className={`py-2 min-h-[36px] rounded-lg border-2 text-xs sm:text-sm font-medium transition-colors active:scale-95 ${
+                                    jodiSpecialQuickSelected === String(pts)
+                                        ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
+                                        : 'border-white/10 bg-white text-[#f2c14e] hover:border-[#d4af37]'
+                                }`}
+                            >
+                                {pts}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
+                            setJodiSpecialQuickSelected(null);
+                        }}
+                        className="px-3 sm:px-4 py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-xs sm:text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
+                    >
+                        Clear
+                    </button>
+                </div>
+            )}
         </div>
     ) : null;
 
     const bidsList = showBidsList ? (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#d4af37] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>{labelKey}</div>
-                <div>{t('gameBid.point')}</div>
-                <div>{t('gameBid.type')}</div>
-                <div>{t('common.delete')}</div>
+                <div>Point</div>
+                <div>Type</div>
+                <div>Delete</div>
             </div>
-            <div className="h-px bg-white/10 w-full mb-2"></div>
+            <div className="h-px bg-[#d4af37] w-full mb-2"></div>
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-[#202124] rounded-lg border border-white/10 text-sm"
+                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
                     >
                         <div className="font-bold text-white">
                             {maxLength === 2 && typeof bid.number === 'string' && bid.number.length === 2 ? (
@@ -485,14 +550,22 @@ const EasyModeBid = ({
                                 bid.number
                             )}
                         </div>
-                        <div className="font-bold text-[#f2c14e]">{bid.points}</div>
+                        <div className="px-0.5 min-w-0">
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                value={bid.points}
+                                onChange={(e) => handleUpdateBidPoint(bid.id, e.target.value)}
+                                className="w-full h-8 rounded-lg border border-white/10 text-center font-bold text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
+                            />
+                        </div>
                         <div className="text-sm text-gray-400">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
                                 onClick={() => handleDeleteBid(bid.id)}
-                                className="p-2 text-red-400 hover:text-red-300 active:scale-95"
-                                aria-label={t('gameBid.delete')}
+                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                aria-label="Delete"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path
@@ -509,16 +582,41 @@ const EasyModeBid = ({
         </>
     ) : null;
 
+    const resetSpecialInputs = () => {
+        if (specialModeType === 'jodi') {
+            setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
+            setJodiSpecialQuickSelected(null);
+        } else if (isPanaSumMode && validPanasForSumMode.length > 0) {
+            setSpecialInputs(Object.fromEntries(validPanasForSumMode.map((n) => [n, ''])));
+        }
+    };
+
+    /** Clear form: bids list, inputs, and special-mode point fields (does not reset schedule date). */
+    const handleFormClear = () => {
+        setBids([]);
+        setInputNumber('');
+        setInputPoints('');
+        setMatchingPanas([]);
+        setSelectedSum(null);
+        resetSpecialInputs();
+        setJodiSpecialQuickSelected(null);
+    };
+
     const clearAll = () => {
         setBids([]);
         setInputNumber('');
         setInputPoints('');
         setMatchingPanas([]);
         setSelectedSum(null);
-        if (specialModeType === 'jodi') {
-            setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
-        } else if (specialModeType === 'doublePana' && validDoublePanas.length > 0) {
-            setSpecialInputs(Object.fromEntries(validDoublePanas.map((n) => [n, ''])));
+        resetSpecialInputs();
+        setJodiSpecialQuickSelected(null);
+        // Reset scheduled date to today after bet is placed
+        const today = new Date().toISOString().split('T')[0];
+        setSelectedDate(today);
+        try {
+            localStorage.removeItem('betSelectedDate');
+        } catch (e) {
+            // Ignore errors
         }
     };
 
@@ -532,8 +630,7 @@ const EasyModeBid = ({
         if (!marketId) throw new Error('Market not found');
         const rows = bids.length ? bids : reviewRows;
         if (!rows.length) throw new Error('No bets to place');
-        const betType =
-            specialModeType === 'jodi' ? 'jodi' : (specialModeType === 'singlePana' || specialModeType === 'doublePana' ? 'panna' : 'single');
+        const betType = apiBetType || (specialModeType === 'jodi' ? 'jodi' : (specialModeType === 'singlePana' || specialModeType === 'doublePana' ? 'panna' : 'single'));
         const payload = rows.map((r) => ({
             betType,
             betNumber: String(r?.number ?? '').trim(),
@@ -541,8 +638,14 @@ const EasyModeBid = ({
             betOn: lockSessionToOpen ? 'open' : (String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open'),
         })).filter((b) => b.betNumber && b.amount > 0);
         if (!payload.length) throw new Error('No valid bets to place');
-        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
-        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        
+        // Check if date is in the future (scheduled bet)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDateObj = new Date(selectedDate);
+        selectedDateObj.setHours(0, 0, 0, 0);
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -554,8 +657,8 @@ const EasyModeBid = ({
         <BidLayout
             market={market}
             title={title}
-            bidsCount={bids.length}
-            totalPoints={totalPoints}
+            bidsCount={specialLiveStats.count}
+            totalPoints={specialLiveStats.total}
             session={session}
             setSession={setSession}
             sessionOptionsOverride={lockSessionToOpen ? ['OPEN'] : null}
@@ -567,14 +670,16 @@ const EasyModeBid = ({
                 setReviewRows(bids);
                 setIsReviewOpen(true);
             }}
-            showDateSession={!!scheduleForTomorrow}
-            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
+            showDateSession={true}
+            showSessionOnMobile={true}
             extraHeader={null}
+            selectedDate={selectedDate}
+            setSelectedDate={handleDateChange}
         >
-            <div className="px-3 sm:px-4 py-4 sm:py-2 md:max-w-7xl md:mx-auto">
-                {showModeTabs && !desktopSplit && <div className="mb-4">{modeHeader}</div>}
+            <div className="px-3 sm:px-4 py-2 sm:py-2 md:py-2 md:max-w-7xl md:mx-auto">
+                {showModeTabs && !desktopSplit && <div className="mb-2 md:mb-4">{modeHeader}</div>}
                 {warning && (
-                    <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 bg-black/95 border border-green-500/50 text-green-400 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md backdrop-blur-sm">
+                    <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#202124] border border-white/10 text-[#f2c14e] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md">
                         {warning}
                     </div>
                 )}
@@ -585,9 +690,27 @@ const EasyModeBid = ({
                             <>
                                 {showModeTabs && desktopSplit && <div className="mb-4">{modeHeader}</div>}
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 xl:grid-rows-10 xl:grid-flow-col xl:gap-2">
-                                    {jodiNumbers.map((num) => (
-                                        <div key={num} className="flex items-center gap-1.5">
-                                            <div className="w-10 h-9 bg-[#202124] border border-white/10 text-[#f2c14e] flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
+                                    {jodiNumbers.map((num) => {
+                                        const ptsVal = Number(specialInputs[num]) || 0;
+                                        const hasBet = ptsVal > 0;
+                                        return (
+                                        <div
+                                            key={num}
+                                            role="presentation"
+                                            className={`flex items-center gap-1.5 rounded-lg p-0.5 transition-all duration-200 ${
+                                                jodiSpecialQuickSelected ? 'cursor-pointer' : ''
+                                            } ${
+                                                hasBet
+                                                    ? 'shadow-md bg-sky-50/80'
+                                                    : 'focus-within:bg-sky-50/40'
+                                            }`}
+                                            onClick={() => applyJodiQuickToCell(num)}
+                                        >
+                                            <div
+                                                className={`w-10 h-9 border-0 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
+                                                    hasBet ? 'bg-[#0f4d8a] shadow-inner' : 'bg-[#d4af37]'
+                                                }`}
+                                            >
                                                 <span className="inline-flex items-center gap-1">
                                                     <span>{num[0]}</span>
                                                     <span>{num[1]}</span>
@@ -596,22 +719,27 @@ const EasyModeBid = ({
                                             <input
                                                 type="number"
                                                 min="0"
-                                                placeholder={t('gameBid.pts')}
+                                                placeholder="Pts"
                                                 value={specialInputs[num] || ''}
-                                                onChange={(e) =>
-                                                    setSpecialInputs((p) => ({
-                                                        ...p,
-                                                        [num]: e.target.value.replace(/\D/g, '').slice(0, 6),
-                                                    }))
-                                                }
-                                                className="w-full h-9 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-[#d4af37] px-2 text-xs font-semibold"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    applyJodiQuickToCell(num);
+                                                }}
+                                                onChange={(e) => {
+                                                    const nextVal = e.target.value.replace(/\D/g, '').slice(0, 6);
+                                                    setSpecialInputs((p) => ({ ...p, [num]: nextVal }));
+                                                }}
+                                                className={`w-full h-9 border-0 text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs font-semibold transition-colors ${
+                                                    hasBet ? 'bg-white/10 shadow-inner' : 'bg-[#202124]'
+                                                }`}
                                             />
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
-                                {/* Mobile: Submit button for special mode */}
+                                {/* Mobile: sticky Submit button for special mode */}
                                 {showInlineSubmit && (
-                                    <div className="md:hidden mt-4">
+                                    <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3">
                                         {(() => {
                                             const enabled = bids.length > 0 || Object.values(specialInputs).some((v) => Number(v) > 0);
                                             const disabled = bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0);
@@ -622,11 +750,14 @@ const EasyModeBid = ({
                                                     onClick={handleSubmitFromSpecial}
                                                     className={submitBtnClass(enabled)}
                                                 >
-                                                    {t('gameBid.submitBet')}
+                                                    Submit Bet
                                                 </button>
                                             );
                                         })()}
                                     </div>
+                                )}
+                                {showInlineSubmit && (
+                                    <div className="md:hidden h-15" aria-hidden="true" />
                                 )}
                             </>
                         ) : (specialModeType === 'doublePana' || specialModeType === 'singlePana') && validPanasForSumMode.length > 0 ? (
@@ -637,29 +768,49 @@ const EasyModeBid = ({
 
                                         <div className="flex flex-col gap-3 mb-4">
                                             <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
-                                                <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
-                                                    {session}
+                                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                                <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
+                                                    <input
+                                                        ref={pointsInputRef}
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        value={inputPoints}
+                                                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                        placeholder="Points"
+                                                        className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleFormClear}
+                                                        className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                                    >
+                                                        Clear
+                                                    </button>
                                                 </div>
                                             </div>
                                             <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
-                                                <input
-                                                    ref={pointsInputRef}
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    value={inputPoints}
-                                                    onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                                    placeholder={t('gameBid.point')}
-                                                    className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
-                                                />
+                                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
+                                                <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
+                                                    {quickPointValues.map((pts) => (
+                                                        <button
+                                                            key={pts}
+                                                            type="button"
+                                                            onClick={() => handleQuickPointClick(pts)}
+                                                            className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
+                                                        >
+                                                            {pts}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* Select Sum Keypad with Submit Button */}
+                                        {/* Select Sum Keypad (Single Pana styled like Single Digit Bulk) */}
                                         <div className="flex gap-4 mb-4">
-                                            <div className="flex-1 bg-[#202124] border border-white/10 rounded-xl p-2">
-                                                <h3 className="text-sm font-bold text-[#f2c14e] mb-3 text-center">Select Sum</h3>
+                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : 'bg-[#202124] border border-white/10 p-2'}`}>
+                                                {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
+                                                    <h3 className="text-sm font-bold text-[#f2c14e] mb-3 text-center">Select Sum</h3>
+                                                )}
                                                 <div className="grid grid-cols-5 sm:grid-cols-5 gap-1.5 sm:gap-2 md:gap-3">
                                                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
                                                         const totalPointsForSum = pointsBySum[num] || 0;
@@ -675,16 +826,10 @@ const EasyModeBid = ({
                                                                     e.stopPropagation();
                                                                     handleKeypadClick(num);
                                                                 }}
-                                                                onTouchStart={(e) => {
-                                                                    if (!hasPoints) return;
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleKeypadClick(num);
-                                                                }}
-                                                                className={`relative aspect-square min-h-[40px] sm:min-h-[44px] md:min-h-[48px] text-white rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none bg-[#2a2d32] border-2 border-white/10 ${
-                                                                    hasPoints 
-                                                                        ? 'cursor-pointer hover:border-[#d4af37]/60 hover:bg-[#2a2d32]/80 active:bg-[#2a2d32]' 
-                                                                        : 'cursor-not-allowed opacity-50'
+                                                                className={`relative aspect-square min-h-[40px] sm:min-h-[44px] md:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none ${
+                                                                    (specialModeType === 'singlePana' || specialModeType === 'doublePana')
+                                                                        ? `text-white bg-[#d4af37] border border-white/10 ${hasPoints ? 'cursor-pointer hover:border-[#d4af37]/50' : 'cursor-not-allowed opacity-50'}`
+                                                                        : `text-white bg-[#202124] border border-white/10 ${hasPoints ? 'cursor-pointer hover:border-gray-400 hover:bg-white/10 active:bg-black' : 'cursor-not-allowed opacity-50'}`
                                                                 }`}
                                                                 style={{ 
                                                                     touchAction: 'manipulation',
@@ -704,33 +849,52 @@ const EasyModeBid = ({
                                                     })}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center">
-                                                <button
-                                                    type="button"
-                                                    disabled={
-                                                        (specialModeType === 'jodi' || specialModeType === 'doublePana')
-                                                            ? bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0)
-                                                            : !bids.length
-                                                    }
-                                                    onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                                    className={`py-3 px-6 bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold rounded-xl shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98] ${
-                                                        (specialModeType === 'jodi' || specialModeType === 'doublePana')
-                                                            ? (bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0))
-                                                                ? 'opacity-50 cursor-not-allowed'
-                                                                : ''
-                                                            : !bids.length
-                                                                ? 'opacity-50 cursor-not-allowed'
-                                                                : ''
-                                                    }`}
-                                                >
-                                                    {t('gameBid.submitBet')}
-                                                </button>
-                                            </div>
+                                            {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
+                                                <div className="flex items-center">
+                                                    <button
+                                                        type="button"
+                                                        disabled={
+                                                            (specialModeType === 'jodi' || specialModeType === 'doublePana')
+                                                                ? bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0)
+                                                                : !bids.length
+                                                        }
+                                                        onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
+                                                        className={`py-3 px-6 bg-[#d4af37] text-[#4b3608] font-bold rounded-xl shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98] ${
+                                                            (specialModeType === 'jodi' || specialModeType === 'doublePana')
+                                                                ? (bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0))
+                                                                    ? 'opacity-50 cursor-not-allowed'
+                                                                    : ''
+                                                                : !bids.length
+                                                                    ? 'opacity-50 cursor-not-allowed'
+                                                                    : ''
+                                                        }`}
+                                                    >
+                                                        Submit Bet
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Mobile: keep list below on small screens */}
                                         {desktopSplit && <div className="md:hidden mt-4">{bidsList}</div>}
                                         {!desktopSplit && bidsList}
+
+                                        {/* Mobile: sticky submit for Single/Double Pana special mode */}
+                                        {showInlineSubmit && (specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
+                                            <>
+                                                <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3 mb-3">
+                                                    <button
+                                                        type="button"
+                                                        disabled={!bids.length}
+                                                        onClick={handleSubmitFromSpecial}
+                                                        className={submitBtnClass(!!bids.length)}
+                                                    >
+                                                        Submit Bet
+                                                    </button>
+                                                </div>
+                                                <div className="md:hidden h-16" aria-hidden="true" />
+                                            </>
+                                        )}
                                     </div>
 
                                     {/* Desktop: list on right side */}
@@ -738,7 +902,7 @@ const EasyModeBid = ({
                                 </div>
                             </>
                         ) : (
-                            <div className="bg-[#202124] border border-white/10 rounded-2xl p-4 text-center text-gray-300">
+                            <div className="bg-[#202124] border border-white/10 rounded-2xl p-4 text-center text-gray-400">
                                 <div className="text-white font-semibold mb-1">Special Mode</div>
                                 <div className="text-sm text-gray-400">This bet type uses Easy Mode only.</div>
                             </div>
@@ -764,7 +928,7 @@ const EasyModeBid = ({
                                         onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
                                         className={submitBtnClass(enabled)}
                                     >
-                                        {t('gameBid.submitBet')}
+                                        Submit Bet
                                     </button>
                                         );
                                     })()}
@@ -779,67 +943,127 @@ const EasyModeBid = ({
                                 {showModeTabs && desktopSplit && <div className="mb-4">{modeHeader}</div>}
 
                 <div className="flex flex-col gap-3 mb-4">
-                    <div className="flex flex-row items-center gap-2">
-                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
-                                        <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
-                                            {session}
-                                        </div>
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{label}:</label>
-                        <input
-                                            type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
-                            inputMode="numeric"
-                            value={inputNumber}
-                            onChange={handleNumberInputChange}
-                            placeholder={labelKey}
-                            maxLength={maxLength}
-                            className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
-                                isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
-                            }`}
-                        />
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                        <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
-                                        <input
-                                            ref={pointsInputRef}
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={inputPoints}
-                                            onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            placeholder={t('gameBid.point')}
-                                            className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
-                                        />
-                    </div>
-                </div>
-
-                                {showInlineSubmit ? (
-                                    <div className="grid grid-cols-2 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
+                    {(specialModeType === 'singlePana' || specialModeType === 'doublePana' || specialModeType === 'jodi') ? (
+                        <>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
+                                <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
+                                    {quickPointValues.map((pts) => (
                                         <button
+                                            key={pts}
                                             type="button"
-                                            onClick={handleAddBid}
-                                            className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
+                                            onClick={() => handleQuickPointClick(pts)}
+                                            className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
                                         >
-                                            {t('gameBid.addToList')}
+                                            {pts}
                                         </button>
-                                        <button
-                                            type="button"
-                                            disabled={!bids.length}
-                                            onClick={() => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                            className={submitBtnClass(!!bids.length)}
-                                        >
-                                            {t('gameBid.submitBet')}
-                                        </button>
-                                    </div>
-                                ) : (
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
+                                    <input
+                                        ref={pointsInputRef}
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={inputPoints}
+                                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        placeholder="Points"
+                                        className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                    />
                                     <button
                                         type="button"
-                                        onClick={handleAddBid}
-                                        className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98] mb-5 sm:mb-6"
+                                        onClick={handleFormClear}
+                                        className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
                                     >
-                                        {t('gameBid.addToList')}
+                                        Clear
                                     </button>
-                                )}
+                                </div>
+                            </div>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{label}:</label>
+                                <input
+                                                    type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
+                                    inputMode="numeric"
+                                    value={inputNumber}
+                                    onChange={handleNumberInputChange}
+                                    placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
+                                    maxLength={maxLength}
+                                    className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                    }`}
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{label}:</label>
+                                <input
+                                                    type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
+                                    inputMode="numeric"
+                                    value={inputNumber}
+                                    onChange={handleNumberInputChange}
+                                    placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
+                                    maxLength={maxLength}
+                                    className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                    }`}
+                                />
+                            </div>
+                            <div className="flex flex-row items-center gap-2">
+                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
+                                    <input
+                                        ref={pointsInputRef}
+                                        type="text"
+                                        inputMode="numeric"
+                                        value={inputPoints}
+                                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        placeholder="Points"
+                                        className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleFormClear}
+                                        className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                    {!(specialModeType === 'singlePana' || specialModeType === 'doublePana' || specialModeType === 'jodi') && (
+                        <div className="flex flex-row items-center gap-2">
+                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
+                            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
+                                {quickPointValues.map((pts) => (
+                                    <button
+                                        key={pts}
+                                        type="button"
+                                        onClick={() => handleQuickPointClick(pts)}
+                                        className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
+                                    >
+                                        {pts}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                                <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
+                                    <button
+                                        type="button"
+                                        disabled={!bids.length}
+                                        onClick={() => { setReviewRows(bids); setIsReviewOpen(true); }}
+                                        className={submitBtnClass(!!bids.length)}
+                                    >
+                                        Submit Bet
+                                    </button>
+                                </div>
 
                                 {/* Mobile: keep list below on small screens */}
                                 {desktopSplit && <div className="md:hidden">{bidsList}</div>}

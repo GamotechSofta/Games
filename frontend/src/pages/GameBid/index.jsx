@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { SchedulingProvider, BettingWindowProvider } from './BettingWindowContext';
+import { BettingWindowProvider } from './BettingWindowContext';
 import SingleDigitBid from './bids/SingleDigitBid';
-import SingleDigitBulkBid from './bids/SingleDigitBulkBid';
 import JodiBid from './bids/JodiBid';
 import JodiBulkBid from './bids/JodiBulkBid';
 import SinglePanaBid from './bids/SinglePanaBid';
@@ -12,13 +10,19 @@ import DoublePanaBid from './bids/DoublePanaBid';
 import DoublePanaBulkBid from './bids/DoublePanaBulkBid';
 import TriplePanaBid from './bids/TriplePanaBid';
 import FullSangamBid from './bids/FullSangamBid';
-import HalfSangamABid from './bids/HalfSangamABid';
-import HalfSangamBBid from './bids/HalfSangamBBid';
 import HalfSangamBid from './bids/HalfSangamBid';
+import SpMotorBid from './bids/SpMotorBid';
+import DpMotorBid from './bids/DpMotorBid';
+import SpDpMotorBid from './bids/SpDpMotorBid';
+import OddEvenBid from './bids/OddEvenBid';
+import SpCommonBid from './bids/SpCommonBid';
+import CpCommonBid from './bids/CpCommonBid';
+import DpCommonBid from './bids/DpCommonBid';
+import ChartBid from './bids/ChartBid';
 
 const BID_COMPONENTS = {
+    'odd even': OddEvenBid,
     'single digit': SingleDigitBid,
-    'single digit bulk': SingleDigitBulkBid,
     'jodi': JodiBid,
     'jodi bulk': JodiBulkBid,
     'single pana': SinglePanaBid,
@@ -26,21 +30,26 @@ const BID_COMPONENTS = {
     'double pana': DoublePanaBid,
     'double pana bulk': DoublePanaBulkBid,
     'triple pana': TriplePanaBid,
+    // Triple Pana Bulk option removed from UI; keep safety routing to normal Triple Pana.
+    'triple pana bulk': TriplePanaBid,
     'full sangam': FullSangamBid,
-    // Half Sangam: unified UI with Open (O) / Close (C) toggle
     'half sangam': HalfSangamBid,
-    // Legacy keys for direct navigation (e.g. deep links)
-    'half sangam (a)': HalfSangamABid,
-    'half sangam (o)': HalfSangamABid,
-    'half sangam (b)': HalfSangamBBid,
-    'half sangam (c)': HalfSangamBBid,
+    'sp motor': SpMotorBid,
+    'sp common': SpCommonBid,
+    'cp': CpCommonBid,
+    'cp (common pana)': CpCommonBid,
+    'dp common': DpCommonBid,
+    chart: ChartBid,
+    'chart game': ChartBid,
+    'dp motor': DpMotorBid,
+    'sp dp motor': SpDpMotorBid,
+    'sp dp t motor': SpDpMotorBid,
 };
 
 const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { t } = useTranslation();
-    const { market, betType, scheduleForTomorrow } = location.state || {};
+    const { market, betType } = location.state || {};
 
     useEffect(() => {
         if (!market && !location.state?.title) {
@@ -48,16 +57,14 @@ const GameBid = () => {
         }
     }, [market, location.state?.title, navigate]);
 
-    const title = betType || location.state?.title || t('gameBid.selectBetType');
+    const title = betType || location.state?.title || 'Select Bet Type';
     const key = title.toLowerCase().trim();
     const BidComponent = BID_COMPONENTS[key] || SingleDigitBid;
 
     return (
-        <SchedulingProvider>
-            <BettingWindowProvider market={market} scheduleForTomorrow={scheduleForTomorrow}>
-                <BidComponent market={market} title={title} scheduleForTomorrow={scheduleForTomorrow} />
-            </BettingWindowProvider>
-        </SchedulingProvider>
+        <BettingWindowProvider market={market}>
+            <BidComponent market={market} title={title} />
+        </BettingWindowProvider>
     );
 };
 

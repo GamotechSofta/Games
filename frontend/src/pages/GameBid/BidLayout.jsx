@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
@@ -32,8 +32,8 @@ const BidLayout = ({
     session = 'OPEN',
     setSession = () => {},
     sessionRightSlot = null,
-    /** Optional slot between date and session controls (e.g. Half Sangam flip) */
     slotBetweenDateSession = null,
+    showSessionOnMobile = false,
     // Optional: override allowed session options for this page (e.g. ['OPEN'])
     sessionOptionsOverride = null,
     // Optional: lock session dropdown (prevents selecting OPEN/CLOSE)
@@ -56,31 +56,56 @@ const BidLayout = ({
     const location = useLocation();
     const { t } = useTranslation();
     const contentRef = useRef(null);
-    const { allowed: bettingAllowed, message: bettingMessage } = useBettingWindow();
+    const { allowed: bettingAllowed, closeOnly: bettingCloseOnly, message: bettingMessage } = useBettingWindow();
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-    const wallet = Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getWalletFromStorage();
+    const [wallet, setWallet] = useState(() =>
+        Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getWalletFromStorage()
+    );
 
     const marketStatus = market?.status;
-    const isRunning = marketStatus === 'running'; // "CLOSED IS RUNNING"
-    
-    // Determine session options (no scheduling – only market status / overrides)
+    const isRunning = marketStatus === 'running';
+    const isToday = true;
+
     const sessionOptions =
         Array.isArray(sessionOptionsOverride) && sessionOptionsOverride.length
             ? sessionOptionsOverride
-            : (isRunning ? ['CLOSE'] : ['OPEN', 'CLOSE']);
+            : (isToday && (isRunning || bettingCloseOnly) ? ['CLOSE'] : ['OPEN', 'CLOSE']);
 
     useEffect(() => {
-        // If market is "CLOSED IS RUNNING", force session to CLOSE and lock it.
         if (Array.isArray(sessionOptionsOverride) && sessionOptionsOverride.length) {
             const desired = sessionOptionsOverride[0];
             if (desired && session !== desired) setSession(desired);
             return;
         }
-        // Only force CLOSE if market is running
-        if (isRunning && session !== 'CLOSE') {
+        if (isToday && (isRunning || bettingCloseOnly) && session !== 'CLOSE') {
             setSession('CLOSE');
         }
-    }, [isRunning, session, setSession, sessionOptionsOverride, sessionOptions]);
+    }, [isToday, isRunning, bettingCloseOnly, session, setSession, sessionOptionsOverride, sessionOptions]);
+
+    useEffect(() => {
+        const syncFromStorage = () => {
+            const propWallet = Number(walletBalance);
+            if (Number.isFinite(propWallet)) {
+                setWallet(propWallet);
+                return;
+            }
+            setWallet(getWalletFromStorage());
+        };
+        const onBalanceUpdated = (e) => {
+            const next = Number(e?.detail?.balance);
+            if (Number.isFinite(next)) setWallet(next);
+            else syncFromStorage();
+        };
+        syncFromStorage();
+        window.addEventListener('balanceUpdated', onBalanceUpdated);
+        window.addEventListener('userLogin', syncFromStorage);
+        window.addEventListener('storage', syncFromStorage);
+        return () => {
+            window.removeEventListener('balanceUpdated', onBalanceUpdated);
+            window.removeEventListener('userLogin', syncFromStorage);
+            window.removeEventListener('storage', syncFromStorage);
+        };
+    }, [walletBalance]);
 
     // Scroll to top when route changes
     useEffect(() => {
@@ -102,7 +127,7 @@ const BidLayout = ({
         <div className="game-bid-page min-h-screen min-h-ios-screen bg-black font-sans w-full max-w-full overflow-x-hidden">
             {/* Header - Home theme dark - iOS safe area padding */}
             <div
-                className="bg-[#202124] border-b border-white/10 py-2 flex items-center justify-between gap-2 sticky top-0 z-10 mt-4"
+                className="bg-[#202124] border-b border-white/10 py-2 flex items-center justify-between gap-2 sticky top-0 z-10"
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 <button
@@ -118,11 +143,12 @@ const BidLayout = ({
                           kingBazaarMarketKey: location.state.kingBazaarMarketKey,
                           kingBazaarMarketLabel: location.state.kingBazaarMarketLabel || 'King Bazaar',
                         }),
-                        ...(location.state?.starlineMarketKey != null && {
-                          starlineMarketKey: location.state.starlineMarketKey,
-                          starlineMarketLabel: location.state.starlineMarketLabel || 'Starline',
-                        }),
-                      };
+                            ...(location.state?.starlineMarketKey != null && {
+                              starlineMarketKey: location.state.starlineMarketKey,
+                              starlineMarketLabel: location.state.starlineMarketLabel || 'Starline',
+                            }),
+                            ...(location.state?.scheduleForTomorrow && { scheduleForTomorrow: true }),
+                          };
                       navigate('/bidoptions', { state });
                     }}
                     className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full active:scale-95 transition-colors touch-manipulation"
@@ -191,7 +217,7 @@ const BidLayout = ({
                     )}
                     
                     {/* Session Select - visible when flip slot present (one row), else hidden on mobile */}
-                    <div className={`relative flex-1 min-w-0 ${slotBetweenDateSession ? 'block' : 'hidden md:block'}`}>
+                    <div className={`relative flex-1 min-w-0 ${slotBetweenDateSession || showSessionOnMobile ? 'block' : 'hidden md:block'}`}>
                         <select
                             value={session}
                             onChange={(e) => setSession(e.target.value)}

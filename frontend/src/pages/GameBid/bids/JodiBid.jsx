@@ -1,15 +1,12 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import EasyModeBid from './EasyModeBid';
 
 const validateJodi = (n) => n && /^[0-9]{2}$/.test(n.toString().trim());
 
-const JodiBid = (props) => {
-    const { t } = useTranslation();
-    return (
+const JodiBid = (props) => (
     <EasyModeBid
         {...props}
-        label={t('gameBid.enterJodi')}
+        label="Enter Jodi"
         maxLength={2}
         validateInput={validateJodi}
         showBidsList
@@ -19,7 +16,6 @@ const JodiBid = (props) => {
         specialModeType="jodi"
         desktopSplit
     />
-    );
-};
+);
 
 export default JodiBid;

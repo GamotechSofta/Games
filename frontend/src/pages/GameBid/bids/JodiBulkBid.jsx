@@ -1,31 +1,36 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { useScheduling } from '../BettingWindowContext';
-import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
+const QUICK_POINT_OPTIONS = [10, 20, 30, 40, 50];
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
-const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
-    const { t } = useTranslation();
-    const { setSelectedDateIST } = useScheduling();
+const JodiBulkBid = ({ market, title }) => {
+    const cellRefs = useRef({});
+    const pendingFocusRef = useRef(null);
+
     const [session, setSession] = useState('OPEN');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
+    const [selectedQuickPoint, setSelectedQuickPoint] = useState(null);
     const [selectedDate, setSelectedDate] = useState(() => {
-        if (scheduleForTomorrow) return getTomorrowIST();
         try {
             const savedDate = localStorage.getItem('betSelectedDate');
             if (savedDate) {
                 const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
+                // Only restore if saved date is in the future (not today)
+                if (savedDate > today) {
+                    return savedDate;
+                }
             }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
+        } catch (e) {
+            // Ignore errors
+        }
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
     });
     
     // Save to localStorage when date changes
@@ -49,17 +54,6 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         if (session !== 'OPEN') setSession('OPEN');
     }, [session]);
 
-    useEffect(() => {
-        setSelectedDateIST(selectedDate || null);
-    }, [selectedDate, setSelectedDateIST]);
-
-    useEffect(() => {
-        return () => {
-            Object.values(bulkApplyTimers.current).forEach(clearTimeout);
-            bulkApplyTimers.current = {};
-        };
-    }, []);
-
     // cell values: key "rc" (row digit + col digit) => points string
     const [cells, setCells] = useState(() => {
         const init = {};
@@ -68,21 +62,125 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
     });
     const [rowBulk, setRowBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
     const [colBulk, setColBulk] = useState(() => Object.fromEntries(DIGITS.map((d) => [d, ''])));
-    const bulkApplyTimers = useRef({});
-    const lastAppliedRow = useRef({});
-    const lastAppliedCol = useRef({});
+    const [isDesktop, setIsDesktop] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        return window.innerWidth >= 768;
+    });
+    const [columnStart, setColumnStart] = useState(0);
+    const MOBILE_VISIBLE_COLS = 10;
 
-    const scheduleBulkApply = (type, key, value, applyFn) => {
-        const id = `${type}-${key}`;
-        if (bulkApplyTimers.current[id]) clearTimeout(bulkApplyTimers.current[id]);
-        const val = sanitizePoints(String(value ?? ''));
-        if (val) {
-            bulkApplyTimers.current[id] = setTimeout(() => {
-                applyFn(key, val);
-                delete bulkApplyTimers.current[id];
-            }, 500);
+    useEffect(() => {
+        const onResize = () => setIsDesktop(window.innerWidth >= 768);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    useEffect(() => {
+        // Reset view window when switching desktop/mobile
+        if (isDesktop) {
+            setColumnStart(0);
+        } else {
+            const maxStart = Math.max(0, DIGITS.length - MOBILE_VISIBLE_COLS);
+            setColumnStart((prev) => Math.max(0, Math.min(prev, maxStart)));
         }
-    };
+    }, [isDesktop]);
+
+    const visibleDigits = DIGITS;
+    const canSlideLeft = false;
+    const canSlideRight = false;
+
+    // Auto-apply row/column Pts after typing (no Enter or blur needed)
+    const rowApplyTimersRef = useRef({});
+    const colApplyTimersRef = useRef({});
+    const APPLY_DELAY_MS = 600;
+
+    useEffect(() => {
+        const timers = {};
+        DIGITS.forEach((r) => {
+            const val = rowBulk[r];
+            if (!val || Number(val) <= 0) return;
+            if (rowApplyTimersRef.current[r]) clearTimeout(rowApplyTimersRef.current[r]);
+            timers[r] = setTimeout(() => {
+                applyRow(r, val);
+                rowApplyTimersRef.current[r] = null;
+            }, APPLY_DELAY_MS);
+            rowApplyTimersRef.current[r] = timers[r];
+        });
+        return () => DIGITS.forEach((r) => { if (rowApplyTimersRef.current[r]) clearTimeout(rowApplyTimersRef.current[r]); });
+    }, [rowBulk]);
+
+    useEffect(() => {
+        const timers = {};
+        DIGITS.forEach((c) => {
+            const val = colBulk[c];
+            if (!val || Number(val) <= 0) return;
+            if (colApplyTimersRef.current[c]) clearTimeout(colApplyTimersRef.current[c]);
+            timers[c] = setTimeout(() => {
+                applyCol(c, val);
+                colApplyTimersRef.current[c] = null;
+            }, APPLY_DELAY_MS);
+            colApplyTimersRef.current[c] = timers[c];
+        });
+        return () => DIGITS.forEach((c) => { if (colApplyTimersRef.current[c]) clearTimeout(colApplyTimersRef.current[c]); });
+    }, [colBulk]);
+
+    // After column slide on mobile, focus the pending cell
+    useEffect(() => {
+        const p = pendingFocusRef.current;
+        if (!p) return;
+        const el = cellRefs.current[`${p.r}-${p.c}`];
+        if (el) {
+            el.focus();
+            pendingFocusRef.current = null;
+        }
+    }, [columnStart]);
+
+    const handleCellKeyDown = useCallback(
+        (e, r, c) => {
+            const key = e.key;
+            if (key !== 'ArrowLeft' && key !== 'ArrowRight' && key !== 'ArrowUp' && key !== 'ArrowDown') return;
+            const ri = DIGITS.indexOf(r);
+            const ci = DIGITS.indexOf(c);
+            if (ri === -1 || ci === -1) return;
+
+            let nextR = ri;
+            let nextC = ci;
+            if (key === 'ArrowLeft') {
+                if (ci <= 0) return;
+                nextC = ci - 1;
+            } else if (key === 'ArrowRight') {
+                if (ci >= DIGITS.length - 1) return;
+                nextC = ci + 1;
+            } else if (key === 'ArrowUp') {
+                if (ri <= 0) return;
+                nextR = ri - 1;
+            } else if (key === 'ArrowDown') {
+                if (ri >= DIGITS.length - 1) return;
+                nextR = ri + 1;
+            }
+
+            const nextRStr = DIGITS[nextR];
+            const nextCStr = DIGITS[nextC];
+
+            if (!isDesktop) {
+                const colIdx = DIGITS.indexOf(nextCStr);
+                const visibleStart = columnStart;
+                const visibleEnd = columnStart + MOBILE_VISIBLE_COLS - 1;
+                if (colIdx < visibleStart || colIdx > visibleEnd) {
+                    const newStart = Math.max(0, Math.min(colIdx, DIGITS.length - MOBILE_VISIBLE_COLS));
+                    pendingFocusRef.current = { r: nextRStr, c: nextCStr };
+                    setColumnStart(newStart);
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            e.preventDefault();
+            const el = cellRefs.current[`${nextRStr}-${nextCStr}`];
+            if (el) el.focus();
+        },
+        [isDesktop, columnStart]
+    );
 
     const walletBefore = useMemo(() => {
         try {
@@ -103,7 +201,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = selectedDate ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
+    const dateText = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
 
     const rows = useMemo(() => {
         const out = [];
@@ -126,17 +224,16 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Please enter points.');
             return;
         }
-        const lastP = lastAppliedRow.current[r] || 0;
-        lastAppliedRow.current[r] = p;
         setCells((prev) => {
             const next = { ...prev };
             for (const c of DIGITS) {
                 const key = `${r}${c}`;
-                const cur = Number(next[key] || 0) || 0;
-                next[key] = String(Math.max(0, cur - lastP + p));
+                const cur = Number(String(next[key] ?? '').replace(/\D/g, '')) || 0;
+                next[key] = sanitizePoints(String(cur + p));
             }
             return next;
         });
+        setRowBulk((prev) => ({ ...prev, [r]: '' }));
     };
 
     const applyCol = (c, pts) => {
@@ -145,22 +242,81 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
             showWarning('Please enter points.');
             return;
         }
-        const lastP = lastAppliedCol.current[c] || 0;
-        lastAppliedCol.current[c] = p;
         setCells((prev) => {
             const next = { ...prev };
             for (const r of DIGITS) {
                 const key = `${r}${c}`;
-                const cur = Number(next[key] || 0) || 0;
-                next[key] = String(Math.max(0, cur - lastP + p));
+                const cur = Number(String(next[key] ?? '').replace(/\D/g, '')) || 0;
+                next[key] = sanitizePoints(String(cur + p));
+            }
+            return next;
+        });
+        setColBulk((prev) => ({ ...prev, [c]: '' }));
+    };
+
+    const clearRow = (r) => {
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const c of DIGITS) {
+                next[`${r}${c}`] = '';
             }
             return next;
         });
     };
 
-    const clearBulkAndCells = () => {
-        Object.values(bulkApplyTimers.current).forEach(clearTimeout);
-        bulkApplyTimers.current = {};
+    const clearCol = (c) => {
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const r of DIGITS) {
+                next[`${r}${c}`] = '';
+            }
+            return next;
+        });
+    };
+
+    /** Single cell: each tap adds Quick Points to that cell only. */
+    const applyQuickPointToCell = (key) => {
+        const p = Number(selectedQuickPoint);
+        if (!p || p <= 0) return;
+        setCells((prev) => {
+            const cur = Number(String(prev[key] ?? '').replace(/\D/g, '')) || 0;
+            const sum = cur + p;
+            return { ...prev, [key]: sanitizePoints(String(sum)) };
+        });
+    };
+
+    /** BLOCK row Pts: add Quick Points to every jodi in that row (same rules as single cell). Do not write rowBulk — avoids auto-apply timer double-adding. */
+    const applyQuickPointToRow = (r) => {
+        const p = Number(selectedQuickPoint);
+        if (!p || p <= 0) return;
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const c of DIGITS) {
+                const key = `${r}${c}`;
+                const cur = Number(String(next[key] ?? '').replace(/\D/g, '')) || 0;
+                next[key] = sanitizePoints(String(cur + p));
+            }
+            return next;
+        });
+    };
+
+    /** Top BLOCK column Pts: add Quick Points to every jodi in that column. */
+    const applyQuickPointToCol = (c) => {
+        const p = Number(selectedQuickPoint);
+        if (!p || p <= 0) return;
+        setCells((prev) => {
+            const next = { ...prev };
+            for (const r of DIGITS) {
+                const key = `${r}${c}`;
+                const cur = Number(String(next[key] ?? '').replace(/\D/g, '')) || 0;
+                next[key] = sanitizePoints(String(cur + p));
+            }
+            return next;
+        });
+    };
+
+    const clearAll = () => {
+        setIsReviewOpen(false);
         setCells(() => {
             const init = {};
             for (const r of DIGITS) for (const c of DIGITS) init[`${r}${c}`] = '';
@@ -168,13 +324,7 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         });
         setRowBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
         setColBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
-        lastAppliedRow.current = {};
-        lastAppliedCol.current = {};
-    };
-
-    const clearAll = () => {
-        setIsReviewOpen(false);
-        clearBulkAndCells();
+        setSelectedQuickPoint(null);
         // Reset scheduled date to today after bet is placed
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
@@ -213,8 +363,8 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
         today.setHours(0, 0, 0, 0);
         const selectedDateObj = new Date(selectedDate);
         selectedDateObj.setHours(0, 0, 0, 0);
-        let scheduledDate = selectedDateObj > today ? selectedDate : null;
-        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -238,7 +388,6 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
             dateSessionControlClassName="md:min-h-[52px] md:text-base"
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            displayDate={formatDateDisplay(selectedDate)}
             sessionRightSlot={
                 <button
                     type="button"
@@ -246,66 +395,130 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                     disabled={!canSubmit}
                     className={`hidden md:inline-flex items-center justify-center font-bold text-base min-h-[52px] min-w-[280px] px-7 rounded-full shadow-lg transition-all whitespace-nowrap ${
                         canSubmit
-                            ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
-                            : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
+                            ? 'bg-gradient-to-r bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
+                            : 'bg-gradient-to-r bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
                     }`}
                 >
-                    {t('gameBid.submitBet')}
+                    Submit Bet
                 </button>
             }
             walletBalance={walletBefore}
             hideFooter
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
-            <div className="px-2 sm:px-4 md:px-4 py-1 md:py-1 w-full">
+            <div className="px-2 sm:px-4 md:px-1 py-1 md:py-1 w-full">
                 {warning && (
-                    <div className="mb-3 bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
+                    <div className="mb-3 bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
                         {warning}
                     </div>
                 )}
+                <div className="grid grid-cols-2 gap-1.5 md:hidden px-1 mb-3">
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{rows.length}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                    </div>
+                </div>
 
-                <div className="bg-[#202124] border border-white/10 rounded-2xl p-2 sm:p-3 md:p-3 overflow-hidden w-full">
-                    <div className="overflow-x-auto md:overflow-x-hidden scrollbar-hidden">
-                        <div
-                            className="grid w-full gap-[2px] sm:gap-1 md:gap-1"
-                            style={{
-                                gridTemplateColumns:
-                                    'clamp(34px, 10vw, 80px) clamp(6px, 1vw, 18px) repeat(10, minmax(18px, 1fr))'
-                            }}
+                <div className="hidden md:flex md:items-center md:gap-2 mb-3 px-1">
+                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap flex-1">
+                        <span className="mr-1 text-sm font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
+                            <span>Quick</span>
+                            <span>Points</span>
+                        </span>
+                        {QUICK_POINT_OPTIONS.map((pts) => (
+                            <button
+                                key={`jodi-quick-desktop-${pts}`}
+                                type="button"
+                                onClick={() =>
+                                    setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
+                                }
+                                className={`h-8 px-3 rounded-md font-semibold text-xs border transition-colors shrink-0 ${
+                                    selectedQuickPoint === pts
+                                        ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
+                                        : 'border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10'
+                                }`}
+                            >
+                                {pts}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={clearAll}
+                            className="ml-1 px-3 py-1.5 rounded-md text-sm font-semibold border border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
                         >
-                            {/* Header digits */}
-                            <div className="h-6 md:h-7" />
-                            <div className="h-6 md:h-7" />
-                            {DIGITS.map((c) => (
-                                <div
-                                    key={`h-${c}`}
-                                    className="h-6 md:h-7 w-full flex items-center justify-center text-[#f2c14e] font-bold text-[10px] md:text-sm"
-                                >
-                                    {c}
-                                </div>
-                            ))}
+                            Clear
+                        </button>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center min-w-[110px]">
+                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{rows.length}</div>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center min-w-[130px]">
+                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                    </div>
+                </div>
 
-                            {/* Column bulk inputs */}
-                            <div className="h-6 md:h-7 w-full flex items-center justify-center text-[9px] md:text-xs text-gray-400 font-semibold px-1">
-                                <span className="md:hidden leading-[10px] text-center">{t('gameBid.enterPoints')}</span>
-                                <span className="hidden md:inline">{t('gameBid.enterPoints')}</span>
+                <div className="bg-transparent border-0 rounded-none p-0 md:bg-[#202124] md:border md:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5">
+                    <div className="mb-2 md:hidden">
+                        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap">
+                            <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-300 shrink-0 leading-tight flex flex-col">
+                                <span>Quick</span>
+                                <span>Points</span>
+                            </span>
+                            {QUICK_POINT_OPTIONS.map((pts) => (
+                                <button
+                                    key={`jodi-quick-${pts}`}
+                                    type="button"
+                                    onClick={() =>
+                                        setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
+                                    }
+                                    className={`h-7 px-2.5 rounded-md font-semibold text-[11px] border transition-colors shrink-0 ${
+                                        selectedQuickPoint === pts
+                                            ? 'border-[#d4af37] bg-[#d4af37] text-[#4b3608]'
+                                            : 'border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10'
+                                    }`}
+                                >
+                                    {pts}
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={clearAll}
+                                className="ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+                    <div className="md:hidden overflow-x-hidden rounded-md border border-[#b9c0c7] bg-[#d9dde1] p-1">
+                        <div
+                            className="grid w-full gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"
+                            style={{ gridTemplateColumns: `56px repeat(${visibleDigits.length}, minmax(0, 1fr))` }}
+                        >
+                            <div className="h-6 sm:h-7 flex items-center justify-center text-[#2a9cd9] font-extrabold text-[11px] sm:text-sm tracking-wide">
+                                BLOCK
                             </div>
-                            <div className="h-6 md:h-7" />
-                            {DIGITS.map((c) => (
+                            {visibleDigits.map((c) => (
                                 <input
                                     key={`col-${c}`}
                                     type="text"
                                     inputMode="numeric"
-                                    placeholder={t('gameBid.pts')}
+                                    placeholder="Pts"
                                     value={colBulk[c]}
                                     onChange={(e) => {
-                                        const val = sanitizePoints(e.target.value);
-                                        setColBulk((p) => ({ ...p, [c]: val }));
-                                        if (!val) {
-                                            clearBulkAndCells();
-                                        } else {
-                                            scheduleBulkApply('col', c, val, applyCol);
-                                        }
+                                        const nextVal = sanitizePoints(e.target.value);
+                                        setColBulk((p) => ({ ...p, [c]: nextVal }));
+                                        if (!nextVal) clearCol(c);
+                                    }}
+                                    onPointerDown={(e) => {
+                                        if (!selectedQuickPoint) return;
+                                        e.preventDefault();
+                                        applyQuickPointToCol(c);
                                     }}
                                     onBlur={() => {
                                         if (colBulk[c]) applyCol(c, colBulk[c]);
@@ -313,31 +526,28 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                     }}
-                                    className="no-spinner w-full min-w-0 h-6 md:h-7 bg-black/40 border border-white/10 text-white rounded text-[9px] md:text-xs text-center placeholder:text-white/15 focus:outline-none focus:border-[#d4af37]"
+                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-[#2a9cd9] bg-[#e8f6ff] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
                                 />
                             ))}
 
-                            {/* Matrix rows */}
                             {DIGITS.map((r) => (
                                 <React.Fragment key={`row-${r}`}>
-                                    {/* Row label + bulk */}
-                                    <div className="flex items-center gap-1 min-w-0">
-                                        <div className="w-4 md:w-6 h-6 md:h-7 flex items-center justify-center text-[#f2c14e] font-bold text-[10px] md:text-sm">
-                                            {r}
-                                        </div>
+                                    <div className="grid grid-rows-[10px_minmax(24px,1fr)] sm:grid-rows-[12px_minmax(28px,1fr)]">
+                                        <div />
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            placeholder={t('gameBid.pts')}
+                                            placeholder="Pts"
                                             value={rowBulk[r]}
                                             onChange={(e) => {
-                                                const val = sanitizePoints(e.target.value);
-                                                setRowBulk((p) => ({ ...p, [r]: val }));
-                                                if (!val) {
-                                                    clearBulkAndCells();
-                                                } else {
-                                                    scheduleBulkApply('row', r, val, applyRow);
-                                                }
+                                                const nextVal = sanitizePoints(e.target.value);
+                                                setRowBulk((p) => ({ ...p, [r]: nextVal }));
+                                                if (!nextVal) clearRow(r);
+                                            }}
+                                            onPointerDown={(e) => {
+                                                if (!selectedQuickPoint) return;
+                                                e.preventDefault();
+                                                applyQuickPointToRow(r);
                                             }}
                                             onBlur={() => {
                                                 if (rowBulk[r]) applyRow(r, rowBulk[r]);
@@ -345,18 +555,26 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                             }}
-                                            className="no-spinner h-6 md:h-7 flex-1 min-w-0 bg-black/40 border border-white/10 text-white rounded text-[9px] md:text-xs text-center placeholder:text-white/15 focus:outline-none focus:border-[#d4af37]"
+                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-[#2a9cd9] bg-[#e8f6ff] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
                                         />
                                     </div>
-                                    <div className="h-6 md:h-7" />
-                                    {DIGITS.map((c) => {
+
+                                    {visibleDigits.map((c) => {
                                         const key = `${r}${c}`;
+                                        const hasBet = Number(cells[key] || 0) > 0;
                                         return (
-                                            <div key={key} className="flex flex-col items-center justify-center">
-                                                <div className="text-[8px] md:text-[10px] leading-none text-white/30 mb-0.5 select-none">
+                                            <div key={key} className="grid grid-rows-[10px_minmax(24px,1fr)] sm:grid-rows-[12px_minmax(28px,1fr)]">
+                                                <div
+                                                    className={`pointer-events-none text-[9px] sm:text-[11px] font-bold leading-none text-center ${
+                                                        hasBet ? 'text-[#0f2f56]' : 'text-[#353b42]'
+                                                    }`}
+                                                >
                                                     {key}
                                                 </div>
                                                 <input
+                                                    ref={(el) => {
+                                                        cellRefs.current[`${r}-${c}`] = el;
+                                                    }}
                                                     type="text"
                                                     inputMode="numeric"
                                                     value={cells[key]}
@@ -366,7 +584,17 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                                                             [key]: sanitizePoints(e.target.value),
                                                         }))
                                                     }
-                                                    className="no-spinner h-6 md:h-7 w-full bg-black/40 border border-white/10 text-white rounded text-[9px] md:text-xs text-center focus:outline-none focus:border-[#d4af37]"
+                                                    onPointerDown={(e) => {
+                                                        if (!selectedQuickPoint) return;
+                                                        e.preventDefault();
+                                                        applyQuickPointToCell(key);
+                                                    }}
+                                                    onKeyDown={(e) => handleCellKeyDown(e, r, c)}
+                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#1f2937] focus:outline-none focus:ring-1 focus:ring-[#2a9cd9] ${
+                                                        hasBet
+                                                            ? 'border border-[#2a9cd9] bg-[#eaf6ff]'
+                                                            : 'border border-[#8e9499] bg-white'
+                                                    }`}
                                                 />
                                             </div>
                                         );
@@ -375,11 +603,124 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                             ))}
                         </div>
                     </div>
+
+                    <div className="hidden md:block rounded-md border border-[#d1d5db] bg-[#e5e7eb] p-2">
+                        <div className="mb-3 grid grid-cols-[84px_repeat(10,minmax(0,1fr))] gap-2">
+                            <div className="h-8 flex items-center justify-center text-[#2a9cd9] font-extrabold text-xs tracking-wide">
+                                BLOCK
+                            </div>
+                            {visibleDigits.map((c) => (
+                                <div key={`desktop-col-${c}`} className="grid grid-cols-[32px_minmax(0,1fr)] gap-0 min-w-0">
+                                    <div />
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="Pts"
+                                        value={colBulk[c]}
+                                        onChange={(e) => {
+                                            const nextVal = sanitizePoints(e.target.value);
+                                            setColBulk((p) => ({ ...p, [c]: nextVal }));
+                                            if (!nextVal) clearCol(c);
+                                        }}
+                                        onPointerDown={(e) => {
+                                            if (!selectedQuickPoint) return;
+                                            e.preventDefault();
+                                            applyQuickPointToCol(c);
+                                        }}
+                                        onBlur={() => {
+                                            if (colBulk[c]) applyCol(c, colBulk[c]);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
+                                        }}
+                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-[#2a9cd9] bg-[#e8f6ff] px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-[84px_1fr] gap-2">
+                            <div className="grid grid-rows-10 gap-3">
+                                {DIGITS.map((r) => (
+                                    <input
+                                        key={`desktop-row-${r}`}
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="Pts"
+                                        value={rowBulk[r]}
+                                        onChange={(e) => {
+                                            const nextVal = sanitizePoints(e.target.value);
+                                            setRowBulk((p) => ({ ...p, [r]: nextVal }));
+                                            if (!nextVal) clearRow(r);
+                                        }}
+                                        onPointerDown={(e) => {
+                                            if (!selectedQuickPoint) return;
+                                            e.preventDefault();
+                                            applyQuickPointToRow(r);
+                                        }}
+                                        onBlur={() => {
+                                            if (rowBulk[r]) applyRow(r, rowBulk[r]);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
+                                        }}
+                                        className="no-spinner h-8 w-full rounded-md border border-[#2a9cd9] bg-[#e8f6ff] px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9]"
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-10 gap-x-2 gap-y-3">
+                                {DIGITS.flatMap((r) =>
+                                    visibleDigits.map((c) => {
+                                        const key = `${r}${c}`;
+                                        const hasBet = Number(cells[key] || 0) > 0;
+                                        return (
+                                            <div key={`desktop-${key}`} className="ml-8 grid w-[calc(100%-32px)] grid-cols-[32px_minmax(0,1fr)] min-w-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => applyQuickPointToCell(key)}
+                                                    className={`h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide text-white ${
+                                                        hasBet ? 'bg-[#0f4d8a]' : 'bg-[#1b3558]'
+                                                    }`}
+                                                >
+                                                    {key}
+                                                </button>
+                                                <input
+                                                    ref={(el) => {
+                                                        cellRefs.current[`${r}-${c}`] = el;
+                                                    }}
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    placeholder="Pts"
+                                                    value={cells[key]}
+                                                    onChange={(e) =>
+                                                        setCells((p) => ({
+                                                            ...p,
+                                                            [key]: sanitizePoints(e.target.value),
+                                                        }))
+                                                    }
+                                                    onPointerDown={(e) => {
+                                                        if (!selectedQuickPoint) return;
+                                                        e.preventDefault();
+                                                        applyQuickPointToCell(key);
+                                                    }}
+                                                    onKeyDown={(e) => handleCellKeyDown(e, r, c)}
+                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-[#1f2937] placeholder:text-center placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#2a9cd9] ${
+                                                        hasBet ? 'border border-[#2a9cd9] bg-[#eaf6ff]' : 'border border-[#c6cbd2] bg-white'
+                                                    }`}
+                                                />
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Sticky {t('gameBid.submitBet')} button above mobile navbar */}
-            <div className="fixed left-0 right-0 bottom-[88px] z-20 px-3 sm:px-4 md:hidden">
+            {/* Sticky Submit Bet button above mobile navbar */}
+            <div className="fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3 sm:px-4 md:hidden">
                 <div className="flex">
                     <button
                         type="button"
@@ -387,11 +728,11 @@ const JodiBulkBid = ({ market, title, scheduleForTomorrow }) => {
                         disabled={!canSubmit}
                         className={`w-full font-bold text-base py-4 min-h-[56px] rounded-xl shadow-lg transition-all ${
                             canSubmit
-                                ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
-                                : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
+                                ? 'bg-gradient-to-r bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
+                                : 'bg-gradient-to-r bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
                         }`}
                     >
-                        {t('gameBid.submitBet')}
+                        Submit Bet
                     </button>
                 </div>
             </div>

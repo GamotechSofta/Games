@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import EasyModeBid from './EasyModeBid';
 
 const validatePana = (n) => {
@@ -50,12 +49,10 @@ const getAllValidDoublePana = () => {
     return validPanas;
 };
 
-const DoublePanaBid = (props) => {
-    const { t } = useTranslation();
-    return (
+const DoublePanaBid = (props) => (
     <EasyModeBid
         {...props}
-        label={t('gameBid.enterPana')}
+        label="Enter Pana"
         maxLength={3}
         validateInput={validatePana}
         showBidsList
@@ -66,7 +63,6 @@ const DoublePanaBid = (props) => {
         specialModeType="doublePana"
         validDoublePanas={getAllValidDoublePana()}
     />
-    );
-};
+);
 
 export default DoublePanaBid;

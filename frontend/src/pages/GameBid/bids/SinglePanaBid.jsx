@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import EasyModeBid from './EasyModeBid';
 
 // Valid Single Panna set (as per chart/screenshots)
@@ -19,7 +18,7 @@ const VALID_SINGLE_PANAS = new Set([
     // sum=6
     '123','150','169','178','240','259','268','349','358','367','457','790',
     // sum=7
-    '124','133','142','151','160','179','250','278','340','359','467','890',
+    '124','160','179','250','269','278','340','359','368','458','467','890',
     // sum=8
     '125','134','170','189','260','279','350','369','378','459','468','567',
     // sum=9
@@ -32,12 +31,10 @@ const validateSinglePana = (n) => {
     return VALID_SINGLE_PANAS.has(s);
 };
 
-const SinglePanaBid = (props) => {
-    const { t } = useTranslation();
-    return (
+const SinglePanaBid = (props) => (
     <EasyModeBid
         {...props}
-        label={t('gameBid.enterPana')}
+        label="Enter Pana"
         maxLength={3}
         validateInput={validateSinglePana}
         specialModeType="singlePana"
@@ -48,7 +45,6 @@ const SinglePanaBid = (props) => {
         showModeTabs
         desktopSplit
     />
-    );
-};
+);
 
 export default SinglePanaBid;

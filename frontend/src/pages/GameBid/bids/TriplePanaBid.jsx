@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { getTomorrowIST, isPastClosingTime, formatDateDisplay } from '../../../utils/marketTiming';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 
 const isValidTriplePana = (n) => {
@@ -11,9 +9,8 @@ const isValidTriplePana = (n) => {
     return s[0] === s[1] && s[1] === s[2]; // 000, 111, ... 999
 };
 
-const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
-    const { t } = useTranslation();
-    const [activeTab, setActiveTab] = useState('easy'); // easy | special
+const TriplePanaBid = ({ market, title }) => {
+    const [activeTab, setActiveTab] = useState('special'); // special only
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [bids, setBids] = useState([]);
     const [inputNumber, setInputNumber] = useState('');
@@ -21,6 +18,32 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
     const pointsInputRef = useRef(null);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
+    const [selectedDate, setSelectedDate] = useState(() => {
+        try {
+            const savedDate = localStorage.getItem('betSelectedDate');
+            if (savedDate) {
+                const today = new Date().toISOString().split('T')[0];
+                // Only restore if saved date is in the future (not today)
+                if (savedDate > today) {
+                    return savedDate;
+                }
+            }
+        } catch (e) {
+            // Ignore errors
+        }
+        const today = new Date();
+        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    });
+    
+    // Save to localStorage when date changes
+    const handleDateChange = (newDate) => {
+        try {
+            localStorage.setItem('betSelectedDate', newDate);
+        } catch (e) {
+            // Ignore errors
+        }
+        setSelectedDate(newDate);
+    };
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -55,11 +78,76 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
     }, []);
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points || 0), 0);
+    const { displayCount, displayBetAmount } = useMemo(() => {
+        if (bids.length > 0) {
+            return { displayCount: bids.length, displayBetAmount: totalPoints };
+        }
+        if (activeTab === 'special') {
+            const vals = Object.values(specialInputs);
+            const count = vals.filter((v) => Number(v) > 0).length;
+            const amount = vals.reduce((s, v) => s + (Number(v) || 0), 0);
+            return { displayCount: count, displayBetAmount: amount };
+        }
+        const pts = Number(inputPoints) || 0;
+        const n = (inputNumber ?? '').toString().trim();
+        const easyOk = isValidTriplePana(n) && pts > 0;
+        return {
+            displayCount: easyOk ? 1 : 0,
+            displayBetAmount: easyOk ? pts : 0,
+        };
+    }, [bids, totalPoints, activeTab, specialInputs, inputNumber, inputPoints]);
+
+    const mergeBids = (prev, incoming) => {
+        const map = new Map();
+        for (const b of prev || []) {
+            const num = (b?.number ?? '').toString().trim();
+            const type = (b?.type ?? '').toString().trim();
+            const key = `${num}__${type}`;
+            map.set(key, { ...b, number: num, type, points: String(Number(b?.points || 0) || 0) });
+        }
+        for (const b of incoming || []) {
+            const num = (b?.number ?? '').toString().trim();
+            const type = (b?.type ?? '').toString().trim();
+            const key = `${num}__${type}`;
+            const pts = Number(b?.points || 0) || 0;
+            const existing = map.get(key);
+            if (existing) {
+                existing.points = String((Number(existing.points || 0) || 0) + pts);
+            } else {
+                map.set(key, {
+                    id: b?.id ?? `${Date.now()}-${Math.random()}`,
+                    number: num,
+                    points: String(pts),
+                    type,
+                });
+            }
+        }
+        return Array.from(map.values());
+    };
+
+    const quickPointValues = [10, 20, 30, 40, 50];
+    const handleQuickPointClick = (pts) => {
+        setInputPoints(String(pts));
+    };
+
+    const handleFormClearEasy = () => {
+        setBids([]);
+        setInputNumber('');
+        setInputPoints('');
+        setSpecialInputs(Object.fromEntries(tripleNumbers.map((n) => [n, ''])));
+    };
+
+    const handleDeleteBid = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
+
+    const submitBtnClass = (enabled) =>
+        enabled
+            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
+            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+
     const todayDate = new Date()
         .toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
         .replace(/\//g, '-');
-    const formDateDisplay = scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : todayDate;
-    const dateText = scheduleForTomorrow ? new Date(getTomorrowIST() + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '/') : new Date().toLocaleDateString('en-GB');
+    const dateText = new Date().toLocaleDateString('en-GB');
     const marketTitle = market?.gameName || market?.marketName || title;
     const isRunning = market?.status === 'running'; // "CLOSED IS RUNNING"
 
@@ -72,6 +160,14 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
         setInputNumber('');
         setInputPoints('');
         setSpecialInputs(Object.fromEntries(tripleNumbers.map((n) => [n, ''])));
+        // Reset scheduled date to today after bet is placed
+        const today = new Date().toISOString().split('T')[0];
+        setSelectedDate(today);
+        try {
+            localStorage.removeItem('betSelectedDate');
+        } catch (e) {
+            // Ignore errors
+        }
     };
 
     const handleCancelBet = () => {
@@ -88,8 +184,14 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
             amount: Number(b.points) || 0,
             betOn: String(b?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
-        let scheduledDate = scheduleForTomorrow ? getTomorrowIST() : undefined;
-        if (!scheduledDate && market && isPastClosingTime(market)) scheduledDate = getTomorrowIST();
+        
+        // Check if date is in the future (scheduled bet)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDateObj = new Date(selectedDate);
+        selectedDateObj.setHours(0, 0, 0, 0);
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
@@ -97,43 +199,40 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
         clearAll();
     };
 
-    const handleAddBid = () => {
+    const handleSubmitReviewEasy = () => {
+        let next = bids;
         const pts = Number(inputPoints);
-        if (!pts || pts <= 0) {
-            showWarning(t('gameBid.pleaseEnterPoints'));
-            return;
-        }
         const n = inputNumber?.toString().trim() || '';
-        if (!n) {
-            showWarning(t('gameBid.pleaseEnterTriplePana'));
-            return;
+        if (isValidTriplePana(n) && pts > 0) {
+            const bid = { id: Date.now() + Math.random(), number: n, points: String(pts), type: session };
+            next = mergeBids(bids, [bid]);
+            setBids(next);
+            setInputNumber('');
+            setInputPoints('');
         }
-        if (!isValidTriplePana(n)) {
-            showWarning(t('gameBid.invalidTriplePana'));
-            return;
+        if (next.length > 0) {
+            setIsReviewOpen(true);
+        } else {
+            showWarning('Please enter a valid triple pana (000–999) and points.');
         }
-
-        const next = [...bids, { id: Date.now(), number: n, points: String(pts), type: session }];
-        setBids(next);
-        setInputNumber('');
-        setInputPoints('');
-        setIsReviewOpen(true);
     };
 
-    const handleAddSpecialModeBids = () => {
+    const handleSubmitReviewSpecial = () => {
         const toAdd = Object.entries(specialInputs)
             .filter(([, pts]) => Number(pts) > 0)
             .map(([num, pts]) => ({ id: Date.now() + Number(num[0]), number: num, points: String(pts), type: session }));
 
-        if (!toAdd.length) {
-            showWarning(t('gameBid.pleaseEnterPointsForTriplePana'));
-            return;
+        let next = bids;
+        if (toAdd.length > 0) {
+            next = [...bids, ...toAdd];
+            setBids(next);
+            setSpecialInputs(Object.fromEntries(tripleNumbers.map((num) => [num, ''])));
         }
-
-        const next = [...bids, ...toAdd];
-        setBids(next);
-        setSpecialInputs(Object.fromEntries(tripleNumbers.map((n) => [n, ''])));
-        setIsReviewOpen(true);
+        if (next.length > 0) {
+            setIsReviewOpen(true);
+        } else {
+            showWarning('Please enter points for at least one triple pana (000-999).');
+        }
     };
 
     const handleNumberInputChange = (e) => {
@@ -167,30 +266,58 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
     const isPanaInvalid = !!inputNumber && inputNumber.length === 3 && !isValidTriplePana(inputNumber);
 
     const modeTabs = (
-        <div className="grid grid-cols-2 gap-3">
-            <button
-                type="button"
-                onClick={() => setActiveTab('easy')}
-                className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${
-                    activeTab === 'easy'
-                        ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                        : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
-                }`}
-            >
-                {t('gameBid.easyMode')}
-            </button>
-            <button
-                type="button"
-                onClick={() => setActiveTab('special')}
-                className={`min-h-[44px] py-3 rounded-lg font-bold text-sm shadow-sm border active:scale-[0.98] transition-colors ${
-                    activeTab === 'special'
-                        ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                        : 'bg-[#202124] text-gray-400 border-white/10 hover:border-[#d4af37]/50'
-                }`}
-            >
-                {t('gameBid.specialMode')}
-            </button>
+        <div className="space-y-2 md:space-y-3">
+            <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
+                <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{displayCount}</div>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{displayBetAmount}</div>
+                </div>
+            </div>
         </div>
+    );
+
+    const easyBidsList = (
+        <>
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                <div>Pana</div>
+                <div>Point</div>
+                <div>Type</div>
+                <div>Delete</div>
+            </div>
+            <div className="h-px bg-[#d4af37] w-full mb-2" />
+            <div className="space-y-2">
+                {bids.map((bid) => (
+                    <div
+                        key={bid.id}
+                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
+                    >
+                        <div className="font-bold text-white">{bid.number}</div>
+                        <div className="font-bold text-[#f2c14e]">{bid.points}</div>
+                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className="flex justify-center">
+                            <button
+                                type="button"
+                                onClick={() => handleDeleteBid(bid.id)}
+                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                aria-label="Delete"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </>
     );
 
     const dateSessionRow = (
@@ -203,7 +330,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                 </div>
                 <input
                     type="text"
-                    value={formDateDisplay}
+                    value={todayDate}
                     readOnly
                     className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-sm font-bold text-center focus:outline-none"
                 />
@@ -213,18 +340,18 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                     value={session}
                     onChange={(e) => setSession(e.target.value)}
                     disabled={isRunning}
-                    className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
+                    className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-60 cursor-not-allowed bg-white/10' : ''}`}
                 >
                     {isRunning ? (
-                        <option value="CLOSE">{t('gameBid.close')}</option>
+                        <option value="CLOSE">CLOSE</option>
                     ) : (
                         <>
-                            <option value="OPEN">{t('gameBid.open')}</option>
-                            <option value="CLOSE">{t('gameBid.close')}</option>
+                            <option value="OPEN">OPEN</option>
+                            <option value="CLOSE">CLOSE</option>
                         </>
                     )}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
@@ -237,82 +364,117 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
         <BidLayout
             market={market}
             title={title}
-            bidsCount={bids.length}
-            totalPoints={totalPoints}
-            showDateSession={!!scheduleForTomorrow}
-            displayDate={scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : undefined}
+            bidsCount={displayCount}
+            totalPoints={displayBetAmount}
+            showDateSession={true}
+            showSessionOnMobile
+            selectedDate={selectedDate}
+            setSelectedDate={handleDateChange}
             extraHeader={null}
             session={session}
             setSession={setSession}
             hideFooter
             walletBalance={walletBefore}
         >
-            <div className="px-3 sm:px-4 py-4 sm:py-2 md:max-w-3xl md:mx-auto md:items-start">
+            <div className="px-3 sm:px-4 py-2 sm:py-2 md:max-w-7xl md:mx-auto md:items-start">
                 <div className="space-y-4">
                     {warning && (
-                        <div className="bg-red-500/10 border border-red-500/30 text-red-200 rounded-xl px-4 py-3 text-sm">
+                        <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
                             {warning}
                         </div>
                     )}
-                    {modeTabs}
-                    {dateSessionRow}
-
                     {activeTab === 'easy' ? (
                         <>
-                            <div className="flex flex-col gap-3">
-                                <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.selectGameType')}:</label>
-                                    <div className="flex-1 min-w-0 bg-[#202124] border border-white/10 rounded-full py-2.5 min-h-[40px] px-4 flex items-center justify-center text-sm font-bold text-white">
-                                        {session}
+                            <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start">
+                                <div>
+                                    {modeTabs}
+                                    <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Pana:</label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={inputNumber}
+                                                onChange={handleNumberInputChange}
+                                                placeholder="Pana"
+                                                maxLength={3}
+                                                className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                                    isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                                }`}
+                                            />
+                                        </div>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                            <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
+                                                <input
+                                                    ref={pointsInputRef}
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    value={inputPoints}
+                                                    onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                                    placeholder="Points"
+                                                    className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleFormClearEasy}
+                                                    className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                                >
+                                                    Clear
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-row items-center gap-2">
+                                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Quick Points</label>
+                                            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
+                                                {quickPointValues.map((pts) => (
+                                                    <button
+                                                        key={pts}
+                                                        type="button"
+                                                        onClick={() => handleQuickPointClick(pts)}
+                                                        className="py-2 min-h-[36px] rounded-lg border-2 border-white/10 bg-white text-sm font-medium text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
+                                                    >
+                                                        {pts}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
+                                    <div className="mb-5 sm:mb-6">
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmitReviewEasy}
+                                            disabled={
+                                                !bids.length &&
+                                                !(isValidTriplePana((inputNumber ?? '').toString().trim()) && Number(inputPoints) > 0)
+                                            }
+                                            className={submitBtnClass(
+                                                !!bids.length ||
+                                                    (isValidTriplePana((inputNumber ?? '').toString().trim()) &&
+                                                        Number(inputPoints) > 0)
+                                            )}
+                                        >
+                                            Submit Bet
+                                        </button>
+                                    </div>
+                                    <div className="md:hidden">{easyBidsList}</div>
                                 </div>
-                                <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPana')}:</label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={inputNumber}
-                                        onChange={handleNumberInputChange}
-                                        placeholder={t('gameBid.pana')}
-                                        maxLength={3}
-                                        className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
-                                            isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37] focus:border-[#d4af37]'
-                                        }`}
-                                    />
-                                </div>
-                                <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-400 text-sm font-medium shrink-0 w-32">{t('gameBid.enterPoints')}:</label>
-                                    <input
-                                        ref={pointsInputRef}
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={inputPoints}
-                                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        placeholder={t('gameBid.point')}
-                                        className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
-                                    />
-                                </div>
+                                <div className="hidden md:block">{easyBidsList}</div>
                             </div>
-                            <button
-                                type="button"
-                                onClick={handleAddBid}
-                                className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]"
-                            >
-                                {t('gameBid.add')}
-                            </button>
                         </>
                     ) : (
                         <>
+                            {modeTabs}
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
                                 {tripleNumbers.map((num) => (
                                     <div key={num} className="flex items-center gap-2">
-                                        <div className="w-12 h-10 bg-[#202124] border border-white/10 text-[#f2c14e] flex items-center justify-center rounded-l-md font-bold text-sm shrink-0">
+                                        <div className="w-12 h-10 bg-[#d4af37] border-2 border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-sm shrink-0">
                                             {num}
                                         </div>
                                         <input
                                             type="text"
                                             inputMode="numeric"
-                                            placeholder={t('gameBid.pts')}
+                                            placeholder="Pts"
                                             value={specialInputs[num] || ''}
                                             onChange={(e) =>
                                                 setSpecialInputs((p) => ({
@@ -325,13 +487,18 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                                     </div>
                                 ))}
                             </div>
-                            <button
-                                type="button"
-                                onClick={handleAddSpecialModeBids}
-                                className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3 rounded-md shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all"
-                            >
-                                {t('gameBid.addToList')}
-                            </button>
+                            <div className="mb-5 sm:mb-6">
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitReviewSpecial}
+                                    disabled={!bids.length && !Object.values(specialInputs).some((v) => Number(v) > 0)}
+                                    className={submitBtnClass(
+                                        !!bids.length || Object.values(specialInputs).some((v) => Number(v) > 0)
+                                    )}
+                                >
+                                    Submit Bet
+                                </button>
+                            </div>
                         </>
                     )}
                 </div>
@@ -343,7 +510,7 @@ const TriplePanaBid = ({ market, title, scheduleForTomorrow }) => {
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}
-                labelKey={t('gameBid.pana')}
+                labelKey="Pana"
                 rows={bids}
                 walletBefore={walletBefore}
                 totalBids={bids.length}

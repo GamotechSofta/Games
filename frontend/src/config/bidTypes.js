@@ -13,15 +13,6 @@ export const BID_TYPES = {
     hasSpecialMode: true,
     specialModeDigits: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
   },
-  SINGLE_DIGIT_BULK: {
-    key: 'single',
-    label: 'Single Digit Bulk',
-    digitCount: 1,
-    validRange: [0, 9],
-    regex: /^[0-9]$/,
-    hasSpecialMode: true,
-    defaultMode: 'bulk',
-  },
   JODI: {
     key: 'jodi',
     label: 'Jodi',
@@ -85,7 +76,6 @@ export const BID_TYPES = {
 // Map bet type title to config
 export const getBidTypeConfig = (title) => {
   const t = (title || '').toLowerCase();
-  if (t.includes('single digit bulk')) return BID_TYPES.SINGLE_DIGIT_BULK;
   if (t.includes('single digit')) return BID_TYPES.SINGLE_DIGIT;
   if (t.includes('jodi bulk')) return BID_TYPES.JODI_BULK;
   if (t.includes('jodi')) return BID_TYPES.JODI;

@@ -45,7 +45,6 @@ const BidOptions = () => {
   const getGameTitle = (key) => {
     const map = {
       'Single Digit': t('gameRate.singleDigit'),
-      'Single Digit Bulk': t('gameRate.singleDigitBulk'),
       'Jodi': t('gameRate.jodi'),
       'Jodi Bulk': t('gameRate.jodiBulk'),
       'Single Pana': t('gameRate.singlePana'),
@@ -57,9 +56,40 @@ const BidOptions = () => {
       'Half Sangam': t('gameRate.halfSangam'),
       'Half Sangam (O)': t('gameRate.halfSangamOpen'),
       'Half Sangam (C)': t('gameRate.halfSangamClose'),
+      'Odd Even': 'Odd Even',
+      'SP Common': 'SP Common',
+      'DP Common': 'DP Common',
+      'CP': 'CP',
+      'SP Motor': 'SP Motor',
+      'DP Motor': 'DP Motor',
+      'SP DP Motor': 'SP DP Motor',
+      'SP DP T Motor': 'SP DP T Motor',
+      'Chart Game': 'Chart Game',
     };
     return map[key] || key;
   };
+
+  const optionDisplayOrder = [
+    'Single Digit',
+    'Jodi',
+    'Jodi Bulk',
+    'Single Pana',
+    'Single Pana Bulk',
+    'Double Pana',
+    'Double Pana Bulk',
+    'Triple Pana',
+    'Half Sangam',
+    'Full Sangam',
+    'SP Common',
+    'DP Common',
+    'CP',
+    'SP Motor',
+    'DP Motor',
+    'SP DP Motor',
+    'SP DP T Motor',
+    'Odd Even',
+    'Chart Game',
+  ];
 
   const options = [
     {
@@ -75,13 +105,13 @@ const BidOptions = () => {
       ),
     },
     {
-      id: 2,
-      title: 'Single Digit Bulk',
-      displayTitle: getGameTitle('Single Digit Bulk'),
+      id: 2.5,
+      title: 'Odd Even',
+      displayTitle: getGameTitle('Odd Even'),
       icon: (
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
-          alt={getGameTitle('Single Digit Bulk')}
+          alt={getGameTitle('Odd Even')}
           className="w-full h-full object-contain"
         />
       ),
@@ -130,6 +160,42 @@ const BidOptions = () => {
         <img
           src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
           alt={getGameTitle('Single Pana Bulk')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 6.5,
+      title: 'SP Common',
+      displayTitle: getGameTitle('SP Common'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('SP Common')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 6.6,
+      title: 'DP Common',
+      displayTitle: getGameTitle('DP Common'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          alt={getGameTitle('DP Common')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 6.55,
+      title: 'CP',
+      displayTitle: getGameTitle('CP'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('CP')}
           className="w-full h-full object-contain"
         />
       ),
@@ -194,6 +260,66 @@ const BidOptions = () => {
         />
       ),
     },
+    {
+      id: 12,
+      title: 'SP Motor',
+      displayTitle: getGameTitle('SP Motor'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('SP Motor')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 13,
+      title: 'DP Motor',
+      displayTitle: getGameTitle('DP Motor'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          alt={getGameTitle('DP Motor')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 14,
+      title: 'SP DP Motor',
+      displayTitle: getGameTitle('SP DP Motor'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('SP DP Motor')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 15,
+      title: 'SP DP T Motor',
+      displayTitle: getGameTitle('SP DP T Motor'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('SP DP T Motor')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
+    {
+      id: 16,
+      title: 'Chart Game',
+      displayTitle: getGameTitle('Chart Game'),
+      icon: (
+        <img
+          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          alt={getGameTitle('Chart Game')}
+          className="w-full h-full object-contain"
+        />
+      ),
+    },
   ];
 
   if (!market) {
@@ -236,13 +362,21 @@ const BidOptions = () => {
         const t = (opt.title || '').toString().trim();
         const allowed = new Set([
           'Single Digit',
-          'Single Digit Bulk',
+          'Odd Even',
+          'SP Common',
+          'CP',
+          'DP Common',
+          'Chart Game',
           'Single Pana',
           'Single Pana Bulk',
           'Double Pana',
           'Double Pana Bulk',
           'Triple Pana',
           'Half Sangam',
+          'SP Motor',
+          'DP Motor',
+          'SP DP Motor',
+          'SP DP T Motor',
         ]);
         return allowed.has(t);
       })
@@ -262,6 +396,14 @@ const BidOptions = () => {
         return !hideWhenRunning.has(t);
       })
     : visibleOptionsBase;
+
+  const orderedVisibleOptions = [...visibleOptions].sort((a, b) => {
+    const ia = optionDisplayOrder.indexOf(a.title);
+    const ib = optionDisplayOrder.indexOf(b.title);
+    const safeA = ia === -1 ? Number.MAX_SAFE_INTEGER : ia;
+    const safeB = ib === -1 ? Number.MAX_SAFE_INTEGER : ib;
+    return safeA - safeB;
+  });
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center">
@@ -305,7 +447,7 @@ const BidOptions = () => {
 
       {/* Grid Content */}
       <div className="w-full max-w-md lg:max-w-none px-3 sm:px-4 pt-3 sm:pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-        {visibleOptions.map((option) => (
+        {orderedVisibleOptions.map((option) => (
           <div
             key={option.id}
             onClick={() => navigate('/game-bid', {
