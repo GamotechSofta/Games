@@ -933,7 +933,7 @@ export const previewDeclareKingBazaar = async (req, res) => {
         let jodiBetAmount = 0;
         let jodiWinAmount = 0;
         
-        const allPlayers = new Set();
+        const poolPlayers = new Set();
         const firstDigitPlayers = new Set();
         const secondDigitPlayers = new Set();
         const jodiPlayers = new Set();
@@ -945,7 +945,9 @@ export const previewDeclareKingBazaar = async (req, res) => {
             const betOn = (bet.betOn || '').toString().toLowerCase().trim();
             
             totalBetAmount += amount;
-            if (bet.userId) allPlayers.add(bet.userId.toString());
+            if (bet.userId && (betType === 'single' || betType === 'jodi')) {
+                poolPlayers.add(bet.userId.toString());
+            }
 
             // Check if this bet wins with the declared result
             if (betType === 'single') {
@@ -984,7 +986,7 @@ export const previewDeclareKingBazaar = async (req, res) => {
                 totalBetAmount,
                 totalBetAmountOnPatti,
                 totalWinAmountOnPatti,
-                noOfPlayers: allPlayers.size,
+                noOfPlayers: poolPlayers.size,
                 totalPlayersBetOnPatti,
                 profit,
             },
