@@ -956,45 +956,6 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                     Viewing totals: <strong>{effectiveView === 'open' ? 'Open' : 'Closed'}</strong> bets
                                     {isStartline && <span className="text-gray-500"> (Starline: open only)</span>}
                                 </p>
-                                {(resultOnPatti?.open || resultOnPatti?.close) && (
-                                    <div className="mt-3 pt-3 border-t border-gray-600 space-y-2 text-[10px] sm:text-[11px]">
-                                        <p className="text-gray-400 font-semibold uppercase tracking-wider">Result on Patti</p>
-                                        {resultOnPatti?.open && (
-                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
-                                                <p className="text-gray-500 font-medium mb-1">Open</p>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Bet Amount</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Amount</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Players</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {resultOnPatti?.close && (
-                                            <div className="rounded bg-gray-700/40 border border-gray-600 p-2 sm:p-2.5 space-y-2">
-                                                <p className="text-gray-500 font-medium mb-1">Close</p>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Bet Amount</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Amount</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-0.5 sm:flex-row sm:justify-between sm:items-center gap-1">
-                                                    <span className="text-gray-400 min-w-0">Total Win Players</span>
-                                                    <span className="font-mono text-amber-400 shrink-0">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         </div>
                         <div className="flex items-start sm:items-center gap-2.5 min-w-0">
@@ -1029,6 +990,56 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                 {/* All games shown in both views; section data updates by Open/Closed (other view = blank). */}
                 <div key={`sections-${statusView}`} className="space-y-4">
+                    {!isKingBazaar && (resultOnPatti?.open || resultOnPatti?.close) && (
+                        <SectionCard
+                            title="Result on Patti"
+                            subtitle={
+                                hasOpen && hasClose
+                                    ? `Open ${market.openingNumber} · Close ${market.closingNumber} — matching patti / ank bets`
+                                    : hasOpen
+                                      ? `Open ${market.openingNumber} — matching patti / ank bets`
+                                      : `Close ${market.closingNumber} — matching patti / ank bets`
+                            }
+                        >
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {resultOnPatti?.open && (
+                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4 space-y-2.5">
+                                        <p className="text-sm font-semibold text-yellow-500">Open</p>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Bet Amount</span>
+                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Win Amount</span>
+                                            <span className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Win Players</span>
+                                            <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                                {resultOnPatti?.close && (
+                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4 space-y-2.5">
+                                        <p className="text-sm font-semibold text-yellow-500">Close</p>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Bet Amount</span>
+                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Win Amount</span>
+                                            <span className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Win Players</span>
+                                            <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </SectionCard>
+                    )}
+
                     {isKingBazaar ? (
                         <>
                             <StatTable
