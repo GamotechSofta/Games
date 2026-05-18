@@ -302,6 +302,10 @@ const AddResult = () => {
                     totalBetsHalfSangam: safeNum(previewData.data.totalBetsHalfSangam),
                     totalBetAmountMarketOpen: safeNum(previewData.data.totalBetAmountMarketOpen),
                     totalBetAmountMarketClose: safeNum(previewData.data.totalBetAmountMarketClose),
+                    jodiStartDigit: previewData.data.jodiStartDigit ?? null,
+                    totalJodiBets: safeNum(previewData.data.totalJodiBets),
+                    startDigitJodiBets: safeNum(previewData.data.startDigitJodiBets),
+                    jodiStartDigitPercent: safeNum(previewData.data.jodiStartDigitPercent),
                 });
             } else {
                 setPreview({
@@ -315,6 +319,10 @@ const AddResult = () => {
                     totalBetsHalfSangam: 0,
                     totalBetAmountMarketOpen: 0,
                     totalBetAmountMarketClose: 0,
+                    jodiStartDigit: null,
+                    totalJodiBets: 0,
+                    startDigitJodiBets: 0,
+                    jodiStartDigitPercent: 0,
                 });
             }
         } catch (err) {
@@ -896,6 +904,19 @@ const AddResult = () => {
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players participate</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.noOfPlayers)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total no of players Won</span><span className="font-mono text-white bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm">{formatNum(preview.totalPlayersBetOnPatti)}</span></div>
                                             <div className="flex justify-between items-center gap-2"><span className="text-gray-400 text-xs sm:text-sm shrink-0">Total Profit</span><span className="font-mono text-yellow-400 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm truncate">{formatNum(preview.profit)}</span></div>
+                                            {preview.jodiStartDigit != null && (
+                                                <div className="flex justify-between items-center gap-2 border-t border-gray-600/80 pt-2 mt-0.5">
+                                                    <span className="text-gray-400 text-xs sm:text-sm shrink-0">
+                                                        Jodi % (start {preview.jodiStartDigit})
+                                                    </span>
+                                                    <span className="font-mono text-sky-300/95 bg-gray-700 px-2 py-1 rounded text-xs sm:text-sm shrink-0 whitespace-nowrap">
+                                                        {Number(preview.jodiStartDigitPercent).toFixed(2)}%
+                                                        <span className="text-gray-500 text-[10px] sm:text-xs ml-1">
+                                                            ({formatNum(preview.startDigitJodiBets)}/{formatNum(preview.totalJodiBets)})
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                     <button

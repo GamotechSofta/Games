@@ -655,6 +655,10 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
             totalPlayersInMarket: 0,
             totalBetAmountMarketOpen: 0,
             totalBetAmountMarketClose: 0,
+            jodiStartDigit: null,
+            totalJodiBets: 0,
+            startDigitJodiBets: 0,
+            jodiStartDigitPercent: 0,
         };
     }
     const marketIdStr = String(marketId).trim();
@@ -750,6 +754,31 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
     }
     totalBetAmountHalfSangam = Math.round(totalBetAmountHalfSangam * 100) / 100;
 
+    // Jodi % (start digit = open ank): today's 2-digit jodi bets where 1st digit matches open ank
+    const matchJodi = {
+        $or: [{ marketId: oid }, { marketId: marketIdStr }],
+        betType: 'jodi',
+        status: { $ne: 'cancelled' },
+        ...todayRunFilter(),
+    };
+    if (hasBookieFilter) matchJodi.userId = { $in: bookieUserIds };
+    const jodiBetsToday = await Bet.find(matchJodi).lean();
+    let totalJodiBets = 0;
+    let startDigitJodiBets = 0;
+    const jodiStartDigit = lastDigitOpen;
+    for (const bet of jodiBetsToday) {
+        const jodiNum = (bet.betNumber || '').toString().trim().replace(/\D/g, '');
+        if (!/^[0-9]{2}$/.test(jodiNum)) continue;
+        totalJodiBets += 1;
+        if (jodiStartDigit != null && jodiNum[0] === jodiStartDigit) {
+            startDigitJodiBets += 1;
+        }
+    }
+    const jodiStartDigitPercent =
+        totalJodiBets > 0
+            ? Math.round((startDigitJodiBets / totalJodiBets) * 10000) / 100
+            : 0;
+
     totalBetAmount = Math.round(totalBetAmount * 100) / 100;
     totalWinAmount = Math.round(totalWinAmount * 100) / 100;
     totalBetAmountOnPatti = Math.round(totalBetAmountOnPatti * 100) / 100;
@@ -769,6 +798,10 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
         totalPlayersInMarket: allMarketUserIds.size,
         totalBetAmountHalfSangam,
         totalBetsHalfSangam: halfSangamBets.length,
+        jodiStartDigit,
+        totalJodiBets,
+        startDigitJodiBets,
+        jodiStartDigitPercent,
         ...sessionMarketTotals,
     };
 }
