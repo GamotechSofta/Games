@@ -20,6 +20,16 @@ export function isSinglePatti(patti) {
     return a !== b && b !== c && a !== c;
 }
 
+/** Double patti: exactly two of three digits match (not triple). */
+export function isDoublePatti(patti) {
+    const s = String(patti ?? '').trim();
+    if (!/^\d{3}$/.test(s)) return false;
+    const a = s[0], b = s[1], c = s[2];
+    const allSame = a === b && b === c;
+    const twoSame = a === b || b === c || a === c;
+    return twoSame && !allSame;
+}
+
 /**
  * Builds a summary of Single Patti bets grouped by FIRST digit (0–9).
  * Used for the admin "Single Patti summary bar": each column = total amount and count

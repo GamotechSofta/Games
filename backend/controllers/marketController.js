@@ -19,6 +19,7 @@ import {
     betMatchesDeclaredClosePatti,
     betMatchesDeclaredCloseAnk,
     computeDeclaredCloseWinPayout,
+    parseHalfSangamBetNumber,
 } from '../utils/settleBets.js';
 import { ensureResultsResetForNewDay } from '../utils/resultReset.js';
 import { getRatesMap } from '../models/rate/rate.js';
@@ -632,6 +633,7 @@ export const getWinningBetsPreview = async (req, res) => {
 
         let winningBets = [];
         let totalWinAmount = 0;
+        let totalPlayersBetOnPatti = 0;
         let declareType = '';
         let number = '';
 
@@ -639,12 +641,16 @@ export const getWinningBetsPreview = async (req, res) => {
             const result = await getWinningBetsForOpen(marketId, openingNumber, optionsOpen);
             winningBets = result.winningBets;
             totalWinAmount = result.totalWinAmount;
+            totalPlayersBetOnPatti = result.totalPlayersBetOnPatti ?? 0;
             declareType = 'open';
             number = openingNumber;
         } else if (closingNumber && /^\d{3}$/.test(closingNumber)) {
             const result = await getWinningBetsForClose(marketId, closingNumber, { bookieUserIds: bookieUserIds ?? undefined });
             winningBets = result.winningBets;
             totalWinAmount = result.totalWinAmount;
+            totalPlayersBetOnPatti = new Set(
+                winningBets.map((w) => w.bet?.userId?.toString()).filter(Boolean)
+            ).size;
             declareType = 'close';
             number = closingNumber;
         } else {
@@ -656,19 +662,25 @@ export const getWinningBetsPreview = async (req, res) => {
         const userMap = new Map(users.map((u) => [u._id.toString(), u.username]));
 
         const list = winningBets.map((w) => ({
+            betId: w.bet._id?.toString(),
             userId: w.bet.userId,
             username: userMap.get(w.bet.userId.toString()) || '—',
             betType: w.bet.betType,
             betNumber: w.bet.betNumber,
             amount: w.bet.amount,
             payout: w.payout,
+            betOn: w.bet.betOn,
         }));
+
+        const payoutFromList =
+            Math.round(list.reduce((sum, row) => sum + (Number(row.payout) || 0), 0) * 100) / 100;
 
         res.status(200).json({
             success: true,
             data: {
                 winningBets: list,
-                totalWinAmount,
+                totalWinAmount: payoutFromList,
+                totalPlayersBetOnPatti: new Set(list.map((r) => String(r.userId))).size,
                 declareType,
                 number,
                 marketName: market.marketName,
@@ -761,19 +773,24 @@ export const getWinningBetsPreviewKingBazaar = async (req, res) => {
         const userMap = new Map(users.map((u) => [u._id.toString(), u.username]));
 
         const list = winningBets.map((w) => ({
+            betId: w.bet._id?.toString(),
             userId: w.bet.userId,
             username: userMap.get(w.bet.userId.toString()) || '—',
             betType: w.bet.betType,
             betNumber: w.bet.betNumber,
             amount: w.bet.amount,
             payout: w.payout,
+            betOn: w.bet.betOn,
         }));
+
+        const payoutFromList =
+            Math.round(list.reduce((sum, row) => sum + (Number(row.payout) || 0), 0) * 100) / 100;
 
         res.status(200).json({
             success: true,
             data: {
                 winningBets: list,
-                totalWinAmount,
+                totalWinAmount: payoutFromList,
                 declareType: 'king',
                 number: jodi,
                 marketName: market.marketName,
@@ -1319,13 +1336,12 @@ export const getMarketStats = async (req, res) => {
             }
 
             if (type === 'half-sangam') {
-                const parts = num.split('-').map((p) => (p || '').trim()).filter(Boolean);
-                const a = parts[0] || '';
-                const b = parts[1] || '';
-                const isFormatA = /^[0-9]{3}$/.test(a) && /^[0-9]$/.test(b);
-                const isFormatB = /^[0-9]$/.test(a) && /^[0-9]{3}$/.test(b);
-                if (isFormatA || isFormatB) {
-                    const key = `${a}-${b}`;
+                const parsed = parseHalfSangamBetNumber(num);
+                if (parsed) {
+                    const key =
+                        parsed.format === 'open-half'
+                            ? `${parsed.openPana}-${parsed.closeAnk}`
+                            : `${parsed.openAnk}-${parsed.closePana}`;
                     if (!stats.halfSangam.items[key]) stats.halfSangam.items[key] = { amount: 0, count: 0 };
                     stats.halfSangam.items[key].amount += amount;
                     stats.halfSangam.items[key].count += 1;

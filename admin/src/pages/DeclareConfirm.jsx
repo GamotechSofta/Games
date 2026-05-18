@@ -1,10 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
+const BET_TYPE_LABELS = {
+    single: 'Single Digit',
+    jodi: 'Jodi',
+    panna: 'Panna',
+    'half-sangam': 'Half Sangam',
+    'full-sangam': 'Full Sangam',
+    'sp-common': 'SP Common',
+    'dp-common': 'DP Common',
+    'cp-common': 'CP Common',
+    'sp-motor': 'SP Motor',
+    'dp-motor': 'DP Motor',
+    'sp-dp-motor': 'SP DP Motor',
+    'sp-dp-motor-dp': 'SP DP Motor (DP)',
+    'sp-dp-motor-tp': 'SP DP Motor (TP)',
+    'odd-even': 'Odd Even',
+    'chart-game': 'Chart Game',
+};
+
+const pannaSubtypeLabel = (betNumber) => {
+    const s = String(betNumber || '').trim();
+    if (!/^\d{3}$/.test(s)) return 'Panna';
+    const [a, b, c] = s;
+    if (a === b && b === c) return 'Triple Patti';
+    if (a === b || b === c || a === c) return 'Double Patti';
+    return 'Single Patti';
+};
+
+const formatBetTypeDisplay = (betType, betNumber, betOn) => {
+    const key = (betType || '').toString().toLowerCase().trim();
+    let label = key === 'panna' ? pannaSubtypeLabel(betNumber) : BET_TYPE_LABELS[key];
+    if (!label) {
+        label = (betType || '')
+            .toString()
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    const session = (betOn || '').toString().toLowerCase().trim();
+    if (session === 'open' || session === 'close') {
+        label = `${label} (${session.charAt(0).toUpperCase()}${session.slice(1)})`;
+    }
+    return label || '—';
+};
 
 const DeclareConfirm = () => {
     const navigate = useNavigate();
@@ -145,6 +187,22 @@ const DeclareConfirm = () => {
         navigate('/');
     };
 
+    const winningRows = useMemo(
+        () => (data?.winningBets || []).filter((row) => Number(row.payout) > 0),
+        [data?.winningBets]
+    );
+    const tableTotalPayout = useMemo(
+        () =>
+            Math.round(
+                winningRows.reduce((sum, row) => sum + (Number(row.payout) || 0), 0) * 100
+            ) / 100,
+        [winningRows]
+    );
+    const winningPlayerCount = useMemo(
+        () => new Set(winningRows.map((r) => String(r.userId))).size,
+        [winningRows]
+    );
+
     const displayNumber = declareType === 'king' ? `${firstDigit}${secondDigit}` : number;
     if (!market || !declareType || !displayNumber) return null;
 
@@ -182,17 +240,20 @@ const DeclareConfirm = () => {
                 ) : data ? (
                     <>
                         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 sm:p-4 mb-4 sm:mb-6 overflow-hidden">
-                            <p className="text-amber-400 font-semibold text-sm sm:text-base break-words">Total payout to winning players: ₹{formatNum(data.totalWinAmount)}</p>
-                            <p className="text-gray-400 text-xs sm:text-sm mt-1">{data.winningBets?.length ?? 0} winning bet(s)</p>
+                            <p className="text-amber-400 font-semibold text-sm sm:text-base break-words">Total payout to winning players: ₹{formatNum(tableTotalPayout)}</p>
+                            <p className="text-gray-400 text-xs sm:text-sm mt-1">
+                                {formatNum(winningPlayerCount)} winning player(s)
+                                <span className="text-gray-500"> · </span>
+                                {formatNum(winningRows.length)} winning bet(s)
+                            </p>
                         </div>
 
                         <div className="rounded-xl border border-gray-700 bg-gray-800/80 shadow-lg overflow-hidden mb-4 sm:mb-6">
                             <h2 className="text-base sm:text-lg font-bold text-yellow-500 bg-gray-800 px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700">Winning players</h2>
                             <div className="overflow-x-auto overscroll-x-contain touch-pan-x">
-                                <table className="w-full text-xs sm:text-sm border-collapse min-w-[340px] sm:min-w-[480px]">
+                                <table className="w-full text-xs sm:text-sm border-collapse min-w-[320px] sm:min-w-[440px]">
                                     <thead>
                                         <tr className="bg-gray-700/70 border-b border-gray-600">
-                                            <th className="text-left py-2 sm:py-3 px-2 sm:px-3 font-semibold text-yellow-500 text-[11px] sm:text-sm">#</th>
                                             <th className="text-left py-2 sm:py-3 px-2 sm:px-3 font-semibold text-gray-300 text-[11px] sm:text-sm">Username</th>
                                             <th className="text-left py-2 sm:py-3 px-2 sm:px-3 font-semibold text-gray-300 text-[11px] sm:text-sm">Bet type</th>
                                             <th className="text-left py-2 sm:py-3 px-2 sm:px-3 font-semibold text-gray-300 text-[11px] sm:text-sm">Bet number</th>
@@ -201,16 +262,17 @@ const DeclareConfirm = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(data.winningBets || []).length === 0 ? (
+                                        {winningRows.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="py-8 text-center text-gray-500">No winning players for this result.</td>
+                                                <td colSpan={5} className="py-8 text-center text-gray-500">No winning bets for this result.</td>
                                             </tr>
                                         ) : (
-                                            (data.winningBets || []).map((row, idx) => (
-                                                <tr key={idx} className="border-b border-gray-700 hover:bg-gray-700/30">
-                                                    <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-400 text-[11px] sm:text-sm">{idx + 1}</td>
-                                                    <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-medium text-white text-[11px] sm:text-sm truncate max-w-[90px] sm:max-w-[120px] md:max-w-none">{row.username}</td>
-                                                    <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-300 capitalize text-[11px] sm:text-sm">{row.betType}</td>
+                                            winningRows.map((row) => (
+                                                <tr key={row.betId || `${row.userId}-${row.betType}-${row.betNumber}`} className="border-b border-gray-700 hover:bg-gray-700/30">
+                                                    <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-medium text-white text-[11px] sm:text-sm truncate max-w-[100px] sm:max-w-[140px] md:max-w-none">{row.username}</td>
+                                                    <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-gray-200 font-medium text-[11px] sm:text-sm whitespace-nowrap">
+                                                        {formatBetTypeDisplay(row.betType, row.betNumber, row.betOn)}
+                                                    </td>
                                                     <td className="py-2 sm:py-2.5 px-2 sm:px-3 font-mono text-amber-300 text-[11px] sm:text-sm">{row.betNumber}</td>
                                                     <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right font-mono text-white text-[11px] sm:text-sm">{formatNum(row.amount)}</td>
                                                     <td className="py-2 sm:py-2.5 px-2 sm:px-3 text-right font-mono font-semibold text-green-400 text-[11px] sm:text-sm">{formatNum(row.payout)}</td>

@@ -864,25 +864,25 @@ const AddResult = () => {
                                     <p className="text-[11px] text-gray-500 mb-2 sm:mb-3">Enter 3 digits → Check (preview) → Declare Open</p>
                                     <div className="mb-2 sm:mb-3">
                                         <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-1">Open Patti (3 digits)</label>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={openPatti}
-                                            onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                                            placeholder="e.g. 156"
-                                            className="w-full px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
-                                            maxLength={3}
-                                        />
-                                    </div>
-                                    <div className="flex gap-2 mb-2 sm:mb-3">
-                                        <button
-                                            type="button"
-                                            onClick={handleCheckOpen}
-                                            disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3}
-                                            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base"
-                                        >
-                                            {checkLoading ? 'Checking...' : 'Check'}
-                                        </button>
+                                        <div className="flex gap-2 items-stretch">
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                value={openPatti}
+                                                onChange={(e) => setOpenPatti(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                                                placeholder="e.g. 156"
+                                                className="flex-1 min-w-0 px-3 py-2.5 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg text-white text-lg sm:text-xl font-mono placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                                                maxLength={3}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleCheckOpen}
+                                                disabled={checkLoading || openPatti.replace(/\D/g, '').length !== 3}
+                                                className="shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg border border-gray-600 disabled:opacity-50 transition-colors text-sm sm:text-base min-h-[44px] sm:min-h-[48px] touch-manipulation"
+                                            >
+                                                {checkLoading ? 'Checking...' : 'Check'}
+                                            </button>
+                                        </div>
                                     </div>
                                     {preview != null && (
                                         <div className="space-y-1.5 sm:space-y-2 mb-2 sm:mb-3 rounded-lg bg-gray-700/50 border border-gray-600 p-2.5 sm:p-3">

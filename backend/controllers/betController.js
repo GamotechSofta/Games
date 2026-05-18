@@ -6,6 +6,7 @@ import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
 
 const VALID_BET_TYPES = [
     'single',
@@ -141,6 +142,13 @@ export const placeBet = async (req, res) => {
                 return res.status(400).json({
                     success: false,
                     message: 'Each bet must have betType, betNumber and amount > 0',
+                });
+            }
+            if (betType === 'half-sangam' && !parseHalfSangamBetNumber(betNumber)) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        'Invalid Half Sangam format. Use Open Half "PPP-A" (e.g. 234-6) or Close Half "A-PPP" (e.g. 9-222).',
                 });
             }
             totalAmount += amount;
