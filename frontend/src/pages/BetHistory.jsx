@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
 import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 
 const safeParse = (raw, fallback) => {
   try {
@@ -164,6 +165,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const [selectedSessions, setSelectedSessions] = useState([]); // ['OPEN','CLOSE']
   const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending','Cancelled']
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
+  const [selectedBidOptions, setSelectedBidOptions] = useState([]); // bid option keys
   const [markets, setMarkets] = useState([]);
   const [ratesMap, setRatesMap] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
@@ -497,6 +499,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           payout: bet.payout || 0,
           kind: inferBetKind(betNumber),
         };
+        const bidOptionKey = getBidOptionKey(betType, betNumber);
         return { 
           bet, 
           betId, 
@@ -505,6 +508,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           marketTitle, 
           betNumber, 
           betType,
+          bidOptionKey,
+          gameType: getBidOptionLabel(betType, betNumber, t),
           status,
           createdAt,
           verdict,
@@ -524,6 +529,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
       const cancelCheck = canCancelBet(bet);
       console.log('Cancel check for bet', betId, ':', cancelCheck);
 
+      const bidOptionKey = getBidOptionKey(betType, betNumber);
       return {
         bet,
         betId,
@@ -532,13 +538,15 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         marketTitle,
         betNumber,
         betType,
+        bidOptionKey,
+        gameType: getBidOptionLabel(betType, betNumber, t),
         status,
         createdAt,
         verdict: computed,
         canCancel: cancelCheck,
       };
     });
-  }, [flat, marketByName, ratesMap]);
+  }, [flat, marketByName, ratesMap, t]);
 
   const filtered = useMemo(() => {
     return (enriched || []).filter((row) => {
@@ -557,25 +565,32 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           : 'Pending';
         if (!selectedStatuses.includes(st)) return false;
       }
+
+      if (selectedBidOptions.length > 0 && !selectedBidOptions.includes(row.bidOptionKey)) {
+        return false;
+      }
+
       return true;
     });
-  }, [enriched, selectedMarkets, selectedSessions, selectedStatuses]);
+  }, [enriched, selectedMarkets, selectedSessions, selectedStatuses, selectedBidOptions]);
+
+  const bidOptionFilterOptions = useMemo(() => {
+    const keys = new Set((enriched || []).map((row) => row.bidOptionKey).filter(Boolean));
+    return BID_OPTION_FILTER_ORDER
+      .filter((k) => keys.has(k))
+      .map((k) => {
+        const sample = (enriched || []).find((row) => row.bidOptionKey === k);
+        return {
+          key: k,
+          label: sample?.gameType || k,
+        };
+      });
+  }, [enriched]);
 
   // One card per bet, newest first (no grouping by market)
   const allBetsNewestFirst = useMemo(() => {
     return [...(filtered || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [filtered]);
-
-  const labelForType = (betType) => {
-    const s = String(betType || '').toLowerCase();
-    if (s === 'single') return t('bids.gameType.singleAnk');
-    if (s === 'jodi') return t('gameRate.jodi');
-    if (s === 'panna') return t('bids.gameType.panna');
-    if (s === 'half-sangam' || s === 'half-sangam-open' || s === 'half-sangam-close') return t('bids.gameType.halfSangam');
-    if (s === 'full-sangam') return t('bids.gameType.fullSangam');
-    if (s === 'digit') return t('bids.gameType.digit');
-    return betType || t('bids.gameType.bet');
-  };
 
   const statusLabel = (verdict) => {
     if (verdict?.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
@@ -588,13 +603,15 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const [draftSessions, setDraftSessions] = useState([]);
   const [draftStatuses, setDraftStatuses] = useState([]);
   const [draftMarkets, setDraftMarkets] = useState([]);
+  const [draftBidOptions, setDraftBidOptions] = useState([]);
 
   useEffect(() => {
     if (!isFilterOpen) return;
     setDraftSessions(selectedSessions);
     setDraftStatuses(selectedStatuses);
     setDraftMarkets(selectedMarkets);
-  }, [isFilterOpen, selectedMarkets, selectedSessions, selectedStatuses]);
+    setDraftBidOptions(selectedBidOptions);
+  }, [isFilterOpen, selectedMarkets, selectedSessions, selectedStatuses, selectedBidOptions]);
 
   const toggleDraft = (arr, value, setArr) => {
     setArr((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
@@ -710,11 +727,10 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               {/* Mobile: 2x2 grid, each bet = one card */}
               <div className="md:hidden grid grid-cols-2 gap-3 overflow-x-hidden">
                 {allBetsNewestFirst.map((row, idx) => {
-                  const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
+                  const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
                   const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                   const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                   const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
-                  const gameType = labelForType(betType);
                   const status = statusLabel(verdict);
                   return (
                     <div
@@ -814,11 +830,10 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   </thead>
                   <tbody>
                     {allBetsNewestFirst.map((row, idx) => {
-                      const { betId, points, session, betNumber, betType, verdict, createdAt, canCancel, marketTitle } = row;
+                      const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
                       const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                       const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                       const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
-                      const gameType = labelForType(betType);
                       const status = statusLabel(verdict);
                       return (
                         <tr
@@ -959,6 +974,29 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   ))}
                 </div>
 
+                {bidOptionFilterOptions.length > 0 ? (
+                  <>
+                    <div className="h-px bg-white/10 my-3" />
+                    <div className="text-lg font-bold text-[#d4af37] mb-3">{t('bids.byBidOption')}</div>
+                    <div className="space-y-3 pb-4">
+                      {bidOptionFilterOptions.map((opt) => (
+                        <label
+                          key={opt.key}
+                          className="flex items-center gap-4 bg-black/25 rounded-xl border border-white/10 shadow-sm px-4 py-3 hover:border-[#d4af37]/40 transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            className="w-6 h-6 accent-[#d4af37]"
+                            checked={draftBidOptions.includes(opt.key)}
+                            onChange={() => toggleDraft(draftBidOptions, opt.key, setDraftBidOptions)}
+                          />
+                          <span className="text-sm sm:text-base font-semibold text-white">{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+
                 <div className="h-px bg-white/10 my-3" />
 
                 <div className="text-lg font-bold text-[#d4af37] mb-3">By Games</div>
@@ -997,6 +1035,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                       setSelectedSessions(draftSessions);
                       setSelectedStatuses(draftStatuses);
                       setSelectedMarkets(draftMarkets);
+                      setSelectedBidOptions(draftBidOptions);
                       setIsFilterOpen(false);
                     }}
                     className="rounded-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-extrabold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:from-[#e5c04a] hover:to-[#d4af37] transition-colors"

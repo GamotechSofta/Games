@@ -13,6 +13,7 @@ import { storage } from '../utils/storage';
 import { haptics } from '../utils/haptics';
 import { colors, spacing, borderRadius, fontSize } from '../theme';
 import { SkeletonCardGrid } from '../components/Skeleton';
+import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 
 /* ─── Helpers ─── */
 const safeParse = (raw, fallback) => { try { return JSON.parse(raw); } catch { return fallback; } };
@@ -125,6 +126,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
   const [selectedSessions, setSelectedSessions] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [selectedMarkets, setSelectedMarkets] = useState([]);
+  const [selectedBidOptions, setSelectedBidOptions] = useState([]);
   const [markets, setMarkets] = useState([]);
   const [ratesMap, setRatesMap] = useState(null);
   const [localVersion, setLocalVersion] = useState(0);
@@ -141,6 +143,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
   const [draftSessions, setDraftSessions] = useState([]);
   const [draftStatuses, setDraftStatuses] = useState([]);
   const [draftMarkets, setDraftMarkets] = useState([]);
+  const [draftBidOptions, setDraftBidOptions] = useState([]);
 
   const scopeRaw = (marketScope || '').toString().trim().toLowerCase();
   const scope = scopeRaw || 'main';
@@ -160,15 +163,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     return true;
   };
 
-  const labelForTypeInner = (betType) => {
-    const s = String(betType || '').toLowerCase();
-    if (s === 'single') return t('bids.gameType.singleAnk');
-    if (s === 'jodi') return t('gameRate.jodi');
-    if (s === 'panna') return t('bids.gameType.panna');
-    if (s === 'half-sangam' || s === 'half-sangam-open' || s === 'half-sangam-close') return t('bids.gameType.halfSangam');
-    if (s === 'full-sangam') return t('bids.gameType.fullSangam');
-    return betType || t('bids.gameType.bet');
-  };
+  const labelForTypeInner = (betType, betNumber) => getBidOptionLabel(betType, betNumber, t);
 
   const getStatusColorInner = (state) => {
     if (state === 'won') return '#43b36a';
@@ -353,15 +348,27 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     return flat.map((item) => {
       const { bet, betId, marketTitle, betNumber, amount, session, betType, status, createdAt, marketData } = item;
       const m = marketByName.get(normalizeMarketName(marketTitle)) || marketData;
+      const bidOptionKey = getBidOptionKey(betType, betNumber);
+      const gameType = getBidOptionLabel(betType, betNumber, t);
       if (status === 'won' || status === 'lost' || status === 'cancelled') {
         const verdict = { state: status, payout: bet.payout || 0, kind: inferBetKind(betNumber) };
-        return { bet, betId, points: amount, session, marketTitle, betNumber, betType, status, createdAt, verdict, canCancel: { canCancel: false, reason: `Status is ${status}` } };
+        return { bet, betId, points: amount, session, marketTitle, betNumber, betType, bidOptionKey, gameType, status, createdAt, verdict, canCancel: { canCancel: false, reason: `Status is ${status}` } };
       }
       const computed = evaluateBet({ market: m, betNumberRaw: betNumber, amount, session, ratesMap });
       const cancelCheck = canCancelBet(bet);
-      return { bet, betId, points: amount, session, marketTitle, betNumber, betType, status, createdAt, verdict: computed, canCancel: cancelCheck };
+      return { bet, betId, points: amount, session, marketTitle, betNumber, betType, bidOptionKey, gameType, status, createdAt, verdict: computed, canCancel: cancelCheck };
     });
-  }, [flat, marketByName, ratesMap]);
+  }, [flat, marketByName, ratesMap, t]);
+
+  const bidOptionFilterOptions = useMemo(() => {
+    const keys = new Set((enriched || []).map((row) => row.bidOptionKey).filter(Boolean));
+    return BID_OPTION_FILTER_ORDER
+      .filter((k) => keys.has(k))
+      .map((k) => {
+        const sample = (enriched || []).find((row) => row.bidOptionKey === k);
+        return { key: k, label: sample?.gameType || k };
+      });
+  }, [enriched]);
 
   const filtered = useMemo(() => {
     return (enriched || []).filter((row) => {
@@ -374,23 +381,14 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
         const st = row.verdict.state === 'won' ? 'Win' : row.verdict.state === 'lost' ? 'Loose' : row.verdict.state === 'cancelled' ? 'Cancelled' : 'Pending';
         if (!selectedStatuses.includes(st)) return false;
       }
+      if (selectedBidOptions.length > 0 && !selectedBidOptions.includes(row.bidOptionKey)) return false;
       return true;
     });
-  }, [enriched, selectedMarkets, selectedSessions, selectedStatuses]);
+  }, [enriched, selectedMarkets, selectedSessions, selectedStatuses, selectedBidOptions]);
 
   const allBetsNewestFirst = useMemo(() => {
     return [...(filtered || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [filtered]);
-
-  const labelForType = (betType) => {
-    const s = String(betType || '').toLowerCase();
-    if (s === 'single') return t('bids.gameType.singleAnk');
-    if (s === 'jodi') return t('gameRate.jodi');
-    if (s === 'panna') return t('bids.gameType.panna');
-    if (s === 'half-sangam' || s === 'half-sangam-open' || s === 'half-sangam-close') return t('bids.gameType.halfSangam');
-    if (s === 'full-sangam') return t('bids.gameType.fullSangam');
-    return betType || t('bids.gameType.bet');
-  };
 
   const getStatusColor = (state) => {
     if (state === 'won') return '#43b36a';
@@ -430,12 +428,14 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     setDraftSessions(selectedSessions);
     setDraftStatuses(selectedStatuses);
     setDraftMarkets(selectedMarkets);
-  }, [isFilterOpen]);
+    setDraftBidOptions(selectedBidOptions);
+  }, [isFilterOpen, selectedSessions, selectedStatuses, selectedMarkets, selectedBidOptions]);
 
   const applyFilters = () => {
     setSelectedSessions(draftSessions);
     setSelectedStatuses(draftStatuses);
     setSelectedMarkets(draftMarkets);
+    setSelectedBidOptions(draftBidOptions);
     setIsFilterOpen(false);
   };
 
@@ -443,6 +443,7 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
     setDraftSessions([]);
     setDraftStatuses([]);
     setDraftMarkets([]);
+    setDraftBidOptions([]);
   };
 
   const FilterChip = ({ label, active, onPress }) => (
@@ -552,6 +553,31 @@ export default function BetHistory({ pageTitle, marketScope = null }) {
                 ))}
               </View>
 
+              {bidOptionFilterOptions.length > 0 && (
+                <>
+                  <View style={styles.filterDivider} />
+                  <Text style={styles.filterSectionTitle}>{t('bids.byBidOption')}</Text>
+                  <View style={styles.filterMarketList}>
+                    {bidOptionFilterOptions.map((opt) => {
+                      const active = draftBidOptions.includes(opt.key);
+                      return (
+                        <TouchableOpacity
+                          key={opt.key}
+                          style={[styles.filterMarketRow, active && styles.filterMarketRowActive]}
+                          onPress={() => toggleDraft(draftBidOptions, opt.key, setDraftBidOptions)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={[styles.filterCheckbox, active && styles.filterCheckboxActive]}>
+                            {active ? <Text style={styles.filterCheckmark}>✓</Text> : null}
+                          </View>
+                          <Text style={styles.filterMarketLabel} numberOfLines={1}>{opt.label}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+
               {marketOptions.length > 0 && (
                 <>
                   <View style={styles.filterDivider} />
@@ -658,7 +684,7 @@ const BetCardKeyed = React.memo(function BetCardKeyed({ row, idx, t, copyBetId, 
       <Text style={styles.marketName} numberOfLines={1}>{(marketTitle || 'MARKET').toUpperCase()}</Text>
       <View style={styles.betCardRow}>
         <Text style={styles.betLabel}>{t('bids.gameLabel')}</Text>
-        <Text style={styles.betValue}>{labelForType(betType)}</Text>
+        <Text style={styles.betValue}>{row.gameType || labelForType(betType, betNumber)}</Text>
       </View>
       <View style={styles.betCardRow}>
         <Text style={styles.betLabel}>{t('bids.betLabel')}</Text>

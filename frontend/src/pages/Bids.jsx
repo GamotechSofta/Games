@@ -10,6 +10,7 @@ import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import MyBetsSidebar from './bids/MyBetsSidebar';
 import MyBetsBetHistoryPanel from './bids/MyBetsBetHistoryPanel';
 import MyBetsGameResultsPanel from './bids/MyBetsGameResultsPanel';
+import { getBidOptionLabel } from '../utils/betTypeLabels';
 
 const safeParse = (raw, fallback) => {
   try {
@@ -568,16 +569,7 @@ const Bids = () => {
   const desktopRows = useMemo(() => {
     return (desktopBetHistory.items || []).map((bet) => {
       const betValue = bet?.betNumber != null ? renderBetNumber(bet.betNumber) : '-';
-      const labelForType = (type) => {
-        const s = String(type || '').toLowerCase();
-        if (s === 'single') return t('bids.gameType.singleAnk');
-        if (s === 'jodi') return t('bids.gameType.digit');
-        if (s === 'panna') return t('bids.gameType.panna');
-        if (s === 'half-sangam') return t('bids.gameType.halfSangam');
-        if (s === 'full-sangam') return t('bids.gameType.fullSangam');
-        return t('bids.gameType.bet');
-      };
-      const gameType = labelForType(bet.betType);
+      const gameType = getBidOptionLabel(bet.betType, bet.betNumber, t);
       const points = Number(bet?.amount || 0) || 0;
       const session = (bet?.betOn || '').toString().trim().toUpperCase();
       const market = (bet?.marketId?.marketName || '').toString().trim() || 'MARKET';
