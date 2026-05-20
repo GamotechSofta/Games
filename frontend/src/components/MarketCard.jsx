@@ -23,6 +23,14 @@ const ChevronRight = () => (
   </svg>
 );
 
+/** Outer drop shadow (wrapper — not clipped) */
+const CARD_OUTER_SHADOW =
+  '0 14px 48px rgba(0, 0, 0, 0.95), 0 8px 28px rgba(0, 0, 0, 0.8), 0 3px 10px rgba(0, 0, 0, 0.65)';
+
+/** Inset shadow on the card face (full area) */
+const CARD_INSET_SHADOW =
+  'inset 0 0 70px rgba(0, 0, 0, 0.75), inset 0 0 35px rgba(0, 0, 0, 0.55), inset 0 0 12px rgba(0, 0, 0, 0.45)';
+
 /**
  * Market card — reference layout: status, time, name, result, CTA; BG image on the right.
  */
@@ -65,14 +73,11 @@ export default function MarketCard({
   };
 
   return (
-    <article
-      className={`group relative overflow-hidden rounded-xl border min-h-[132px] sm:min-h-[148px] transition-all duration-300 ${
+    <div
+      className={`rounded-xl transition-all duration-300 ${
         isClickable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default'
       }`}
-      style={{
-        borderColor: theme.border,
-        boxShadow: `0 4px 18px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 10px ${theme.glow}, inset 0 0 0 1px rgba(255, 255, 255, 0.04)`,
-      }}
+      style={{ boxShadow: CARD_OUTER_SHADOW }}
       onClick={handleCardClick}
       role={isClickable ? 'button' : undefined}
       tabIndex={isClickable ? 0 : undefined}
@@ -81,6 +86,13 @@ export default function MarketCard({
           e.preventDefault();
           handleCardClick();
         }
+      }}
+    >
+    <article
+      className="group relative overflow-hidden rounded-xl border min-h-[132px] sm:min-h-[148px]"
+      style={{
+        borderColor: theme.border,
+        boxShadow: CARD_INSET_SHADOW,
       }}
     >
       {/* Base + placeholder gradient */}
@@ -122,9 +134,28 @@ export default function MarketCard({
         </div>
       )}
 
+      {/* Full-card black shadow wash + edge vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none z-[5] rounded-xl bg-black/45"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 pointer-events-none z-[6] rounded-xl"
+        style={{
+          background: [
+            'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 28%)',
+            'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 28%)',
+            'linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 35%)',
+            'linear-gradient(to left, rgba(0,0,0,0.55) 0%, transparent 30%)',
+            'radial-gradient(ellipse 110% 95% at 50% 50%, transparent 20%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.7) 100%)',
+          ].join(', '),
+        }}
+        aria-hidden
+      />
+
       {/* Left fade so text stays readable */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-[#0a0c10] via-[#0a0c10]/92 to-transparent"
+        className="absolute inset-0 z-[7] bg-gradient-to-r from-[#0a0c10] via-[#0a0c10]/92 to-transparent"
         style={{ background: 'linear-gradient(90deg, #0a0c10 0%, #0a0c10e6 45%, transparent 72%)' }}
         aria-hidden
       />
@@ -177,18 +208,17 @@ export default function MarketCard({
         </div>
       </div>
     </article>
+    </div>
   );
 }
 
 export function MarketCardSkeleton({ themeIndex = 0 }) {
   const theme = getMarketCardTheme(themeIndex);
   return (
+    <div className="rounded-xl" style={{ boxShadow: CARD_OUTER_SHADOW }}>
     <div
       className="rounded-xl border min-h-[132px] sm:min-h-[148px] overflow-hidden skeleton-shimmer bg-[#0a0c10]"
-      style={{
-        borderColor: theme.border,
-        boxShadow: '0 4px 18px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.45)',
-      }}
+      style={{ borderColor: theme.border, boxShadow: CARD_INSET_SHADOW }}
     >
       <div className="p-3 sm:p-3.5 space-y-3">
         <div className="h-5 w-16 rounded-full bg-white/10" />
@@ -197,6 +227,7 @@ export function MarketCardSkeleton({ themeIndex = 0 }) {
         <div className="h-7 w-24 rounded bg-white/10" />
         <div className="h-8 w-28 rounded-lg bg-white/10" />
       </div>
+    </div>
     </div>
   );
 }
