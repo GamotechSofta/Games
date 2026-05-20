@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
+import { formatDateDisplay, getTomorrowIST } from '../../utils/marketTiming';
 
 const getWalletFromStorage = () => {
     try {
@@ -58,6 +59,8 @@ const BidLayout = ({
     const contentRef = useRef(null);
     const { allowed: bettingAllowed, closeOnly: bettingCloseOnly, message: bettingMessage } = useBettingWindow();
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    const scheduleForTomorrow = !!location.state?.scheduleForTomorrow;
+    const effectiveDisplayDate = displayDate || (scheduleForTomorrow ? formatDateDisplay(getTomorrowIST()) : null);
     const [wallet, setWallet] = useState(() =>
         Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getWalletFromStorage()
     );
@@ -197,12 +200,12 @@ const BidLayout = ({
                             </div>
                             <input
                                 type="text"
-                                value={displayDate || todayDate}
+                                value={effectiveDisplayDate || todayDate}
                                 readOnly
                                 className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${dateSessionControlClassName}`}
                             />
                         </div>
-                        {displayDate && displayDate !== todayDate && (
+                        {effectiveDisplayDate && effectiveDisplayDate !== todayDate && (
                             <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-400/40">
                                 {t('gameBid.scheduled')}
                             </span>

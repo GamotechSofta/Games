@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BettingWindowProvider } from './BettingWindowContext';
+import { BettingWindowProvider, SchedulingProvider } from './BettingWindowContext';
 import SingleDigitBid from './bids/SingleDigitBid';
 import JodiBid from './bids/JodiBid';
 import JodiBulkBid from './bids/JodiBulkBid';
@@ -49,7 +49,24 @@ const BID_COMPONENTS = {
 const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { market, betType } = location.state || {};
+    const { market, betType, scheduleForTomorrow } = location.state || {};
+
+    useEffect(() => {
+        if (scheduleForTomorrow) {
+            try {
+                sessionStorage.setItem('scheduleForTomorrow', '1');
+            } catch {
+                /* ignore */
+            }
+        }
+        return () => {
+            try {
+                sessionStorage.removeItem('scheduleForTomorrow');
+            } catch {
+                /* ignore */
+            }
+        };
+    }, [scheduleForTomorrow]);
 
     useEffect(() => {
         if (!market && !location.state?.title) {
@@ -62,9 +79,11 @@ const GameBid = () => {
     const BidComponent = BID_COMPONENTS[key] || SingleDigitBid;
 
     return (
-        <BettingWindowProvider market={market}>
-            <BidComponent market={market} title={title} />
-        </BettingWindowProvider>
+        <SchedulingProvider scheduleForTomorrow={!!scheduleForTomorrow}>
+            <BettingWindowProvider market={market} scheduleForTomorrow={!!scheduleForTomorrow}>
+                <BidComponent market={market} title={title} scheduleForTomorrow={!!scheduleForTomorrow} />
+            </BettingWindowProvider>
+        </SchedulingProvider>
     );
 };
 

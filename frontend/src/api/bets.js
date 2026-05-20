@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config/api';
 import { redirectToLoginIf401 } from '../utils/auth';
+import { resolveScheduledDate } from '../utils/marketTiming';
 
 /** MongoDB ObjectId is 24 hex characters */
 const VALID_OBJECTID = /^[a-fA-F0-9]{24}$/;
@@ -79,9 +80,17 @@ export async function placeBet(marketId, bets, scheduledDate) {
     })),
   };
 
-  // Add scheduledDate if provided
-  if (scheduledDate) {
-    payload.scheduledDate = scheduledDate;
+  let finalScheduledDate = scheduledDate;
+  if (!finalScheduledDate) {
+    try {
+      const scheduleForTomorrow = sessionStorage.getItem('scheduleForTomorrow') === '1';
+      finalScheduledDate = resolveScheduledDate({ scheduleForTomorrow });
+    } catch {
+      /* ignore */
+    }
+  }
+  if (finalScheduledDate) {
+    payload.scheduledDate = finalScheduledDate;
   }
 
   const response = await fetch(`${API_BASE_URL}/bets/place`, {

@@ -30,6 +30,16 @@ const BidOptions = () => {
     return name.includes('starline') || name.includes('startline') || name.includes('star line') || name.includes('start line');
   })();
   const isStarline = inferredStarline;
+  const scheduleForTomorrow = !!location.state?.scheduleForTomorrow;
+
+  useEffect(() => {
+    if (!scheduleForTomorrow) return;
+    try {
+      sessionStorage.setItem('scheduleForTomorrow', '1');
+    } catch {
+      /* ignore */
+    }
+  }, [scheduleForTomorrow]);
 
   // Redirect to home if no market (direct URL access or refresh)
   useEffect(() => {
@@ -37,10 +47,10 @@ const BidOptions = () => {
       navigate('/', { replace: true });
       return;
     }
-    if (isStarline && market?.status === 'closed') {
+    if (isStarline && market?.status === 'closed' && !scheduleForTomorrow) {
       navigate('/startline-dashboard', { replace: true });
     }
-  }, [market, navigate]);
+  }, [market, navigate, isStarline, scheduleForTomorrow]);
 
   const getGameTitle = (key) => {
     const map = {

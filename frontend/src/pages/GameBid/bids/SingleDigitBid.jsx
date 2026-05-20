@@ -3,8 +3,12 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import { useScheduling } from '../BettingWindowContext';
+import { resolveScheduledDate } from '../../../utils/marketTiming';
 
-const SingleDigitBid = ({ market, title }) => {
+const SingleDigitBid = ({ market, title, scheduleForTomorrow: scheduleForTomorrowProp = false }) => {
+    const { scheduleForTomorrow: scheduleFromCtx } = useScheduling();
+    const scheduleForTomorrow = scheduleForTomorrowProp || scheduleFromCtx;
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [inputPoints, setInputPoints] = useState('');
     const [bids, setBids] = useState([]);
@@ -155,13 +159,8 @@ const SingleDigitBid = ({ market, title }) => {
             betOn: String(r?.type || session).toUpperCase() === 'CLOSE' ? 'close' : 'open',
         }));
         
-        // Check if date is in the future (scheduled bet)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selectedDateObj = new Date(selectedDate);
-        selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
+        const scheduledDate = resolveScheduledDate({ scheduleForTomorrow, selectedDate, market });
+
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
