@@ -3,19 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CasinoGamesCard from './CasinoGamesCard';
 import SkillsGamesCard from './SkillsGamesCard';
+import MarketCard, { MarketCardSkeleton } from './MarketCard';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
-
-// Convert API market name to i18n key (e.g. "Milan Morning" -> "milanMorning")
-const toMarketNameKey = (name) => {
-  if (!name || typeof name !== 'string') return '';
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(/\s+(\w)/g, (_, c) => c.toUpperCase())
-    .replace(/^\w/, (c) => c.toLowerCase());
-};
 
 const Section1 = () => {
   const navigate = useNavigate();
@@ -187,19 +178,9 @@ const Section1 = () => {
       </div>
       {/* Market Cards Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-[375px]:gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 max-w-7xl mx-auto">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="bg-gray-800 rounded-lg overflow-hidden border border-white/5 skeleton-shimmer">
-              <div className="bg-white/10 py-2 px-3" />
-              <div className="p-2 min-[375px]:p-3 sm:p-4 space-y-2">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-white/10 shrink-0" />
-                  <div className="h-3 flex-1 max-w-[80%] rounded bg-white/10" />
-                </div>
-                <div className="h-4 w-3/4 rounded bg-white/10" />
-                <div className="h-6 min-[375px]:h-7 sm:h-8 w-24 rounded bg-white/10" />
-              </div>
-            </div>
+            <MarketCardSkeleton key={i} themeIndex={i} />
           ))}
         </div>
       ) : markets.length === 0 ? (
@@ -207,75 +188,18 @@ const Section1 = () => {
           <p className="text-gray-400">{t('markets.noMarketsAvailable')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 min-[375px]:gap-3 sm:gap-4">
-          {markets.map((market) => {
-            // open + running = clickable for live bet; closed = not clickable for live, but has "Schedule for tomorrow"
-            const isClickable = market.status === 'open' || market.status === 'running';
-            return (
-            <div
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 max-w-7xl mx-auto">
+          {markets.map((market, index) => (
+            <MarketCard
               key={market.id}
-              className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-200 ${
-                isClickable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default opacity-90'
-              }`}
-            >
-              {/* Status: ***-**-***=Open(green), 156-2*-***=Running(green), 987-45-456=Closed(red) */}
-              <div className={`${
-                market.status === 'closed' ? 'bg-red-600' : 'bg-green-600'
-              } py-1.5 min-[375px]:py-2 px-2 min-[375px]:px-3 text-center min-h-[32px] flex items-center justify-center`}>
-                <p className="text-white text-[10px] min-[375px]:text-xs sm:text-sm font-semibold leading-tight">
-                  {market.status === 'open' && t('markets.marketIsOpen')}
-                  {market.status === 'running' && t('markets.closingIsRunning')}
-                  {market.status === 'closed' && t('markets.marketClosed')}
-                </p>
-              </div>
-
-            {/* Card Content */}
-            <div
-              className="flex flex-col p-3 min-[375px]:p-3.5 sm:p-4 border-t border-white/5"
-              onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
-              role={isClickable ? 'button' : undefined}
-            >
-              {/* Time row */}
-              <div className="flex items-center gap-1.5 mb-1.5 min-[375px]:mb-2">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-amber-500/90 text-[10px] min-[375px]:text-xs sm:text-sm font-medium truncate">{market.timeRange}</span>
-              </div>
-
-              {/* Game Name – translated when key exists, else fallback to API name; allow wrap so long names (e.g. in Marathi) don't get cut */}
-              <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight break-words min-h-[1.5em] mb-2 min-[375px]:mb-2.5">
-                {t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName })}
-              </h3>
-
-              {/* Result */}
-              <div className="mb-2 min-[375px]:mb-2.5">
-                <p className="text-amber-400 text-base min-[375px]:text-lg sm:text-xl md:text-2xl font-extrabold tracking-wider leading-tight">
-                  {market.result}
-                </p>
-              </div>
-
-              {/* Action text */}
-              {market.status === 'closed' ? (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
-                  }}
-                  className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center hover:text-amber-300 w-full animate-pulse"
-                >
-                  {t('markets.runningForTomorrow')}
-                </button>
-              ) : (
-                <p className="mt-auto pt-1.5 border-t border-white/5 text-amber-400 text-[10px] min-[375px]:text-[11px] sm:text-sm font-semibold text-center animate-pulse">
-                  {t('markets.tapToPlay')}
-                </p>
-              )}
-            </div>
-          </div>
-            );
-          })}
+              market={market}
+              themeIndex={index}
+              onPlay={(m) => navigate('/bidoptions', { state: { market: m } })}
+              onScheduleTomorrow={(m) =>
+                navigate('/bidoptions', { state: { market: m, scheduleForTomorrow: true } })
+              }
+            />
+          ))}
         </div>
       )}
     </section>
