@@ -196,10 +196,7 @@ export default function MarketCard({
           {displayName}
         </h3>
 
-        <p
-          className="mt-2 sm:mt-3 py-0.5 text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wider leading-none"
-          style={{ color: statusStyle.accent }}
-        >
+        <p className="mt-2 sm:mt-3 py-0.5 text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wider leading-none text-[#f5c542]">
           {market.result}
         </p>
 
