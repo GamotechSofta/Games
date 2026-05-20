@@ -12,13 +12,13 @@ const toMarketNameKey = (name) => {
 };
 
 const ClockIcon = () => (
-  <svg className="w-3.5 h-3.5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+  <svg className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const ChevronRight = () => (
-  <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+  <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
   </svg>
 );
@@ -30,6 +30,27 @@ const CARD_OUTER_SHADOW =
 /** Inset shadow on the card face (full area) */
 const CARD_INSET_SHADOW =
   'inset 0 0 70px rgba(0, 0, 0, 0.75), inset 0 0 35px rgba(0, 0, 0, 0.55), inset 0 0 12px rgba(0, 0, 0, 0.45)';
+
+const STATUS_STYLES = {
+  open: {
+    badge: 'bg-green-600 text-white border-green-400',
+    border: 'rgba(34, 197, 94, 0.55)',
+    accent: '#4ade80',
+    cta: 'text-green-300 hover:text-green-200',
+  },
+  running: {
+    badge: 'bg-green-600 text-white border-green-400',
+    border: 'rgba(34, 197, 94, 0.55)',
+    accent: '#4ade80',
+    cta: 'text-green-300 hover:text-green-200',
+  },
+  closed: {
+    badge: 'bg-red-600 text-white border-red-400',
+    border: 'rgba(239, 68, 68, 0.55)',
+    accent: '#f87171',
+    cta: 'text-red-300 hover:text-red-200',
+  },
+};
 
 /**
  * Market card — reference layout: status, time, name, result, CTA; BG image on the right.
@@ -52,15 +73,14 @@ export default function MarketCard({
   const [bgFailed, setBgFailed] = useState(false);
   const showPhoto = imageUrl && !bgFailed;
 
+  const statusKey = isClosed ? 'closed' : isRunning ? 'running' : 'open';
+  const statusStyle = STATUS_STYLES[statusKey];
+
   const statusLabel = isClosed
     ? t('markets.statusClosed')
     : isRunning
       ? t('markets.statusRunning')
       : t('markets.statusOpen');
-
-  const statusBadgeClass = isClosed
-    ? 'bg-red-600/90 text-white border-red-400/50'
-    : 'bg-emerald-600/90 text-white border-emerald-400/50';
 
   const handleCardClick = () => {
     if (isClickable && onPlay) onPlay(market);
@@ -89,9 +109,9 @@ export default function MarketCard({
       }}
     >
     <article
-      className="group relative overflow-hidden rounded-xl border min-h-[132px] sm:min-h-[148px]"
+      className="group relative overflow-hidden rounded-xl border min-h-[148px] sm:min-h-[168px]"
       style={{
-        borderColor: theme.border,
+        borderColor: statusStyle.border,
         boxShadow: CARD_INSET_SHADOW,
       }}
     >
@@ -160,25 +180,25 @@ export default function MarketCard({
         aria-hidden
       />
 
-      <div className="relative z-10 flex flex-col h-full p-3 sm:p-3.5 min-h-[132px] sm:min-h-[148px]">
+      <div className="relative z-10 flex flex-col h-full p-4 sm:p-5 min-h-[148px] sm:min-h-[168px]">
         <span
-          className={`self-start inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wide border ${statusBadgeClass}`}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-20 inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] sm:text-[9px] font-bold uppercase tracking-wide border shrink-0 ${statusStyle.badge}`}
         >
           {statusLabel}
         </span>
 
-        <div className="flex items-center gap-1.5 mt-2 text-gray-400">
+        <div className="flex items-center gap-2 py-1 text-gray-300 mt-0">
           <ClockIcon />
-          <span className="text-[10px] sm:text-xs font-medium truncate">{market.timeRange}</span>
+          <span className="text-xs sm:text-sm font-semibold truncate">{market.timeRange}</span>
         </div>
 
-        <h3 className="mt-1.5 text-white text-sm sm:text-base font-bold leading-tight break-words pr-2">
+        <h3 className="mt-2 sm:mt-2.5 py-0.5 text-white text-lg sm:text-xl md:text-2xl font-bold leading-snug break-words pr-2">
           {displayName}
         </h3>
 
         <p
-          className="mt-1 text-lg sm:text-xl md:text-2xl font-extrabold tracking-wider leading-none"
-          style={{ color: theme.accent }}
+          className="mt-2 sm:mt-3 py-0.5 text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wider leading-none"
+          style={{ color: statusStyle.accent }}
         >
           {market.result}
         </p>
@@ -188,8 +208,7 @@ export default function MarketCard({
             <button
               type="button"
               onClick={handleActionClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] sm:text-xs font-bold uppercase tracking-wide transition-colors hover:bg-white/5"
-              style={{ borderColor: theme.border, color: theme.accent }}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wide transition-colors ${STATUS_STYLES.closed.cta}`}
             >
               {t('markets.runningForTomorrow')}
               <ChevronRight />
@@ -198,8 +217,7 @@ export default function MarketCard({
             <button
               type="button"
               onClick={handleActionClick}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] sm:text-xs font-bold uppercase tracking-wide transition-colors hover:bg-white/5"
-              style={{ borderColor: theme.border, color: theme.accent }}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase tracking-wide transition-colors ${statusStyle.cta}`}
             >
               {t('markets.playNow')}
               <ChevronRight />
@@ -217,10 +235,10 @@ export function MarketCardSkeleton({ themeIndex = 0 }) {
   return (
     <div className="rounded-xl" style={{ boxShadow: CARD_OUTER_SHADOW }}>
     <div
-      className="rounded-xl border min-h-[132px] sm:min-h-[148px] overflow-hidden skeleton-shimmer bg-[#0a0c10]"
+      className="rounded-xl border min-h-[148px] sm:min-h-[168px] overflow-hidden skeleton-shimmer bg-[#0a0c10]"
       style={{ borderColor: theme.border, boxShadow: CARD_INSET_SHADOW }}
     >
-      <div className="p-3 sm:p-3.5 space-y-3">
+      <div className="p-4 sm:p-5 space-y-4">
         <div className="h-5 w-16 rounded-full bg-white/10" />
         <div className="h-3 w-28 rounded bg-white/10" />
         <div className="h-4 w-3/4 rounded bg-white/10" />
