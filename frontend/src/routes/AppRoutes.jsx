@@ -6,6 +6,7 @@ import AppHeader from '../components/AppHeader';
 import SubHeader from '../components/SubHeader';
 import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
+import MarketsPage from '../pages/MarketsPage';
 import BidOptions from '../pages/BidOptions';
 import GameBid from '../pages/GameBid/index';
 import Funds from '../pages/Funds';
@@ -103,6 +104,7 @@ const Layout = ({ children }) => {
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const isLoginPage = location.pathname === '/login';
   const isHomePage = location.pathname === '/';
+  const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
 
   // Hide top nav on mobile only (CSS) for My Bets landing + Bet History list + related history screens
@@ -142,24 +144,24 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Same header (logoipsum, Download App, bell) for all pages - mobile-style
-  if (isHomePage) {
-    return (
-      <>
-        {/* Mobile: existing dark header + bottom nav */}
-        <div className="md:hidden min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-[#f5f5f7] dark:bg-black w-full">
-          <AppHeader />
-          <SubHeader />
-          <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))]">
-            {children}
-          </div>
-          <BottomNavbar />
-        </div>
-        {/* Desktop: Home page renders its own sidebar + header layout */}
-        <div className="dashboard-shell hidden md:block min-h-screen bg-[#f5f5f7] dark:bg-black">
+  // Dashboard home/markets: one layout per viewport (avoid fixed AppHeader + DashboardHeader stack)
+  if (isDashboardShellPage) {
+    if (isDesktop) {
+      return (
+        <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-black">
           {children}
         </div>
-      </>
+      );
+    }
+    return (
+      <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-black">
+        <AppHeader />
+        <SubHeader />
+        <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))]">
+          {children}
+        </div>
+        <BottomNavbar />
+      </div>
     );
   }
 
@@ -240,6 +242,7 @@ const AppRoutes = () => {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/markets" element={<MarketsPage />} />
           <Route path="/bidoptions" element={<BidOptions />} />
           <Route path="/game-bid" element={<GameBid />} />
           <Route path="/bank" element={<Passbook />} />

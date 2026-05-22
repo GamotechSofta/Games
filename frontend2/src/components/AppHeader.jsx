@@ -3,9 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getBalance, updateUserBalance } from '../api/bets';
 import { API_BASE_URL, ANDROID_APK_URL } from '../config/api';
 import { clearCurrentUser, getCurrentUser, subscribeUserSession } from '../session/userSession';
+import { useSidebar } from '../context/SidebarContext';
 
 const AppHeader = () => {
   const navigate = useNavigate();
+  const { openMobile } = useSidebar();
   const headerRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(() => getCurrentUser());
@@ -138,15 +140,15 @@ const AppHeader = () => {
     <>
       <div
         ref={headerRef}
-        className="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b-2 border-gray-300 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] py-1 sm:py-1 md:py-1.5 pt-[calc(0.375rem+env(safe-area-inset-top,0px))] sm:pt-[calc(0.25rem+env(safe-area-inset-top,0px))] md:pt-[calc(0.375rem+env(safe-area-inset-top,0px))] pb-1 sm:pb-1 md:pb-1.5"
+        className="sidebar-offset-header fixed top-0 left-0 right-0 z-[45] w-full bg-white border-b-2 border-gray-300 pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(1.25rem,env(safe-area-inset-left))] sm:pr-[max(1.25rem,env(safe-area-inset-right))] md:left-[var(--sidebar-width,112px)] md:pl-[max(1.5rem,env(safe-area-inset-left))] md:pr-[max(1.5rem,env(safe-area-inset-right))] py-1 sm:py-1 md:py-1.5 pt-[calc(0.375rem+env(safe-area-inset-top,0px))] sm:pt-[calc(0.25rem+env(safe-area-inset-top,0px))] md:pt-[calc(0.375rem+env(safe-area-inset-top,0px))] pb-1 sm:pb-1 md:pb-1.5"
       >
         <div className="flex items-center justify-between gap-2 sm:gap-2 md:gap-3">
           {/* Hamburger Menu and Logo together on the left */}
           <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4">
             <button
               type="button"
-              onClick={() => setIsMenuOpen(true)}
-              className="w-8 h-8 sm:w-7 sm:h-7 md:w-8 md:h-8 shrink-0 rounded-lg bg-gray-50 border-2 border-gray-300 flex items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-100 transition-all duration-200 shadow-sm"
+              onClick={() => openMobile()}
+              className="w-8 h-8 sm:w-7 sm:h-7 md:w-8 md:h-8 shrink-0 rounded-lg bg-gray-50 border-2 border-gray-300 flex md:hidden items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-100 transition-all duration-200 shadow-sm"
               aria-label="Open menu"
             >
             <div className="flex flex-col gap-1 sm:gap-1">

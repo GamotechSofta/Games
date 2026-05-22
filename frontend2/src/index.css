@@ -1,5 +1,55 @@
 @import "tailwindcss";
 
+@property --sidebar-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 112px;
+}
+
+@property --sidebar-panel-width {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 72px;
+}
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sidebar-width: 112px;
+  --sidebar-panel-width: 72px;
+  --app-header-height: 56px;
+  --sidebar-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sidebar-duration: 0.32s;
+}
+
+@media (min-width: 768px) {
+  html {
+    transition:
+      --sidebar-width var(--sidebar-duration) var(--sidebar-ease),
+      --sidebar-panel-width var(--sidebar-duration) var(--sidebar-ease);
+  }
+
+  .sidebar-offset-header {
+    transition: left var(--sidebar-duration) var(--sidebar-ease);
+  }
+}
+  --surface-void: #0b0f14;
+  --surface-base: #11161f;
+  --surface-raised: #161b22;
+  --surface-active: #1b2230;
+  --accent-muted: rgba(59, 130, 246, 0.22);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme='dark'] body {
+  background: #0b0f14;
+  color: #e5e7eb;
+}
+
+html[data-theme='light'] body {
+  background: #ffffff;
+  color: #1f2937;
+}
+
 @keyframes scroll {
   0% {
     transform: translateX(0);
@@ -252,6 +302,7 @@ body {
   background: #ffffff;
   position: relative;
   color: #1f2937;
+  font-family: var(--font-sans);
   overscroll-behavior-x: none;
 }
 

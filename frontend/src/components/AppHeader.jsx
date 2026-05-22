@@ -102,10 +102,14 @@ const AppHeader = () => {
   const displayBalance = balance != null ? Number(balance) : 0;
   const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
 
+  const isDashboardDesktopRoute =
+    location.pathname === '/' || location.pathname === '/markets';
+
   return (
     <>
       <div
         className={`fixed top-0 left-0 right-0 z-50 w-full min-w-0 border-b
+          ${isDashboardDesktopRoute ? 'md:hidden' : ''}
           ${isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-black border-white/5'}
           pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))]
           sm:pl-[max(0.75rem,env(safe-area-inset-left))] sm:pr-[max(0.75rem,env(safe-area-inset-right))]

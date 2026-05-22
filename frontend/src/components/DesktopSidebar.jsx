@@ -1,112 +1,135 @@
-import React from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  HiOutlineChevronLeft,
-  HiOutlineChevronRight,
-  HiOutlinePhone,
-  HiOutlineDownload,
-  HiOutlineCurrencyDollar,
-  HiOutlineClipboardList,
-  HiOutlineCash,
-  HiOutlineShare,
-} from 'react-icons/hi';
-import { FaTelegramPlane } from 'react-icons/fa';
-import { clearUserAuth } from '../utils/auth';
+import { FaTelegram, FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import { triggerApkDownload } from '../utils/downloads';
-import aakdaLogo from '../config/logo';
+import { clearUserAuth } from '../utils/auth';
+import SidebarLocaleSettings from './SidebarLocaleSettings';
+import {
+  DashboardIcon,
+  HiCurrencyDollar,
+  HiUser,
+  HiGift,
+  HiChatAlt2,
+  HiDesktopComputer,
+  HiClipboardList,
+  HiCash,
+  HiChartBar,
+  HiLogout,
+  HiChevronRight,
+  HiChevronDown,
+  HiChevronLeft,
+  HiDotsVertical,
+  IconCasinoFilled,
+  IconSportsFilled,
+  iconColorClass,
+} from './dashboard/dashboardIcons';
 
-const LOGOUT_ICON_URL =
-  'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798997/logout_mttqvy.png';
+const COLLAPSED_W = 72;
+const EXPANDED_W = 240;
 
-/** Single sidebar list — nav + support + download + logout */
-const SIDEBAR_ITEMS = [
+const SOCIAL = [
+  { id: 'wa', label: 'WhatsApp', href: 'https://wa.me/', Icon: FaWhatsapp },
+  { id: 'tg', label: 'Telegram', href: 'https://t.me/', Icon: FaTelegram },
+  { id: 'ig', label: 'Instagram', href: 'https://instagram.com/', Icon: FaInstagram },
+];
+
+const MAIN_NAV = [
   {
-    key: 'myBets',
-    labelKey: 'header.myBets',
-    path: '/bids',
-    Icon: HiOutlineClipboardList,
-    iconColor: 'text-amber-600',
+    id: 'casino',
+    labelKey: 'sidebar.casino',
+    icon: IconCasinoFilled,
+    children: [
+      { labelKey: 'sidebar.casinoGames', path: '/games?category=highEarning' },
+      { labelKey: 'sidebar.skillsGames', path: '/games?category=skills' },
+    ],
   },
   {
-    key: 'funds',
-    labelKey: 'header.funds',
-    path: '/funds',
-    Icon: HiOutlineCash,
-    iconColor: 'text-emerald-600',
+    id: 'sports',
+    labelKey: 'sidebar.sports',
+    icon: IconSportsFilled,
+    children: [
+      { labelKey: 'markets.starline', path: '/startline-dashboard' },
+      { labelKey: 'markets.kingBazaar', path: '/king-bazaar-market' },
+    ],
   },
   {
-    key: 'updateRate',
-    labelKey: 'header.updateRate',
-    path: '/game-rate',
-    Icon: HiOutlineCurrencyDollar,
-    iconColor: 'text-blue-600',
+    id: 'markets',
+    labelKey: 'sidebar.markets',
+    path: '/markets',
+    icon: HiCurrencyDollar,
   },
   {
-    key: 'telegramChannel',
-    labelKey: 'header.telegramChannel',
-    path: '/support',
-    Icon: FaTelegramPlane,
-    iconColor: 'text-sky-500',
-  },
-  {
-    key: 'shareApp',
-    labelKey: 'header.shareApp',
-    path: '/support',
-    Icon: HiOutlineShare,
-    iconColor: 'text-violet-600',
-  },
-  {
-    key: 'support247',
-    labelKey: 'sidebar.support247',
-    subtitleKey: 'sidebar.supportSubtitle',
-    path: '/support',
-    Icon: HiOutlinePhone,
-    iconColor: 'text-[#D32F2F]',
-  },
-  {
-    key: 'downloadApp',
-    labelKey: 'header.downloadApp',
-    action: 'download',
-    Icon: HiOutlineDownload,
-    iconColor: 'text-gray-700',
-    showStoreBadges: true,
-  },
-  {
-    key: 'logout',
-    labelKey: 'header.logout',
-    subtitleKey: 'sidebar.logoutSubtitle',
-    action: 'logout',
-    iconImg: LOGOUT_ICON_URL,
-    iconBoxClass: 'bg-red-50 dark:bg-[#1a1a1a] border-red-200 dark:border-red-900/40',
+    id: 'bonuses',
+    labelKey: 'sidebar.bonuses',
+    path: '/funds?tab=add-fund',
+    icon: HiGift,
+    badge: 1,
   },
 ];
 
-const navBtnInactive =
-  'bg-white dark:bg-[#161616] border-2 border-gray-200 dark:border-white/[0.08] text-gray-800 dark:text-[#e8e8e8] hover:bg-gray-50 dark:hover:bg-[#1e1e1e] hover:border-gray-300 dark:hover:border-red-900/30 shadow-sm';
-const navBtnActive =
-  'bg-gradient-to-r from-[#ff1a1a] to-[#e60000] text-white border-2 border-[#e60000] shadow-md shadow-red-900/40 dark:shadow-[0_0_16px_rgba(230,0,0,0.35)]';
+const ACCOUNT_NAV = [
+  { id: 'myBets', labelKey: 'navigation.myBets', path: '/bids', icon: HiClipboardList },
+  { id: 'funds', labelKey: 'navigation.funds', path: '/funds', icon: HiCash },
+  { id: 'gameRate', labelKey: 'header.updateRate', path: '/game-rate', icon: HiChartBar },
+  { id: 'logout', labelKey: 'header.logout', action: 'logout', icon: HiLogout },
+];
 
-function NavItemIcon({ Icon, iconColor, active, iconImg, iconBoxClass }) {
-  const boxClass = `w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border-2 ${
-    active
-      ? 'bg-white border-white/50'
-      : iconBoxClass || 'bg-gray-50 dark:bg-[#1a1a1a] border-gray-200 dark:border-white/[0.08]'
-  }`;
+function pathMatches(pathname, path) {
+  const base = (path || '').split('?')[0];
+  if (base === '/') return pathname === '/';
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
 
-  if (iconImg) {
-    return (
-      <div className={boxClass}>
-        <img src={iconImg} alt="" className="w-6 h-6 object-contain" />
-      </div>
-    );
-  }
-
-  const IconComp = Icon;
+function NavRow({
+  collapsed,
+  active,
+  label,
+  icon: Icon,
+  letter,
+  badge,
+  hasChildren,
+  open,
+  onClick,
+}) {
   return (
-    <div className={boxClass}>
-      <IconComp className={`w-[22px] h-[22px] ${iconColor}`} aria-hidden />
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      title={collapsed ? label : undefined}
+      className={[
+        'group flex w-full items-center rounded-[12px] transition-all duration-[250ms]',
+        collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+        active ? 'bg-white/[0.08] text-white' : 'text-white/70 hover:bg-white/[0.04] hover:text-white/90',
+      ].join(' ')}
+    >
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+        {letter ? (
+          <span className="text-[17px] font-semibold italic leading-none text-[#b0b0b0]">{letter}</span>
+        ) : (
+          <DashboardIcon Icon={Icon} active={active} />
+        )}
+      </span>
+      {!collapsed && (
+        <>
+          <span className="dashboard-nav-label flex-1 truncate text-left text-white/85">
+            {label}
+          </span>
+          {badge != null && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-[11px] font-semibold text-white">
+              {badge}
+            </span>
+          )}
+          {hasChildren && (
+            <HiChevronDown
+              className={`h-4 w-4 shrink-0 transition-transform duration-[250ms] ${iconColorClass(false)} ${
+                open ? 'rotate-180' : ''
+              }`}
+            />
+          )}
+        </>
+      )}
+    </button>
   );
 }
 
@@ -114,144 +137,348 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const [openMenus, setOpenMenus] = useState({ casino: true, sports: false });
+  const [hoveredFlyoutId, setHoveredFlyoutId] = useState(null);
 
-  const isActive = (item) => {
-    if (item.action === 'logout' || item.action === 'download') return false;
-    if (item.key === 'telegramChannel' || item.key === 'shareApp' || item.key === 'support247') {
-      return location.pathname.startsWith('/support');
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
     }
-    if (!item.path) return false;
-    return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+  });
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setUser(JSON.parse(localStorage.getItem('user') || 'null'));
+      } catch {
+        setUser(null);
+      }
+    };
+    sync();
+    window.addEventListener('userLogin', sync);
+    window.addEventListener('userLogout', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('userLogin', sync);
+      window.removeEventListener('userLogout', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
+  const width = collapsed ? COLLAPSED_W : EXPANDED_W;
+
+  const toggleMenu = (id) => {
+    setOpenMenus((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleItemClick = (item) => {
-    if (item.action === 'logout') {
-      clearUserAuth();
-      return;
+  const go = (path) => navigate(path);
+
+  const isItemActive = (item) => {
+    if (item.path) return pathMatches(location.pathname, item.path);
+    if (item.children) {
+      return item.children.some((c) => pathMatches(location.pathname, c.path));
     }
-    if (item.action === 'download') {
-      triggerApkDownload();
-      return;
-    }
-    if (item.path) navigate(item.path);
+    return false;
   };
 
   return (
-    <aside
-      className={`hidden md:flex flex-col shrink-0 bg-white dark:bg-[#0c0c0c] border-r border-gray-200 dark:border-white/[0.08] h-screen sticky top-0 transition-all duration-300 dark:shadow-[inset_-8px_0_32px_rgba(230,0,0,0.06)] ${
-        collapsed ? 'w-[72px]' : 'w-[260px]'
-      }`}
+    <div
+      className="relative z-40 hidden h-screen shrink-0 overflow-visible md:flex"
+      style={{ width }}
     >
-      {/* Logo */}
-      <div
-        className={`shrink-0 flex items-center border-b border-gray-200 dark:border-white/[0.08] dark:bg-gradient-to-br dark:from-red-950/35 dark:via-[#0c0c0c] dark:to-[#0c0c0c] ${
-          collapsed ? 'justify-center px-2 py-3' : 'gap-2 px-3 py-3'
-        }`}
+      {/* Collapse — sits above main content (hero) */}
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        className="absolute -right-3 top-[108px] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-[#1a1a1a] text-white/50 shadow-lg transition-all duration-[250ms] hover:border-white/[0.14] hover:text-white/90"
+        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
       >
-        <Link
-          to="/"
-          className={`flex items-center min-w-0 ${
-            collapsed ? 'w-full justify-center' : 'flex-1'
-          }`}
-        >
-          <img
-            src={aakdaLogo}
-            alt="Aakda"
-            className={
-              collapsed
-                ? 'h-8 w-auto max-w-[52px] object-contain'
-                : 'h-10 w-auto max-w-[172px] object-contain object-left'
-            }
-          />
-        </Link>
-        {!collapsed && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="w-7 h-7 rounded-full border-2 border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-white/20 transition-colors shrink-0"
-            aria-label={t('sidebar.collapse')}
-          >
-            <HiOutlineChevronLeft className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+        <HiChevronLeft
+          className={`h-3.5 w-3.5 transition-transform duration-[250ms] ${iconColorClass(false)} ${collapsed ? 'rotate-180' : ''}`}
+        />
+      </button>
 
-      {collapsed && (
+    <aside
+      className="relative flex h-full w-full flex-col overflow-visible border-r border-white/[0.06] bg-[#111111] font-sans"
+      aria-label={t('sidebar.expand')}
+    >
+      <div className="flex min-h-0 flex-1 flex-col px-2">
+        {/* Scrollable: profile, promo, main nav */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden py-3">
+        {/* Log in */}
         <button
           type="button"
-          onClick={onToggleCollapse}
-          className="shrink-0 mx-auto mt-2 w-7 h-7 rounded-full border-2 border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-          aria-label={t('sidebar.expand')}
+          onClick={() => go(user ? '/profile' : '/login')}
+          className={[
+            'mb-3 flex w-full items-center rounded-[14px] transition-all duration-[250ms] hover:bg-white/[0.04]',
+            collapsed ? 'justify-center p-2' : 'gap-3 px-2 py-2',
+          ].join(' ')}
         >
-          <HiOutlineChevronRight className="w-4 h-4" />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white/60">
+            {user ? (
+              <span className="text-sm font-semibold text-white/90">
+                {(user.username || 'U').charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <HiUser className="h-5 w-5 text-[#b0b0b0]" />
+            )}
+          </span>
+          {!collapsed && (
+            <>
+              <span className="dashboard-nav-label flex-1 truncate text-left text-[15px] text-white/90">
+                {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
+              </span>
+              <HiChevronRight className={`h-4 w-4 shrink-0 ${iconColorClass(false)}`} />
+            </>
+          )}
         </button>
-      )}
 
-      {/* Single menu — fills sidebar height, last button at screen bottom */}
-      <nav className="flex-1 flex flex-col min-h-0 px-3 pt-3 pb-4 overflow-hidden">
-        <div className="flex flex-col flex-1 min-h-0 justify-between gap-2">
-          {SIDEBAR_ITEMS.map((item) => {
-            const active = isActive(item);
+        {/* Free money */}
+        <button
+          type="button"
+          onClick={() => go('/funds?tab=add-fund')}
+          className={[
+            'mb-4 w-full overflow-hidden rounded-[14px] border border-white/[0.06] transition-all duration-[250ms] hover:brightness-110',
+            collapsed ? 'mx-auto h-14 w-14 p-1' : 'px-3 py-3 text-left',
+          ].join(' ')}
+          style={{
+            background: 'linear-gradient(135deg, #0f3d35 0%, #0a1f1c 55%, #111111 100%)',
+          }}
+          title={t('sidebar.freeMoney')}
+        >
+          {collapsed ? (
+            <span className="flex h-full w-full flex-col items-center justify-center text-[9px] font-semibold leading-tight text-white/90">
+              {t('sidebar.freeMoneyShort')}
+            </span>
+          ) : (
+            <span className="text-[13px] font-semibold text-white/95">{t('sidebar.freeMoney')}</span>
+          )}
+        </button>
+
+        {/* Main nav */}
+        <nav className="flex flex-col gap-0.5">
+          {MAIN_NAV.map((item) => {
+            const active = isItemActive(item);
+            const open = openMenus[item.id];
+            const hasChildren = Boolean(item.children?.length);
+            const Icon = item.icon;
+
+            const showCollapsedFlyout =
+              collapsed && hasChildren && hoveredFlyoutId === item.id;
+
             return (
-              <button
-                key={item.key}
-                type="button"
-                title={collapsed ? t(item.labelKey) : undefined}
-                onClick={() => handleItemClick(item)}
-                className={`w-full shrink-0 flex items-center transition-all duration-200 ${
-                  collapsed
-                    ? 'justify-center p-2 rounded-xl'
-                    : 'gap-3 px-3 py-2.5 rounded-xl'
-                } ${active ? navBtnActive : navBtnInactive}`}
+              <div
+                key={item.id}
+                className="relative"
+                onMouseEnter={() => {
+                  if (collapsed && hasChildren) setHoveredFlyoutId(item.id);
+                }}
+                onMouseLeave={() => {
+                  if (collapsed) setHoveredFlyoutId(null);
+                }}
               >
-                <NavItemIcon
-                  Icon={item.Icon}
-                  iconColor={item.iconColor}
+                <NavRow
+                  collapsed={collapsed}
                   active={active}
-                  iconImg={item.iconImg}
-                  iconBoxClass={item.iconBoxClass}
+                  label={t(item.labelKey)}
+                  icon={Icon}
+                  letter={item.letter}
+                  badge={item.badge}
+                  hasChildren={hasChildren && !collapsed}
+                  open={open}
+                  onClick={() => {
+                    if (hasChildren && !collapsed) {
+                      toggleMenu(item.id);
+                      return;
+                    }
+                    if (item.path) go(item.path);
+                    else if (item.children?.[0]) go(item.children[0].path);
+                  }}
                 />
-                {!collapsed && (
-                  <>
-                    <div className="flex-1 min-w-0 text-left">
-                      <p
-                        className={`text-sm font-semibold truncate ${
-                          active ? 'text-white' : 'text-gray-800 dark:text-gray-200'
-                        }`}
+                {hasChildren && open && !collapsed && (
+                  <div className="mb-1 ml-9 flex flex-col gap-0.5 border-l border-white/[0.06] pl-2">
+                    {item.children.map((child) => (
+                      <button
+                        key={child.path}
+                        type="button"
+                        onClick={() => go(child.path)}
+                        className={[
+                          'dashboard-nav-label-sm rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
+                          pathMatches(location.pathname, child.path)
+                            ? 'bg-white/[0.06] font-medium text-white'
+                            : 'text-white/55 hover:text-white/80',
+                        ].join(' ')}
                       >
+                        {t(child.labelKey)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {showCollapsedFlyout && (
+                  <div
+                    className="absolute left-full top-0 z-[120] ml-1 min-w-[200px] pl-1"
+                    role="menu"
+                    aria-label={t(item.labelKey)}
+                  >
+                    <div className="rounded-xl border border-white/[0.08] bg-[#1a1a1a] py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
+                      <p className="dashboard-nav-label-sm border-b border-white/[0.06] px-3 py-2 text-white/45">
                         {t(item.labelKey)}
                       </p>
-                      {item.subtitleKey && (
-                        <p
-                          className={`text-[11px] truncate mt-0.5 ${
-                            active ? 'text-white/85' : 'text-gray-500 dark:text-gray-400'
-                          }`}
+                      {item.children.map((child) => (
+                        <button
+                          key={child.path}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => go(child.path)}
+                          className={[
+                            'dashboard-nav-label-sm block w-full rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
+                            pathMatches(location.pathname, child.path)
+                              ? 'bg-white/[0.08] font-medium text-white'
+                              : 'text-white/70 hover:bg-white/[0.05] hover:text-white',
+                          ].join(' ')}
                         >
-                          {t(item.subtitleKey)}
-                        </p>
-                      )}
+                          {t(child.labelKey)}
+                        </button>
+                      ))}
                     </div>
-                    {item.showStoreBadges ? (
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-[10px] bg-gray-100 dark:bg-[#252528] border border-gray-200 dark:border-white/10 rounded px-1 py-0.5">
-                          🤖
-                        </span>
-                        <span className="text-[10px] bg-gray-100 dark:bg-[#252528] border border-gray-200 dark:border-white/10 rounded px-1 py-0.5">
-                          🍎
-                        </span>
-                      </div>
-                    ) : active ? (
-                      <HiOutlineChevronRight className="w-4 h-4 text-white shrink-0" />
-                    ) : (
-                      <HiOutlineChevronRight className="w-4 h-4 text-gray-400 dark:text-[#707070] shrink-0" />
-                    )}
-                  </>
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
+        </nav>
+
+        <nav className="mt-3 flex flex-col gap-0.5 border-t border-white/[0.06] pt-3">
+          {ACCOUNT_NAV.map((item) => {
+            const active = item.path ? pathMatches(location.pathname, item.path) : false;
+            const Icon = item.icon;
+            const isLogout = item.action === 'logout';
+
+            return (
+              <NavRow
+                key={item.id}
+                collapsed={collapsed}
+                active={active}
+                label={t(item.labelKey)}
+                icon={Icon}
+                onClick={() => {
+                  if (isLogout) {
+                    clearUserAuth();
+                    return;
+                  }
+                  if (item.path) go(item.path);
+                }}
+              />
+            );
+          })}
+        </nav>
         </div>
-      </nav>
+
+        {/* Sticky bottom: locale, app download, social, support */}
+        <div className="flex shrink-0 flex-col gap-3 bg-[#111111] px-1 py-3">
+          <SidebarLocaleSettings collapsed={collapsed} />
+          <div className="border-t border-white/[0.06] pt-3 flex flex-col gap-3">
+          {/* Windows / app card */}
+          <button
+            type="button"
+            onClick={() => triggerApkDownload()}
+            className={[
+              'w-full rounded-[14px] border border-white/[0.06] bg-[#1a1a1a] transition-all duration-[250ms] hover:bg-[#222222]',
+              collapsed ? 'flex justify-center p-2' : 'flex items-center gap-3 px-3 py-3 text-left',
+            ].join(' ')}
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#2563eb]">
+              <HiDesktopComputer className="h-5 w-5 text-white" />
+            </span>
+            {!collapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13px] font-semibold text-white/90">
+                    {t('sidebar.appWindowsTitle')}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/45">
+                    {t('sidebar.appWindowsSubtitle')}
+                  </p>
+                </div>
+                <HiChevronRight className={`h-4 w-4 shrink-0 ${iconColorClass(false)}`} />
+              </>
+            )}
+          </button>
+
+          {/* Social */}
+          {!collapsed ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                {SOCIAL.map(({ id, href, label, Icon }) => (
+                  <a
+                    key={id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={label}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-[#b0b0b0] transition-all duration-[250ms] hover:bg-[#333] hover:text-[#d4d4d4]"
+                  >
+                    <Icon className="h-4 w-4" aria-hidden />
+                  </a>
+                ))}
+                <button
+                  type="button"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-white/55 hover:text-white/85"
+                  aria-label="More"
+                >
+                  <HiDotsVertical className="h-4 w-4 text-[#b0b0b0]" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <div className="grid grid-cols-2 gap-1">
+                {SOCIAL.slice(0, 2).map(({ id, href, Icon }) => (
+                  <a
+                    key={id}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a] text-[#b0b0b0]"
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Support 24/7 */}
+          <button
+            type="button"
+            onClick={() => go('/support')}
+            className={[
+              'flex w-full items-center rounded-[12px] transition-all duration-[250ms] hover:bg-white/[0.04]',
+              collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+              pathMatches(location.pathname, '/support') ? 'bg-white/[0.08]' : 'text-white/70',
+            ].join(' ')}
+          >
+            <DashboardIcon
+              Icon={HiChatAlt2}
+              active={pathMatches(location.pathname, '/support')}
+            />
+            {!collapsed && (
+              <>
+                <span className="dashboard-nav-label flex-1 truncate text-left text-white/85">
+                  {t('sidebar.support')}
+                </span>
+                <span className="shrink-0 rounded-full bg-[#2563eb] px-2 py-0.5 text-[11px] font-semibold text-white">
+                  24/7
+                </span>
+              </>
+            )}
+          </button>
+          </div>
+        </div>
+      </div>
     </aside>
+    </div>
   );
 }

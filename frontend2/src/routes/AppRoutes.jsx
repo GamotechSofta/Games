@@ -4,6 +4,8 @@ import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
 import AppHeader from '../components/AppHeader';
 import BottomNavbar from '../components/BottomNavbar';
+import SideSidebar from '../components/SideSidebar';
+import { SidebarProvider } from '../context/SidebarContext';
 import Home from '../pages/Home';
 import BidOptions from '../pages/BidOptions';
 import GameBid from '../pages/GameBid/index';
@@ -90,7 +92,6 @@ const Layout = ({ children }) => {
   const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
   const [hasUser, setHasUser] = useState(null);
   const isLoginPage = location.pathname === '/login' || location.pathname === '/signup';
-  const isHomePage = location.pathname === '/';
   const [showPortraitPrompt, setShowPortraitPrompt] = useState(false);
 
   usePlayerWalletSocketSync(
@@ -347,29 +348,19 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Same header (logoipsum, Download App, bell) for all pages - mobile-style
-  if (isHomePage) {
-    return (
-      <div className="min-h-screen min-h-ios-screen pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-white w-full">
+  const shellClass =
+    'sidebar-layout-shell min-h-screen min-h-ios-screen pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-white md:pl-[var(--sidebar-width,112px)]';
+
+  return (
+    <SidebarProvider>
+      <div className={shellClass}>
+        <SideSidebar />
         <AppHeader />
-        <div className="pt-[var(--app-header-height,56px)]">
-          {children}
-        </div>
+        <div className="pt-[var(--app-header-height,56px)]">{children}</div>
         <BottomNavbar />
         {portraitPromptOverlay}
       </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen min-h-ios-screen pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-white">
-      <AppHeader />
-      <div className="pt-[var(--app-header-height,56px)]">
-        {children}
-      </div>
-      <BottomNavbar />
-      {portraitPromptOverlay}
-    </div>
+    </SidebarProvider>
   );
 };
 
