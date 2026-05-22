@@ -2,16 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
-import { clearUserAuth } from '../utils/auth';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
+import aakdaLogo from '../config/logo';
 import LanguageSwitcher from './LanguageSwitcher';
+import ThemeSwitcher from './ThemeSwitcher';
+import { useTheme } from '../context/ThemeContext';
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isLight } = useTheme();
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -19,17 +21,6 @@ const AppHeader = () => {
   const refreshNotificationCount = useCallback(() => {
     getNotificationUnreadCount().then(setNotificationCount);
   }, []);
-
-  const menuItems = [
-    { key: 'myBets', label: t('header.myBets'), path: '/bids' },
-    { key: 'funds', label: t('header.funds'), path: '/funds' },
-    { key: 'downloadApp', label: t('header.downloadApp'), path: '/download' },
-    { key: 'updateRate', label: t('header.updateRate'), path: '/game-rate' },
-    { key: 'telegramChannel', label: t('header.telegramChannel'), path: '/support' },
-    { key: 'helpDesk', label: t('header.helpDesk'), path: '/support' },
-    { key: 'shareApp', label: t('header.shareApp'), path: '/support' },
-    { key: 'logout', label: t('header.logout'), path: '/login' }
-  ];
 
   const loadStoredBalance = () => {
     try {
@@ -83,10 +74,6 @@ const AppHeader = () => {
     window.addEventListener('userLogin', checkUser);
     window.addEventListener('userLogout', checkUser);
 
-    // Close sidebar when user taps a bottom navbar item (mobile)
-    const closeMenu = () => setIsMenuOpen(false);
-    window.addEventListener('closeHeaderMenu', closeMenu);
-
     refreshNotificationCount();
     window.addEventListener('notificationsSeen', refreshNotificationCount);
     window.addEventListener('userLogin', refreshNotificationCount);
@@ -97,7 +84,6 @@ const AppHeader = () => {
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userLogin', checkUser);
       window.removeEventListener('userLogout', checkUser);
-      window.removeEventListener('closeHeaderMenu', closeMenu);
       window.removeEventListener('notificationsSeen', refreshNotificationCount);
       window.removeEventListener('userLogin', refreshNotificationCount);
       clearInterval(intervalId);
@@ -109,27 +95,6 @@ const AppHeader = () => {
     refreshNotificationCount();
   }, [location.pathname, refreshNotificationCount]);
 
-  const handleLogout = () => {
-    clearUserAuth();
-  };
-
-  const displayName = user?.username || t('header.signIn');
-  const displayPhone =
-    user?.phone ||
-    user?.mobile ||
-    user?.mobileNumber ||
-    user?.phoneNumber ||
-    user?.phone_number ||
-    user?.mobilenumber ||
-    user?.email ||
-    '-';
-  const sinceDateRaw = user?.createdAt || user?.created_at || user?.createdOn;
-  const sinceDate = sinceDateRaw ? new Date(sinceDateRaw) : null;
-  const sinceText = sinceDate && !Number.isNaN(sinceDate.getTime())
-    ? `${t('header.since')} ${sinceDate.toLocaleDateString('en-GB')}`
-    : `${t('header.since')} -`;
-  const avatarInitial = displayName ? displayName.charAt(0).toUpperCase() : 'U';
-
   const handleProfileClick = () => {
     navigate(user ? '/profile' : '/login');
   };
@@ -140,7 +105,8 @@ const AppHeader = () => {
   return (
     <>
       <div
-        className="fixed top-0 left-0 right-0 z-50 w-full min-w-0 bg-black border-b border-white/5
+        className={`fixed top-0 left-0 right-0 z-50 w-full min-w-0 border-b
+          ${isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-black border-white/5'}
           pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))]
           sm:pl-[max(0.75rem,env(safe-area-inset-left))] sm:pr-[max(0.75rem,env(safe-area-inset-right))]
           md:pl-[max(1rem,env(safe-area-inset-left))] md:pr-[max(1rem,env(safe-area-inset-right))]
@@ -149,46 +115,36 @@ const AppHeader = () => {
           py-1.5 sm:py-2 md:py-2
           pt-[max(0.5rem,calc(0.25rem+env(safe-area-inset-top,0px)))]
           sm:pt-[max(0.5rem,calc(0.375rem+env(safe-area-inset-top,0px)))]
-          md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]"
+          md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]`}
       >
         <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0">
-          {/* Hamburger Menu and Logo - left section */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3 min-w-0 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen(true)}
-              className="w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700/50 flex items-center justify-center cursor-pointer active:scale-95 hover:bg-gray-700/50 transition-all duration-200 touch-manipulation"
-              aria-label={t('header.openMenu')}
-            >
-              <div className="flex flex-col gap-1">
-                <div className="w-4 h-[2px] bg-white rounded-full"></div>
-                <div className="w-3.5 h-[2px] bg-white rounded-full"></div>
-                <div className="w-3 h-[2px] bg-white rounded-full"></div>
-              </div>
-            </button>
-
-            {/* Logo - scales with viewport */}
+          {/* Logo */}
+          <div className="flex items-center min-w-0 shrink-0">
             <Link
               to="/"
               className="flex items-center shrink-0 cursor-pointer active:scale-95 transition-transform duration-200 min-w-0"
             >
               <img
-                src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771571553/Brown_Mascot_Lion_Free_Logo_sfqwsj.png"
-                alt="Logo"
-                className="h-6 max-h-10 sm:h-7 sm:max-h-11 md:h-8 md:max-h-12 lg:h-9 lg:max-h-14 xl:h-10 xl:max-h-16 w-auto object-contain"
+                src={aakdaLogo}
+                alt="Aakda"
+                className="h-9 sm:h-10 md:h-11 w-auto max-w-[140px] sm:max-w-[160px] object-contain object-left"
               />
             </Link>
           </div>
 
           {/* Right side - buttons */}
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 shrink-0 min-w-0">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
+            <ThemeSwitcher variant="auto" />
+            <LanguageSwitcher variant="auto" />
 
             {/* Download App - middle (blink so user notices) */}
             <button
               onClick={triggerApkDownload}
-              className="animate-download-blink shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 touch-manipulation"
+              className={`animate-download-blink shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center active:scale-95 transition-all duration-200 touch-manipulation ${
+                isLight
+                  ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  : 'bg-[#202124] border border-white/10 text-white hover:bg-[#2a2b2e] hover:border-white/20'
+              }`}
               aria-label={t('header.downloadApp')}
               title={t('header.downloadApp')}
             >
@@ -200,7 +156,11 @@ const AppHeader = () => {
             {/* Notification */}
             <button
               onClick={() => navigate('/notifications')}
-              className="shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg bg-[#202124] border border-white/10 flex items-center justify-center text-white hover:bg-[#2a2b2e] hover:border-white/20 active:scale-95 transition-all duration-200 relative touch-manipulation"
+              className={`shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center active:scale-95 transition-all duration-200 relative touch-manipulation ${
+                isLight
+                  ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                  : 'bg-[#202124] border border-white/10 text-white hover:bg-[#2a2b2e] hover:border-white/20'
+              }`}
               aria-label="Notifications"
               title="Notifications"
             >
@@ -254,145 +214,6 @@ const AppHeader = () => {
           </div>
         </div>
       </div>
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-[60]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsMenuOpen(false)}
-            aria-label="Close menu overlay"
-          />
-          <aside className="relative h-full w-[75%] max-w-[260px] sm:w-[60%] sm:max-w-[280px] md:w-[300px] md:max-w-none bg-gradient-to-b from-[#0a0a0a] via-black to-[#0a0a0a] shadow-[6px_0_24px_rgba(0,0,0,0.8)] border-r border-white/5">
-            {/* User Profile Section */}
-            <div className="px-5 sm:px-6 pt-4 pb-3 border-b border-white/10 bg-gradient-to-b from-[#1a1a1a]/50 to-transparent">
-              <div className="flex items-start justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    handleProfileClick();
-                  }}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left group"
-                  aria-label="Open profile"
-                >
-                  {/* Avatar */}
-                  <div className="relative shrink-0">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#1e1e1e] to-[#2a2a2a] border-2 border-yellow-500/30 flex items-center justify-center text-white text-lg sm:text-xl font-bold shadow-[0_4px_12px_rgba(212,175,55,0.3)]">
-                      {avatarInitial}
-                    </div>
-                    {user && (
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-black"></div>
-                    )}
-                  </div>
-                  
-                  {/* User Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm sm:text-base font-bold text-white truncate">{displayName}</div>
-                    <div className="text-[11px] sm:text-xs text-gray-400 mt-0.5 truncate">{displayPhone}</div>
-                    <div className="text-[11px] sm:text-xs text-gray-500 mt-0.5">{sinceText}</div>
-                  </div>
-                </button>
-                
-                {/* Close Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#222] hover:border-white/20 active:scale-95 transition-all duration-200 shrink-0"
-                  aria-label="Close menu"
-                >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Menu Items */}
-            <div className="px-4 sm:px-5 py-3 space-y-1.5 overflow-y-auto h-[calc(100%-120px)] scrollbar-hidden">
-              {menuItems.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    if (item.key === 'logout') {
-                      handleLogout();
-                    } else if (item.key === 'downloadApp') {
-                      triggerApkDownload();
-                    } else {
-                      navigate(item.path);
-                    }
-                  }}
-                  className="group w-full bg-gradient-to-r from-[#1a1a1a] to-[#1e1e1e] rounded-xl sm:rounded-2xl px-3 py-2.5 sm:py-3 flex items-center gap-3 border border-white/5 hover:border-yellow-500/30 hover:from-[#222] hover:to-[#252525] hover:shadow-[0_4px_16px_rgba(212,175,55,0.15)] active:scale-[0.98] transition-all duration-200"
-                >
-                  {/* Icon Container */}
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#2a2a2a] to-[#1e1e1e] border border-white/10 flex items-center justify-center shrink-0 group-hover:border-yellow-500/30 group-hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)] transition-all duration-200">
-                    {item.key === 'telegramChannel' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769797952/telegram_yw9hf1.png"
-                        alt="Telegram"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'myBets' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777192/auction_ofhpps.png"
-                        alt="My Bets"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'funds' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777500/funding_zjmbzp.png"
-                        alt="Funds"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'updateRate' ? (
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    ) : item.key === 'helpDesk' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769777618/customer-support_du0zcj.png"
-                        alt="Help Desk"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'shareApp' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798998/share_a6shgt.png"
-                        alt="Share App"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'logout' ? (
-                      <img
-                        src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769798997/logout_mttqvy.png"
-                        alt="Logout"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain"
-                      />
-                    ) : item.key === 'downloadApp' ? (
-                      <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                    ) : (
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full border-2 border-white/40"></div>
-                    )}
-                  </div>
-                  
-                  {/* Menu Text */}
-                  <span className="text-xs sm:text-sm font-semibold text-white group-hover:text-yellow-400 transition-colors duration-200 flex-1 text-left">
-                    {item.label}
-                  </span>
-                  {/* Arrow Indicator */}
-                  <svg className="w-4 h-4 text-white/20 group-hover:text-yellow-500/60 group-hover:translate-x-1 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              ))}
-              
-              {/* Version Footer */}
-              <div className="text-center text-[10px] text-gray-600 pt-2 pb-1">{t('header.version')}</div>
-            </div>
-          </aside>
-        </div>
-      )}
     </>
   );
 };

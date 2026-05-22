@@ -108,8 +108,8 @@ const BottomNavbar = () => {
       }}
     >
       {/* Backplate to prevent white background showing behind navbar */}
-      <div className="absolute inset-0 bg-black pointer-events-none" />
-      <div className="relative bg-black rounded-2xl border border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
+      <div className="absolute inset-0 bg-[#f5f5f7] dark:bg-black pointer-events-none" />
+      <div className="relative bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const isCenter = item.isCenter;
@@ -119,7 +119,6 @@ const BottomNavbar = () => {
               <button
                 key={item.id}
                 onClick={() => {
-                  window.dispatchEvent(new Event('closeHeaderMenu'));
                   if (item.path === '/' && location.pathname === '/') {
                     scrollToTopSmooth();
                     return;
@@ -132,8 +131,8 @@ const BottomNavbar = () => {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-all duration-200 ${
                     active
-                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-black scale-105'
-                      : 'bg-gray-800 border border-gray-700'
+                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-white dark:ring-offset-black scale-105'
+                      : 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700'
                   }`}
                 >
                   {/* Icon: white when inactive, dark when active (on yellow bg) */}
@@ -147,7 +146,7 @@ const BottomNavbar = () => {
                 </div>
                 <span
                   className={`text-[9px] font-bold mt-0.5 transition-colors duration-200 ${
-                    active ? 'text-[#f3b61b]' : 'text-white'
+                    active ? 'text-[#f3b61b]' : 'text-gray-600 dark:text-white'
                   }`}
                 >
                   {item.label}
@@ -160,7 +159,6 @@ const BottomNavbar = () => {
             <button
               key={item.id}
               onClick={() => {
-                window.dispatchEvent(new Event('closeHeaderMenu'));
                 if (item.path === '/' && location.pathname === '/') {
                   scrollToTopSmooth();
                   return;
@@ -193,7 +191,7 @@ const BottomNavbar = () => {
               </div>
               <span
                 className={`text-[9px] font-bold transition-colors duration-200 ${
-                  active ? 'text-[#f3b61b]' : 'text-white'
+                  active ? 'text-[#f3b61b]' : 'text-gray-600 dark:text-white'
                 }`}
               >
                 {item.label}

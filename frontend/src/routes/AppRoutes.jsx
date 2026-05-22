@@ -145,14 +145,21 @@ const Layout = ({ children }) => {
   // Same header (logoipsum, Download App, bell) for all pages - mobile-style
   if (isHomePage) {
     return (
-      <div className="min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 bg-black w-full">
-        <AppHeader />
-        <SubHeader />
-        <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))] md:pt-[calc(4rem+env(safe-area-inset-top,0px))]">
+      <>
+        {/* Mobile: existing dark header + bottom nav */}
+        <div className="md:hidden min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] bg-[#f5f5f7] dark:bg-black w-full">
+          <AppHeader />
+          <SubHeader />
+          <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))]">
+            {children}
+          </div>
+          <BottomNavbar />
+        </div>
+        {/* Desktop: Home page renders its own sidebar + header layout */}
+        <div className="dashboard-shell hidden md:block min-h-screen bg-[#f5f5f7] dark:bg-black">
           {children}
         </div>
-        <BottomNavbar />
-      </div>
+      </>
     );
   }
 
@@ -186,8 +193,8 @@ const Layout = ({ children }) => {
     <div
       className={
         hideBottomNavOnMobile
-          ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
-          : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-black'
+          ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
+          : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
       }
     >
       {/* My Bets, Bet History, Game Results etc.: hide top nav on mobile only via CSS */}

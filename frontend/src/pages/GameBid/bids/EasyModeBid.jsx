@@ -3,8 +3,6 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
-import { useScheduling } from '../BettingWindowContext';
-import { resolveScheduledDate } from '../../../utils/marketTiming';
 
 const EasyModeBid = ({
     market,
@@ -22,10 +20,7 @@ const EasyModeBid = ({
     validDoublePanas = [],
     validSinglePanas = [],
     apiBetType = null, // when set, used in payload instead of derived betType (e.g. 'sp-common')
-    scheduleForTomorrow: scheduleForTomorrowProp = false,
 }) => {
-    const { scheduleForTomorrow: scheduleFromCtx } = useScheduling();
-    const scheduleForTomorrow = scheduleForTomorrowProp || scheduleFromCtx;
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
     const [jodiSpecialQuickSelected, setJodiSpecialQuickSelected] = useState(null);
     const lockSessionToOpen = specialModeType === 'jodi';
@@ -635,8 +630,12 @@ const EasyModeBid = ({
         if (!payload.length) throw new Error('No valid bets to place');
         
         // Check if date is in the future (scheduled bet)
-        const scheduledDate = resolveScheduledDate({ scheduleForTomorrow, selectedDate, market });
-
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const selectedDateObj = new Date(selectedDate);
+        selectedDateObj.setHours(0, 0, 0, 0);
+        const scheduledDate = selectedDateObj > today ? selectedDate : null;
+        
         const result = await placeBet(marketId, payload, scheduledDate);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);

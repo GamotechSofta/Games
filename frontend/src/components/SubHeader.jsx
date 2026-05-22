@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
+import { useTheme } from '../context/ThemeContext';
 
 /**
  * Sub-header matching photo: golden borders, username (left), DEPOSIT/WITHDRAWAL (center), wallet + balance (right).
@@ -10,6 +11,7 @@ import { getBalance, updateUserBalance } from '../api/bets';
 const SubHeader = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { isLight } = useTheme();
   const [balance, setBalance] = useState(null);
 
   const headerHeight = 'calc(3rem + env(safe-area-inset-top, 0px))';
@@ -49,7 +51,11 @@ const SubHeader = () => {
 
   return (
     <div
-      className="fixed left-0 right-0 z-40 w-full bg-black border-t border-amber-500/60 md:hidden"
+      className={`fixed left-0 right-0 z-40 w-full border-t md:hidden ${
+        isLight
+          ? 'bg-white border-amber-500/50 shadow-sm'
+          : 'bg-black border-amber-500/60'
+      }`}
       style={{ top: headerHeight }}
     >
       <div className="flex flex-nowrap items-center justify-between gap-2 sm:gap-4 px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:px-4 md:px-6 h-10 sm:h-11 py-1.5">
@@ -60,14 +66,20 @@ const SubHeader = () => {
             alt="Wallet"
             className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0"
           />
-          <span className="text-sm sm:text-base font-bold text-white truncate">{formattedBalance}</span>
+          <span className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-gray-900' : 'text-white'}`}>
+            {formattedBalance}
+          </span>
         </div>
 
         {/* Right - Deposit/Withdrawal */}
         <button
           type="button"
           onClick={() => navigate('/funds')}
-          className="shrink-0 rounded-lg bg-[#1a1a1a] border-2 border-amber-400/90 px-3 sm:px-4 py-1.5 sm:py-2 text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-[0_0_12px_rgba(251,191,36,0.4),0_2px_0_rgba(251,191,36,0.3),0_-2px_0_rgba(251,191,36,0.2)] hover:border-amber-400 hover:shadow-[0_0_16px_rgba(251,191,36,0.5)] active:scale-[0.98] transition-all"
+          className={`shrink-0 rounded-lg border-2 border-amber-400/90 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-all ${
+            isLight
+              ? 'bg-amber-50 text-amber-900 shadow-sm hover:bg-amber-100'
+              : 'bg-[#1a1a1a] text-white shadow-[0_0_12px_rgba(251,191,36,0.4)] hover:shadow-[0_0_16px_rgba(251,191,36,0.5)]'
+          }`}
         >
           {t('header.depositWithdrawal')}
         </button>

@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const SKILLS_BG_IMAGE_URL = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771608382/Yellow_and_Brown_Illustrated_Dice_Casino_Logo_2_n2nfdl.png';
+const SKILLS_BG_IMAGE_URL =
+  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771608382/Yellow_and_Brown_Illustrated_Dice_Casino_Logo_2_n2nfdl.png';
 
 const SkillsGamesCard = () => {
   const navigate = useNavigate();

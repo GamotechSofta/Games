@@ -44,6 +44,11 @@
     "previousMonth": "Previous month",
     "nextMonth": "Next month"
   },
+  "theme": {
+    "label": "Theme",
+    "light": "Light mode",
+    "dark": "Dark mode"
+  },
   "header": {
     "myBets": "My Bets",
     "funds": "Funds",
@@ -69,6 +74,41 @@
     "funds": "Funds",
     "support": "Support",
     "profile": "Profile"
+  },
+  "sidebar": {
+    "home": "Home",
+    "casinoGames": "Casino Games",
+    "skillsGames": "Skills Games",
+    "kingBazaar": "King Bazaar",
+    "markets": "Markets",
+    "vipClub": "VIP Club",
+    "promotions": "Promotions",
+    "wallet": "Wallet",
+    "transactions": "Transactions",
+    "settings": "Settings",
+    "support": "Support",
+    "vipDiamond": "VIP Diamond",
+    "walletBalance": "Wallet Balance",
+    "support247": "24/7 Support",
+    "supportSubtitle": "We are here to help you!",
+    "downloadSubtitle": "Play anywhere, anytime!",
+    "logoutSubtitle": "Sign out of your account",
+    "defaultUser": "DPBoss User",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "dashboard": {
+    "searchPlaceholder": "Search games, markets...",
+    "viewAll": "View All",
+    "popularMarkets": "Popular Markets",
+    "liveMarkets": "Live Markets",
+    "nightMarkets": "Night Markets",
+    "heroTitle1": "PLAY AND WIN",
+    "heroTitle2": "REAL MONEY",
+    "heroSubtitle": "Join now and start winning big every day!",
+    "playNow": "PLAY NOW",
+    "jackpot": "JACKPOT",
+    "bigWinner": "BIG WINNER"
   },
   "login": {
     "title": "Welcome Back",
@@ -610,11 +650,6 @@
     "starline": "STARLINE",
     "kingBazaar": "KING BAZAAR",
     "tapToPlay": "Tap to Play",
-    "playNow": "Play Now",
-    "statusOpen": "Open",
-    "statusClosed": "Closed",
-    "statusRunning": "Running",
-    "imagePlaceholder": "Image",
     "noMarketsAvailable": "No markets available",
     "marketIsOpen": "MARKET IS OPEN",
     "closingIsRunning": "CLOSING IS RUNNING",

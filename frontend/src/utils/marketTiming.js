@@ -214,24 +214,6 @@ export function getTomorrowIST() {
   return d.toISOString().slice(0, 10);
 }
 
-/**
- * Resolve scheduledDate for placeBet (tomorrow flow, date picker, or post-close).
- * @param {{ scheduleForTomorrow?: boolean, selectedDate?: string|null, market?: object|null }} opts
- * @returns {string|null} YYYY-MM-DD or null for today/live bet
- */
-export function resolveScheduledDate({ scheduleForTomorrow = false, selectedDate = null, market = null } = {}) {
-  if (scheduleForTomorrow) return getTomorrowIST();
-
-  const todayIST = getTodayIST();
-  const dateStr = selectedDate ? String(selectedDate).trim().slice(0, 10) : '';
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr) && dateStr > todayIST) {
-    return dateStr;
-  }
-
-  if (market && isPastClosingTime(market)) return getTomorrowIST();
-  return null;
-}
-
 /** Format YYYY-MM-DD to dd-mm-yyyy for display */
 export function formatDateDisplay(isoDate) {
   if (!isoDate || typeof isoDate !== 'string') return '';

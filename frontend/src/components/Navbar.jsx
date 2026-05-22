@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
 import { triggerApkDownload } from '../utils/downloads';
+import aakdaLogo from '../config/logo';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -46,22 +47,11 @@ const Navbar = () => {
 
   return (
     <nav className="bg-black w-full px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between shadow-sm">
-      {/* Left side - Hamburger menu and Logo */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Hamburger Menu Icon */}
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#f3b61b]/50 flex items-center justify-center cursor-pointer hover:bg-[#f3b61b]/10 transition-colors">
-          <div className="flex flex-col gap-1 sm:gap-1.5">
-            <div className="w-2.5 sm:w-3 h-0.5 bg-[#f3b61b]"></div>
-            <div className="w-3 sm:w-4 h-0.5 bg-[#f3b61b]"></div>
-            <div className="w-2.5 sm:w-3 h-0.5 bg-[#f3b61b]"></div>
-          </div>
-        </div>
-        
-        {/* Logo - Clickable to home */}
         <Link to="/" className="flex items-center cursor-pointer">
           <img
-            src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771570274/Blue_Tosca_Modern_Game_Logo_1_ktl6bu.png"
-            alt="Logo"
+            src={aakdaLogo}
+            alt="Aakda"
             className="h-10 sm:h-12 md:h-14 w-auto object-contain"
           />
         </Link>

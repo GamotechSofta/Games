@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode: only when <html class="theme-dark"> */
+@custom-variant dark (&:where(.theme-dark, .theme-dark *));
+
 @keyframes scroll {
   0% {
     transform: translateX(0);
@@ -119,6 +122,26 @@ input[type="number"] {
   background: #505050;
 }
 
+/* Light theme scrollbar for dashboard */
+.custom-scrollbar-light::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 3px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
 /* Hide native date input calendar icon */
 input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
@@ -131,12 +154,40 @@ input[type="date"]::-webkit-clear-button {
   -webkit-appearance: none;
 }
 
+/* App theme — class on <html> from ThemeContext */
+html.theme-dark {
+  color-scheme: dark;
+}
+
+html.theme-light {
+  color-scheme: light;
+}
+
+html.theme-dark,
+html.theme-dark body,
+html.theme-dark #root {
+  background-color: #000000;
+}
+
+html.theme-light,
+html.theme-light body,
+html.theme-light #root {
+  background-color: #f5f5f7;
+}
+
+.theme-light .dashboard-shell {
+  background-color: #f5f5f7;
+}
+
+.theme-dark .dashboard-shell {
+  background-color: #000000;
+}
+
 /* Mobile-first responsive base */
 html {
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
   overflow-x: clip; /* clip doesn't break position:fixed on iOS (unlike hidden) */
-  background: #000;
   height: 100%;
   min-height: 100dvh;
   min-height: -webkit-fill-available;
@@ -148,7 +199,6 @@ body {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  background: #000;
   position: relative;
 }
 
@@ -164,7 +214,6 @@ body {
 }
 
 #root {
-  background: #000;
   min-height: 100%;
   min-height: -webkit-fill-available;
 }

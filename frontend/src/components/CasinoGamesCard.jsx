@@ -2,7 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const CASINO_BG_IMAGE_URL = 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771607262/Yellow_and_Brown_Illustrated_Dice_Casino_Logo_1_p0rjs1.png';
+const CASINO_BG_IMAGE_URL =
+  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771607262/Yellow_and_Brown_Illustrated_Dice_Casino_Logo_1_p0rjs1.png';
 
 const CasinoGamesCard = () => {
   const navigate = useNavigate();

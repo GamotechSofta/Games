@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import aakdaLogo from '../config/logo';
 import { API_BASE_URL } from '../config/api';
 
 const Login = () => {
@@ -179,11 +180,11 @@ const Login = () => {
       {/* Desktop: Two Column Layout */}
       <div className="hidden md:flex h-screen overflow-hidden">
         {/* Left Side - Image (Fixed, Not Scrollable, Fits Screen) */}
-        <div className="w-1/2 h-screen fixed left-0 top-0 overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
+        <div className="relative w-1/2 h-screen fixed left-0 top-0 overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
           <img
-            src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770101961/Black_and_Gold_Classy_Casino_Night_Party_Instagram_Post_1080_x_1080_px_d1n00g.png"
-            alt="Login banner"
-            className="w-full h-full object-cover"
+            src={aakdaLogo}
+            alt="Aakda"
+            className="absolute inset-0 m-auto max-w-[85%] max-h-[45%] w-auto h-auto object-contain"
           />
         </div>
 
@@ -552,9 +553,9 @@ const Login = () => {
           {/* Image - Reduced size for mobile */}
           <div className="w-full mb-4 sm:mb-6 flex justify-center">
             <img
-              src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770101961/Black_and_Gold_Classy_Casino_Night_Party_Instagram_Post_1080_x_1080_px_d1n00g.png"
-              alt="Login banner"
-              className="w-full max-w-[200px] sm:max-w-[240px] h-auto rounded-lg"
+              src={aakdaLogo}
+              alt="Aakda"
+              className="h-10 sm:h-12 w-auto max-w-[220px] object-contain"
             />
           </div>
 

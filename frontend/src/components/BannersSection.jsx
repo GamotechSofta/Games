@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-const BANNERS = [
-  {
-    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771873663/Black_and_White_Minimalist_Casino_Night_Facebook_Cover_5839_x_3402_px_thbbms.svg",
-    alt: "Casino banner"
-  },
-  {
-    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png",
-    alt: "Black Gold Casino Night Banner"
-  },
-  {
-    src: "https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png",
-    alt: "Casino banner"
-  },
-  
-];
+import { HOME_BANNERS } from '../config/banners';
 
 const BannersSection = () => {
   const [bannerIdx, setBannerIdx] = useState(0);
@@ -24,9 +9,9 @@ const BannersSection = () => {
   const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
-    if (BANNERS.length <= 1) return;
+    if (HOME_BANNERS.length <= 1) return;
     bannerTimerRef.current = setInterval(() => {
-      setBannerIdx((i) => (i + 1) % BANNERS.length);
+      setBannerIdx((i) => (i + 1) % HOME_BANNERS.length);
     }, 4000);
     return () => clearInterval(bannerTimerRef.current);
   }, []);
@@ -38,9 +23,9 @@ const BannersSection = () => {
     const diff = touchStartRef.current - touchEndRef.current;
     if (Math.abs(diff) > SWIPE_THRESHOLD) {
       if (diff > 0) {
-        setBannerIdx((i) => (i + 1) % BANNERS.length);
+        setBannerIdx((i) => (i + 1) % HOME_BANNERS.length);
       } else {
-        setBannerIdx((i) => (i - 1 + BANNERS.length) % BANNERS.length);
+        setBannerIdx((i) => (i - 1 + HOME_BANNERS.length) % HOME_BANNERS.length);
       }
     }
   };
@@ -49,7 +34,7 @@ const BannersSection = () => {
   };
 
   return (
-    <div className="mt-0 sm:hidden">
+    <div className="mt-0 md:hidden">
       <div
         className="relative overflow-hidden shadow-[0_10px_25px_rgba(0,0,0,0.35)] touch-pan-y"
         onTouchStart={handleTouchStart}
@@ -60,21 +45,38 @@ const BannersSection = () => {
           className="flex items-start will-change-transform"
           style={{
             transform: `translateX(-${bannerIdx * 100}%)`,
-            transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)'
+            transition: 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
-          {BANNERS.map((b, i) => (
+          {HOME_BANNERS.map((b, i) => (
             <div key={i} className="w-full shrink-0 grow-0 basis-full self-start">
               <img
                 src={b.src}
                 alt={b.alt}
-                className="block w-full h-auto max-w-full"
-                loading="eager"
+                className="block w-full h-auto max-w-full object-cover"
+                loading={i === 0 ? 'eager' : 'lazy'}
                 draggable="false"
               />
             </div>
           ))}
         </div>
+
+        {HOME_BANNERS.length > 1 && (
+          <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2 z-10">
+            {HOME_BANNERS.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setBannerIdx(i)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === bannerIdx ? 'w-6 bg-amber-500' : 'w-1.5 bg-white/40'
+                }`}
+                aria-label={`Banner ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
       </div>
     </div>
