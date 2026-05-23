@@ -305,13 +305,8 @@ const AddFund = () => {
                             </button>
                         </div>
 
-<<<<<<< Updated upstream
                         <div className="mt-3 sm:mt-4 w-full bg-[#202124] rounded-xl border border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-[13px] text-gray-400 leading-relaxed">
                             {t('funds.payuNote') || 'You will be redirected to complete the payment securely. Amount will be added to your wallet after successful payment.'}
-=======
-                        <div className="mt-3 sm:mt-4 w-full bg-white dark:bg-[#202124] rounded-xl border border-gray-200 dark:border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-[13px] text-gray-400 leading-relaxed">
-                            {t('funds.payuNote') || 'You will be redirected to PayU to complete the payment securely. Amount will be added to your wallet after successful payment.'}
->>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
