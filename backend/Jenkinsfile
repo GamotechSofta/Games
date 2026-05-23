@@ -23,7 +23,9 @@ pipeline {
 
         stage('Restart Backend') {
             steps {
-                sh 'pm2 restart games-backend || pm2 start index.js --name games-backend'
+                dir('/var/www/Aakda/Games/backend') {
+                    sh 'pm2 restart games-backend || pm2 start index.js --name games-backend'
+                }
             }
         }
     }
