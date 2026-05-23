@@ -147,7 +147,7 @@ const AppHeader = () => {
               className={`animate-download-blink shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center active:scale-95 transition-all duration-200 touch-manipulation ${
                 isLight
                   ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                  : 'bg-[#202124] border border-white/10 text-white hover:bg-[#2a2b2e] hover:border-white/20'
+                  : 'bg-[#202124] border border-white/10 text-gray-900 dark:text-white hover:bg-[#2a2b2e] hover:border-white/20'
               }`}
               aria-label={t('header.downloadApp')}
               title={t('header.downloadApp')}
@@ -163,7 +163,7 @@ const AppHeader = () => {
               className={`shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center active:scale-95 transition-all duration-200 relative touch-manipulation ${
                 isLight
                   ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                  : 'bg-[#202124] border border-white/10 text-white hover:bg-[#2a2b2e] hover:border-white/20'
+                  : 'bg-[#202124] border border-white/10 text-gray-900 dark:text-white hover:bg-[#2a2b2e] hover:border-white/20'
               }`}
               aria-label="Notifications"
               title="Notifications"
@@ -181,28 +181,36 @@ const AppHeader = () => {
             {/* Wallet - hidden on small screens */}
             <button
               onClick={() => navigate('/funds?tab=add-fund')}
-              className="hidden md:flex shrink-0 items-center gap-1.5 rounded-lg bg-[#202124] border border-white/5 px-2.5 py-1.5 lg:px-3 lg:py-2 hover:bg-[#2a2b2e] transition-colors min-w-0"
+              className={`hidden md:flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 lg:px-3 lg:py-2 transition-colors min-w-0 ${
+                isLight
+                  ? 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                  : 'bg-[#202124] border-white/5 hover:bg-[#2a2b2e]'
+              }`}
             >
               <img
                 src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
                 alt="Wallet"
                 className="w-6 h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 object-contain shrink-0"
               />
-              <span className="text-xs lg:text-sm xl:text-base font-bold text-white truncate max-w-[80px] lg:max-w-[100px] xl:max-w-none">{formattedBalance}</span>
+              <span className={`text-xs lg:text-sm xl:text-base font-bold truncate max-w-[80px] lg:max-w-[100px] xl:max-w-none ${isLight ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>{formattedBalance}</span>
             </button>
 
             {/* Profile - hidden on mobile */}
             <button
               type="button"
               onClick={handleProfileClick}
-              className={`hidden md:flex w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 touch-manipulation ${
-                user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'
+              className={`hidden md:flex w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-lg border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 touch-manipulation ${
+                isLight
+                  ? user
+                    ? 'bg-amber-50 border-amber-300 hover:bg-amber-100'
+                    : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
+                  : `bg-gradient-to-br from-gray-800 to-gray-900 ${user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'}`
               }`}
               title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
               aria-label="Profile"
             >
               <svg
-                className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-yellow-400' : 'text-white'}`}
+                className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-yellow-500 dark:text-yellow-400' : isLight ? 'text-gray-700' : 'text-gray-900 dark:text-white'}`}
                 fill={user ? 'currentColor' : 'none'}
                 stroke={user ? 'none' : 'currentColor'}
                 strokeWidth={user ? 0 : 1.5}

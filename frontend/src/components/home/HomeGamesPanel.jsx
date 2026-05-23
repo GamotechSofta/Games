@@ -79,7 +79,7 @@ export default function HomeGamesPanel({ category = 'highEarning' }) {
 
   return (
     <section className="mt-2">
-      <h2 className="mb-4 text-lg font-bold text-white">{pageTitle}</h2>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{pageTitle}</h2>
       {error && (
         <div className="mb-3 rounded-lg border border-red-700 bg-red-900/40 p-3 text-sm text-red-200">
           {error}
@@ -104,7 +104,7 @@ export default function HomeGamesPanel({ category = 'highEarning' }) {
                 )}
               </div>
               <div className="bg-gray-900 p-3">
-                <h3 className="truncate text-sm font-semibold text-white">{game.name}</h3>
+                <h3 className="truncate text-sm font-semibold text-gray-900 dark:text-white">{game.name}</h3>
                 <p className="mt-0.5 text-xs text-gray-400">{game.provider || 'GAP'}</p>
                 <button
                   type="button"

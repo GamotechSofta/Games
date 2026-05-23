@@ -17,8 +17,8 @@ export default function HomeKingBazaarPanel() {
 
   return (
     <section className="mt-2">
-      <h2 className="mb-4 text-lg font-bold text-white">{t('markets.kingBazaar')}</h2>
-      <p className="mb-6 text-sm text-white/60">{t('kingBazaarMarket.selectTimeSlot')}</p>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t('markets.kingBazaar')}</h2>
+      <p className="mb-6 text-sm text-gray-500 dark:text-white/60">{t('kingBazaarMarket.selectTimeSlot')}</p>
       <button
         type="button"
         onClick={() => navigate('/king-bazaar-market')}
@@ -28,13 +28,13 @@ export default function HomeKingBazaarPanel() {
           <img src={KING_BAZAAR_IMAGE_URL} alt={t('markets.kingBazaar')} className="h-full w-full object-contain" />
         </div>
         <div className="text-left">
-          <h3 className="text-lg font-bold uppercase tracking-wide text-white">{t('markets.kingBazaar')}</h3>
+          <h3 className="text-lg font-bold uppercase tracking-wide text-gray-900 dark:text-white">{t('markets.kingBazaar')}</h3>
           <p className="mt-1 text-sm font-semibold text-amber-400/90">{t('markets.tapToPlay')}</p>
           {!loading && (
-            <p className="mt-2 text-xs text-white/50">{t('kingBazaarMarket.pageTitle')}</p>
+            <p className="mt-2 text-xs text-gray-500 dark:text-white/50">{t('kingBazaarMarket.pageTitle')}</p>
           )}
         </div>
-        <span className="ml-auto text-white/40 transition group-hover:text-white/70">→</span>
+        <span className="ml-auto text-white/40 transition group-hover:text-gray-600 dark:text-white/70">→</span>
       </button>
     </section>
   );

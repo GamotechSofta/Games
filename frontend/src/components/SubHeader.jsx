@@ -72,7 +72,7 @@ const SubHeader = () => {
           >
             <HiOutlineCash className="h-4 w-4 sm:h-5 sm:w-5" />
           </span>
-          <span className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-gray-900' : 'text-white'}`}>
+          <span className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>
             {formattedBalance}
           </span>
         </div>

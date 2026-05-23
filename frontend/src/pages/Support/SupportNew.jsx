@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import { bidAccent, iconBtn, inputSurface, textMuted } from '../../styles/appTheme';
 
 const SupportNew = () => {
   const navigate = useNavigate();
@@ -114,14 +115,14 @@ const SupportNew = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-md mx-auto pt-4">
         {/* Header - relative z-10 to ensure back button is above any overlay */}
         <div className="flex items-center gap-3 mb-6 relative z-10">
           <button
             type="button"
             onClick={handleBack}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none"
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none ${iconBtn}`}
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -129,37 +130,37 @@ const SupportNew = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-white">{t('support.title')}</h1>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('support.title')}</h1>
             <p className="text-xs text-gray-500">{t('support.subtitle')}</p>
           </div>
         </div>
 
         {pageLoading ? (
           <div className="space-y-4">
-            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 space-y-3 skeleton-shimmer">
-              <div className="h-4 w-28 bg-white/10 rounded" />
-              <div className="h-12 w-full bg-white/10 rounded-xl" />
+            <div className="rounded-2xl bg-white border border-gray-200 dark:bg-[#1a1a1a] dark:border-white/10 p-4 space-y-3 skeleton-shimmer">
+              <div className="h-4 w-28 bg-gray-200 dark:bg-white/10 rounded" />
+              <div className="h-12 w-full bg-gray-200 dark:bg-white/10 rounded-xl" />
             </div>
-            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 space-y-3 skeleton-shimmer">
-              <div className="h-4 w-32 bg-white/10 rounded" />
-              <div className="h-24 w-full bg-white/10 rounded-xl" />
+            <div className="rounded-2xl bg-white border border-gray-200 dark:bg-[#1a1a1a] dark:border-white/10 p-4 space-y-3 skeleton-shimmer">
+              <div className="h-4 w-32 bg-gray-200 dark:bg-white/10 rounded" />
+              <div className="h-24 w-full bg-gray-200 dark:bg-white/10 rounded-xl" />
             </div>
-            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 skeleton-shimmer">
-              <div className="h-4 w-24 bg-white/10 rounded mb-3" />
-              <div className="h-10 w-full bg-white/10 rounded-lg" />
+            <div className="rounded-2xl bg-white border border-gray-200 dark:bg-[#1a1a1a] dark:border-white/10 p-4 skeleton-shimmer">
+              <div className="h-4 w-24 bg-gray-200 dark:bg-white/10 rounded mb-3" />
+              <div className="h-10 w-full bg-gray-200 dark:bg-white/10 rounded-lg" />
             </div>
-            <div className="h-12 w-full rounded-xl bg-white/10 skeleton-shimmer" />
+            <div className="h-12 w-full rounded-xl bg-gray-200 dark:bg-white/10 skeleton-shimmer" />
           </div>
         ) : !userId ? (
-          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center text-amber-900 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-200 text-sm">
             {t('support.loginRequired')}
           </div>
         ) : (
           <>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="support-description" className="block text-sm text-gray-400 mb-1.5">
-                  {t('support.descriptionLabel')} <span className="text-amber-400">*</span>
+                <label htmlFor="support-description" className={`block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1.5`}>
+                  {t('support.descriptionLabel')} <span className="text-amber-700 dark:text-amber-400">*</span>
                 </label>
                 <textarea
                   id="support-description"
@@ -167,13 +168,13 @@ const SupportNew = () => {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={t('support.descriptionPlaceholder')}
                   rows={4}
-                  className="w-full px-4 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-500/50 resize-none"
+                  className={`w-full px-4 py-3 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 resize-none ${inputSurface}`}
                 />
               </div>
 
               <div>
-                <label htmlFor="support-screenshots" className="block text-sm text-gray-400 mb-1.5">
-                  {t('support.photosLabel')} <span className="text-amber-400">*</span>
+                <label htmlFor="support-screenshots" className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1.5">
+                  {t('support.photosLabel')} <span className="text-amber-700 dark:text-amber-400">*</span>
                 </label>
                 <div className="flex items-center gap-2 flex-wrap">
                   <input
@@ -190,7 +191,7 @@ const SupportNew = () => {
                   >
                     {t('support.chooseFiles')}
                   </label>
-                  <span className="text-sm text-gray-500">
+                  <span className={`text-sm ${textMuted}`}>
                     {screenshots.length > 0 ? t('support.photosAdded', { count: screenshots.length }) : t('support.noFileChosen')}
                   </span>
                 </div>
@@ -200,8 +201,8 @@ const SupportNew = () => {
                 <div
                   className={`p-3 rounded-xl text-sm ${
                     message.type === 'success'
-                      ? 'bg-green-500/10 text-green-300 border border-green-500/30'
-                      : 'bg-red-500/10 text-red-300 border border-red-500/30'
+                      ? 'bg-green-50 text-green-800 border border-green-200 dark:bg-green-500/10 dark:text-green-300 dark:border-green-500/30'
+                      : 'bg-red-50 text-red-800 border border-red-200 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/30'
                   }`}
                 >
                   {message.text}
@@ -220,7 +221,7 @@ const SupportNew = () => {
             <p className="mt-6 text-center">
               <Link
                 to="/support/status"
-                className="inline-block py-2 px-4 text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2 touch-manipulation cursor-pointer"
+                className={`inline-block py-2 px-4 text-sm font-medium underline underline-offset-2 touch-manipulation cursor-pointer hover:opacity-80 ${bidAccent}`}
               >
                 {t('support.viewTickets')}
               </Link>

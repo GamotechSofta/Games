@@ -175,15 +175,15 @@ const WithdrawFund = () => {
             {pageLoading ? (
                 <div className="space-y-6">
                     <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
-                        <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
+                        <div className="bg-white dark:bg-[#202124] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden skeleton-shimmer">
                             <div className="h-8 bg-white/10 mx-4 mt-3 w-36 rounded" />
                             <div className="h-16 bg-white/10 mx-4 my-3 rounded-xl w-2/3" />
                             <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-48" />
                         </div>
                     </div>
                     <div className="px-4 sm:px-6 space-y-4">
-                        <div className="h-12 w-full rounded-xl bg-[#202124] border border-white/10 skeleton-shimmer" />
-                        <div className="h-14 w-full rounded-xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+                        <div className="h-12 w-full rounded-xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
+                        <div className="h-14 w-full rounded-xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
                     </div>
                 </div>
             ) : (
@@ -191,7 +191,7 @@ const WithdrawFund = () => {
             <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start">
                 {/* Left: GoldenBets.com wallet card with balance and user info */}
                 <div className="md:max-w-[360px]">
-                    <div className="bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
+                    <div className="bg-white dark:bg-[#202124] rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-gray-200 dark:border-white/10 overflow-hidden">
                         <div className="px-4 pt-3 pb-2 flex items-center justify-center gap-2 text-sm text-gray-300">
                             <svg className="w-4 h-4 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
@@ -216,7 +216,7 @@ const WithdrawFund = () => {
                         </div>
 
                         <div className="px-4 py-3 flex items-center justify-between">
-                            <div className="text-sm text-white/90 truncate">
+                            <div className="text-sm text-gray-700 dark:text-white/90 truncate">
                                 {user?.username || user?.name || 'User'}
                             </div>
                             <div className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
@@ -226,7 +226,7 @@ const WithdrawFund = () => {
                     </div>
 
                     {/* Withdrawal Info — left side on desktop */}
-                    <div className="mt-4 md:mt-5 bg-[#1a1a1a] rounded-xl p-4 border border-white/10">
+                    <div className="mt-4 md:mt-5 bg-gray-50 dark:bg-[#1a1a1a] rounded-xl p-4 border border-gray-200 dark:border-white/10">
                         <h4 className="text-yellow-400 font-semibold mb-2">
                             {t('funds.withdrawalInfo')}:
                         </h4>
@@ -284,7 +284,7 @@ const WithdrawFund = () => {
                                 placeholder={t('funds.enterWithdrawAmount')}
                                 inputMode="numeric"
                                 onWheel={(e) => e.target.blur()}
-                                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                className="w-full bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500"
                             />
                         </div>
 
@@ -305,7 +305,7 @@ const WithdrawFund = () => {
             {/* No Bank Account Warning Modal */}
             {showNoBankAccountModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-yellow-500/30 text-center">
+                    <div className="bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-6 border border-yellow-500/30 text-center">
                         {/* Warning Icon */}
                         <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg className="w-10 h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,7 +313,7 @@ const WithdrawFund = () => {
                             </svg>
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-2">{t('funds.noBankAccount')}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t('funds.noBankAccount')}</h3>
                         
                         <p className="text-gray-400 text-sm mb-6">
                             {t('funds.noBankAccountMessage')}
@@ -325,13 +325,13 @@ const WithdrawFund = () => {
                                     setShowNoBankAccountModal(false);
                                     navigate('/funds?tab=bank-detail');
                                 }}
-                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-xl transition-colors"
+                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 text-gray-900 dark:text-white font-semibold rounded-xl transition-colors"
                             >
                                 {t('funds.addBankAccountNow')}
                             </button>
                             <button
                                 onClick={() => setShowNoBankAccountModal(false)}
-                                className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors"
+                                className="w-full py-3 bg-white/10 hover:bg-white/20 text-gray-800 dark:text-white font-medium rounded-xl transition-colors"
                             >
                                 {t('common.cancel')}
                             </button>
@@ -345,7 +345,7 @@ const WithdrawFund = () => {
                 const selectedBank = bankAccounts.find(acc => acc._id === selectedBankId) || bankAccounts.find(acc => acc.isDefault) || bankAccounts[0];
                 return selectedBank ? (
                     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-                        <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-yellow-500/30 p-4 sm:p-6">
+                        <div className="bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-yellow-500/30 p-4 sm:p-6">
                             {/* Warning Icon */}
                             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                                 <svg className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,7 +353,7 @@ const WithdrawFund = () => {
                                 </svg>
                             </div>
 
-                            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 text-center">{t('funds.confirmWithdrawal')}</h3>
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 text-center">{t('funds.confirmWithdrawal')}</h3>
                             
                             {/* Amount */}
                             <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
@@ -365,7 +365,7 @@ const WithdrawFund = () => {
                             <div className="bg-blue-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
                                 <p className="text-gray-400 text-xs sm:text-sm mb-2">{t('funds.bankAccountDetails')}</p>
                                 <div className="space-y-1 text-xs sm:text-sm">
-                                    <p className="text-white font-medium">{selectedBank.accountHolderName}</p>
+                                    <p className="text-gray-900 dark:text-white font-medium">{selectedBank.accountHolderName}</p>
                                     {selectedBank.bankName && (
                                         <p className="text-gray-300">{t('funds.bankName')}: {selectedBank.bankName}</p>
                                     )}
@@ -390,7 +390,7 @@ const WithdrawFund = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowConfirmationModal(false)}
-                                    className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
+                                    className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-gray-800 dark:text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
                                 >
                                     {t('common.cancel')}
                                 </button>
@@ -403,7 +403,7 @@ const WithdrawFund = () => {
             {/* Success Modal */}
             {showSuccessModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-red-500/30 text-center p-4 sm:p-6">
+                    <div className="bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl max-w-sm w-full max-h-[calc(100vh-8rem)] overflow-y-auto border border-red-500/30 text-center p-4 sm:p-6">
                         {/* Success Icon */}
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,7 +411,7 @@ const WithdrawFund = () => {
                             </svg>
                         </div>
 
-                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{t('funds.withdrawSuccess')}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">{t('funds.withdrawSuccess')}</h3>
                         
                         <div className="bg-red-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
                             <p className="text-gray-400 text-xs sm:text-sm">{t('funds.amount')}</p>
@@ -434,7 +434,7 @@ const WithdrawFund = () => {
                                     setShowSuccessModal(false);
                                     navigate('/funds?tab=withdraw-fund-history');
                                 }}
-                                className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
+                                className="w-full py-2.5 sm:py-3 bg-white/10 hover:bg-white/20 text-gray-800 dark:text-white font-medium rounded-xl transition-colors text-sm sm:text-base"
                             >
                                 {t('funds.viewHistory')}
                             </button>

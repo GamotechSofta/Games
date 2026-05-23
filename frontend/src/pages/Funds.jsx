@@ -195,14 +195,14 @@ const Funds = () => {
   const shouldRemoveCardBackground = isAddFundMobileView || isWithdrawFundMobileView || isBankDetailMobileView || isAddFundHistoryMobileView || isWithdrawFundHistoryMobileView;
 
   return (
-    <div className="min-h-screen bg-black text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 md:pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 md:pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-lg md:max-w-none mx-auto md:mx-0">
         <div className="mb-4 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
           <div className="flex items-center gap-3 pt-4 md:pt-0">
             <button
               type="button"
               onClick={handleBack}
-              className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
+              className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
               aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +215,7 @@ const Funds = () => {
           </div>
 
           <div className="hidden md:flex items-center justify-between gap-4 px-1">
-            <div className="text-2xl font-extrabold text-white">{activeItem?.title}</div>
+            <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{activeItem?.title}</div>
           </div>
         </div>
 

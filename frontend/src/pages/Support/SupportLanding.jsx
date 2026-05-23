@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { iconBtn, surfaceElevated } from '../../styles/appTheme';
 
 const SupportLanding = () => {
   const navigate = useNavigate();
@@ -38,14 +39,14 @@ const SupportLanding = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#0a0a0b] dark:text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-lg mx-auto">
         {/* Header */}
         <div className="flex items-center gap-3 pt-4 pb-2">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0 touch-manipulation"
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 touch-manipulation transition-all ${iconBtn}`}
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +54,7 @@ const SupportLanding = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{t('support.helpDesk')}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t('support.helpDesk')}</h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('support.chooseOptionBelow')}</p>
           </div>
         </div>
@@ -65,7 +66,7 @@ const SupportLanding = () => {
               key={opt.id}
               type="button"
               onClick={() => navigate(opt.path)}
-              className={`w-full group relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-white/10 py-6 px-5 sm:py-8 sm:px-6 text-left transition-all duration-300 ${opt.hoverBorder} hover:border-opacity-60 hover:bg-white/[0.09] active:scale-[0.98] cursor-pointer`}
+              className={`w-full group relative overflow-hidden rounded-2xl ${surfaceElevated} py-6 px-5 sm:py-8 sm:px-6 text-left transition-all duration-300 ${opt.hoverBorder} hover:border-opacity-60 hover:bg-gray-50 dark:hover:bg-white/[0.06] active:scale-[0.98] cursor-pointer`}
             >
               {/* Subtle top accent line */}
               <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${opt.gradient} opacity-60`} />
@@ -76,13 +77,13 @@ const SupportLanding = () => {
                   {opt.icon}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold text-base sm:text-lg text-white group-hover:text-[#f3b61b] transition-colors">
+                  <h2 className="font-semibold text-base sm:text-lg text-gray-900 dark:text-white group-hover:text-amber-800 dark:group-hover:text-[#f3b61b] transition-colors">
                     {opt.title}
                   </h2>
                   <p className="text-sm text-gray-500 mt-1 leading-relaxed">{opt.subtitle}</p>
                 </div>
-                <div className={`hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center shrink-0 group-hover:bg-white/10 transition-colors`}>
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 items-center justify-center shrink-0 group-hover:bg-gray-200 dark:group-hover:bg-white/10 transition-colors">
+                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

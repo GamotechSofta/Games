@@ -120,7 +120,7 @@ const AddFundHistory = () => {
                     </div>
                     <div className="grid grid-cols-4 gap-3">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="p-3 rounded-xl bg-[#1a1a1a] border border-white/10 skeleton-shimmer">
+                            <div key={i} className="p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 skeleton-shimmer">
                                 <div className="h-6 w-8 bg-white/10 rounded mx-auto mb-2" />
                                 <div className="h-3 w-12 bg-white/10 rounded mx-auto" />
                             </div>
@@ -128,7 +128,7 @@ const AddFundHistory = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-white/10 skeleton-shimmer">
+                            <div key={i} className="bg-gray-50 dark:bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-white/10 skeleton-shimmer">
                                 <div className="flex items-center justify-between gap-2 mb-2">
                                     <div className="h-8 w-8 rounded-full bg-white/10" />
                                     <div className="h-5 w-16 rounded-full bg-white/10" />
@@ -144,7 +144,7 @@ const AddFundHistory = () => {
             {/* Total Deposits */}
             <div className="bg-gradient-to-r from-green-900/40 to-green-800/30 rounded-2xl p-5 border border-green-500/30">
                 <p className="text-gray-400 text-sm">{t('funds.totalAddedFunds')}</p>
-                <p className="text-3xl font-bold text-white">₹{totalDeposits.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">₹{totalDeposits.toLocaleString()}</p>
             </div>
 
             {/* Stats */}
@@ -155,10 +155,10 @@ const AddFundHistory = () => {
                     onClick={() => setFilter('all')}
                     onKeyDown={(e) => e.key === 'Enter' && setFilter('all')}
                     className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'all' ? 'bg-blue-600/30 border border-blue-500' : 'bg-[#1a1a1a] border border-white/10'
+                        filter === 'all' ? 'bg-blue-600/30 border border-blue-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
                     }`}
                 >
-                    <p className="text-lg font-bold text-white">{stats.total}</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total}</p>
                     <p className="text-xs text-gray-400">{t('funds.total')}</p>
                 </div>
                 <div 
@@ -167,7 +167,7 @@ const AddFundHistory = () => {
                     onClick={() => setFilter('pending')}
                     onKeyDown={(e) => e.key === 'Enter' && setFilter('pending')}
                     className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'pending' ? 'bg-yellow-600/30 border border-yellow-500' : 'bg-[#1a1a1a] border border-white/10'
+                        filter === 'pending' ? 'bg-yellow-600/30 border border-yellow-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
                     }`}
                 >
                     <p className="text-lg font-bold text-yellow-400">{stats.pending}</p>
@@ -179,7 +179,7 @@ const AddFundHistory = () => {
                     onClick={() => setFilter('approved')}
                     onKeyDown={(e) => e.key === 'Enter' && setFilter('approved')}
                     className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'approved' ? 'bg-green-600/30 border border-green-500' : 'bg-[#1a1a1a] border border-white/10'
+                        filter === 'approved' ? 'bg-green-600/30 border border-green-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
                     }`}
                 >
                     <p className="text-lg font-bold text-green-400">{stats.approved}</p>
@@ -191,7 +191,7 @@ const AddFundHistory = () => {
                     onClick={() => setFilter('rejected')}
                     onKeyDown={(e) => e.key === 'Enter' && setFilter('rejected')}
                     className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'rejected' ? 'bg-red-600/30 border border-red-500' : 'bg-[#1a1a1a] border border-white/10'
+                        filter === 'rejected' ? 'bg-red-600/30 border border-red-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
                     }`}
                 >
                     <p className="text-lg font-bold text-red-400">{stats.rejected}</p>
@@ -201,7 +201,7 @@ const AddFundHistory = () => {
 
             {/* List */}
             {filteredDeposits.length === 0 ? (
-                <div className="text-center py-8 bg-[#1a1a1a] rounded-xl border border-white/10">
+                <div className="text-center py-8 bg-gray-50 dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10">
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -220,7 +220,7 @@ const AddFundHistory = () => {
                     {filteredDeposits.map((deposit) => (
                         <div
                             key={deposit._id}
-                            className="bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-white/10"
+                            className="bg-gray-50 dark:bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-white/10"
                         >
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
@@ -247,13 +247,13 @@ const AddFundHistory = () => {
                                     </span>
                                 </div>
                                 <div>
-                                    <p className="text-white font-semibold text-sm sm:text-base">₹{deposit.amount.toLocaleString()}</p>
+                                    <p className="text-gray-900 dark:text-white font-semibold text-sm sm:text-base">₹{deposit.amount.toLocaleString()}</p>
                                     <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5">{formatDate(deposit.createdAt)}</p>
                                 </div>
                             </div>
 
                             {/* Details */}
-                            <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
+                            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
                                 {deposit.upiTransactionId && (
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
                                         <span className="text-gray-500">{t('funds.utrLabel')}</span> {deposit.upiTransactionId}

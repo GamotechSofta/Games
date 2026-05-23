@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
+import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
 
 const getWalletFromStorage = () => {
     try {
@@ -124,10 +125,10 @@ const BidLayout = ({
     }, [location.pathname]);
 
     return (
-        <div className="game-bid-page min-h-screen min-h-ios-screen bg-black font-sans w-full max-w-full overflow-x-hidden">
-            {/* Header - Home theme dark - iOS safe area padding */}
+        <div className={bidPageShell}>
+            {/* Header - iOS safe area padding */}
             <div
-                className="bg-[#202124] border-b border-white/10 py-2 flex items-center justify-between gap-2 sticky top-0 z-10"
+                className={`${bidHeader} py-2 flex items-center justify-between gap-2 sticky top-0 z-10`}
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 <button
@@ -151,14 +152,14 @@ const BidLayout = ({
                           };
                       navigate('/bidoptions', { state });
                     }}
-                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full active:scale-95 transition-colors touch-manipulation"
+                    className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-colors touch-manipulation ${bidBtnGhost}`}
                     aria-label={t('common.back')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <h1 className="text-xs sm:text-base md:text-lg font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 text-white min-w-0">
+                <h1 className="text-xs sm:text-base md:text-lg font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 text-gray-900 dark:text-white min-w-0">
                     {market?.gameName ? `${market.gameName} - ${title}` : title}
                 </h1>
                 <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
@@ -167,14 +168,14 @@ const BidLayout = ({
                         alt="Wallet"
                         className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
                     />
-                    <span className="font-bold text-white text-[11px] sm:text-sm">
+                    <span className="font-bold text-gray-900 dark:text-white text-[11px] sm:text-sm">
                         {wallet.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 })}
                     </span>
                 </div>
             </div>
 
             {!bettingAllowed && bettingMessage && (
-                <div className="mx-3 sm:mx-6 mt-2 p-3 rounded-xl bg-red-900/40 border border-red-500/60 text-red-200 text-sm font-medium flex items-center gap-2">
+                <div className="mx-3 sm:mx-6 mt-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/40 dark:border-red-500/60 dark:text-red-200 text-sm font-medium flex items-center gap-2">
                     <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                     {bettingMessage}
                 </div>
@@ -199,7 +200,7 @@ const BidLayout = ({
                                 type="text"
                                 value={displayDate || todayDate}
                                 readOnly
-                                className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] bg-[#202124] border border-white/10 text-white rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${dateSessionControlClassName}`}
+                                className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${bidInput} ${dateSessionControlClassName}`}
                             />
                         </div>
                         {displayDate && displayDate !== todayDate && (
@@ -222,7 +223,7 @@ const BidLayout = ({
                             value={session}
                             onChange={(e) => setSession(e.target.value)}
                             disabled={lockSessionSelect || isRunning}
-                            className={`w-full appearance-none bg-[#202124] border border-white/10 text-white font-bold text-xs sm:text-sm py-2.5 min-h-[44px] h-[44px] px-4 pr-8 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${(lockSessionSelect || isRunning) ? 'opacity-80 cursor-not-allowed' : ''} ${dateSessionControlClassName}`}
+                            className={`w-full appearance-none font-bold text-xs sm:text-sm py-2.5 min-h-[44px] h-[44px] px-4 pr-8 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${bidInput} ${(lockSessionSelect || isRunning) ? 'opacity-80 cursor-not-allowed' : ''} ${dateSessionControlClassName}`}
                         >
                             {sessionOptions.map((opt) => (
                                 <option key={opt} value={opt}>
@@ -267,7 +268,7 @@ const BidLayout = ({
                     <div
                         className={`w-full max-w-sm md:max-w-md rounded-2xl flex flex-col sm:flex-row items-center gap-4 sm:gap-6 ${
                             showFooterStats
-                                ? 'bg-[#202124]/95 backdrop-blur-sm border border-white/10 shadow-xl shadow-black/30 px-4 py-4'
+                                ? 'bg-white/95 dark:bg-[#202124]/95 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-xl shadow-gray-200/50 dark:shadow-black/30 px-4 py-4'
                                 : 'bg-transparent border-0 shadow-none p-0'
                         }`}
                     >
@@ -275,11 +276,11 @@ const BidLayout = ({
                             <div className="flex items-center gap-6 sm:gap-8 shrink-0">
                                 <div className="text-center">
                                     <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.bets')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-[#f2c14e]">{bidsCount}</div>
+                                    <div className="text-base sm:text-lg font-bold text-amber-800 dark:text-[#f2c14e]">{bidsCount}</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.points')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-[#f2c14e]">{totalPoints}</div>
+                                    <div className="text-base sm:text-lg font-bold text-amber-800 dark:text-[#f2c14e]">{totalPoints}</div>
                                 </div>
                             </div>
                         )}

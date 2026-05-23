@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { HiMoon, HiSun, HiChevronDown } from 'react-icons/hi';
 import { useTheme } from '../context/ThemeContext';
 import { isThemeTransitionRunning } from '../utils/themeTransition';
+import LanguageIcon from './LanguageIcon';
+import { normalizeLanguageCode } from '../utils/languageCode';
 
 const LANGUAGES = [
-  { code: 'en', flag: '🇬🇧', label: 'English' },
+  { code: 'en', label: 'English' },
   { code: 'hi', flag: '🇮🇳', label: 'हिंदी' },
   { code: 'mr', flag: '🇮🇳', label: 'मराठी' },
   { code: 'gu', flag: '🇮🇳', label: 'ગુજરાતી' },
@@ -36,7 +38,8 @@ export default function SidebarLocaleSettings({ collapsed }) {
   const { theme, toggleTheme } = useTheme();
   const [langOpen, setLangOpen] = useState(false);
 
-  const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
+  const activeCode = normalizeLanguageCode(i18n.language);
+  const currentLang = LANGUAGES.find((l) => l.code === activeCode) || LANGUAGES[0];
   const ThemeIcon = theme === 'light' ? HiSun : HiMoon;
 
   const btnClass = collapsed
@@ -81,7 +84,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
           className={btnClass}
           aria-label={t('header.language')}
         >
-          <span className="text-lg leading-none">{currentLang.flag}</span>
+          <LanguageIcon code={currentLang.code} className="h-5 w-5 shrink-0" />
           {!collapsed && (
             <>
               <span className="dashboard-nav-label flex-1 truncate">{currentLang.label}</span>
@@ -113,12 +116,12 @@ export default function SidebarLocaleSettings({ collapsed }) {
                   }}
                   className={[
                     'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors',
-                    i18n.language === lang.code
+                    activeCode === lang.code
                       ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
                       : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05]',
                   ].join(' ')}
                 >
-                  <span>{lang.flag}</span>
+                  <LanguageIcon code={lang.code} className="h-4 w-4 shrink-0" />
                   <span className="truncate">{lang.label}</span>
                 </button>
               ))}

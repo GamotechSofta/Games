@@ -68,11 +68,11 @@ export default function MyBetsBetHistoryPanel({
 
       <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
         {!desktopBetHistoryUid ? (
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
+          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
             {t('bids.loginToSeeHistory')}
           </div>
         ) : allBetsNewestFirst.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
+          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
             {t('bids.noBetsFound')}
           </div>
         ) : (
@@ -86,7 +86,7 @@ export default function MyBetsBetHistoryPanel({
               return (
                 <div
                   key={betId}
-                  className={`relative rounded-lg border-2 bg-[#202124] p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
+                  className={`relative rounded-lg border-2 bg-white dark:bg-[#202124] p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
                     verdict?.state === 'won'
                       ? 'border-[#43b36a]'
                       : verdict?.state === 'lost'
@@ -95,7 +95,7 @@ export default function MyBetsBetHistoryPanel({
                           ? 'border-amber-500'
                           : verdict?.state === 'cancelled'
                             ? 'border-orange-400'
-                            : 'border-white/10'
+                            : 'border-gray-200 dark:border-white/10'
                   }`}
                 >
                   {verdict?.state === 'cancelled' && (
@@ -126,15 +126,15 @@ export default function MyBetsBetHistoryPanel({
                   <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{String(marketTitle).toUpperCase() || 'MARKET'}</p>
                   <div className="flex justify-between gap-1 text-xs">
                     <span className="text-gray-400 shrink-0">{t('bids.gameLabel')}</span>
-                    <span className="text-white font-medium truncate">{gameType}</span>
+                    <span className="text-gray-900 dark:text-white font-medium truncate">{gameType}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
                     <span className="text-gray-400 shrink-0">{t('bids.betLabel')}</span>
-                    <span className="text-white font-bold truncate">{betValue}</span>
+                    <span className="text-gray-900 dark:text-white font-bold truncate">{betValue}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
                     <span className="text-gray-400 shrink-0">{t('bids.pointsLabel')}</span>
-                    <span className="text-white font-semibold">{points}</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{points}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs items-center min-w-0">
                     <span className="text-gray-400 shrink-0">{t('bids.statusLabel')}</span>
@@ -145,13 +145,13 @@ export default function MyBetsBetHistoryPanel({
                     <span className="text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                   </div>
                   {verdict?.state === 'pending' && canCancel?.canCancel && (
-                    <div className="pt-1.5 border-t border-white/10">
+                    <div className="pt-1.5 border-t border-gray-200 dark:border-white/10">
                       <button
                         type="button"
                         onClick={() => onCancelBetClick(betId)}
                         disabled={cancellingBetId === betId}
                         title={t('bids.cancelAndRefund')}
-                        className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-800 border border-gray-600 text-white hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
+                        className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-200 border border-gray-300 text-gray-900 hover:bg-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
                       >
                         {cancellingBetId === betId ? (
                           <>

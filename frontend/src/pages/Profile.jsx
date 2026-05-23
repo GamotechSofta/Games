@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
+import { bidAccent, iconBtn, textPrimary, textMuted } from '../styles/appTheme';
 
 const readUserFromStorage = () => {
   try {
@@ -93,7 +94,7 @@ const IconPassbook = () => (
   </svg>
 );
 const IconChevron = () => (
-  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+  <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 );
@@ -193,51 +194,51 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
-        <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5">
+      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#0a0a0b] dark:text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+        <div className="sticky top-0 z-40 bg-[#f5f5f7] dark:bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5">
           <div className="flex items-center gap-3 px-4 py-3 max-w-lg md:max-w-6xl mx-auto">
-            <div className="w-9 h-9 rounded-full bg-white/10 skeleton-shimmer" />
-            <div className="h-5 flex-1 max-w-[120px] rounded bg-white/10 skeleton-shimmer" />
+            <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-white/10 skeleton-shimmer" />
+            <div className="h-5 flex-1 max-w-[120px] rounded bg-gray-200 dark:bg-white/10 skeleton-shimmer" />
           </div>
         </div>
         <div className="max-w-lg md:max-w-6xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-6">
           <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-4 md:gap-6 items-start">
             <div className="space-y-4 md:sticky md:top-[72px]">
-              <div className="rounded-3xl bg-[#141416] border border-white/5 p-5 skeleton-shimmer">
+              <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 p-5 skeleton-shimmer">
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="w-16 h-16 rounded-2xl bg-white/10" />
+                  <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-white/10" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-5 w-32 bg-white/10 rounded" />
-                    <div className="h-6 w-20 rounded-full bg-white/10" />
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded" />
+                    <div className="h-6 w-20 rounded-full bg-gray-200 dark:bg-white/10" />
                   </div>
                 </div>
-                <div className="rounded-2xl bg-[#1a1a1a] border border-white/5 p-4">
-                  <div className="h-3 w-24 bg-white/10 rounded mb-2" />
-                  <div className="h-8 w-32 bg-white/10 rounded" />
+                <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 p-4">
+                  <div className="h-3 w-24 bg-gray-200 dark:bg-white/10 rounded mb-2" />
+                  <div className="h-8 w-32 bg-gray-200 dark:bg-white/10 rounded" />
                 </div>
-                <div className="h-12 mt-4 rounded-2xl bg-white/10 w-full" />
+                <div className="h-12 mt-4 rounded-2xl bg-gray-200 dark:bg-white/10 w-full" />
               </div>
               <div className="grid grid-cols-4 gap-2.5">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex flex-col items-center gap-2 py-3 rounded-2xl">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 skeleton-shimmer" />
-                    <div className="h-3 w-12 bg-white/10 rounded skeleton-shimmer" />
+                    <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-white/10 skeleton-shimmer" />
+                    <div className="h-3 w-12 bg-gray-200 dark:bg-white/10 rounded skeleton-shimmer" />
                   </div>
                 ))}
               </div>
             </div>
             <div className="space-y-4 min-w-0">
-              <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+              <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 overflow-hidden">
                 <div className="px-5 pt-5 pb-3">
-                  <div className="h-4 w-40 bg-white/10 rounded skeleton-shimmer" />
+                  <div className="h-4 w-40 bg-gray-200 dark:bg-white/10 rounded skeleton-shimmer" />
                 </div>
                 <div className="px-4 pb-4 space-y-2">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <div key={i} className="flex items-center gap-3.5 px-3 py-3.5 rounded-2xl">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 skeleton-shimmer" />
+                      <div className="w-10 h-10 rounded-xl bg-gray-200 dark:bg-white/10 skeleton-shimmer" />
                       <div className="flex-1 space-y-1">
-                        <div className="h-3 w-20 bg-white/10 rounded skeleton-shimmer" />
-                        <div className="h-4 w-28 bg-white/10 rounded skeleton-shimmer" />
+                        <div className="h-3 w-20 bg-gray-200 dark:bg-white/10 rounded skeleton-shimmer" />
+                        <div className="h-4 w-28 bg-gray-200 dark:bg-white/10 rounded skeleton-shimmer" />
                       </div>
                     </div>
                   ))}
@@ -284,40 +285,40 @@ const Profile = () => {
   /* ── Reusable blocks (rendered in both mobile & desktop layouts) ── */
 
   const heroCard = (
-    <div className="relative overflow-hidden rounded-3xl bg-[#141416] border border-white/5">
+    <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5">
       <div className="relative p-5 md:p-6">
         <div className="flex items-center gap-4 mb-5">
           <div className="relative">
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#f2c14e] to-[#f5a623] flex items-center justify-center text-black text-2xl md:text-3xl font-bold shadow-lg shadow-yellow-500/20">
               {avatarInitial}
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 border-2 border-[#141416]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 md:w-5 md:h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#141416]" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-bold text-lg md:text-xl truncate leading-tight">
+            <h3 className={`${textPrimary} font-bold text-lg md:text-xl truncate leading-tight`}>
               {form.username || t('profile.user')}
             </h3>
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                <span className="text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">{t('profile.active')}</span>
+                <span className="text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">{t('profile.active')}</span>
               </div>
               {form.role && (
                 <div className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30">
-                  <span className="text-blue-400 text-[10px] font-semibold uppercase tracking-wider capitalize">{form.role === 'User' || form.role === 'user' ? t('profile.user') : form.role}</span>
+                  <span className="text-blue-700 dark:text-blue-400 text-[10px] font-semibold uppercase tracking-wider capitalize">{form.role === 'User' || form.role === 'user' ? t('profile.user') : form.role}</span>
                 </div>
               )}
             </div>
           </div>
         </div>
-        <div className="rounded-2xl bg-[#1a1a1a] border border-white/5 p-4">
+        <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/5 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{t('profile.walletBalance')}</p>
-              <p className="text-[#f2c14e] text-2xl md:text-3xl font-extrabold tracking-tight">
+              <p className={`${textMuted} text-xs font-medium uppercase tracking-wider mb-1`}>{t('profile.walletBalance')}</p>
+              <p className={`${bidAccent} text-2xl md:text-3xl font-extrabold tracking-tight`}>
                 ₹{walletValue !== null ? walletValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-[#f2c14e]/10 border border-[#f2c14e]/20 flex items-center justify-center text-[#f2c14e]">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800 dark:bg-[#f2c14e]/10 dark:border-[#f2c14e]/20 dark:text-[#f2c14e]">
               <IconWallet />
             </div>
           </div>
@@ -326,7 +327,7 @@ const Profile = () => {
         <button
           type="button"
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2.5 py-3 mt-4 rounded-2xl bg-[#141416] border border-white/10 text-red-400 font-semibold hover:bg-white/[0.03] hover:border-white/15 active:scale-[0.98] transition-all"
+          className="w-full flex items-center justify-center gap-2.5 py-3 mt-4 rounded-2xl bg-gray-50 dark:bg-[#141416] border border-gray-200 dark:border-white/10 text-red-600 dark:text-red-400 font-semibold hover:bg-gray-100 dark:hover:bg-white/[0.03] hover:border-gray-300 dark:hover:border-white/15 active:scale-[0.98] transition-all"
         >
           <IconLogout />
           <span>{t('header.logout')}</span>
@@ -347,7 +348,7 @@ const Profile = () => {
           <div className={`w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-white shadow-lg`}>
             {action.icon}
           </div>
-          <span className="text-gray-300 text-[11px] md:text-xs font-medium leading-tight text-center">{action.label}</span>
+          <span className="text-gray-600 dark:text-gray-300 text-[11px] md:text-xs font-medium leading-tight text-center">{action.label}</span>
         </button>
       ))}
     </div>
@@ -360,7 +361,7 @@ const Profile = () => {
         label === t('profile.userId') ? userId : infoFields.find(f => f.label === label)?.value,
         label
       )}
-      className="p-1.5 rounded-lg hover:bg-white/5 text-gray-500 hover:text-gray-300 transition-colors"
+      className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
       title={t('common.copy')}
     >
       {copiedField === label ? (
@@ -374,33 +375,33 @@ const Profile = () => {
   );
 
   const accountInfoBlock = (
-    <div className="overflow-hidden">
+    <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 overflow-hidden">
       <div className="px-5 pt-5 pb-3">
-        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('profile.accountInformation')}</h3>
+        <h3 className="text-gray-900 dark:text-white font-semibold text-sm uppercase tracking-wider">{t('profile.accountInformation')}</h3>
         <p className="text-gray-500 text-xs mt-1 md:hidden">{t('profile.accountInformationSubtitle')}</p>
       </div>
       <div className="px-4 pb-2">
         {/* User ID */}
-        <div className="group flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-white/[0.03] transition-colors">
-          <div className="w-10 h-10 rounded-xl bg-gray-500/10 flex items-center justify-center text-gray-400 shrink-0">
+        <div className="group flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-500/10 flex items-center justify-center text-gray-600 dark:text-gray-400 shrink-0">
             <IconId />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.userId')}</p>
-            <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
           </div>
           {renderCopyBtn(t('profile.userId'))}
         </div>
 
         {/* Info fields */}
         {infoFields.map((field) => (
-          <div key={field.label} className="group flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-white/[0.03] transition-colors">
+          <div key={field.label} className="group flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors">
             <div className={`w-10 h-10 rounded-xl bg-current/10 flex items-center justify-center shrink-0 ${field.color}`} style={{ backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)' }}>
               {field.icon}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{field.label}</p>
-              <p className={`text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
+              <p className={`text-gray-900 dark:text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
                 {field.value}
               </p>
             </div>
@@ -416,7 +417,7 @@ const Profile = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.memberSince')}</p>
-              <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
+              <p className="text-gray-900 dark:text-white text-sm font-medium mt-0.5">{memberSince}</p>
             </div>
           </div>
         )}
@@ -425,9 +426,9 @@ const Profile = () => {
   );
 
   const settingsBlock = (
-    <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+    <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 overflow-hidden">
       <div className="px-5 pt-5 pb-2">
-        <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('profile.settings')}</h3>
+        <h3 className="text-gray-900 dark:text-white font-semibold text-sm uppercase tracking-wider">{t('profile.settings')}</h3>
       </div>
       <div className="px-3 pb-3">
         {menuItems.map((item) => (
@@ -435,13 +436,13 @@ const Profile = () => {
             key={item.label}
             type="button"
             onClick={() => item.path ? navigate(item.path) : item.action?.()}
-            className="w-full flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-white/[0.03] active:bg-white/[0.06] active:scale-[0.98] transition-all"
+            className="w-full flex items-center gap-3.5 px-3 py-3.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-white/[0.03] active:bg-gray-100 dark:active:bg-white/[0.06] active:scale-[0.98] transition-all"
           >
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.color}`} style={{ backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)' }}>
               {item.icon}
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-white text-sm font-semibold">{item.label}</p>
+              <p className="text-gray-900 dark:text-white text-sm font-semibold">{item.label}</p>
               <p className="text-gray-500 text-xs mt-0.5">{item.desc}</p>
             </div>
             <IconChevron />
@@ -463,18 +464,18 @@ const Profile = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#0a0a0b] dark:text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8">
       {/* Toast */}
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-[fadeSlideDown_0.3s_ease] px-4 w-full max-w-sm">
-          <div className="rounded-2xl border border-yellow-500/30 bg-black/90 backdrop-blur-xl px-4 py-3 text-sm text-yellow-200 text-center shadow-2xl">
+          <div className="rounded-2xl border border-amber-300 bg-white dark:border-yellow-500/30 dark:bg-black/90 backdrop-blur-xl px-4 py-3 text-sm text-amber-900 dark:text-yellow-200 text-center shadow-2xl">
             {toast}
           </div>
         </div>
       )}
 
       {/* ── Header Bar ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#f5f5f7] dark:bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5">
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg md:max-w-6xl mx-auto">
           <button
             type="button"
@@ -494,12 +495,12 @@ const Profile = () => {
               } catch (_) {}
               navigate('/');
             }}
-            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+            className={`w-9 h-9 ${iconBtn}`}
             aria-label="Back"
           >
             <IconBack />
           </button>
-          <h2 className="text-base md:text-lg font-semibold tracking-wide flex-1">{t('profile.title')}</h2>
+          <h2 className={`text-base md:text-lg font-semibold tracking-wide flex-1 ${textPrimary}`}>{t('profile.title')}</h2>
         </div>
       </div>
 
@@ -514,32 +515,35 @@ const Profile = () => {
 
           {/* Right: account info (list on mobile, 2-col grid on desktop) + quick stats on desktop */}
           <div className="space-y-4 md:space-y-5 min-w-0">
-            <div className="md:hidden">{accountInfoBlock}</div>
+            <div className="md:hidden space-y-4">
+              {accountInfoBlock}
+              {settingsBlock}
+            </div>
             <div className="hidden md:block space-y-5">
-              <div className="overflow-hidden">
-                <div className="px-6 pt-6 pb-4 border-b border-white/5">
-                  <h3 className="text-white font-semibold text-base uppercase tracking-wider">{t('profile.accountInformation')}</h3>
+              <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 overflow-hidden">
+                <div className="px-6 pt-6 pb-4 border-b border-gray-200 dark:border-white/5">
+                  <h3 className="text-gray-900 dark:text-white font-semibold text-base uppercase tracking-wider">{t('profile.accountInformation')}</h3>
                   <p className="text-gray-500 text-sm mt-1">{t('profile.accountInformationSubtitle')}</p>
                 </div>
                 <div className="p-5 grid grid-cols-2 gap-4">
-                  <div className="col-span-2 group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                    <div className="w-11 h-11 rounded-xl bg-gray-500/10 flex items-center justify-center text-gray-400 shrink-0">
+                  <div className="col-span-2 group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-colors">
+                    <div className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-500/10 flex items-center justify-center text-gray-600 dark:text-gray-400 shrink-0">
                       <IconId />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.userId')}</p>
-                      <p className="text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
+                      <p className="text-gray-700 dark:text-gray-300 text-sm font-mono truncate mt-0.5">{userId}</p>
                     </div>
                     {renderCopyBtn(t('profile.userId'))}
                   </div>
                   {infoFields.map((field) => (
-                    <div key={field.label} className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+                    <div key={field.label} className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-colors">
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${field.color}`} style={{ backgroundColor: 'color-mix(in srgb, currentColor 10%, transparent)' }}>
                         {field.icon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{field.label}</p>
-                        <p className={`text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
+                        <p className={`text-gray-900 dark:text-white text-sm font-medium truncate mt-0.5 ${field.capitalize ? 'capitalize' : ''}`}>
                           {field.value}
                         </p>
                       </div>
@@ -547,20 +551,20 @@ const Profile = () => {
                     </div>
                   ))}
                   {memberSince && (
-                    <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
-                      <div className="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-400 shrink-0">
+                    <div className="group flex items-center gap-4 px-4 py-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 transition-colors">
+                      <div className="w-11 h-11 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600 dark:text-pink-400 shrink-0">
                         <IconCalendar />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-gray-500 text-[10px] font-medium uppercase tracking-wider">{t('profile.memberSince')}</p>
-                        <p className="text-white text-sm font-medium mt-0.5">{memberSince}</p>
+                        <p className="text-gray-900 dark:text-white text-sm font-medium mt-0.5">{memberSince}</p>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
+              {settingsBlock}
             </div>
-            <div className="h-2 md:hidden" />
           </div>
         </div>
       </div>

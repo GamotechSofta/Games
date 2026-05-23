@@ -136,24 +136,24 @@ const OddEvenBid = ({ market, title }) => {
         <>
             <div className="w-full basis-full min-w-0 shrink-0 md:hidden px-3 py-1">
                 <div className="grid grid-cols-2 gap-1.5">
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{bids.length}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bids.length}</div>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
                     </div>
                 </div>
             </div>
             <div className="hidden md:flex items-center gap-2 shrink-0">
-                <div className="rounded-full border border-white/10 bg-[#202124] h-[44px] px-3 flex items-center gap-1.5">
+                <div className="rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] h-[44px] px-3 flex items-center gap-1.5">
                     <span className="text-[10px] text-gray-500 uppercase leading-none">Bets</span>
-                    <span className="text-sm font-bold text-[#f2c14e]">{bids.length}</span>
+                    <span className="text-sm font-bold text-amber-800 dark:text-[#f2c14e]">{bids.length}</span>
                 </div>
-                <div className="rounded-full border border-white/10 bg-[#202124] h-[44px] px-3 flex items-center gap-1.5">
+                <div className="rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] h-[44px] px-3 flex items-center gap-1.5">
                     <span className="text-[10px] text-gray-500 uppercase leading-none">Points</span>
-                    <span className="text-sm font-bold text-[#f2c14e]">{totalPoints}</span>
+                    <span className="text-sm font-bold text-amber-800 dark:text-[#f2c14e]">{totalPoints}</span>
                 </div>
             </div>
         </>
@@ -170,14 +170,14 @@ const OddEvenBid = ({ market, title }) => {
                 <button
                     type="button"
                     onClick={() => setChoice('odd')}
-                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'odd' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-[#202124] text-gray-400 border-white/10 hover:border-gray-400'}`}
+                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'odd' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400'}`}
                 >
                     Odd
                 </button>
                 <button
                     type="button"
                     onClick={() => setChoice('even')}
-                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'even' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-[#202124] text-gray-400 border-white/10 hover:border-gray-400'}`}
+                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'even' ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]' : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400'}`}
                 >
                     Even
                 </button>
@@ -191,12 +191,12 @@ const OddEvenBid = ({ market, title }) => {
                         placeholder="Point"
                         value={inputPoints}
                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full h-10 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full focus:outline-none focus:border-[#d4af37] px-4 text-sm font-semibold text-center min-w-0"
+                        className="w-full h-10 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full focus:outline-none focus:border-[#d4af37] px-4 text-sm font-semibold text-center min-w-0"
                     />
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="h-10 px-4 rounded-lg border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-semibold hover:border-[#d4af37] active:scale-95 shrink-0"
+                        className="h-10 px-4 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-semibold hover:border-[#d4af37] active:scale-95 shrink-0"
                     >
                         Clear
                     </button>
@@ -228,7 +228,7 @@ const OddEvenBid = ({ market, title }) => {
                 </button>
             </div>
             <div>
-                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                     <div>Ank</div>
                     <div>Point</div>
                     <div>Type</div>
@@ -240,9 +240,9 @@ const OddEvenBid = ({ market, title }) => {
                         bids.map((b) => (
                             <div
                                 key={b.id}
-                                className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
+                                className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
                             >
-                                <div className="font-bold text-white">{b.number}</div>
+                                <div className="font-bold text-gray-900 dark:text-white">{b.number}</div>
                                 <div className="px-0.5 min-w-0">
                                     <input
                                         type="text"
@@ -255,7 +255,7 @@ const OddEvenBid = ({ market, title }) => {
                                                 )
                                             )
                                         }
-                                        className="w-full h-8 rounded-lg border border-white/10 text-center font-bold text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
+                                        className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
                                     />
                                 </div>
                                 <div className="text-sm text-gray-400">{b.type}</div>

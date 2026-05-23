@@ -345,7 +345,7 @@ list.push({
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 md:px-8 lg:px-10 xl:px-12 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8 lg:pb-10">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 md:px-8 lg:px-10 xl:px-12 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-8 lg:pb-10">
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] px-4 w-full max-w-sm md:max-w-md">
           <div className="rounded-xl bg-[#d4af37]/90 text-black px-4 py-3 text-sm font-semibold text-center shadow-lg">
@@ -355,7 +355,7 @@ list.push({
       )}
       <div className="max-w-lg md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto pt-4 md:pt-8 lg:pt-10">
         {/* Desktop: full-height card with scrollable list; mobile: single flow */}
-        <div className="md:bg-[#0d0d0d] md:rounded-2xl md:border md:border-white/10 md:shadow-xl md:px-6 lg:px-8 xl:px-10 md:py-6 lg:py-8 md:min-h-[calc(100vh-6rem)] md:flex md:flex-col md:overflow-hidden">
+        <div className="md:bg-[#0d0d0d] md:rounded-2xl md:border md:border-gray-200 dark:border-white/10 md:shadow-xl md:px-6 lg:px-8 xl:px-10 md:py-6 lg:py-8 md:min-h-[calc(100vh-6rem)] md:flex md:flex-col md:overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between gap-3 mb-6 md:mb-6 md:shrink-0">
             <div className="flex items-center gap-3 min-w-0">
@@ -370,7 +370,7 @@ list.push({
                 </svg>
               </button>
               <div className="min-w-0">
-                <h1 className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-white">{t('notifications.title')}</h1>
+                <h1 className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-white">{t('notifications.title')}</h1>
                 <p className="text-xs md:text-sm lg:text-base text-gray-500">{t('notifications.subtitle')}</p>
               </div>
             </div>
@@ -379,7 +379,7 @@ list.push({
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="min-h-[44px] md:min-h-[40px] px-3 md:px-4 rounded-full bg-white/10 text-gray-300 hover:bg-white/15 hover:text-white text-xs md:text-sm font-semibold touch-manipulation transition-colors"
+                  className="min-h-[44px] md:min-h-[40px] px-3 md:px-4 rounded-full bg-white/10 text-gray-300 hover:bg-white/15 hover:text-gray-800 dark:text-white text-xs md:text-sm font-semibold touch-manipulation transition-colors"
                 >
                   {t('notifications.clearAll')}
                 </button>
@@ -388,7 +388,7 @@ list.push({
                 type="button"
                 onClick={handleRefresh}
                 disabled={loading || refreshing}
-                className="min-w-[44px] min-h-[44px] md:min-w-[40px] md:min-h-[40px] rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/15 disabled:opacity-50 touch-manipulation transition-colors"
+                className="min-w-[44px] min-h-[44px] md:min-w-[40px] md:min-h-[40px] rounded-full bg-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-white/15 disabled:opacity-50 touch-manipulation transition-colors"
                 aria-label={t('common.refresh')}
               >
                 <svg
@@ -414,7 +414,7 @@ list.push({
                 className={`shrink-0 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-sm md:text-base font-semibold transition-colors ${
                   filter === key
                     ? 'bg-[#d4af37] text-black'
-                    : 'bg-[#1a1a1a] text-gray-400 border border-white/10 hover:border-[#d4af37]/40'
+                    : 'bg-gray-50 dark:bg-[#1a1a1a] text-gray-400 border border-gray-200 dark:border-white/10 hover:border-[#d4af37]/40'
                 }`}
               >
                 {key === 'all' ? t('common.all') : typeLabel(key)}
@@ -427,7 +427,7 @@ list.push({
           {loading ? (
             <div className="space-y-3 md:space-y-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 md:p-5 skeleton-shimmer">
+                <div key={i} className="rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-4 md:p-5 skeleton-shimmer">
                   <div className="flex justify-between items-start gap-2 mb-2">
                     <div className="h-4 w-28 rounded bg-white/10" />
                     <div className="h-4 w-16 rounded bg-white/10" />
@@ -438,7 +438,7 @@ list.push({
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-8 md:p-12 text-center">
+            <div className="rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-8 md:p-12 text-center">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 md:mb-5">
                 <svg className="w-8 h-8 md:w-10 md:h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -460,7 +460,7 @@ list.push({
                         key={item.id}
                         type="button"
                         onClick={() => item.link && navigate(item.link)}
-                        className="w-full text-left rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 md:p-5 hover:border-[#d4af37]/30 hover:bg-[#1f1f1f] active:scale-[0.99] transition-all cursor-pointer"
+                        className="w-full text-left rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-4 md:p-5 hover:border-[#d4af37]/30 hover:bg-[#1f1f1f] active:scale-[0.99] transition-all cursor-pointer"
                       >
                         <div className="flex justify-between items-start gap-2 mb-1.5 md:mb-2">
                           <span className={`shrink-0 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg text-[10px] md:text-xs font-semibold uppercase tracking-wide border ${typeColor(item.type)}`}>
@@ -470,7 +470,7 @@ list.push({
                             {getDateSection(item.time, t) === t('notifications.older') ? formatFullDate(item.time) : formatNotificationTime(item.time, t)}
                           </span>
                         </div>
-                        <p className="font-semibold text-white text-sm md:text-base leading-snug">{item.title}</p>
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm md:text-base leading-snug">{item.title}</p>
                         <p className="text-gray-400 text-xs md:text-sm mt-1 line-clamp-3">{item.message}</p>
                       </button>
                     ))}

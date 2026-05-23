@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { textPrimary } from '../styles/appTheme';
 
 const BidOptions = () => {
   const navigate = useNavigate();
@@ -406,9 +407,9 @@ const BidOptions = () => {
   });
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white flex flex-col items-center">
       {/* Header */}
-      <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-black border-b border-gray-800 relative">
+      <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 relative">
         <button
           onClick={() => {
             if (isStarline && starlineMarketKey != null) {
@@ -425,7 +426,7 @@ const BidOptions = () => {
               navigate('/');
             }
           }}
-          className="absolute left-3 sm:left-4 flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 text-gray-400 hover:text-white active:scale-95 touch-manipulation"
+          className="absolute left-3 sm:left-4 flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:hover:text-white active:scale-95 touch-manipulation"
           aria-label={t('common.back')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -434,7 +435,7 @@ const BidOptions = () => {
         </button>
         <div className="w-full text-center pr-12 pl-12 min-w-0">
           {/* Dynamic market name from selected market */}
-          <h1 className="text-white font-bold text-base sm:text-lg tracking-wider uppercase inline-block border-b-2 border-yellow-500 pb-1 px-2 py-1 truncate max-w-full">
+          <h1 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg tracking-wider uppercase inline-block border-b-2 border-yellow-500 pb-1 px-2 py-1 truncate max-w-full">
             {market?.gameName || t('bidOptions.selectMarket')}
           </h1>
           {isStarline ? (
@@ -469,7 +470,7 @@ const BidOptions = () => {
                 }),
               }
             })}
-            className="relative rounded-2xl bg-gradient-to-br from-[#1b1d22] via-[#15171b] to-[#0f1013] border border-white/10 p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 hover:from-[#23262d] hover:via-[#1a1d22] hover:to-[#121418] active:scale-[0.98] transition-all cursor-pointer shadow-[0_12px_30px_rgba(0,0,0,0.38)] group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px]"
+            className="relative rounded-2xl border p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 active:scale-[0.98] transition-all cursor-pointer group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px] bg-white border-gray-200 shadow-md hover:shadow-lg hover:border-amber-400/50 hover:bg-amber-50/40 dark:bg-gradient-to-br dark:from-[#1b1d22] dark:via-[#15171b] dark:to-[#0f1013] dark:border-white/10 dark:shadow-[0_12px_30px_rgba(0,0,0,0.38)] dark:hover:from-[#23262d] dark:hover:via-[#1a1d22] dark:hover:to-[#121418] dark:hover:border-white/20"
           >
             {/* Icon Container with subtle glow effect */}
             <div className="flex items-center justify-center w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] md:w-[96px] md:h-[96px] group-hover:scale-[1.03] transition-transform duration-300">
@@ -477,7 +478,7 @@ const BidOptions = () => {
             </div>
 
             {/* Title */}
-            <span className="text-white text-[10px] sm:text-[11px] md:text-sm font-semibold tracking-[0.14em] sm:tracking-[0.18em] uppercase text-center line-clamp-2 leading-tight">
+            <span className={`${textPrimary} text-[10px] sm:text-[11px] md:text-sm font-semibold tracking-[0.14em] sm:tracking-[0.18em] uppercase text-center line-clamp-2 leading-tight`}>
               {option.displayTitle || option.title}
             </span>
           </div>

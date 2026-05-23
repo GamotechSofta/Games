@@ -127,7 +127,7 @@ const Section1 = () => {
               />
             </div>
             <div className="text-left">
-              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.starline')}</h3>
+              <h3 className="text-gray-900 dark:text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.starline')}</h3>
               <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
             </div>
           </div>
@@ -143,7 +143,7 @@ const Section1 = () => {
         {/* ── MARKETS center ── */}
         <div className="flex items-center gap-2 shrink-0">
           <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
-          <h2 className="text-white text-lg font-bold tracking-[0.15em] uppercase">{t('markets.markets')}</h2>
+          <h2 className="text-gray-900 dark:text-white text-lg font-bold tracking-[0.15em] uppercase">{t('markets.markets')}</h2>
           <svg className="w-2.5 h-2.5 text-[#d4af37]/50" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
         </div>
 
@@ -168,7 +168,7 @@ const Section1 = () => {
               />
             </div>
             <div className="text-left">
-              <h3 className="text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.kingBazaar')}</h3>
+              <h3 className="text-gray-900 dark:text-white text-base font-bold uppercase leading-tight tracking-wide">{t('markets.kingBazaar')}</h3>
               <p className="text-amber-400/90 text-xs font-semibold mt-1">{t('markets.tapToPlay')}</p>
             </div>
           </div>

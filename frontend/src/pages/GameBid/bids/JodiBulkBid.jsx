@@ -412,13 +412,13 @@ const JodiBulkBid = ({ market, title }) => {
                     </div>
                 )}
                 <div className="grid grid-cols-2 gap-1.5 md:hidden px-1 mb-3">
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{rows.length}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{rows.length}</div>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
                     </div>
                 </div>
 
@@ -434,22 +434,22 @@ const JodiBulkBid = ({ market, title }) => {
                         <button
                             type="button"
                             onClick={clearAll}
-                            className="ml-1 px-3 py-1.5 rounded-md text-sm font-semibold border border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
+                            className="ml-1 px-3 py-1.5 rounded-md text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
                         >
                             Clear
                         </button>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center min-w-[110px]">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center min-w-[110px]">
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{rows.length}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{rows.length}</div>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-3 py-2 text-center min-w-[130px]">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center min-w-[130px]">
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
                     </div>
                 </div>
 
-                <div className="bg-transparent border-0 rounded-none p-0 md:bg-[#202124] md:border md:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5">
+                <div className="bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202124] md:border md:border-gray-200 dark:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5">
                     <div className="mb-2 md:hidden">
                         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap">
                             <QuickPointsInline
@@ -462,18 +462,18 @@ const JodiBulkBid = ({ market, title }) => {
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className="ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-white/10 text-[#f2c14e] bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
+                                className="ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
                             >
                                 Clear
                             </button>
                         </div>
                     </div>
-                    <div className="md:hidden overflow-x-hidden rounded-md border border-white/10 bg-[#202124] p-1">
+                    <div className="md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-1">
                         <div
                             className="grid w-full gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"
                             style={{ gridTemplateColumns: `56px repeat(${visibleDigits.length}, minmax(0, 1fr))` }}
                         >
-                            <div className="h-6 sm:h-7 flex items-center justify-center text-[#f2c14e] font-extrabold text-[11px] sm:text-sm tracking-wide">
+                            <div className="h-6 sm:h-7 flex items-center justify-center text-amber-800 dark:text-[#f2c14e] font-extrabold text-[11px] sm:text-sm tracking-wide">
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -499,7 +499,7 @@ const JodiBulkBid = ({ market, title }) => {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                     }}
-                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-gray-200 dark:border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                 />
                             ))}
 
@@ -528,7 +528,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                             }}
-                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-gray-200 dark:border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                         />
                                     </div>
 
@@ -563,10 +563,10 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-[#f2c14e] focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
+                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
                                                         hasBet
                                                             ? 'border border-[#d4af37] bg-[#d4af37]/10'
-                                                            : 'border border-white/10 bg-black'
+                                                            : 'border border-gray-200 dark:border-white/10 bg-black'
                                                     }`}
                                                 />
                                             </div>
@@ -577,9 +577,9 @@ const JodiBulkBid = ({ market, title }) => {
                         </div>
                     </div>
 
-                    <div className="hidden md:block rounded-md border border-white/10 bg-[#202124] p-2">
+                    <div className="hidden md:block rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-2">
                         <div className="mb-3 grid grid-cols-[84px_repeat(10,minmax(0,1fr))] gap-2">
-                            <div className="h-8 flex items-center justify-center text-[#f2c14e] font-extrabold text-xs tracking-wide">
+                            <div className="h-8 flex items-center justify-center text-amber-800 dark:text-[#f2c14e] font-extrabold text-xs tracking-wide">
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -606,7 +606,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                         }}
-                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-gray-200 dark:border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                     />
                                 </div>
                             ))}
@@ -637,7 +637,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                         }}
-                                        className="no-spinner h-8 w-full rounded-md border border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                        className="no-spinner h-8 w-full rounded-md border border-gray-200 dark:border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
                                     />
                                 ))}
                             </div>
@@ -678,8 +678,8 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
-                                                        hasBet ? 'border border-[#d4af37] bg-[#d4af37]/10' : 'border border-white/10 bg-black'
+                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
+                                                        hasBet ? 'border border-[#d4af37] bg-[#d4af37]/10' : 'border border-gray-200 dark:border-white/10 bg-black'
                                                     }`}
                                                 />
                                             </div>

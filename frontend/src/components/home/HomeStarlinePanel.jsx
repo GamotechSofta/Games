@@ -44,8 +44,8 @@ export default function HomeStarlinePanel() {
 
   return (
     <section className="mt-2">
-      <h2 className="mb-4 text-lg font-bold text-white">{t('startlineDashboard.title')}</h2>
-      <p className="mb-4 text-sm text-white/60">{t('startlineDashboard.chooseMarket')}</p>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">{t('startlineDashboard.title')}</h2>
+      <p className="mb-4 text-sm text-gray-500 dark:text-white/60">{t('startlineDashboard.chooseMarket')}</p>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 sm:gap-3 md:gap-4 lg:gap-5">
         {loadingGroups ? (
           Array.from({ length: 6 }).map((_, i) => (
@@ -55,7 +55,7 @@ export default function HomeStarlinePanel() {
             />
           ))
         ) : starlineGroups.length === 0 ? (
-          <div className="col-span-full py-8 text-center text-sm text-white/60">
+          <div className="col-span-full py-8 text-center text-sm text-gray-500 dark:text-white/60">
             {t('startlineDashboard.noMarkets')}
           </div>
         ) : (

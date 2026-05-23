@@ -6,7 +6,7 @@ export const getQuickPointButtonClass = (selected) =>
     `min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base border transition-all active:scale-[0.98] ${
         selected
             ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-            : 'bg-[#202124] text-[#f2c14e] border-white/10 hover:bg-[#d4af37]/5'
+            : 'bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] border-gray-200 dark:border-white/10 hover:bg-amber-50 hover:border-amber-300 dark:hover:bg-[#d4af37]/5'
     }`;
 
 export function QuickPointButton({ pts, selected, onClick, className = '' }) {

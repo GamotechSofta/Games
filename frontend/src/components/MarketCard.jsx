@@ -124,7 +124,7 @@ export default function MarketCard({ market, index = 0, section = 'popular' }) {
         <div className="shrink-0 mb-1">
           {showPlayBtn ? (
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme.playBtn}`}>
-              <HiOutlinePlay className="w-5 h-5 text-white ml-0.5" />
+              <HiOutlinePlay className="w-5 h-5 text-gray-900 dark:text-white ml-0.5" />
             </div>
           ) : (
             <div className="w-10 h-10 flex items-center justify-center">

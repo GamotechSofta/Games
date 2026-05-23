@@ -7,9 +7,9 @@ const Download = () => {
   const downloadUrl = getApkDownloadUrl();
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white flex flex-col items-center justify-center px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <h1 className="text-2xl sm:text-3xl font-bold text-[#d4af37]">{t('header.downloadApp')}</h1>
-      <p className="mt-4 text-center text-white/90 max-w-md">
+      <p className="mt-4 text-center text-gray-600 dark:text-white/90 max-w-md">
         {t('download.description', { defaultValue: 'Get the Android app and play on the go.' })}
       </p>
       <a

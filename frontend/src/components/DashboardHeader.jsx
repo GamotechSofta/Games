@@ -7,6 +7,7 @@ import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
 import ThemeSwitcher from './ThemeSwitcher';
+import LanguageSwitcher from './LanguageSwitcher';
 
 export default function DashboardHeader({ activePanel, onPanelChange }) {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ export default function DashboardHeader({ activePanel, onPanelChange }) {
         )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <ThemeSwitcher variant="auto" />
+          <LanguageSwitcher variant="auto" />
           <button
             type="button"
             onClick={triggerApkDownload}

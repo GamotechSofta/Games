@@ -125,13 +125,13 @@ export default function ResultDatePicker({
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <div className="text-white/80 text-base sm:text-lg">{displayLabelProp}</div>
+        <div className="text-gray-600 dark:text-white/80 text-base sm:text-lg">{displayLabelProp}</div>
         <button
           type="button"
           onClick={() => setOpen(true)}
           className={
             buttonClassName ||
-            'px-5 py-2.5 rounded-full bg-black/40 border border-white/10 text-white font-bold shadow-sm hover:border-[#d4af37]/40 transition-colors'
+            'px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-900 font-bold shadow-sm hover:border-[#d4af37]/40 transition-colors dark:bg-black/40 dark:border-white/10 dark:text-white'
           }
           aria-label={t('datePicker.openCalendar')}
         >
@@ -148,15 +148,15 @@ export default function ResultDatePicker({
             onClick={() => setOpen(false)}
           />
 
-          <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.65)] bg-[#202124]">
+          <div className="relative w-full max-w-md rounded-3xl overflow-hidden border border-gray-200 dark:border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.25)] dark:shadow-[0_25px_80px_rgba(0,0,0,0.65)] bg-white dark:bg-[#202124]">
             {/* Header */}
             <div className="bg-[#0b2b55] px-6 py-5 border-b border-white/10">
-              <div className="text-white/80 text-sm tracking-widest font-semibold">{t('datePicker.selectDate')}</div>
+              <div className="text-gray-600 dark:text-white/80 text-sm tracking-widest font-semibold">{t('datePicker.selectDate')}</div>
               <div className="mt-2 flex items-center justify-between gap-4">
-                <div className="text-white text-3xl sm:text-4xl font-light">
+                <div className="text-gray-900 dark:text-white text-3xl sm:text-4xl font-light">
                   {draft.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                 </div>
-                <div className="w-10 h-10 rounded-full bg-black/25 border border-white/10 flex items-center justify-center text-white/80">
+                <div className="w-10 h-10 rounded-full bg-black/25 border border-white/10 flex items-center justify-center text-gray-600 dark:text-white/80">
                   {/* pencil icon */}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 4h2m-1 0v0m8.485 2.515a2.121 2.121 0 010 3L9 21H4v-5L16.485 6.515a2.121 2.121 0 013 0z" />
@@ -215,7 +215,7 @@ export default function ResultDatePicker({
                       onClick={() => setDraft(d)}
                       className={`h-10 w-10 mx-auto rounded-full flex items-center justify-center text-sm transition-colors ${
                         selected
-                          ? 'bg-[#0b2b55] text-white'
+                          ? 'bg-[#0b2b55] text-gray-900 dark:text-white'
                           : disabled
                             ? 'text-gray-300 cursor-not-allowed'
                             : 'text-gray-700 hover:bg-black/5'

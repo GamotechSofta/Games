@@ -156,15 +156,15 @@ const Passbook = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#0a0a0b] dark:text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
 
       {/* ── Sticky Header ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5">
         <div className="flex items-center gap-3 px-4 py-3 max-w-lg mx-auto">
           <button
             type="button"
             onClick={handleBack}
-            className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+            className="w-9 h-9 rounded-full bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
             aria-label="Back"
           >
             <IconBack />
@@ -174,7 +174,7 @@ const Passbook = () => {
             type="button"
             onClick={() => fetchData(true)}
             disabled={refreshing}
-            className={`w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all ${refreshing ? 'animate-spin' : ''}`}
+            className={`w-9 h-9 rounded-full bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all ${refreshing ? 'animate-spin' : ''}`}
             aria-label={t('common.refresh')}
           >
             <IconRefresh />
@@ -185,7 +185,7 @@ const Passbook = () => {
       <div className="max-w-lg mx-auto px-4 pt-4 space-y-4">
 
         {/* ── Balance Card ── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] border border-white/10 shadow-2xl">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] border border-gray-200 dark:border-white/10 shadow-2xl">
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-yellow-500/5 blur-2xl" />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-blue-500/5 blur-2xl" />
           
@@ -242,7 +242,7 @@ const Passbook = () => {
                 className={`flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all active:scale-95 ${
                   active
                     ? 'bg-[#f2c14e]/15 border border-[#f2c14e]/30 text-[#f2c14e]'
-                    : 'bg-[#141416] border border-white/5 text-gray-400 hover:text-white hover:border-white/10'
+                    : 'bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 text-gray-400 hover:text-gray-900 dark:text-white hover:border-gray-200 dark:border-white/10'
                 }`}
               >
                 {f.label}
@@ -257,9 +257,9 @@ const Passbook = () => {
         </div>
 
         {/* ── Transaction History ── */}
-        <div className="rounded-3xl bg-[#141416] border border-white/5 overflow-hidden">
+        <div className="rounded-3xl bg-white dark:bg-[#141416] border border-gray-200 dark:border-white/5 overflow-hidden">
           <div className="px-5 pt-5 pb-2">
-            <h3 className="text-white font-semibold text-sm uppercase tracking-wider">{t('passbook.transactionHistory')}</h3>
+            <h3 className="text-gray-900 dark:text-white font-semibold text-sm uppercase tracking-wider">{t('passbook.transactionHistory')}</h3>
           </div>
 
           {loading ? (
@@ -305,7 +305,7 @@ const Passbook = () => {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">
+                          <p className="text-gray-900 dark:text-white text-sm font-medium truncate">
                             {tx.description || (isCredit ? t('passbook.amountCredited') : t('passbook.amountWithdrawn'))}
                           </p>
                           <p className="text-gray-500 text-xs mt-0.5">{formatTime(tx.createdAt)}</p>

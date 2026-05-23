@@ -107,6 +107,9 @@
   },
   "dashboard": {
     "searchPlaceholder": "Search games, markets...",
+    "searchResults": "Search results",
+    "noSearchResults": "No markets found for \"{{query}}\"",
+    "searchGamesHint": "Try casino games",
     "viewAll": "View All",
     "popularMarkets": "Popular Markets",
     "liveMarkets": "Live Markets",

@@ -12,7 +12,7 @@ const SkillsGamesCard = () => {
   return (
     <button
       onClick={() => navigate('/games?category=upcoming')}
-      className="group relative rounded-2xl sm:rounded-3xl overflow-hidden w-full text-left active:scale-95 transition-all duration-200 border-2 border-white hover:border-white/90 bg-black bg-cover bg-center shadow-[0_0_8px_rgba(255,255,255,0.3)] hover:shadow-[0_0_12px_rgba(255,255,255,0.4)]"
+      className="group relative rounded-2xl sm:rounded-3xl overflow-hidden w-full text-left active:scale-95 transition-all duration-200 border-2 border-gray-200 hover:border-gray-300 dark:border-white dark:hover:border-white/90 bg-black bg-cover bg-center shadow-md hover:shadow-lg dark:shadow-[0_0_8px_rgba(255,255,255,0.3)] dark:hover:shadow-[0_0_12px_rgba(255,255,255,0.4)]"
       style={{ backgroundImage: `url(${SKILLS_BG_IMAGE_URL})` }}
     >
       <div className="absolute inset-0 bg-black/50" />

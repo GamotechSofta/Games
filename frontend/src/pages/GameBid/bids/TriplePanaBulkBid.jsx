@@ -192,7 +192,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
 
     const bidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
@@ -201,9 +201,9 @@ const TriplePanaBulkBid = ({ market, title }) => {
             <div className="h-px bg-[#d4af37] w-full mb-2" />
             <div className="space-y-2">
                 {bids.map((bid) => (
-                    <div key={bid.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm">
-                        <div className="font-bold text-white">{bid.number}</div>
-                        <div className="font-bold text-[#f2c14e]">{bid.points}</div>
+                    <div key={bid.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm">
+                        <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
+                        <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{bid.points}</div>
                         <div className="text-sm text-gray-400">{bid.type}</div>
                         <div className="flex justify-center">
                             <button type="button" onClick={() => handleDeleteBid(bid.id)} className="p-2 text-red-500 hover:text-red-600 active:scale-95" aria-label="Delete">
@@ -242,13 +242,13 @@ const TriplePanaBulkBid = ({ market, title }) => {
                     )}
 
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-                        <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                            <div className="text-base font-bold text-[#f2c14e] leading-tight">{displayCount}</div>
+                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayCount}</div>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                            <div className="text-base font-bold text-[#f2c14e] leading-tight">{displayBetAmount}</div>
+                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayBetAmount}</div>
                         </div>
                     </div>
 
@@ -264,7 +264,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                         onChange={handleNumberInputChange}
                                         placeholder="Pana"
                                         maxLength={3}
-                                        className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'}`}
+                                        className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'}`}
                                     />
                                 </div>
                                 <div className="flex flex-row items-center gap-2">
@@ -277,12 +277,12 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                             value={inputPoints}
                                             onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                             placeholder="Points"
-                                            className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                            className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
                                         />
                                         <button
                                             type="button"
                                             onClick={clearAll}
-                                            className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                            className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
                                         >
                                             Clear
                                         </button>

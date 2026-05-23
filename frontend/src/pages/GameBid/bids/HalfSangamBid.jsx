@@ -171,20 +171,20 @@ const HalfSangamBid = ({ market, title }) => {
     // Count / Bet Amount cards only (EASY MODE / SPECIAL MODE removed as requested)
     const modeTabs = (
         <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                <div className="text-base font-bold text-[#f2c14e] leading-tight">{bids.length}</div>
+                <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bids.length}</div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
             </div>
         </div>
     );
 
     const easyBidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
@@ -195,10 +195,10 @@ const HalfSangamBid = ({ market, title }) => {
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
+                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
                     >
-                        <div className="font-bold text-white">{bid.number}</div>
-                        <div className="font-bold text-[#f2c14e]">{bid.points}</div>
+                        <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
+                        <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{bid.points}</div>
                         <div className="text-sm text-gray-400">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
@@ -387,7 +387,7 @@ function HalfSangamEasyForm({
     const panaInputInvalid = flipped ? second.length === 3 && panaInvalid : first.length === 3 && panaInvalid;
 
     const inputBase =
-        'flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
+        'flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
 
     return (
         <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
@@ -396,10 +396,10 @@ function HalfSangamEasyForm({
                     type="button"
                     onClick={handleFlip}
                     aria-label="Flip between Open Pana plus Close Ank and Open Ank plus Close Pana"
-                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white/10 hover:bg-black text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-white/10 transition-all active:scale-[0.98]"
+                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white/10 hover:bg-black text-gray-800 dark:text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-gray-200 dark:border-white/10 transition-all active:scale-[0.98]"
                 >
                     <span>Flip (O) ↔ (C)</span>
-                    <span className="shrink-0 text-[#f2c14e]" aria-hidden>
+                    <span className="shrink-0 text-amber-800 dark:text-[#f2c14e]" aria-hidden>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path
                                 strokeLinecap="round"
@@ -452,12 +452,12 @@ function HalfSangamEasyForm({
                         value={points}
                         onChange={(e) => setPoints(sanitizePoints(e.target.value))}
                         placeholder="Points"
-                        className={`no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none`}
+                        className={`no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none`}
                     />
                     <button
                         type="button"
                         onClick={onClearAll}
-                        className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
                     >
                         Clear
                     </button>

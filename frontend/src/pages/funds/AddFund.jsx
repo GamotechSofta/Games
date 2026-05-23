@@ -192,21 +192,21 @@ const AddFund = () => {
 
             {configLoading ? (
                 <div className="rounded-2xl bg-black/0 py-4 sm:py-6 space-y-4 sm:space-y-6">
-                    <div className="bg-[#202124] rounded-2xl border border-white/10 overflow-hidden skeleton-shimmer">
+                    <div className="bg-white dark:bg-[#202124] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden skeleton-shimmer">
                         <div className="h-7 sm:h-8 bg-white/10 mx-3 sm:mx-4 mt-3 w-28 sm:w-32 rounded" />
                         <div className="h-12 sm:h-14 bg-white/10 mx-3 sm:mx-4 my-3 rounded-xl w-3/4" />
                         <div className="h-7 sm:h-8 bg-white/10 mx-3 sm:mx-4 mb-3 rounded w-20 sm:w-24" />
                     </div>
                     <div className="flex justify-center gap-2">
-                        <div className="h-11 w-11 rounded-full bg-[#202124] border border-white/10 skeleton-shimmer shrink-0" />
-                        <div className="h-11 flex-1 max-w-[280px] sm:max-w-[320px] rounded-full bg-[#202124] border border-white/10 skeleton-shimmer" />
+                        <div className="h-11 w-11 rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer shrink-0" />
+                        <div className="h-11 flex-1 max-w-[280px] sm:max-w-[320px] rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
                     </div>
                 </div>
             ) : (
                 <div className="rounded-2xl bg-black/0 py-3 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start md:max-w-none">
                     {/* Wallet balance card - compact on mobile */}
                     <div className="md:max-w-[340px] w-full">
-                        <div className="bg-[#202124] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] sm:shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-white/10 overflow-hidden">
+                        <div className="bg-white dark:bg-[#202124] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] sm:shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-gray-200 dark:border-white/10 overflow-hidden">
                             <div className="px-3 sm:px-4 pt-2.5 sm:pt-3 pb-1.5 sm:pb-2 flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-300">
                                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d4af37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20z" />
@@ -233,7 +233,7 @@ const AddFund = () => {
                                 </div>
                             </div>
                             <div className="px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between min-h-[40px]">
-                                <div className="text-xs sm:text-sm text-white/90 truncate mr-2">
+                                <div className="text-xs sm:text-sm text-gray-700 dark:text-white/90 truncate mr-2">
                                     {(() => {
                                         try {
                                             const u = JSON.parse(localStorage.getItem('user') || 'null');
@@ -254,7 +254,7 @@ const AddFund = () => {
                     {/* Amount input & actions */}
                     <div className="mt-4 sm:mt-6 md:mt-0 flex flex-col w-full">
                         <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#202124] border border-white/10 flex items-center justify-center shadow-sm shrink-0 flex-shrink-0">
+                            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-sm shrink-0 flex-shrink-0">
                                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#d4af37]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M4 10l8-4 8 4" />
                                 </svg>
@@ -264,7 +264,7 @@ const AddFund = () => {
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder={t('funds.enterAmount')}
-                                className="flex-1 min-w-0 h-11 sm:h-12 rounded-xl sm:rounded-full bg-[#202124] border border-white/10 px-4 text-base sm:text-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37]/40"
+                                className="flex-1 min-w-0 h-11 sm:h-12 rounded-xl sm:rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 px-4 text-base sm:text-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37]/40"
                                 min={minDeposit}
                                 max={maxDeposit}
                                 inputMode="numeric"
@@ -284,7 +284,7 @@ const AddFund = () => {
                                     className={`min-h-[44px] sm:min-h-[40px] rounded-xl border text-sm sm:text-base font-semibold shadow-sm transition-colors active:scale-[0.98] ${
                                         amount === String(amt)
                                             ? 'bg-[#d4af37] text-black border-[#d4af37]/60'
-                                            : 'bg-[#202124] text-white border-white/10 hover:border-[#d4af37]/30 active:bg-[#2a2b2e]'
+                                            : 'bg-white dark:bg-[#202124] text-gray-900 dark:text-white border-gray-200 dark:border-white/10 hover:border-[#d4af37]/30 active:bg-[#2a2b2e]'
                                     }`}
                                 >
                                     ₹{amt}
@@ -305,8 +305,13 @@ const AddFund = () => {
                             </button>
                         </div>
 
+<<<<<<< Updated upstream
                         <div className="mt-3 sm:mt-4 w-full bg-[#202124] rounded-xl border border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-[13px] text-gray-400 leading-relaxed">
                             {t('funds.payuNote') || 'You will be redirected to complete the payment securely. Amount will be added to your wallet after successful payment.'}
+=======
+                        <div className="mt-3 sm:mt-4 w-full bg-white dark:bg-[#202124] rounded-xl border border-gray-200 dark:border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-[13px] text-gray-400 leading-relaxed">
+                            {t('funds.payuNote') || 'You will be redirected to PayU to complete the payment securely. Amount will be added to your wallet after successful payment.'}
+>>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
@@ -314,13 +319,13 @@ const AddFund = () => {
 
             {showSuccessModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4">
-                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-5 sm:p-6 border border-green-500/30 text-center shadow-xl">
+                    <div className="bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-5 sm:p-6 border border-green-500/30 text-center shadow-xl">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
-                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{t('funds.paymentSuccess') || 'Payment successful'}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">{t('funds.paymentSuccess') || 'Payment successful'}</h3>
                         <div className="bg-green-900/30 rounded-xl p-3 sm:p-4 mb-3 sm:mb-4">
                             <p className="text-gray-400 text-xs sm:text-sm">{t('funds.creditedAmount') || 'Amount credited'}</p>
                             <p className="text-xl sm:text-2xl font-bold text-green-400 mt-0.5">₹{creditedAmount.toLocaleString()}</p>
@@ -340,7 +345,7 @@ const AddFund = () => {
                                     setShowSuccessModal(false);
                                     navigate('/funds?tab=add-fund-history');
                                 }}
-                                className="w-full min-h-[44px] py-3 bg-white/10 hover:bg-white/20 active:bg-white/25 text-white font-medium rounded-xl transition-colors"
+                                className="w-full min-h-[44px] py-3 bg-white/10 hover:bg-white/20 active:bg-white/25 text-gray-800 dark:text-white font-medium rounded-xl transition-colors"
                             >
                                 {t('funds.viewHistory') || 'View history'}
                             </button>
@@ -351,13 +356,13 @@ const AddFund = () => {
 
             {showFailedModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4">
-                    <div className="bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-5 sm:p-6 border border-red-500/30 text-center shadow-xl">
+                    <div className="bg-gray-50 dark:bg-[#1a1a1a] rounded-2xl max-w-sm w-full p-5 sm:p-6 border border-red-500/30 text-center shadow-xl">
                         <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                             <svg className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </div>
-                        <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{t('funds.paymentFailed') || 'Payment failed'}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">{t('funds.paymentFailed') || 'Payment failed'}</h3>
                         <p className="text-gray-400 text-xs sm:text-sm mb-5 sm:mb-6 leading-relaxed">
                             {t('funds.payuPaymentFailed') || 'Payment was cancelled or failed. You can try again.'}
                         </p>
@@ -376,7 +381,7 @@ const AddFund = () => {
                                     setShowFailedModal(false);
                                     setError('');
                                 }}
-                                className="w-full min-h-[44px] py-3 bg-white/10 hover:bg-white/20 active:bg-white/25 text-white font-medium rounded-xl transition-colors"
+                                className="w-full min-h-[44px] py-3 bg-white/10 hover:bg-white/20 active:bg-white/25 text-gray-800 dark:text-white font-medium rounded-xl transition-colors"
                             >
                                 {t('common.done') || 'Done'}
                             </button>

@@ -166,27 +166,6 @@ const Layout = ({ children }) => {
   }
 
   const isBidPage = location.pathname.includes('game-bid') || location.pathname === '/bidoptions';
-  const isSupportPage =
-    location.pathname === '/support' ||
-    location.pathname === '/support/new' ||
-    location.pathname === '/support/status';
-  const isDarkPage =
-    isBidPage ||
-    location.pathname === '/bids' ||
-    location.pathname === '/bank' ||
-    location.pathname === '/funds' ||
-    location.pathname === '/passbook' ||
-    location.pathname === '/download' ||
-    location.pathname === '/profile' ||
-    location.pathname === '/bet-history' ||
-    location.pathname === '/starline-bet-history' ||
-    location.pathname === '/market-result-history' ||
-    location.pathname === '/notifications' ||
-    location.pathname === '/startline-dashboard' ||
-    location.pathname === '/king-bazaar-market' ||
-    location.pathname === '/game-rate' ||
-    location.pathname === '/games' ||
-    isSupportPage;
   const isBetsPage = location.pathname === '/bids';
   const isHistoryPage =
     location.pathname === '/bet-history' || location.pathname === '/market-result-history';

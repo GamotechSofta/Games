@@ -202,13 +202,13 @@ const FullSangamBid = ({ market, title }) => {
                     <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start">
                         <div>
                             <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-                                <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                                     <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{bids.length}</div>
+                                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bids.length}</div>
                                 </div>
-                                <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                                     <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                                    <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
                                 </div>
                             </div>
 
@@ -229,7 +229,7 @@ const FullSangamBid = ({ market, title }) => {
                                         }}
                                         placeholder="Pana"
                                         maxLength={3}
-                                        className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
                                             openPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
                                         }`}
                                     />
@@ -248,7 +248,7 @@ const FullSangamBid = ({ market, title }) => {
                                         }}
                                         placeholder="Pana"
                                         maxLength={3}
-                                        className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
                                             closePanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
                                         }`}
                                     />
@@ -264,12 +264,12 @@ const FullSangamBid = ({ market, title }) => {
                                             value={points}
                                             onChange={(e) => setPoints(sanitizePoints(e.target.value))}
                                             placeholder="Points"
-                                            className="no-spinner w-full bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                            className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
                                         />
                                         <button
                                             type="button"
                                             onClick={handleFormClear}
-                                            className="px-4 min-h-[40px] rounded-xl border border-white/10 bg-[#202124] text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                            className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
                                         >
                                             Clear
                                         </button>
@@ -290,7 +290,7 @@ const FullSangamBid = ({ market, title }) => {
                             </div>
 
                             <div className="md:hidden">
-                                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                                     <div>Pana</div>
                                     <div>Point</div>
                                     <div>Type</div>
@@ -301,10 +301,10 @@ const FullSangamBid = ({ market, title }) => {
                                     {bids.map((b) => (
                                         <div
                                             key={b.id}
-                                            className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
+                                            className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
                                         >
-                                            <div className="font-bold text-white">{b.number}</div>
-                                            <div className="font-bold text-[#f2c14e]">{b.points}</div>
+                                            <div className="font-bold text-gray-900 dark:text-white">{b.number}</div>
+                                            <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{b.points}</div>
                                             <div className="text-sm text-gray-400">{b.type}</div>
                                             <div className="flex justify-center">
                                                 <button
@@ -329,7 +329,7 @@ const FullSangamBid = ({ market, title }) => {
                         </div>
 
                         <div className="hidden md:block">
-                            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                                 <div>Pana</div>
                                 <div>Point</div>
                                 <div>Type</div>
@@ -340,10 +340,10 @@ const FullSangamBid = ({ market, title }) => {
                                 {bids.map((b) => (
                                     <div
                                         key={b.id}
-                                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm"
+                                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
                                     >
-                                        <div className="font-bold text-white">{b.number}</div>
-                                        <div className="font-bold text-[#f2c14e]">{b.points}</div>
+                                        <div className="font-bold text-gray-900 dark:text-white">{b.number}</div>
+                                        <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{b.points}</div>
                                         <div className="text-sm text-gray-400">{b.type}</div>
                                         <div className="flex justify-center">
                                             <button

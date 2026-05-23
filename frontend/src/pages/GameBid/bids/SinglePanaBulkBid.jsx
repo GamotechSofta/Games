@@ -235,13 +235,13 @@ const SinglePanaBulkBid = ({ market, title }) => {
                 )}
 
                 <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1 mb-3">
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{specialCount}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{specialCount}</div>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-[#f2c14e] leading-tight">{selectedTotalPoints}</div>
+                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{selectedTotalPoints}</div>
                     </div>
                 </div>
 
@@ -281,7 +281,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                             <div key={groupKey} className="space-y-3 pb-1">
                                 {/* Group header: same "box + input" style */}
                                 <div className="flex items-center gap-2">
-                                    <div className="w-10 h-9 bg-[#d4af37] border-2 border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
+                                    <div className="w-10 h-9 bg-[#d4af37] border-2 border-gray-200 dark:border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
                                         {groupKey}
                                     </div>
                                     <input
@@ -307,7 +307,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         }}
                                         placeholder="All pts"
                                         title="Type points, then tap here, Apply, Enter, or leave the field — fills this column; you can still edit each Pts box."
-                                        className="no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
+                                        className="no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
                                     />
                                     <button
                                         type="button"
@@ -318,8 +318,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         disabled={!groupBulk[groupKey]}
                                         className={`h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors ${
                                             groupBulk[groupKey]
-                                                ? 'bg-white border-gray-400 text-[#f2c14e] hover:border-gray-500 hover:bg-white/10'
-                                                : 'bg-white/10 border-white/10 text-gray-400 cursor-not-allowed'
+                                                ? 'bg-white border-gray-400 text-amber-800 dark:text-[#f2c14e] hover:border-gray-500 hover:bg-white/10'
+                                                : 'bg-white/10 border-gray-200 dark:border-white/10 text-gray-400 cursor-not-allowed'
                                         }`}
                                         title="Apply points to all numbers in this group"
                                     >
@@ -328,7 +328,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                     <button
                                         type="button"
                                         onClick={clearGroup}
-                                        className="h-9 px-3 rounded-md font-bold text-xs border-2 border-white/10 text-gray-400 bg-[#202124] hover:bg-white/10 transition-colors"
+                                        className="h-9 px-3 rounded-md font-bold text-xs border-2 border-gray-200 dark:border-white/10 text-gray-400 bg-white dark:bg-[#202124] hover:bg-white/10 transition-colors"
                                         title="Clear this group"
                                     >
                                         Clear
@@ -386,8 +386,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                                         [num]: sanitizePoints(e.target.value),
                                                     }))
                                                 }
-                                                className={`no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${
-                                                    hasBet ? 'bg-[#d4af37]/15 text-[#f2c14e] shadow-inner border border-[#d4af37]/30' : 'bg-[#202124]'
+                                                className={`no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${
+                                                    hasBet ? 'bg-[#d4af37]/15 text-amber-800 dark:text-[#f2c14e] shadow-inner border border-[#d4af37]/30' : 'bg-white dark:bg-[#202124]'
                                                 }`}
                                             />
                                         </div>

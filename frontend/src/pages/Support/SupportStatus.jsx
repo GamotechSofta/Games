@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import { iconBtn, surfaceElevated } from '../../styles/appTheme';
 
 const getStatusLabelKey = (status) => {
   const map = { open: 'statusOpen', 'in-progress': 'statusInProgress', resolved: 'statusResolved', closed: 'statusClosed' };
@@ -10,12 +11,12 @@ const getStatusLabelKey = (status) => {
 
 const statusColor = (status) => {
   const map = {
-    open: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-    'in-progress': 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-    resolved: 'bg-green-500/20 text-green-300 border-green-500/40',
-    closed: 'bg-gray-500/20 text-gray-400 border-gray-500/40',
+    open: 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',
+    'in-progress': 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40',
+    resolved: 'bg-green-50 text-green-800 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/40',
+    closed: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-500/40',
   };
-  return map[status] || 'bg-gray-500/20 text-gray-400 border-gray-500/40';
+  return map[status] || 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-500/40';
 };
 
 const SupportStatus = () => {
@@ -89,14 +90,14 @@ const SupportStatus = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="max-w-md mx-auto pt-4">
         {/* Header - relative z-10 to ensure back button is above any overlay */}
         <div className="flex items-center gap-3 mb-6 relative z-10">
           <button
             type="button"
             onClick={handleBack}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none"
+            className={`min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none ${iconBtn}`}
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
@@ -104,32 +105,32 @@ const SupportStatus = () => {
             </svg>
           </button>
           <div>
-            <h1 className="text-lg font-bold text-white">{t('support.myTickets')}</h1>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('support.myTickets')}</h1>
             <p className="text-xs text-gray-500">{t('support.statusAndReplies')}</p>
           </div>
         </div>
 
         {!userId ? (
-          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-center text-amber-200 text-sm">
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center text-amber-900 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-200 text-sm">
             {t('support.loginRequiredForTickets')}
           </div>
         ) : loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4 skeleton-shimmer">
+              <div key={i} className={`rounded-2xl p-4 skeleton-shimmer ${surfaceElevated}`}>
                 <div className="flex justify-between items-start gap-2">
-                  <div className="h-4 flex-1 max-w-[60%] rounded bg-white/10" />
-                  <div className="h-6 w-16 rounded-lg bg-white/10 shrink-0" />
+                  <div className="h-4 flex-1 max-w-[60%] rounded bg-gray-200 dark:bg-white/10" />
+                  <div className="h-6 w-16 rounded-lg bg-gray-200 dark:bg-white/10 shrink-0" />
                 </div>
-                <div className="h-3 w-24 bg-white/10 rounded mt-2" />
-                <div className="h-4 w-full bg-white/10 rounded mt-2" />
-                <div className="h-3 w-3/4 bg-white/10 rounded mt-2" />
+                <div className="h-3 w-24 bg-gray-200 dark:bg-white/10 rounded mt-2" />
+                <div className="h-4 w-full bg-gray-200 dark:bg-white/10 rounded mt-2" />
+                <div className="h-3 w-3/4 bg-gray-200 dark:bg-white/10 rounded mt-2" />
               </div>
             ))}
           </div>
         ) : myTickets.length === 0 ? (
-          <div className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-8 text-center">
-            <p className="text-gray-400 text-sm">{t('support.noTicketsYet')}</p>
+          <div className={`rounded-2xl p-8 text-center ${surfaceElevated}`}>
+            <p className="text-gray-700 dark:text-gray-400 text-sm">{t('support.noTicketsYet')}</p>
             <p className="text-gray-500 text-xs mt-1">{t('support.sendRequestFromSupport')}</p>
             <button
               type="button"
@@ -144,10 +145,10 @@ const SupportStatus = () => {
             {myTickets.map((ticket) => (
               <div
                 key={ticket._id}
-                className="rounded-2xl bg-[#1a1a1a] border border-white/10 p-4"
+                className={`rounded-2xl p-4 ${surfaceElevated}`}
               >
                 <div className="flex justify-between items-start gap-2">
-                  <p className="font-medium text-white text-sm truncate flex-1">{ticket.subject}</p>
+                  <p className="font-medium text-gray-900 dark:text-white text-sm truncate flex-1">{ticket.subject}</p>
                   <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(ticket.status)}`}>
                     {getStatusLabelKey(ticket.status) ? t(`support.${getStatusLabelKey(ticket.status)}`) : ticket.status}
                   </span>
@@ -155,11 +156,11 @@ const SupportStatus = () => {
                 <p className="text-xs text-gray-500 mt-1">
                   {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                 </p>
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{ticket.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{ticket.description}</p>
                 {ticket.adminResponse && (
-                  <div className="mt-3 pt-3 border-t border-white/10">
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10">
                     <p className="text-xs text-gray-500 mb-1">{t('support.replyFromSupport')}</p>
-                    <p className="text-sm text-green-300/90 whitespace-pre-wrap">{ticket.adminResponse}</p>
+                    <p className="text-sm text-green-800 dark:text-green-300/90 whitespace-pre-wrap">{ticket.adminResponse}</p>
                   </div>
                 )}
               </div>

@@ -75,13 +75,13 @@ const TopWinners = () => {
   }, [rows]);
 
   return (
-    <div className="min-h-screen bg-black text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-2xl mx-auto">
         <div className="flex items-center gap-3 pt-4 pb-3">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
+            className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
             aria-label="Back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +102,7 @@ const TopWinners = () => {
                 className={`h-9 px-4 rounded-full border text-sm font-semibold transition-colors ${
                   active
                     ? 'bg-[#d4af37] text-black border-[#d4af37]/60'
-                    : 'bg-[#202124] text-white border-white/10 hover:border-[#d4af37]/30'
+                    : 'bg-white dark:bg-[#202124] text-gray-900 dark:text-white border-gray-200 dark:border-white/10 hover:border-[#d4af37]/30'
                 }`}
               >
                 {t.label}
@@ -120,11 +120,11 @@ const TopWinners = () => {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[76px] rounded-2xl bg-[#202124] border border-white/10 skeleton-shimmer" />
+              <div key={i} className="h-[76px] rounded-2xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
             ))}
           </div>
         ) : normalized.length === 0 ? (
-          <div className="bg-[#202124] border border-white/10 rounded-2xl p-6 text-center text-gray-400 text-sm">
+          <div className="bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-2xl p-6 text-center text-gray-400 text-sm">
             {t('topWinners.noWinners')}
           </div>
         ) : (
@@ -132,7 +132,7 @@ const TopWinners = () => {
             {normalized.map((r) => (
               <div
                 key={`${r.rank}-${r.username}`}
-                className="bg-[#202124] border border-white/10 rounded-2xl p-4 shadow-[0_12px_24px_rgba(0,0,0,0.35)] flex items-center gap-3"
+                className="bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-2xl p-4 shadow-[0_12px_24px_rgba(0,0,0,0.35)] flex items-center gap-3"
               >
                 <div
                   className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${medalBg(r.rank)} text-black flex items-center justify-center font-extrabold shadow-[0_10px_20px_rgba(0,0,0,0.35)] shrink-0`}
@@ -143,7 +143,7 @@ const TopWinners = () => {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-white font-bold truncate">{r.username}</div>
+                    <div className="text-gray-900 dark:text-white font-bold truncate">{r.username}</div>
                     <div className="text-[#d4af37] font-extrabold shrink-0">₹ {INR(r.totalWinnings)}</div>
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-xs text-gray-400">

@@ -108,7 +108,7 @@ function NavRow({
             {label}
           </span>
           {badge != null && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-[11px] font-semibold text-white">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-[11px] font-semibold text-gray-900 dark:text-white">
               {badge}
             </span>
           )}
@@ -414,7 +414,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                 <span className="dashboard-nav-label flex-1 truncate text-left text-gray-800 dark:text-white/85">
                   {t('sidebar.support')}
                 </span>
-                <span className="shrink-0 rounded-full bg-[#2563eb] px-2 py-0.5 text-[11px] font-semibold text-white">
+                <span className="shrink-0 rounded-full bg-[#2563eb] px-2 py-0.5 text-[11px] font-semibold text-gray-900 dark:text-white">
                   24/7
                 </span>
               </>

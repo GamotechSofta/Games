@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useBettingWindow } from '../BettingWindowContext';
@@ -208,7 +208,7 @@ const DPCommon = ({ market, title }) => {
                 )}
 
                 <div className="mb-3 text-gray-400 text-xs">
-                    Enter a single digit (0-9) and points — panna list will generate automatically. Double Patti only (e.g. 112,
+                    Enter a single digit (0-9) and points � panna list will generate automatically. Double Patti only (e.g. 112,
                     200, 344).
                 </div>
 
@@ -223,7 +223,7 @@ const DPCommon = ({ market, title }) => {
                                 value={digitInput}
                                 onChange={(e) => setDigitInput((e.target.value ?? '').replace(/\D/g, '').slice(0, 1))}
                                 placeholder="e.g. 2"
-                                className="w-full min-h-[44px] h-11 sm:h-12 bg-[#202124] border border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-white"
+                                className="w-full min-h-[44px] h-11 sm:h-12 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                             />
                         </div>
                         <div>
@@ -234,19 +234,19 @@ const DPCommon = ({ market, title }) => {
                                 value={pointsInput}
                                 onChange={(e) => setPointsInput((e.target.value ?? '').replace(/\D/g, '').slice(0, 6))}
                                 placeholder="Points"
-                                className="w-full min-h-[44px] h-11 sm:h-12 bg-[#202124] border border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-white"
+                                className="w-full min-h-[44px] h-11 sm:h-12 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                             />
                         </div>
                         <button
                             type="button"
                             onClick={clearLocal}
-                            className="w-full min-h-[48px] py-3.5 rounded-lg border border-[#d4af37]/40 text-[#f2c14e] bg-[#202124] font-bold text-base hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all"
+                            className="w-full min-h-[48px] py-3.5 rounded-lg border border-[#d4af37]/40 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] font-bold text-base hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all"
                         >
                             Clear
                         </button>
                     </div>
 
-                    <div className="w-full md:w-1/2 flex-1 min-w-0 rounded-lg border border-white/10 overflow-hidden flex flex-col min-h-[200px] sm:min-h-[260px] bg-white">
+                    <div className="w-full md:w-1/2 flex-1 min-w-0 rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden flex flex-col min-h-[200px] sm:min-h-[260px] bg-white">
                         <div className="grid grid-cols-[72px_1fr_48px] gap-2 bg-[#d4af37] text-[#4b3608] font-bold text-xs sm:text-sm py-2.5 px-2 sm:px-3">
                             <div className="text-center">Pana</div>
                             <div className="text-center">Point</div>
@@ -259,16 +259,16 @@ const DPCommon = ({ market, title }) => {
                                 generatedRows.map((row) => (
                                     <div
                                         key={row.id}
-                                        className="grid grid-cols-[72px_1fr_48px] gap-2 items-center py-2.5 px-2 sm:px-3 border-b border-white/10 min-h-[44px]"
+                                        className="grid grid-cols-[72px_1fr_48px] gap-2 items-center py-2.5 px-2 sm:px-3 border-b border-gray-200 dark:border-white/10 min-h-[44px]"
                                     >
-                                        <div className="text-center font-bold text-white text-sm sm:text-base">{row.pana}</div>
+                                        <div className="text-center font-bold text-gray-900 dark:text-white text-sm sm:text-base">{row.pana}</div>
                                         <div className="px-1 sm:px-2 min-w-0">
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
                                                 value={row.points}
                                                 onChange={(e) => updatePoint(row.id, e.target.value)}
-                                                className="w-full min-h-[40px] h-9 border border-white/10 rounded-md px-2 text-center text-sm font-semibold text-white"
+                                                className="w-full min-h-[40px] h-9 border border-gray-200 dark:border-white/10 rounded-md px-2 text-center text-sm font-semibold text-gray-900 dark:text-white"
                                             />
                                         </div>
                                         <button
@@ -299,7 +299,7 @@ const DPCommon = ({ market, title }) => {
                     </div>
                 </div>
 
-                <div className="mt-3 mb-1 flex items-center gap-6 text-[#f2c14e]">
+                <div className="mt-3 mb-1 flex items-center gap-6 text-amber-800 dark:text-[#f2c14e]">
                     <div className="text-center">
                         <div className="text-[11px] text-gray-500">Count</div>
                         <div className="text-2xl leading-none font-bold">{bidsCount}</div>
@@ -314,7 +314,7 @@ const DPCommon = ({ market, title }) => {
                     <button
                         type="button"
                         onClick={clearLocal}
-                        className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-[#d4af37]/40 text-[#f2c14e] bg-[#202124] hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all"
+                        className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-[#d4af37]/40 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all"
                     >
                         Clear
                     </button>

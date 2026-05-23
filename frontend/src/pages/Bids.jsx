@@ -724,7 +724,7 @@ const Bids = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
       <style>{`
         .hide-scrollbar {
           scrollbar-width: none; /* Firefox */
@@ -741,7 +741,7 @@ const Bids = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white hover:bg-white/15 active:scale-95 transition"
+              className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 dark:bg-white/10 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/15 active:scale-95 transition"
               aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,7 +752,7 @@ const Bids = () => {
           </div>
 
           <div className="hidden md:flex items-center justify-between gap-4 px-1">
-            <div className="text-2xl font-extrabold text-white">{rightPanelTitle}</div>
+            <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{rightPanelTitle}</div>
             {isGameResultsPanel ? (
               <div className="w-[320px]">
                 <ResultDatePicker
@@ -760,14 +760,14 @@ const Bids = () => {
                   onChange={setResultsDate}
                   maxDate={new Date()}
                   label={t('bids.selectDate')}
-                  buttonClassName="px-4 py-2 rounded-full bg-black/40 border border-white/10 text-white font-bold text-sm shadow-sm hover:border-[#d4af37]/40 transition-colors"
+                  buttonClassName="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-900 font-bold text-sm shadow-sm hover:border-amber-400 dark:bg-[#202124] dark:border-white/10 dark:text-white dark:hover:border-[#d4af37]/40 transition-colors"
                 />
               </div>
             ) : isAnyHistoryPanel ? (
               <button
                 type="button"
                 onClick={() => setIsDesktopFilterOpen(true)}
-                className="px-4 py-2 rounded-full bg-black/40 border border-white/10 text-[#d4af37] font-bold text-sm shadow-sm hover:border-[#d4af37]/40 transition-colors"
+                className="px-4 py-2 rounded-full bg-white border border-gray-200 text-amber-800 font-bold text-sm shadow-sm hover:border-amber-400 dark:bg-[#202124] dark:border-white/10 dark:text-[#d4af37] dark:hover:border-[#d4af37]/40 transition-colors"
                 aria-label={t('bids.filterBy')}
                 title={t('bids.filterBy')}
               >
@@ -790,7 +790,7 @@ const Bids = () => {
             className={
               (isAnyHistoryPanel || isGameResultsPanel)
                 ? 'bg-transparent border-0 shadow-none p-0'
-                : 'rounded-2xl bg-[#202124] border border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6'
+                : 'rounded-2xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6'
             }
           >
             {(isAnyHistoryPanel || isGameResultsPanel) ? null : (
@@ -809,7 +809,7 @@ const Bids = () => {
                   )}
                 </div>
                 <div className="min-w-0 text-center">
-                  <div className="text-xl font-bold text-white truncate">{activeItem?.title}</div>
+                  <div className="text-xl font-bold text-gray-900 dark:text-white truncate">{activeItem?.title}</div>
                   <div className="text-sm text-gray-400">{activeItem?.subtitle}</div>
                 </div>
               </div>
@@ -820,7 +820,7 @@ const Bids = () => {
                 <div className="mt-0 max-h-[calc(100vh-220px)] overflow-hidden">
                   <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                      <div key={i} className="rounded-lg border border-white/10 bg-[#202124] p-3 space-y-2 skeleton-shimmer">
+                      <div key={i} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-3 space-y-2 skeleton-shimmer">
                         <div className="flex justify-between gap-1">
                           <div className="h-3 w-8 rounded bg-white/10" />
                           <div className="h-4 w-12 rounded bg-white/10" />
@@ -847,12 +847,12 @@ const Bids = () => {
             ) : activeTitle === t('bids.gameResults') ? (
               resultsLoading ? (
                 <div className="mt-3 max-h-[calc(100vh-300px)] overflow-hidden space-y-3">
-                  <div className="rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 skeleton-shimmer">
+                  <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 skeleton-shimmer">
                     <div className="h-4 w-24 rounded bg-white/10" />
                     <div className="h-8 w-28 rounded-lg bg-white/10" />
                   </div>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                    <div key={i} className="rounded-2xl bg-[#202124] border border-white/10 px-4 py-3 flex items-center justify-between gap-3 skeleton-shimmer">
+                    <div key={i} className="rounded-2xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 px-4 py-3 flex items-center justify-between gap-3 skeleton-shimmer">
                       <div className="h-4 flex-1 max-w-[60%] rounded bg-white/10" />
                       <div className="h-5 w-16 rounded bg-white/10 shrink-0" />
                     </div>
@@ -878,8 +878,8 @@ const Bids = () => {
       {/* Cancel bet confirmation (mobile + desktop) */}
       {confirmCancelBetId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#202124] shadow-2xl p-5 space-y-4">
-            <h3 className="text-lg font-bold text-white">Cancel bet?</h3>
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] shadow-2xl p-5 space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cancel bet?</h3>
             <p className="text-gray-300 text-sm">
               Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
             </p>
@@ -887,7 +887,7 @@ const Bids = () => {
               <button
                 type="button"
                 onClick={() => setConfirmCancelBetId(null)}
-                className="flex-1 py-3 rounded-xl border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors"
+                className="flex-1 py-3 rounded-xl border border-white/20 text-gray-900 dark:text-white font-semibold hover:bg-white/10 transition-colors"
               >
                 No, keep bet
               </button>
@@ -913,12 +913,12 @@ const Bids = () => {
             onClick={() => setIsDesktopFilterOpen(false)}
           />
 
-          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-white/10 bg-[#202124]">
-            <div className="bg-black text-white text-center py-4 text-2xl font-extrabold border-b border-white/10">
+          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124]">
+            <div className="bg-black text-gray-900 dark:text-white text-center py-4 text-2xl font-extrabold border-b border-gray-200 dark:border-white/10">
               Filter Type
             </div>
 
-            <div className="bg-[#202124] text-white">
+            <div className="bg-white dark:bg-[#202124] text-gray-900 dark:text-white">
               <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">
                 <div className="text-lg font-bold text-[#d4af37] mb-3">By Game Type</div>
                 <div className="flex items-center justify-around gap-6 pb-4">
@@ -966,7 +966,7 @@ const Bids = () => {
                   {marketOptions.map((name) => (
                     <label
                       key={name.key}
-                      className="flex items-center gap-4 bg-black/25 rounded-xl border border-white/10 shadow-sm px-4 py-4 hover:border-[#d4af37]/40 transition-colors"
+                      className="flex items-center gap-4 bg-black/25 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm px-4 py-4 hover:border-[#d4af37]/40 transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -974,7 +974,7 @@ const Bids = () => {
                         checked={draftMarkets.includes(name.key)}
                         onChange={() => toggleDraft(draftMarkets, name.key, setDraftMarkets)}
                       />
-                      <span className="text-sm sm:text-base font-semibold tracking-wide text-white">
+                      <span className="text-sm sm:text-base font-semibold tracking-wide text-gray-900 dark:text-white">
                         {name.label.toUpperCase()}
                       </span>
                     </label>
@@ -987,7 +987,7 @@ const Bids = () => {
                   <button
                     type="button"
                     onClick={() => setIsDesktopFilterOpen(false)}
-                    className="rounded-full bg-black border border-white/10 text-white font-bold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:border-[#d4af37]/40 transition-colors"
+                    className="rounded-full bg-black border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:border-[#d4af37]/40 transition-colors"
                   >
                     Cancel
                   </button>

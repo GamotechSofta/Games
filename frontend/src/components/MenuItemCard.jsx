@@ -39,15 +39,15 @@ export default function MenuItemCard({
           {iconContent}
         </div>
         <div className="min-w-0 flex-1">
-          <p className={`text-xs sm:text-sm font-semibold text-white truncate ${compactOnDesktop ? 'md:text-xs' : 'md:text-base'}`}>{title}</p>
-          <p className={`text-[10px] sm:text-xs text-gray-400 truncate ${compactOnDesktop ? 'md:text-[10px]' : ''}`}>{subtitle}</p>
+          <p className={`text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate ${compactOnDesktop ? 'md:text-xs' : 'md:text-base'}`}>{title}</p>
+          <p className={`text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate ${compactOnDesktop ? 'md:text-[10px]' : ''}`}>{subtitle}</p>
         </div>
       </div>
       <div
         className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 ${
           compactOnDesktop ? 'md:w-6 md:h-6' : 'md:w-9 md:h-9'
         } ${
-          active ? 'bg-[#d4af37]/15 border-[#d4af37]/35 text-[#d4af37]' : 'bg-black/30 border-white/10 text-white/70'
+          active ? 'bg-[#d4af37]/15 border-[#d4af37]/35 text-[#d4af37]' : 'bg-gray-100 border-gray-200 text-gray-600 dark:bg-black/30 dark:border-white/10 dark:text-white/70'
         }`}
       >
         <svg className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${compactOnDesktop ? 'md:w-3 md:h-3' : 'md:w-4 md:h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,12 +57,12 @@ export default function MenuItemCard({
     </>
   );
 
-  const baseClass = `w-full min-w-0 text-left bg-[#202124] border rounded-2xl flex items-center justify-between gap-2 shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors cursor-pointer touch-manipulation ${
+  const baseClass = `w-full min-w-0 text-left bg-white dark:bg-[#202124] border rounded-2xl flex items-center justify-between gap-2 shadow-sm dark:shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-colors cursor-pointer touch-manipulation ${
     compactOnDesktop
       ? 'min-h-[68px] sm:min-h-[80px] md:min-h-[64px] py-4 px-2 sm:py-5 sm:px-3 md:py-3 md:px-3'
       : 'min-h-[68px] sm:min-h-[80px] md:min-h-[88px] py-4 px-2 sm:py-5 sm:px-3 md:py-6 md:px-5'
   } ${
-    active ? 'border-[#d4af37]/40 bg-[#202124]' : 'border-white/10 hover:border-white/20'
+    active ? 'border-[#d4af37]/40 bg-white dark:bg-[#202124]' : 'border-gray-200 hover:border-gray-300 dark:border-white/10 dark:hover:border-white/20'
   } ${className}`;
 
   if (asButton) {

@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
 import { MdLocalFireDepartment, MdOutlineLiveTv, MdOutlineNightlight } from 'react-icons/md';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
@@ -53,9 +55,9 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
         </button>
       </div>
 
-      <div className="flex gap-3 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
         {markets.map((market, i) => (
-          <div key={market.id} className="flex-1 min-w-0">
+          <div key={market.id} className="min-w-0">
             <MarketCard market={market} index={i} section={section} />
           </div>
         ))}
@@ -64,11 +66,25 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
   );
 }
 
-export default function MarketSections() {
+export default function MarketSections({ searchQuery = '' }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [markets, setMarkets] = useState([]);
   const [loading, setLoading] = useState(true);
   const isInitialLoad = useRef(true);
   const [, setTick] = useState(0);
+
+  const getMarketDisplayName = useCallback(
+    (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
+    [t],
+  );
+
+  const filteredMarkets = useMemo(
+    () => filterMarketsByQuery(markets, searchQuery, getMarketDisplayName),
+    [markets, searchQuery, getMarketDisplayName],
+  );
+
+  const isSearching = Boolean(searchQuery.trim());
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 60000);
@@ -120,13 +136,17 @@ export default function MarketSections() {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = markets.slice(0, 5);
-  const liveMarkets = markets.filter((m) => m.status === 'open' || m.status === 'running').slice(0, 5);
-  const nightMarkets = markets.filter((m) => isNightMarket(m.gameName, m.closingTime)).slice(0, 5);
+  const popularMarkets = filteredMarkets.slice(0, 5);
+  const liveMarkets = filteredMarkets
+    .filter((m) => m.status === 'open' || m.status === 'running')
+    .slice(0, 5);
+  const nightMarkets = filteredMarkets
+    .filter((m) => isNightMarket(m.gameName, m.closingTime))
+    .slice(0, 5);
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div id="market-sections" className="space-y-6">
         {[1, 2, 3].map((s) => (
           <div key={s}>
             <div className="h-5 w-40 bg-gray-200 dark:bg-[#1a1a1a] rounded skeleton-shimmer mb-3" />
@@ -143,31 +163,62 @@ export default function MarketSections() {
 
   if (!markets.length) {
     return (
-      <div className="text-center py-12 bg-white dark:bg-[#161616] rounded-xl border border-gray-200 dark:border-white/[0.08]">
-        <p className="text-gray-500 dark:text-[#b0b0b0]">No markets available</p>
+      <div
+        id="market-sections"
+        className="text-center py-12 bg-white dark:bg-[#161616] rounded-xl border border-gray-200 dark:border-white/[0.08]"
+      >
+        <p className="text-gray-500 dark:text-[#b0b0b0]">{t('markets.noMarketsAvailable')}</p>
+      </div>
+    );
+  }
+
+  if (isSearching) {
+    return (
+      <div id="market-sections">
+        {filteredMarkets.length > 0 ? (
+          <MarketRow
+            titleKey="dashboard.searchResults"
+            icon={MdLocalFireDepartment}
+            section="popular"
+            markets={filteredMarkets}
+          />
+        ) : (
+          <div className="text-center py-12 bg-white dark:bg-[#161616] rounded-xl border border-gray-200 dark:border-white/[0.08]">
+            <p className="text-gray-500 dark:text-[#b0b0b0] mb-4">
+              {t('dashboard.noSearchResults', { query: searchQuery.trim() })}
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate(`/games?q=${encodeURIComponent(searchQuery.trim())}`)}
+              className="text-sm font-semibold text-[#D32F2F] hover:underline dark:text-[#e60000]"
+            >
+              {t('dashboard.searchGamesHint')}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div>
+    <div id="market-sections">
       <MarketRow
         titleKey="dashboard.popularMarkets"
         icon={MdLocalFireDepartment}
         section="popular"
-        markets={popularMarkets.length ? popularMarkets : markets.slice(0, 5)}
+        markets={popularMarkets.length ? popularMarkets : filteredMarkets.slice(0, 5)}
       />
       <MarketRow
         titleKey="dashboard.liveMarkets"
         icon={MdOutlineLiveTv}
         section="live"
-        markets={liveMarkets.length ? liveMarkets : markets.slice(0, 5)}
+        markets={liveMarkets.length ? liveMarkets : filteredMarkets.slice(0, 5)}
       />
       <MarketRow
         titleKey="dashboard.nightMarkets"
         icon={MdOutlineNightlight}
         section="night"
-        markets={nightMarkets.length ? nightMarkets : markets.slice(-5)}
+        markets={nightMarkets.length ? nightMarkets : filteredMarkets.slice(-5)}
       />
     </div>
   );

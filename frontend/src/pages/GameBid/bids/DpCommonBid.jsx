@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
@@ -233,13 +233,13 @@ const DpCommonBid = ({ market, title }) => {
             extraHeader={
                 <div className="py-1 flex justify-end px-3 md:pr-12 md:pl-1 md:px-0">
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2 w-full md:max-w-[320px]">
-                        <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                            <div className="text-base font-bold text-[#f2c14e] leading-tight">{bidsCount}</div>
+                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bidsCount}</div>
                         </div>
-                        <div className="rounded-xl border border-white/10 bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                            <div className="text-base font-bold text-[#f2c14e] leading-tight">{totalPoints}</div>
+                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
                         </div>
                     </div>
                 </div>
@@ -270,7 +270,7 @@ const DpCommonBid = ({ market, title }) => {
                                             className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base transition-all active:scale-[0.98] border ${
                                                 selected
                                                     ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                                                    : 'bg-[#202124] text-[#f2c14e] border-white/10 hover:bg-[#d4af37]/5'
+                                                    : 'bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] border-gray-200 dark:border-white/10 hover:bg-[#d4af37]/5'
                                             }`}
                                         >
                                             {d}
@@ -285,7 +285,7 @@ const DpCommonBid = ({ market, title }) => {
                                     value={selectedDigits.join(',')}
                                     readOnly
                                     placeholder="e.g. 2"
-                                    className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-[#202124] border border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-white"
+                                    className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -297,12 +297,12 @@ const DpCommonBid = ({ market, title }) => {
                                 value={pointsInput}
                                 onChange={(e) => setPointsInput((e.target.value ?? '').replace(/\D/g, '').slice(0, 6))}
                                 placeholder="Points"
-                                className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-[#202124] border border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-white"
+                                className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                             />
                             <button
                                 type="button"
                                 onClick={clearLocal}
-                                className="min-h-[40px] h-10 px-4 rounded-md text-xs sm:text-sm font-bold border border-[#d4af37]/40 text-[#f2c14e] bg-[#202124] hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all shrink-0"
+                                className="min-h-[40px] h-10 px-4 rounded-md text-xs sm:text-sm font-bold border border-[#d4af37]/40 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all shrink-0"
                             >
                                 Clear
                             </button>
@@ -323,7 +323,7 @@ const DpCommonBid = ({ market, title }) => {
                     </div>
 
                     <div className="w-full md:w-1/2 flex-1 min-w-0">
-                        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
                             <div>Pana</div>
                             <div>Point</div>
                             <div>Type</div>
@@ -337,18 +337,18 @@ const DpCommonBid = ({ market, title }) => {
                                 </div>
                             ) : (
                                 generatedRows.map((row) => (
-                                    <div key={row.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-white/10 text-sm">
-                                        <div className="font-bold text-white">{row.pana}</div>
+                                    <div key={row.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm">
+                                        <div className="font-bold text-gray-900 dark:text-white">{row.pana}</div>
                                         <div className="px-0.5 min-w-0">
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
                                                 value={row.points}
                                                 onChange={(e) => updatePoint(row.id, e.target.value)}
-                                                className="w-full h-8 rounded-lg border border-white/10 text-center font-bold text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
+                                                className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
                                             />
                                         </div>
-                                        <div className="text-sm font-semibold text-[#f2c14e]">{session}</div>
+                                        <div className="text-sm font-semibold text-amber-800 dark:text-[#f2c14e]">{session}</div>
                                         <div className="flex justify-center">
                                             <button
                                                 type="button"

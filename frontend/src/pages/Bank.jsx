@@ -209,32 +209,32 @@ const Bank = () => {
   const hasPagination = computed.length > PAGE_SIZE;
 
   return (
-    <div className={`min-h-screen bg-black text-white ${hasPagination ? 'pb-[calc(100px+env(safe-area-inset-bottom,0px))] md:pb-10' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-24'}`}>
+    <div className={`min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white ${hasPagination ? 'pb-[calc(100px+env(safe-area-inset-bottom,0px))] md:pb-10' : 'pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-24'}`}>
       <div className="bg-black px-4 pt-4 pb-3">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate('/funds')}
-            className="w-10 h-10 rounded-full border border-white/10 bg-[#202124] flex items-center justify-center text-white active:scale-95 transition-transform shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
+            className="w-10 h-10 rounded-full border border-white/10 bg-white dark:bg-[#202124] flex items-center justify-center text-gray-900 dark:text-white active:scale-95 transition-transform shadow-[0_6px_14px_rgba(0,0,0,0.35)]"
             aria-label="Go back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-xl font-semibold text-white">Transaction History</h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Transaction History</h1>
         </div>
       </div>
 
       <div className="px-4 pt-4">
         {!isLoggedIn ? (
-          <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300 shadow-[0_10px_22px_rgba(0,0,0,0.35)]">
+          <div className="rounded-2xl border border-white/10 bg-white dark:bg-[#202124] p-6 text-center text-gray-300 shadow-[0_10px_22px_rgba(0,0,0,0.35)]">
             Please login to see your transaction history.
           </div>
         ) : loading ? (
           <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-[#202124] rounded-2xl border border-white/10 p-4 skeleton-shimmer">
+              <div key={i} className="bg-white dark:bg-[#202124] rounded-2xl border border-white/10 p-4 skeleton-shimmer">
                 <div className="flex justify-between">
                   <div className="h-4 w-24 rounded bg-white/10" />
                   <div className="h-4 w-20 rounded bg-white/10" />
@@ -259,7 +259,7 @@ const Bank = () => {
             {error}
           </div>
         ) : visible.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-[#202124] p-6 text-center text-gray-300 shadow-[0_10px_22px_rgba(0,0,0,0.35)]">
+          <div className="rounded-2xl border border-white/10 bg-white dark:bg-[#202124] p-6 text-center text-gray-300 shadow-[0_10px_22px_rgba(0,0,0,0.35)]">
             No transactions found.
           </div>
         ) : (
@@ -281,7 +281,7 @@ const Bank = () => {
                 return (
                   <div
                     key={tx.id}
-                    className="bg-[#202124] text-white rounded-2xl border border-white/10 p-4 shadow-[0_10px_22px_rgba(0,0,0,0.40)]"
+                    className="bg-white dark:bg-[#202124] text-gray-900 dark:text-white rounded-2xl border border-white/10 p-4 shadow-[0_10px_22px_rgba(0,0,0,0.40)]"
                   >
                     <div className="flex items-center justify-between text-sm">
                       <div className={`font-semibold ${topColor}`}>
@@ -293,28 +293,28 @@ const Bank = () => {
                     <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-6 text-center">
                       <div>
                         <div className="text-[15px] font-extrabold text-[#d4af37]">Bid Play</div>
-                        <div className="mt-1 text-[16px] font-semibold text-white">{bidPlay || '-'}</div>
+                        <div className="mt-1 text-[16px] font-semibold text-gray-900 dark:text-white">{bidPlay || '-'}</div>
                       </div>
                       <div>
                         <div className="text-[15px] font-extrabold text-[#d4af37]">Game</div>
-                        <div className="mt-1 text-[16px] font-semibold break-words text-white">
+                        <div className="mt-1 text-[16px] font-semibold break-words text-gray-900 dark:text-white">
                           {(game || '-').toUpperCase()}
                         </div>
                       </div>
                       <div>
                         <div className="text-[15px] font-extrabold text-[#d4af37]">Type</div>
-                        <div className="mt-1 text-[16px] font-semibold text-white">{typeLabel || '-'}</div>
+                        <div className="mt-1 text-[16px] font-semibold text-gray-900 dark:text-white">{typeLabel || '-'}</div>
                       </div>
                       <div>
                         <div className="text-[15px] font-extrabold text-[#d4af37]">Market</div>
-                        <div className="mt-1 text-[16px] font-semibold text-white">{marketLabel || '-'}</div>
+                        <div className="mt-1 text-[16px] font-semibold text-gray-900 dark:text-white">{marketLabel || '-'}</div>
                       </div>
                     </div>
 
                     <div className="border-t border-white/10 mt-5 pt-4 text-sm grid grid-cols-2 gap-4 text-center">
                       <div>
                         <div className="font-semibold text-gray-300">Previous Balance</div>
-                        <div className="mt-1 text-[16px] font-semibold text-white">
+                        <div className="mt-1 text-[16px] font-semibold text-gray-900 dark:text-white">
                           {tx.previousBalance == null ? '—' : `₹${formatMoney(tx.previousBalance)}`}
                         </div>
                       </div>
@@ -352,7 +352,7 @@ const Bank = () => {
         >
           <div>
             <div className="mx-auto w-full max-w-[520px] pointer-events-auto">
-              <div className="bg-[#202124] rounded-full border border-white/10 px-4 py-2 flex items-center justify-between shadow-[0_10px_22px_rgba(0,0,0,0.40)]">
+              <div className="bg-white dark:bg-[#202124] rounded-full border border-white/10 px-4 py-2 flex items-center justify-between shadow-[0_10px_22px_rgba(0,0,0,0.40)]">
                 <button
                   type="button"
                   onClick={() => {
@@ -360,7 +360,7 @@ const Bank = () => {
                     scrollToTop();
                   }}
                   disabled={currentPage <= 1}
-                  className="flex items-center gap-1 text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 text-gray-700 dark:text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <span className="text-lg leading-none">‹</span>
                   <span>PREV</span>
@@ -368,7 +368,7 @@ const Bank = () => {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm border border-white/10"
+                    className="w-8 h-8 rounded-full bg-black text-gray-900 dark:text-white flex items-center justify-center font-bold text-sm border border-white/10"
                   >
                     {currentPage}
                   </button>
@@ -380,7 +380,7 @@ const Bank = () => {
                     scrollToTop();
                   }}
                   disabled={currentPage >= totalPages}
-                  className="flex items-center gap-1 text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1 text-gray-700 dark:text-white/90 font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <span>NEXT</span>
                   <span className="text-lg leading-none">›</span>

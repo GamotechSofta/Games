@@ -26,7 +26,7 @@ const StarlineCard = () => {
           <p className="text-gray-900 dark:text-white text-xs min-[375px]:text-sm sm:text-lg md:text-xl font-bold uppercase leading-tight tracking-wide">
             {t('markets.starline')}
           </p>
-          <p className="text-amber-400/90 text-[9px] min-[375px]:text-[10px] sm:text-xs font-semibold mt-0.5">{t('markets.tapToPlay')}</p>
+          <p className="text-amber-800 dark:text-amber-400/90 text-[9px] min-[375px]:text-[10px] sm:text-xs font-semibold mt-0.5">{t('markets.tapToPlay')}</p>
         </div>
       </div>
     </button>

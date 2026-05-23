@@ -176,7 +176,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#f5f5f7] via-white to-gray-100 text-gray-900 dark:from-black dark:via-gray-900 dark:to-black dark:text-white relative overflow-hidden">
       {/* Desktop: Two Column Layout */}
       <div className="hidden md:flex h-screen overflow-hidden">
         {/* Left Side - Image (Fixed, Not Scrollable, Fits Screen) */}
@@ -205,7 +205,7 @@ const Login = () => {
             {/* Form Container */}
             <div className="w-full">
               {/* Toggle Buttons */}
-              <div className={`flex gap-2 ${isLogin ? 'mb-4' : 'mb-2'} bg-gray-800/50 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700/50`}>
+              <div className={`flex gap-2 ${isLogin ? 'mb-4' : 'mb-2'} bg-gray-100/90 backdrop-blur-sm rounded-xl p-1.5 border border-gray-300 dark:bg-gray-800/50 dark:border-gray-700/50`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -215,7 +215,7 @@ const Login = () => {
                   className={`flex-1 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200 ${
                     isLogin
                       ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/30'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      : 'text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-700/50'
                   }`}
                 >
                   {t('login.login')}
@@ -229,7 +229,7 @@ const Login = () => {
                   className={`flex-1 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200 ${
                     !isLogin
                       ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/30'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                      : 'text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-700/50'
                   }`}
                 >
                   {t('login.signUp')}
@@ -267,7 +267,7 @@ const Login = () => {
                           value={formData.phone}
                           onChange={handleChange}
                           maxLength="10"
-                          className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-10 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                          className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                           placeholder={t('login.phonePlaceholder')}
                           required
                         />
@@ -289,7 +289,7 @@ const Login = () => {
                           name="password"
                           value={formData.password}
                           onChange={handleChange}
-                          className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-10 pr-10 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                          className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-10 pr-10 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                           placeholder={t('login.passwordPlaceholder')}
                           required
                         />
@@ -327,7 +327,7 @@ const Login = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                         placeholder={t('login.firstName')}
                         required
                       />
@@ -341,7 +341,7 @@ const Login = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                         placeholder={t('login.lastName')}
                         required
                       />
@@ -366,7 +366,7 @@ const Login = () => {
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                         placeholder={t('login.emailPlaceholder')}
                         required
                       />
@@ -392,7 +392,7 @@ const Login = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         maxLength="10"
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                         placeholder={t('login.phonePlaceholder')}
                         required
                       />
@@ -418,7 +418,7 @@ const Login = () => {
                           name="password"
                           value={formData.password}
                           onChange={handleChange}
-                          className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 pr-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                          className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-9 pr-9 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                           placeholder={t('login.createPasswordPlaceholder')}
                           required
                         />
@@ -456,7 +456,7 @@ const Login = () => {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleChange}
-                          className="w-full bg-gray-800/80 border border-gray-700/50 rounded-lg px-3 pl-9 pr-9 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                          className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-9 pr-9 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
                           placeholder={t('login.confirmPasswordPlaceholder')}
                           required
                         />
@@ -495,10 +495,10 @@ const Login = () => {
                       <div className={`${isLogin ? 'w-4 h-4' : 'w-3.5 h-3.5'} rounded border-2 flex items-center justify-center transition-all shrink-0 ${
                         isAbove18 
                           ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-500 shadow-md shadow-green-500/30' 
-                          : 'border-gray-600 group-hover:border-gray-500 bg-gray-800/50'
+                          : 'border-gray-400 group-hover:border-gray-500 bg-gray-100/80 dark:border-gray-600 dark:group-hover:border-gray-500 dark:bg-gray-800/50'
                       }`}>
                         {isAbove18 && (
-                          <svg className={`${isLogin ? 'w-3 h-3' : 'w-2.5 h-2.5'} text-white`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className={`${isLogin ? 'w-3 h-3' : 'w-2.5 h-2.5'} text-gray-900 dark:text-white`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                           </svg>
                         )}
@@ -572,7 +572,7 @@ const Login = () => {
           {/* Middle Section - Login/Signup */}
           <div className="w-full">
             {/* Toggle Buttons */}
-            <div className="flex gap-2 mb-5 bg-gray-800/50 backdrop-blur-sm rounded-xl p-1.5 border border-gray-700/50">
+            <div className="flex gap-2 mb-5 bg-gray-100/90 backdrop-blur-sm rounded-xl p-1.5 border border-gray-300 dark:bg-gray-800/50 dark:border-gray-700/50">
               <button
                 type="button"
                 onClick={() => {
@@ -582,7 +582,7 @@ const Login = () => {
                 className={`flex-1 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200 ${
                   isLogin
                     ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/30'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                    : 'text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-700/50'
                 }`}
               >
                 {t('login.login')}
@@ -596,7 +596,7 @@ const Login = () => {
                 className={`flex-1 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-all duration-200 ${
                   !isLogin
                     ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 text-black shadow-lg shadow-yellow-500/30'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+                    : 'text-gray-400 hover:text-gray-900 dark:text-white hover:bg-gray-700/50'
                 }`}
               >
                 {t('login.signUp')}
@@ -634,7 +634,7 @@ const Login = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         maxLength="10"
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                         placeholder={t('login.phonePlaceholder')}
                         required
                       />
@@ -656,7 +656,7 @@ const Login = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                         placeholder={t('login.passwordPlaceholder')}
                         required
                       />
@@ -694,7 +694,7 @@ const Login = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.firstName')}
                       required
                     />
@@ -708,7 +708,7 @@ const Login = () => {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.lastName')}
                       required
                     />
@@ -733,7 +733,7 @@ const Login = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.emailPlaceholder')}
                       required
                     />
@@ -759,7 +759,7 @@ const Login = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       maxLength="10"
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.phonePlaceholder')}
                       required
                     />
@@ -784,7 +784,7 @@ const Login = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.createPasswordPlaceholder')}
                       required
                     />
@@ -826,7 +826,7 @@ const Login = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="w-full bg-gray-800/80 border border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 pr-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
                       placeholder={t('login.confirmPasswordPlaceholder')}
                       required
                     />
@@ -864,10 +864,10 @@ const Login = () => {
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                       isAbove18 
                         ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-500 shadow-lg shadow-green-500/30' 
-                        : 'border-gray-600 group-hover:border-gray-500 bg-gray-800/50'
+                        : 'border-gray-400 group-hover:border-gray-500 bg-gray-100/80 dark:border-gray-600 dark:group-hover:border-gray-500 dark:bg-gray-800/50'
                     }`}>
                       {isAbove18 && (
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-gray-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                         </svg>
                       )}

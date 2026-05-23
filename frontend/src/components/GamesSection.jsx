@@ -21,9 +21,9 @@ const GamesSection = () => {
         <div className="flex items-center gap-2 mb-4 sm:mb-5">
           <div className="flex-1 h-[1px] bg-gradient-to-r from-white/10 via-white/50 to-white/70 min-w-[20px]" />
           <div className="flex items-center gap-2 shrink-0">
-            <svg className="w-2.5 h-2.5 text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
-            <h2 className="text-white text-base sm:text-lg font-bold tracking-[0.15em] uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{t('games.otherGames')}</h2>
-            <svg className="w-2.5 h-2.5 text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
+            <svg className="w-2.5 h-2.5 text-gray-600 dark:text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
+            <h2 className="text-gray-900 dark:text-white text-base sm:text-lg font-bold tracking-[0.15em] uppercase drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{t('games.otherGames')}</h2>
+            <svg className="w-2.5 h-2.5 text-gray-600 dark:text-white/70" viewBox="0 0 12 12" fill="currentColor"><path d="M6 0l1.8 4.2L12 6l-4.2 1.8L6 12l-1.8-4.2L0 6l4.2-1.8z"/></svg>
           </div>
           <div className="flex-1 h-[1px] bg-gradient-to-l from-white/10 via-white/50 to-white/70 min-w-[20px]" />
         </div>
@@ -82,7 +82,7 @@ const GamesSection = () => {
 
                   {/* Bottom gradient overlay + title (like reference cards) */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent pt-14 pb-2.5 px-2.5 sm:px-3">
-                    <p className="text-white text-xs sm:text-sm font-bold uppercase leading-tight tracking-wide line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                    <p className="text-gray-900 dark:text-white text-xs sm:text-sm font-bold uppercase leading-tight tracking-wide line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                       {isUpcoming ? t('games.comingSoon') : game.name}
                     </p>
                   </div>

@@ -34,16 +34,16 @@ const Wallet = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-black p-4 sm:p-6">
+        <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white p-4 sm:p-6">
             <div className="max-w-xl mx-auto space-y-4">
-                <h1 className="text-2xl font-bold text-white">Wallet</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Wallet</h1>
                 {error && <div className="p-3 rounded-lg bg-red-900/40 border border-red-700 text-red-200 text-sm">{error}</div>}
                 <div className="rounded-xl border border-white/10 bg-[#1f2023] p-5">
                     <p className="text-gray-400 text-sm">Current Balance</p>
-                    <p className="text-3xl font-bold text-white mt-1">{loading ? '...' : `₹${balance.toLocaleString('en-IN')}`}</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{loading ? '...' : `₹${balance.toLocaleString('en-IN')}`}</p>
                     <div className="grid grid-cols-2 gap-3 mt-4">
                         <button className="py-2.5 rounded-lg bg-yellow-500 text-black font-semibold opacity-90">Deposit (UI)</button>
-                        <button className="py-2.5 rounded-lg bg-white/10 text-white font-semibold">Withdraw (UI)</button>
+                        <button className="py-2.5 rounded-lg bg-white/10 text-gray-800 dark:text-white font-semibold">Withdraw (UI)</button>
                     </div>
                 </div>
             </div>

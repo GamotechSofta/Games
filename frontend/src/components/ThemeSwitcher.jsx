@@ -24,7 +24,7 @@ export default function ThemeSwitcher({ variant = 'auto' }) {
       className={`flex items-center gap-1.5 px-2 py-2 sm:px-3 min-w-[36px] min-h-[36px] rounded-lg border transition-colors text-sm font-medium justify-center touch-manipulation ${
         isLightUi
           ? 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-          : 'bg-[#202124] border-white/10 text-white hover:bg-[#2a2b2e] hover:border-white/20'
+          : 'bg-[#202124] border-white/10 text-gray-900 dark:text-white hover:bg-[#2a2b2e] hover:border-white/20'
       }`}
       aria-label={`${t('theme.label')}: ${nextLabel}`}
       title={`${t('theme.label')}: ${nextLabel}`}

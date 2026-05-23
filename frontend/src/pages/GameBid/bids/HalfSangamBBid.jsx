@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { isValidAnyPana } from './panaRules';
@@ -221,7 +221,7 @@ const HalfSangamBBid = ({ market, title }) => {
                                     value={openAnk}
                                     onChange={(e) => setOpenAnk(sanitizeDigits(e.target.value, 1))}
                                     placeholder="Ank"
-                                    className="flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                    className="flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
 
@@ -247,7 +247,7 @@ const HalfSangamBBid = ({ market, title }) => {
                                         }
                                     }}
                                     placeholder="Pana"
-                                    className={`flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
+                                    className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
                                         closePanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
                                     }`}
                                 />
@@ -262,7 +262,7 @@ const HalfSangamBBid = ({ market, title }) => {
                                     value={points}
                                     onChange={(e) => setPoints(sanitizePoints(e.target.value))}
                                     placeholder="Point"
-                                    className="no-spinner flex-1 min-w-0 bg-[#202124] border border-white/10 text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                    className="no-spinner flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
                                 />
                             </div>
                         </div>
@@ -281,7 +281,7 @@ const HalfSangamBBid = ({ market, title }) => {
 
                     {/* Right: list */}
                     <div className="mt-10 md:mt-0">
-                        <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-2">
+                        <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-2">
                             <div className="truncate">Sangam</div>
                             <div className="truncate">Amount</div>
                             <div className="truncate">Delete</div>
@@ -293,10 +293,10 @@ const HalfSangamBBid = ({ market, title }) => {
                                 {bids.map((b) => (
                                     <div
                                         key={b.id}
-                                        className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center items-center py-2.5 px-3 bg-white/5 rounded-lg border border-white/10 text-sm"
+                                        className="grid grid-cols-[1.4fr_0.7fr_0.6fr] gap-2 sm:gap-3 text-center items-center py-2.5 px-3 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
                                     >
-                                        <div className="font-bold text-white truncate">{b.number}</div>
-                                        <div className="font-bold text-[#f2c14e] truncate">{b.points}</div>
+                                        <div className="font-bold text-gray-900 dark:text-white truncate">{b.number}</div>
+                                        <div className="font-bold text-amber-800 dark:text-[#f2c14e] truncate">{b.points}</div>
                                         <div className="flex justify-center">
                                             <button
                                                 type="button"
