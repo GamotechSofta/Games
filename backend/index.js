@@ -182,7 +182,7 @@ app.use((err, req, res, next) => {
         });
     }
 });
-
+console.log("CI/CD Pipeline Working");
 // Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
 // Runs every day at 00:00 IST to clear opening/closing numbers for fresh day
 cron.schedule('30 18 * * *', async () => {
