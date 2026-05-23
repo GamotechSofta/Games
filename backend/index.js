@@ -24,6 +24,7 @@ import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
 import cors from 'cors';
 import path from 'path';
+import { getCorsOptions, logCorsConfig, parseAllowedOrigins } from './config/cors.js';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,16 @@ function validateEnvConfig() {
         }
     }
 
+    const corsOrigins = parseAllowedOrigins();
+    if (corsOrigins.length === 0 && isProd) {
+        warnings.push('CORS_ORIGINS not set (and no FRONTEND_BASE_URL) — browser API calls may fail');
+    }
+    for (const o of corsOrigins) {
+        if (/localhost:\d{1,2}$/.test(o) || /localhost:517$/.test(o)) {
+            warnings.push(`CORS origin looks invalid (typo?): ${o} — did you mean localhost:5173?`);
+        }
+    }
+
     if (warnings.length > 0) {
         const level = isProd ? '[WARN][PROD]' : '[WARN]';
         for (const w of warnings) console.warn(`${level} ${w}`);
@@ -58,12 +69,13 @@ function validateEnvConfig() {
 }
 
 validateEnvConfig();
+logCorsConfig({ isProd });
 
 connectDB();
 
 app.set('trust proxy', 1);
 
-app.use(cors());
+app.use(cors(getCorsOptions({ isProd })));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
