@@ -68,6 +68,8 @@ function validateEnvConfig() {
     }
 }
 
+console.log("Hello World!!");
+
 validateEnvConfig();
 logCorsConfig({ isProd });
 
