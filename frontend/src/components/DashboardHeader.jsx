@@ -65,11 +65,11 @@ export default function DashboardHeader({ activePanel, onPanelChange }) {
           <button
             type="button"
             onClick={() => navigate('/funds?tab=add-fund')}
-            className="flex items-center gap-2 rounded-xl border-2 border-red-300 bg-red-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-red-100 dark:border-white/[0.08] dark:bg-[#161616] dark:hover:bg-[#1e1e1e] dark:shadow-none"
+            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#161616] dark:hover:bg-[#1e1e1e] dark:shadow-none"
           >
-            <span className="text-sm font-semibold text-[#D32F2F] dark:text-white">{formattedBalance}</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#D32F2F] dark:bg-[#d4af37]">
-              <HiPlus className="h-4 w-4 text-white dark:text-[#4b3608]" />
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formattedBalance}</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d4af37]">
+              <HiPlus className="h-4 w-4 text-[#4b3608]" />
             </span>
           </button>
 

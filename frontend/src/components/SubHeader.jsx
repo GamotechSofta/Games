@@ -83,7 +83,7 @@ const SubHeader = () => {
           onClick={() => navigate('/funds')}
           className={`shrink-0 rounded-lg border-2 px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider active:scale-[0.98] transition-all ${
             isLight
-              ? 'border-[#D32F2F] bg-red-50 text-[#D32F2F] shadow-sm hover:bg-[#D32F2F] hover:text-white'
+              ? 'border-amber-400/90 bg-amber-50 text-amber-900 shadow-sm hover:bg-amber-100'
               : 'border-amber-500/60 bg-[#1a1a1a] text-white shadow-[0_0_12px_rgba(251,191,36,0.25)] hover:bg-amber-500/15 hover:border-amber-400'
           }`}
         >
