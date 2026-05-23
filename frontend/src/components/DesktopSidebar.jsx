@@ -8,7 +8,6 @@ import {
   DashboardIcon,
   HiCurrencyDollar,
   HiUser,
-  HiGift,
   HiChatAlt2,
   HiClipboardList,
   HiCash,
@@ -56,13 +55,6 @@ const MAIN_NAV = [
     labelKey: 'sidebar.markets',
     path: '/markets',
     icon: HiCurrencyDollar,
-  },
-  {
-    id: 'bonuses',
-    labelKey: 'sidebar.bonuses',
-    path: '/funds?tab=add-fund',
-    icon: HiGift,
-    badge: 1,
   },
 ];
 
