@@ -91,9 +91,17 @@ export const getDashboardStats = async (req, res) => {
 
         // All-time payment counts (for reference)
         const totalPayments = await Payment.countDocuments(paymentFilter);
-        const pendingPayments = await Payment.countDocuments({ status: 'pending', ...paymentFilter });
         const pendingDeposits = await Payment.countDocuments({ type: 'deposit', status: 'pending', ...paymentFilter });
-        const pendingWithdrawals = await Payment.countDocuments({ type: 'withdrawal', status: 'pending', ...paymentFilter });
+        const withdrawalPendingFilter = { type: 'withdrawal', status: 'pending', ...paymentFilter };
+        if (req.admin?.role === 'super_admin') {
+            const bookieCollectsBookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' }).select('_id').lean();
+            const excludeBookieIds = bookieCollectsBookies.map((b) => b._id);
+            if (excludeBookieIds.length > 0) {
+                withdrawalPendingFilter.bookieId = { $nin: excludeBookieIds };
+            }
+        }
+        const pendingWithdrawals = await Payment.countDocuments(withdrawalPendingFilter);
+        const pendingPayments = pendingWithdrawals;
 
         // Markets by type (main vs starline)
         const mainMarkets = await Market.countDocuments({ marketType: { $ne: 'startline' } });

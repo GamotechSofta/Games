@@ -127,6 +127,7 @@ const AdminDashboard = () => {
     const [customOpen, setCustomOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [adminRole, setAdminRole] = useState('');
+    const [pendingWithdrawCount, setPendingWithdrawCount] = useState(0);
 
     const getFromTo = () => {
         if (customMode && customFrom && customTo) return { from: customFrom, to: customTo };
@@ -147,7 +148,20 @@ const AdminDashboard = () => {
             setAdminRole(parsed.role || '');
         } catch (_) {}
         fetchDashboardStats();
+        fetchPendingWithdrawCount();
     }, [navigate]);
+
+    const fetchPendingWithdrawCount = async () => {
+        try {
+            const res = await adminFetch(`${API_BASE_URL}/payments/pending-count`);
+            const json = await res.json();
+            if (json.success) {
+                setPendingWithdrawCount(Number(json.data?.withdrawals) || 0);
+            }
+        } catch {
+            /* keep last count */
+        }
+    };
 
     const fetchDashboardStats = async (rangeOverride, options = {}) => {
         const isRefresh = options.refresh === true;
@@ -172,6 +186,7 @@ const AdminDashboard = () => {
             const data = await response.json();
             if (data.success) setStats(data.data);
             else setError('Failed to fetch dashboard stats');
+            await fetchPendingWithdrawCount();
         } catch (err) {
             setError('Network error. Please check if the server is running.');
         } finally {
@@ -180,7 +195,10 @@ const AdminDashboard = () => {
         }
     };
 
-    const handleRefresh = () => fetchDashboardStats(undefined, { refresh: true });
+    const handleRefresh = () => {
+        fetchDashboardStats(undefined, { refresh: true });
+        fetchPendingWithdrawCount();
+    };
     const handlePresetSelect = (presetId) => {
         setDatePreset(presetId);
         setCustomMode(false);
@@ -205,9 +223,10 @@ const AdminDashboard = () => {
 
     const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount || 0);
 
-    const pendingPayments = stats?.payments?.pending || 0;
-    const pendingDeposits = stats?.payments?.pendingDeposits ?? stats?.payments?.pending ?? 0;
-    const pendingWithdrawals = stats?.payments?.pendingWithdrawals ?? 0;
+    const pendingWithdrawals = Math.max(
+        pendingWithdrawCount,
+        Number(stats?.payments?.pendingWithdrawals) || 0
+    );
     const helpDeskOpen = stats?.helpDesk?.open || 0;
     const marketsPendingResultList = stats?.marketsPendingResultList || [];
     const starlinePendingList = marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline');
@@ -215,8 +234,6 @@ const AdminDashboard = () => {
     const starlinePendingCount = starlinePendingList.length;
     const mainPendingCount = mainPendingList.length;
     const marketsPendingResult = marketsPendingResultList.length;
-    const hasActionRequired = pendingPayments > 0 || helpDeskOpen > 0 || marketsPendingResult > 0;
-
     if (loading) {
         return (
             <AdminLayout onLogout={handleLogout} title="Dashboard">
@@ -321,47 +338,51 @@ const AdminDashboard = () => {
             </div>
 
             {/* Action Required */}
-            {hasActionRequired && (
-                <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
-                    <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2 mb-3">
-                        <FaExclamationTriangle className="w-4 h-4" />
-                        Action Required
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                        {pendingPayments > 0 && (
-                            <Link to="/payment-management" className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
-                                {pendingPayments} Pending Payment{pendingPayments !== 1 ? 's' : ''} →
-                            </Link>
-                        )}
-                        {helpDeskOpen > 0 && (
-                            <Link to="/help-desk" className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
-                                {helpDeskOpen} Open Ticket{helpDeskOpen !== 1 ? 's' : ''} →
-                            </Link>
-                        )}
-                        {starlinePendingCount > 0 && (
-                            <Link to="/markets" state={{ marketType: 'starline' }} className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
-                                {starlinePendingCount} Starline slot{starlinePendingCount !== 1 ? 's' : ''} result pending →
-                            </Link>
-                        )}
-                        {mainPendingCount > 0 && (
-                            <Link to="/add-result" className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
-                                {mainPendingCount} Market{mainPendingCount !== 1 ? 's' : ''} result pending →
-                            </Link>
-                        )}
-                    </div>
-                    {(starlinePendingList.length > 0 || mainPendingList.length > 0) && (
-                        <p className="text-xs text-amber-200/90 mt-2">
-                            {starlinePendingList.length > 0 && (
-                                <span>Starline: {starlinePendingList.map((m) => m.marketName).join(', ')}</span>
-                            )}
-                            {starlinePendingList.length > 0 && mainPendingList.length > 0 && ' · '}
-                            {mainPendingList.length > 0 && (
-                                <span>Markets: {mainPendingList.map((m) => m.marketName).join(', ')}</span>
-                            )}
-                        </p>
+            <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/40">
+                <h3 className="text-sm font-semibold text-amber-400 flex items-center gap-2 mb-3">
+                    <FaExclamationTriangle className="w-4 h-4" />
+                    Action Required
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                    <Link
+                        to="/payment-management"
+                        className={`px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-2 ${
+                            pendingWithdrawals > 0
+                                ? 'bg-amber-600 hover:bg-amber-500 text-black'
+                                : 'bg-gray-700 hover:bg-gray-600 text-gray-200 border border-gray-600'
+                        }`}
+                    >
+                        <FaCreditCard className="w-3.5 h-3.5 shrink-0" />
+                        {pendingWithdrawals} Pending Withdraw Request{pendingWithdrawals !== 1 ? 's' : ''} →
+                    </Link>
+                    {helpDeskOpen > 0 && (
+                        <Link to="/help-desk" className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
+                            {helpDeskOpen} Open Ticket{helpDeskOpen !== 1 ? 's' : ''} →
+                        </Link>
+                    )}
+                    {starlinePendingCount > 0 && (
+                        <Link to="/markets" state={{ marketType: 'starline' }} className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
+                            {starlinePendingCount} Starline slot{starlinePendingCount !== 1 ? 's' : ''} result pending →
+                        </Link>
+                    )}
+                    {mainPendingCount > 0 && (
+                        <Link to="/add-result" className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-black font-medium text-sm">
+                            {mainPendingCount} Market{mainPendingCount !== 1 ? 's' : ''} result pending →
+                        </Link>
                     )}
                 </div>
-            )}
+                {(starlinePendingList.length > 0 || mainPendingList.length > 0) && (
+                    <p className="text-xs text-amber-200/90 mt-2">
+                        {starlinePendingList.length > 0 && (
+                            <span>Starline: {starlinePendingList.map((m) => m.marketName).join(', ')}</span>
+                        )}
+                        {starlinePendingList.length > 0 && mainPendingList.length > 0 && ' · '}
+                        {mainPendingList.length > 0 && (
+                            <span>Markets: {mainPendingList.map((m) => m.marketName).join(', ')}</span>
+                        )}
+                    </p>
+                )}
+            </div>
 
             {/* Primary KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
@@ -424,12 +445,10 @@ const AdminDashboard = () => {
                 </SectionCard>
 
                 {/* Payments */}
-                <SectionCard title="Payments" description="Deposits & Withdrawals" icon={FaCreditCard} linkTo="/payment-management" linkLabel="Manage Payments">
+                <SectionCard title="Transactions" description="Deposits (auto) & withdrawals" icon={FaCreditCard} linkTo="/payment-management" linkLabel="Manage Transactions">
                     <StatRow label="Deposits (period)" value={formatCurrency(stats?.payments?.totalDeposits)} colorClass="text-green-400" />
                     <StatRow label="Withdrawals (period)" value={formatCurrency(stats?.payments?.totalWithdrawals)} colorClass="text-red-400" />
-                    <StatRow label="Pending Deposits" value={pendingDeposits} colorClass="text-amber-400" />
-                    <StatRow label="Pending Withdrawals" value={pendingWithdrawals} colorClass="text-amber-400" />
-                    <StatRow label="Total Pending" value={pendingPayments} colorClass="text-amber-400" />
+                    <StatRow label="Pending Withdraw Requests" value={pendingWithdrawals} colorClass={pendingWithdrawals > 0 ? 'text-amber-400' : 'text-gray-400'} />
                 </SectionCard>
 
                 {/* Wallet */}
