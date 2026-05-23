@@ -57,15 +57,17 @@ export default function ThemeSwitcher({ variant = 'auto' }) {
               <button
                 key={value}
                 type="button"
-                onClick={() => {
-                  setTheme(value);
+                onClick={(e) => {
+                  if (theme !== value) {
+                    setTheme(value, { origin: e });
+                  }
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm transition-colors ${
                   theme === value
                     ? isLightUi
                       ? 'bg-red-50 text-[#D32F2F] font-semibold'
-                      : 'bg-[#d4af37]/20 text-[#d4af37] font-semibold'
+                      : 'bg-red-950/40 text-red-400 font-semibold'
                     : isLightUi
                       ? 'text-gray-800 hover:bg-gray-50'
                       : 'text-white hover:bg-white/5'

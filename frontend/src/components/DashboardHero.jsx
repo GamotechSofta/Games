@@ -22,8 +22,7 @@ const CATEGORIES = [
 
 
 const panelClass =
-
-  'rounded-2xl border border-white/[0.06] bg-[#1a1a1a] overflow-hidden';
+  'rounded-2xl border border-gray-200 bg-white overflow-hidden dark:border-white/[0.06] dark:bg-[#1a1a1a]';
 
 
 
@@ -69,7 +68,7 @@ export default function DashboardHero() {
 
           onClick={() => navigate('/funds?tab=add-fund')}
 
-          className={`relative min-w-0 flex-[7] text-left ${panelClass} group transition hover:border-white/[0.1]`}
+          className={`relative min-w-0 flex-[7] text-left ${panelClass} group transition hover:border-gray-300 dark:hover:border-white/[0.1]`}
 
         >
 
@@ -101,7 +100,7 @@ export default function DashboardHero() {
 
           onClick={() => navigate('/games?category=highEarning')}
 
-          className={`relative min-w-0 flex-[3] text-left ${panelClass} group transition hover:border-white/[0.1]`}
+          className={`relative min-w-0 flex-[3] text-left ${panelClass} group transition hover:border-gray-300 dark:hover:border-white/[0.1]`}
 
         >
 
@@ -141,11 +140,11 @@ export default function DashboardHero() {
 
         <label
 
-          className={`flex min-w-0 flex-[7] items-center gap-3 px-4 py-3 ${panelClass} bg-[#111111]`}
+          className={`flex min-w-0 flex-[7] items-center gap-3 px-4 py-3 ${panelClass}`}
 
         >
 
-          <HiOutlineMagnifyingGlass className="h-5 w-5 shrink-0 text-white/45" strokeWidth={1.75} />
+          <HiOutlineMagnifyingGlass className="h-5 w-5 shrink-0 text-gray-400 dark:text-white/45" strokeWidth={1.75} />
 
           <input
 
@@ -153,7 +152,7 @@ export default function DashboardHero() {
 
             placeholder={t('dashboard.searchPlaceholder')}
 
-            className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/40 outline-none"
+            className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none dark:text-white dark:placeholder:text-white/40"
 
           />
 
@@ -163,11 +162,11 @@ export default function DashboardHero() {
 
           type="button"
 
-          className={`flex min-w-0 flex-[3] items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-[#222] hover:text-white ${panelClass} bg-[#111111]`}
+          className={`flex min-w-0 flex-[3] items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 dark:text-white/80 dark:hover:bg-[#222] dark:hover:text-white ${panelClass}`}
 
         >
 
-          <HiOutlineAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-white/50" strokeWidth={1.75} />
+          <HiOutlineAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-gray-500 dark:text-white/50" strokeWidth={1.75} />
 
           <span className="truncate">{t('dashboard.providers')}</span>
 
@@ -211,9 +210,9 @@ export default function DashboardHero() {
 
                   active
 
-                    ? 'bg-[#e60000] text-white shadow-[0_0_20px_rgba(230,0,0,0.35)]'
+                    ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.35)] dark:bg-[#e60000] dark:shadow-[0_0_20px_rgba(230,0,0,0.35)]'
 
-                    : 'border border-white/[0.06] bg-[#1a1a1a] text-white/65 hover:bg-[#222] hover:text-white/90',
+                    : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.06] dark:bg-[#1a1a1a] dark:text-white/65 dark:hover:bg-[#222] dark:hover:text-white/90',
 
                 ].join(' ')}
 
@@ -235,7 +234,7 @@ export default function DashboardHero() {
 
           onClick={scrollCategories}
 
-          className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-[#1a1a1a] text-white/60 transition hover:text-white"
+          className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:text-white/60 dark:hover:text-white"
 
           aria-label={t('common.next')}
 

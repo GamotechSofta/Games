@@ -28,7 +28,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
 
   return (
     <nav
-      className="flex items-center gap-0.5 rounded-full border border-white/[0.06] bg-[#1a1a1a] px-2 py-1.5 font-sans dark:bg-[#1a1a1a]"
+      className="flex items-center gap-0.5 rounded-full border border-gray-200 bg-gray-100 px-2 py-1.5 font-sans dark:border-white/[0.06] dark:bg-[#1a1a1a]"
       aria-label={t('navigation.home')}
     >
       {NAV_TABS.map((tab) => {
@@ -47,8 +47,8 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
               className={[
                 'flex h-9 w-9 items-center justify-center rounded-[10px] transition-all',
                 active
-                  ? 'bg-[#e60000] text-white shadow-[0_0_14px_rgba(230,0,0,0.45)]'
-                  : 'text-[#b0b0b0] hover:text-[#d4d4d4]',
+                  ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.4)] dark:bg-[#e60000] dark:shadow-[0_0_14px_rgba(230,0,0,0.45)]'
+                  : 'text-gray-500 hover:text-[#D32F2F] dark:text-[#b0b0b0] dark:hover:text-red-400',
               ].join(' ')}
             >
               <Icon className={ICON_SIZE_NAV} />

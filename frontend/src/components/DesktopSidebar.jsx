@@ -100,19 +100,21 @@ function NavRow({
       className={[
         'group flex w-full items-center rounded-[12px] transition-all duration-[250ms]',
         collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
-        active ? 'bg-white/[0.08] text-white' : 'text-white/70 hover:bg-white/[0.04] hover:text-white/90',
+        active
+          ? 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-white'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-white/70 dark:hover:bg-white/[0.04] dark:hover:text-white/90',
       ].join(' ')}
     >
       <span className="flex h-6 w-6 shrink-0 items-center justify-center">
         {letter ? (
-          <span className="text-[17px] font-semibold italic leading-none text-[#b0b0b0]">{letter}</span>
+          <span className="text-[17px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>
         ) : (
           <DashboardIcon Icon={Icon} active={active} />
         )}
       </span>
       {!collapsed && (
         <>
-          <span className="dashboard-nav-label flex-1 truncate text-left text-white/85">
+          <span className="dashboard-nav-label flex-1 truncate text-left text-gray-800 dark:text-white/85">
             {label}
           </span>
           {badge != null && (
@@ -192,7 +194,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
       <button
         type="button"
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-[108px] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-[#1a1a1a] text-white/50 shadow-lg transition-all duration-[250ms] hover:border-white/[0.14] hover:text-white/90"
+        className="absolute -right-3 top-[108px] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-lg transition-all duration-[250ms] hover:border-gray-300 hover:text-gray-800 dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:text-white/50 dark:hover:border-white/[0.14] dark:hover:text-white/90"
         aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
       >
         <HiChevronLeft
@@ -201,7 +203,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
       </button>
 
     <aside
-      className="relative flex h-full w-full flex-col overflow-visible border-r border-white/[0.06] bg-[#111111] font-sans"
+      className="relative flex h-full w-full flex-col overflow-visible border-r border-gray-200 bg-white font-sans dark:border-white/[0.06] dark:bg-[#111111]"
       aria-label={t('sidebar.expand')}
     >
       <div className="flex min-h-0 flex-1 flex-col px-2">
@@ -212,13 +214,13 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
           type="button"
           onClick={() => go(user ? '/profile' : '/login')}
           className={[
-            'mb-3 flex w-full items-center rounded-[14px] transition-all duration-[250ms] hover:bg-white/[0.04]',
+            'mb-3 flex w-full items-center rounded-[14px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
             collapsed ? 'justify-center p-2' : 'gap-3 px-2 py-2',
           ].join(' ')}
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-white/60">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-[#2a2a2a] dark:text-white/60">
             {user ? (
-              <span className="text-sm font-semibold text-white/90">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white/90">
                 {(user.username || 'U').charAt(0).toUpperCase()}
               </span>
             ) : (
@@ -227,7 +229,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
           </span>
           {!collapsed && (
             <>
-              <span className="dashboard-nav-label flex-1 truncate text-left text-[15px] text-white/90">
+              <span className="dashboard-nav-label flex-1 truncate text-left text-[15px] text-gray-900 dark:text-white/90">
                 {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
               </span>
               <HiChevronRight className={`h-4 w-4 shrink-0 ${iconColorClass(false)}`} />
@@ -240,7 +242,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
           type="button"
           onClick={() => go('/funds?tab=add-fund')}
           className={[
-            'mb-4 w-full overflow-hidden rounded-[14px] border border-white/[0.06] transition-all duration-[250ms] hover:brightness-110',
+            'mb-4 w-full overflow-hidden rounded-[14px] border border-gray-200 transition-all duration-[250ms] hover:brightness-110 dark:border-white/[0.06]',
             collapsed ? 'mx-auto h-14 w-14 p-1' : 'px-3 py-3 text-left',
           ].join(' ')}
           style={{
@@ -298,7 +300,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                   }}
                 />
                 {hasChildren && open && !collapsed && (
-                  <div className="mb-1 ml-9 flex flex-col gap-0.5 border-l border-white/[0.06] pl-2">
+                  <div className="mb-1 ml-9 flex flex-col gap-0.5 border-l border-gray-200 pl-2 dark:border-white/[0.06]">
                     {item.children.map((child) => (
                       <button
                         key={child.path}
@@ -307,8 +309,8 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                         className={[
                           'dashboard-nav-label-sm rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
                           pathMatches(location.pathname, child.path)
-                            ? 'bg-white/[0.06] font-medium text-white'
-                            : 'text-white/55 hover:text-white/80',
+                            ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.06] dark:text-white'
+                            : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-white/55 dark:hover:text-white/80 dark:hover:bg-white/[0.04]',
                         ].join(' ')}
                       >
                         {t(child.labelKey)}
@@ -322,8 +324,8 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                     role="menu"
                     aria-label={t(item.labelKey)}
                   >
-                    <div className="rounded-xl border border-white/[0.08] bg-[#1a1a1a] py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
-                      <p className="dashboard-nav-label-sm border-b border-white/[0.06] px-3 py-2 text-white/45">
+                    <div className="rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
+                      <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
                         {t(item.labelKey)}
                       </p>
                       {item.children.map((child) => (
@@ -335,8 +337,8 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                           className={[
                             'dashboard-nav-label-sm block w-full rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
                             pathMatches(location.pathname, child.path)
-                              ? 'bg-white/[0.08] font-medium text-white'
-                              : 'text-white/70 hover:bg-white/[0.05] hover:text-white',
+                              ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
+                              : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05] dark:hover:text-white',
                           ].join(' ')}
                         >
                           {t(child.labelKey)}
@@ -350,7 +352,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
           })}
         </nav>
 
-        <nav className="mt-3 flex flex-col gap-0.5 border-t border-white/[0.06] pt-3">
+        <nav className="mt-3 flex flex-col gap-0.5 border-t border-gray-200 pt-3 dark:border-white/[0.06]">
           {ACCOUNT_NAV.map((item) => {
             const active = item.path ? pathMatches(location.pathname, item.path) : false;
             const Icon = item.icon;
@@ -377,15 +379,15 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
         </div>
 
         {/* Sticky bottom: locale, app download, social, support */}
-        <div className="flex shrink-0 flex-col gap-3 bg-[#111111] px-1 py-3">
+        <div className="flex shrink-0 flex-col gap-3 bg-gray-50 px-1 py-3 dark:bg-[#111111]">
           <SidebarLocaleSettings collapsed={collapsed} />
-          <div className="border-t border-white/[0.06] pt-3 flex flex-col gap-3">
+          <div className="border-t border-gray-200 pt-3 flex flex-col gap-3 dark:border-white/[0.06]">
           {/* Windows / app card */}
           <button
             type="button"
             onClick={() => triggerApkDownload()}
             className={[
-              'w-full rounded-[14px] border border-white/[0.06] bg-[#1a1a1a] transition-all duration-[250ms] hover:bg-[#222222]',
+              'w-full rounded-[14px] border border-gray-200 bg-white transition-all duration-[250ms] hover:bg-gray-50 dark:border-white/[0.06] dark:bg-[#1a1a1a] dark:hover:bg-[#222222]',
               collapsed ? 'flex justify-center p-2' : 'flex items-center gap-3 px-3 py-3 text-left',
             ].join(' ')}
           >
@@ -395,10 +397,10 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
             {!collapsed && (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-semibold text-white/90">
+                  <p className="truncate text-[13px] font-semibold text-gray-900 dark:text-white/90">
                     {t('sidebar.appWindowsTitle')}
                   </p>
-                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/45">
+                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-gray-500 dark:text-white/45">
                     {t('sidebar.appWindowsSubtitle')}
                   </p>
                 </div>
@@ -425,7 +427,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                 ))}
                 <button
                   type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-white/55 hover:text-white/85"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-[#2a2a2a] dark:text-white/55 dark:hover:text-white/85"
                   aria-label="More"
                 >
                   <HiDotsVertical className="h-4 w-4 text-[#b0b0b0]" />
@@ -455,9 +457,11 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
             type="button"
             onClick={() => go('/support')}
             className={[
-              'flex w-full items-center rounded-[12px] transition-all duration-[250ms] hover:bg-white/[0.04]',
+              'flex w-full items-center rounded-[12px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
               collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
-              pathMatches(location.pathname, '/support') ? 'bg-white/[0.08]' : 'text-white/70',
+              pathMatches(location.pathname, '/support')
+                ? 'bg-gray-100 dark:bg-white/[0.08]'
+                : 'text-gray-600 dark:text-white/70',
             ].join(' ')}
           >
             <DashboardIcon
@@ -466,7 +470,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
             />
             {!collapsed && (
               <>
-                <span className="dashboard-nav-label flex-1 truncate text-left text-white/85">
+                <span className="dashboard-nav-label flex-1 truncate text-left text-gray-800 dark:text-white/85">
                   {t('sidebar.support')}
                 </span>
                 <span className="shrink-0 rounded-full bg-[#2563eb] px-2 py-0.5 text-[11px] font-semibold text-white">

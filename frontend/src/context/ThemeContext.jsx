@@ -1,4 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { runThemeTransition } from '../utils/themeTransition';
 
 export const THEME_STORAGE_KEY = 'app-theme';
 
@@ -43,13 +45,40 @@ export function ThemeProvider({ children }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const setTheme = useCallback((next) => {
-    setThemeState(next === 'light' ? 'light' : 'dark');
-  }, []);
+  const setTheme = useCallback((next, options = {}) => {
+    const target = next === 'light' ? 'light' : 'dark';
+    if (target === theme) return;
 
-  const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
-  }, []);
+    const commit = () => setThemeState(target);
+
+    if (options.origin) {
+      runThemeTransition({
+        currentTheme: theme,
+        origin: options.origin,
+        onThemeApply: () => {
+          flushSync(() => {
+            applyThemeToDocument(target);
+            commit();
+          });
+          try {
+            localStorage.setItem(THEME_STORAGE_KEY, target);
+          } catch {
+            /* ignore */
+          }
+        },
+      });
+      return;
+    }
+
+    commit();
+  }, [theme]);
+
+  const toggleTheme = useCallback(
+    (options = {}) => {
+      setTheme(theme === 'light' ? 'dark' : 'light', options);
+    },
+    [theme, setTheme],
+  );
 
   const value = useMemo(
     () => ({

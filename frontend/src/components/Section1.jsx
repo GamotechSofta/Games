@@ -218,7 +218,7 @@ const Section1 = () => {
             return (
             <div
               key={market.id}
-              className={`bg-gray-800 rounded-lg overflow-hidden shadow-lg transform transition-all duration-200 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-transparent dark:shadow-lg transform transition-all duration-200 ${
                 isClickable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default opacity-90'
               }`}
             >
@@ -235,7 +235,7 @@ const Section1 = () => {
 
             {/* Card Content */}
             <div
-              className="flex flex-col p-3 min-[375px]:p-3.5 sm:p-4 border-t border-white/5"
+              className="flex flex-col p-3 min-[375px]:p-3.5 sm:p-4 border-t border-gray-100 dark:border-white/5"
               onClick={() => isClickable && navigate('/bidoptions', { state: { market } })}
               role={isClickable ? 'button' : undefined}
             >
@@ -248,7 +248,7 @@ const Section1 = () => {
               </div>
 
               {/* Game Name – translated when key exists, else fallback to API name; allow wrap so long names (e.g. in Marathi) don't get cut */}
-              <h3 className="text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight break-words min-h-[1.5em] mb-2 min-[375px]:mb-2.5">
+              <h3 className="text-gray-900 dark:text-white text-sm min-[375px]:text-base sm:text-lg font-bold font-serif leading-tight break-words min-h-[1.5em] mb-2 min-[375px]:mb-2.5">
                 {t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName })}
               </h3>
 

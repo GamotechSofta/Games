@@ -28,7 +28,7 @@ function MenuPanel({ children, collapsed, className = '' }) {
 
   return (
     <div className={`${position} ${className}`}>
-      <div className="max-h-[min(280px,50vh)] overflow-y-auto rounded-xl border border-white/[0.08] bg-[#1a1a1a] py-1 shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
+      <div className="max-h-[min(280px,50vh)] overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
         {children}
       </div>
     </div>
@@ -45,15 +45,15 @@ export default function SidebarLocaleSettings({ collapsed }) {
   const ThemeIcon = theme === 'light' ? HiSun : HiMoon;
 
   const btnClass = collapsed
-    ? 'flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-[#2a2a2a] text-[#b0b0b0] transition-colors hover:bg-[#333] hover:text-[#d4d4d4]'
-    : 'flex w-full items-center gap-3 rounded-xl border border-white/[0.08] bg-[#2a2a2a] px-3 py-2.5 text-left text-white/80 transition-colors hover:bg-[#333]';
+    ? 'flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]'
+    : 'flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2.5 text-left text-gray-800 transition-colors hover:bg-gray-200 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-white/80 dark:hover:bg-[#333]';
 
   return (
     <div
       className={
         collapsed
-          ? 'flex flex-col items-center gap-2 border-t border-white/[0.06] pt-3'
-          : 'flex flex-col gap-2 border-t border-white/[0.06] pt-3'
+          ? 'flex flex-col items-center gap-2 border-t border-gray-200 pt-3 dark:border-white/[0.06]'
+          : 'flex flex-col gap-2 border-t border-gray-200 pt-3 dark:border-white/[0.06]'
       }
     >
       {/* Theme */}
@@ -75,7 +75,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
                 {t(theme === 'light' ? 'theme.light' : 'theme.dark')}
               </span>
               <HiChevronDown
-                className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${themeOpen ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 text-gray-400 transition-transform dark:text-white/40 ${themeOpen ? 'rotate-180' : ''}`}
               />
             </>
           )}
@@ -89,25 +89,27 @@ export default function SidebarLocaleSettings({ collapsed }) {
               onClick={() => setThemeOpen(false)}
             />
             <MenuPanel collapsed={collapsed}>
-              <p className="dashboard-nav-label-sm border-b border-white/[0.06] px-3 py-2 text-white/45">
+              <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
                 {t('theme.label')}
               </p>
               {THEME_OPTIONS.map(({ value, labelKey, Icon }) => (
                 <button
                   key={value}
                   type="button"
-                  onClick={() => {
-                    setTheme(value);
+                  onClick={(e) => {
+                    if (theme !== value) {
+                      setTheme(value, { origin: e });
+                    }
                     setThemeOpen(false);
                   }}
                   className={[
                     'flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors',
                     theme === value
-                      ? 'bg-white/[0.08] font-medium text-white'
-                      : 'text-white/70 hover:bg-white/[0.05]',
+                      ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
+                      : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05]',
                   ].join(' ')}
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-[#b0b0b0]" />
+                  <Icon className="h-4 w-4 shrink-0 text-gray-500 dark:text-[#b0b0b0]" />
                   {t(labelKey)}
                 </button>
               ))}
@@ -133,7 +135,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
             <>
               <span className="dashboard-nav-label flex-1 truncate">{currentLang.label}</span>
               <HiChevronDown
-                className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${langOpen ? 'rotate-180' : ''}`}
+                className={`h-4 w-4 shrink-0 text-gray-400 transition-transform dark:text-white/40 ${langOpen ? 'rotate-180' : ''}`}
               />
             </>
           )}
@@ -147,7 +149,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
               onClick={() => setLangOpen(false)}
             />
             <MenuPanel collapsed={collapsed}>
-              <p className="dashboard-nav-label-sm border-b border-white/[0.06] px-3 py-2 text-white/45">
+              <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
                 {t('language.selectLanguage')}
               </p>
               {LANGUAGES.map((lang) => (
@@ -161,8 +163,8 @@ export default function SidebarLocaleSettings({ collapsed }) {
                   className={[
                     'flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] transition-colors',
                     i18n.language === lang.code
-                      ? 'bg-white/[0.08] font-medium text-white'
-                      : 'text-white/70 hover:bg-white/[0.05]',
+                      ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
+                      : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05]',
                   ].join(' ')}
                 >
                   <span>{lang.flag}</span>

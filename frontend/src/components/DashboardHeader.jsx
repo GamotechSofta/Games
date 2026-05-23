@@ -6,6 +6,7 @@ import { useWallet } from '../hooks/useWallet';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
+import ThemeSwitcher from './ThemeSwitcher';
 
 export default function DashboardHeader({ activePanel, onPanelChange }) {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function DashboardHeader({ activePanel, onPanelChange }) {
           <DashboardNavPill activePanel={activePanel} onPanelChange={onPanelChange} />
         )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <ThemeSwitcher variant="auto" />
           <button
             type="button"
             onClick={triggerApkDownload}
@@ -63,11 +65,11 @@ export default function DashboardHeader({ activePanel, onPanelChange }) {
           <button
             type="button"
             onClick={() => navigate('/funds?tab=add-fund')}
-            className="flex items-center gap-2 bg-red-50 dark:bg-gradient-to-r dark:from-[#e60000] dark:to-[#cc0000] border border-red-200 dark:border-[#e60000] rounded-xl pl-3 pr-1.5 py-1.5 hover:bg-red-100 dark:hover:from-[#ff1a1a] dark:hover:to-[#e60000] dark:shadow-[0_0_14px_rgba(230,0,0,0.4)] transition-colors"
+            className="flex items-center gap-2 rounded-xl border-2 border-red-300 bg-red-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-red-100 dark:border-white/[0.08] dark:bg-[#161616] dark:hover:bg-[#1e1e1e] dark:shadow-none"
           >
             <span className="text-sm font-semibold text-[#D32F2F] dark:text-white">{formattedBalance}</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#D32F2F] dark:bg-white/20">
-              <HiPlus className="h-4 w-4 text-white" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#D32F2F] dark:bg-[#d4af37]">
+              <HiPlus className="h-4 w-4 text-white dark:text-[#4b3608]" />
             </span>
           </button>
 

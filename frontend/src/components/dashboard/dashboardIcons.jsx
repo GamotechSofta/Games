@@ -25,7 +25,9 @@ export const ICON_SIZE_SM = 'h-[18px] w-[18px] shrink-0';
 export const ICON_SIZE_NAV = 'h-[20px] w-[20px] shrink-0';
 
 export const iconColorClass = (active) =>
-  active ? 'text-[#d4d4d4]' : 'text-[#b0b0b0]';
+  active
+    ? 'text-gray-800 dark:text-[#d4d4d4]'
+    : 'text-gray-500 dark:text-[#b0b0b0]';
 
 export function DashboardIcon({ Icon, active, className = '', size = 'md' }) {
   if (!Icon) return null;
