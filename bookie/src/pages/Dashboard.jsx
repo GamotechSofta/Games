@@ -99,7 +99,7 @@ const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLab
     <div className="glass-panel glass-panel-card rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/5 group">
         <div className="flex items-start justify-between mb-6">
             <div>
-                <h3 className="text-lg font-bold text-gray-100 flex items-center gap-3">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3">
                     {Icon && (
                         <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-colors duration-300">
                             <Icon className="w-5 h-5" />
@@ -107,7 +107,7 @@ const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLab
                     )}
                     {title}
                 </h3>
-                {description && <p className="text-xs text-slate-300 mt-2 font-medium tracking-wide">{description}</p>}
+                {description && <p className="text-xs text-slate-600 mt-2 font-medium tracking-wide">{description}</p>}
             </div>
             {linkTo && (
                 <Link to={linkTo} className="text-xs font-semibold text-amber-500 hover:text-amber-400 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/5 hover:bg-amber-500/10 transition-all">
@@ -122,9 +122,9 @@ const SectionCard = ({ title, description, icon: Icon, children, linkTo, linkLab
 );
 
 /** Stat row */
-const StatRow = ({ label, value, subValue, colorClass = 'text-white' }) => (
-    <div className="flex justify-between items-center py-3 border-b border-white/10 last:border-0 hover:bg-white/5 px-2 -mx-2 rounded-lg transition-colors">
-        <span className="text-sm text-slate-300 font-medium">{label}</span>
+const StatRow = ({ label, value, subValue, colorClass = 'text-slate-900' }) => (
+    <div className="flex justify-between items-center py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 px-2 -mx-2 rounded-lg transition-colors">
+        <span className="text-sm text-slate-600 font-medium">{label}</span>
         <div className="text-right">
             <span className={`font-bold font-mono text-base ${colorClass}`}>{value}</span>
             {subValue && <span className="text-xs text-slate-400 ml-2 block">{subValue}</span>}
@@ -135,9 +135,9 @@ const StatRow = ({ label, value, subValue, colorClass = 'text-white' }) => (
 /** Skeleton placeholder */
 const SkeletonCard = () => (
     <div className="glass-panel rounded-2xl p-6 animate-pulse">
-        <div className="h-4 w-24 bg-white/10 rounded mb-4" />
-        <div className="h-8 w-32 bg-white/10 rounded mb-3" />
-        <div className="h-4 w-40 bg-white/5 rounded" />
+        <div className="h-4 w-24 bg-slate-200 rounded mb-4" />
+        <div className="h-8 w-32 bg-slate-200 rounded mb-3" />
+        <div className="h-4 w-40 bg-slate-100 rounded" />
     </div>
 );
 
@@ -233,8 +233,8 @@ const Dashboard = () => {
         return (
             <Layout title="Dashboard">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard Overview</h1>
-                    <p className="text-slate-400 text-sm mt-2">Loading your dashboard...</p>
+                    <h1 className="bookie-page-title">Dashboard Overview</h1>
+                    <p className="bookie-page-desc">Loading your dashboard...</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
@@ -270,16 +270,14 @@ const Dashboard = () => {
             <div className="mb-8">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent flex items-center gap-4">
-                            Dashboard Overview
-                        </h1>
-                        <p className="text-slate-400 text-sm mt-2 font-medium">Complete snapshot of your players and activity.</p>
+                        <h1 className="bookie-page-title">Dashboard Overview</h1>
+                        <p className="bookie-page-desc">Complete snapshot of your players and activity.</p>
                     </div>
                     <button
                         type="button"
                         onClick={handleRefresh}
                         disabled={refreshing}
-                        className="glass-panel-hover inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 text-slate-300 hover:text-white transition-all disabled:opacity-50 text-sm font-semibold shadow-lg"
+                        className="glass-panel-hover inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all disabled:opacity-50 text-sm font-semibold shadow-sm"
                     >
                         <FaSyncAlt className={`w-4 h-4 ${refreshing ? 'animate-spin text-amber-500' : ''}`} />
                         Refresh Data
@@ -296,7 +294,7 @@ const Dashboard = () => {
                                     key={p.id}
                                     type="button"
                                     onClick={() => handlePresetSelect(p.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${isActive ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-400 bg-white/5 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'}`}
+                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${isActive ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'}`}
                                 >
                                     {p.label}
                                 </button>
@@ -306,13 +304,13 @@ const Dashboard = () => {
                             <button
                                 type="button"
                                 onClick={handleCustomToggle}
-                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${customMode ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-400 bg-white/5 border-white/5 hover:bg-white/10 hover:text-white hover:border-white/10'}`}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 border uppercase tracking-wider ${customMode ? 'bg-amber-500 text-black border-amber-600 shadow-lg shadow-amber-500/20' : 'text-slate-600 bg-slate-50 border-slate-200 hover:bg-slate-100 hover:text-slate-900 hover:border-slate-300'}`}
                             >
                                 Custom
                             </button>
                             {customOpen && (
-                                <div className="absolute top-full left-0 mt-3 p-5 rounded-2xl bg-[#1e293b] border border-white/10 z-[100] min-w-[320px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 duration-200">
-                                    <h4 className="text-white font-black text-xs uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <div className="absolute top-full left-0 mt-3 p-5 rounded-2xl bg-white border border-slate-200 z-[100] min-w-[320px] shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <h4 className="text-slate-900 font-black text-xs uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
                                         Select Custom Range
                                     </h4>
@@ -323,7 +321,7 @@ const Dashboard = () => {
                                                 type="date"
                                                 value={customFrom}
                                                 onChange={(e) => setCustomFrom(e.target.value)}
-                                                className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all [color-scheme:dark] cursor-pointer hover:bg-black/70"
+                                                className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 outline-none transition-all cursor-pointer"
                                             />
                                         </div>
                                         <div className="space-y-1.5">
@@ -332,7 +330,7 @@ const Dashboard = () => {
                                                 type="date"
                                                 value={customTo}
                                                 onChange={(e) => setCustomTo(e.target.value)}
-                                                className="w-full px-3 py-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none transition-all [color-scheme:dark] cursor-pointer hover:bg-black/70"
+                                                className="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 outline-none transition-all cursor-pointer"
                                             />
                                         </div>
                                     </div>
@@ -340,7 +338,7 @@ const Dashboard = () => {
                                         <button
                                             type="button"
                                             onClick={() => setCustomOpen(false)}
-                                            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-bold text-xs transition-all border border-white/5 active:scale-95"
+                                            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-bold text-xs transition-all border border-slate-200 active:scale-95"
                                         >
                                             Cancel
                                         </button>
@@ -373,18 +371,18 @@ const Dashboard = () => {
                                 <FaExclamationTriangle className="w-6 h-6 text-amber-500" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-white mb-1">Action Required</h3>
-                                <p className="text-sm text-amber-200/80">You have pending items that need your attention.</p>
+                                <h3 className="text-lg font-bold text-slate-900 mb-1">Action Required</h3>
+                                <p className="text-sm text-amber-800">You have pending items that need your attention.</p>
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {pendingPayments > 0 && (
-                                <Link to="/payments" className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
+                                <Link to="/wallet?tab=transactions" className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
                                     {pendingPayments} Pending Payment{pendingPayments !== 1 ? 's' : ''} →
                                 </Link>
                             )}
                             {helpDeskOpen > 0 && (
-                                <Link to="/help-desk" className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/10 transition-all hover:scale-105 active:scale-95">
+                                <Link to="/help-desk" className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-sm">
                                     {helpDeskOpen} Open Ticket{helpDeskOpen !== 1 ? 's' : ''} →
                                 </Link>
                             )}
@@ -404,8 +402,8 @@ const Dashboard = () => {
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         Total Revenue
                     </p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{formatCurrency(stats?.revenue?.total)}</p>
-                    <div className="mt-4 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <p className="text-3xl font-bold text-slate-900 font-mono tracking-tight">{formatCurrency(stats?.revenue?.total)}</p>
+                    <div className="mt-4 h-1 w-full bg-slate-200 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-3/4"></div>
                     </div>
                 </div>
@@ -419,10 +417,10 @@ const Dashboard = () => {
                         <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                         Net Profit
                     </p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{formatCurrency(bookieNetProfit !== null ? bookieNetProfit : netProfit)}</p>
+                    <p className="text-3xl font-bold text-slate-900 font-mono tracking-tight">{formatCurrency(bookieNetProfit !== null ? bookieNetProfit : netProfit)}</p>
                     {bookieNetProfit !== null && (
                         <>
-                            <p className="mt-2 text-xs text-slate-300 font-medium">
+                            <p className="mt-2 text-xs text-slate-600 font-medium">
                                 {bookieType === 'bookie_collects' 
                                     ? `After platform charge (${commissionPercent}%) & payouts`
                                     : `Commission (${commissionPercent}% of revenue)`}
@@ -434,7 +432,7 @@ const Dashboard = () => {
                             )}
                         </>
                     )}
-                    <div className="mt-4 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div className="mt-4 h-1 w-full bg-slate-200 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500" 
                             style={{ width: `${netProfitPercentage !== null ? Math.min(netProfitPercentage, 100) : 60}%` }}
@@ -451,8 +449,8 @@ const Dashboard = () => {
                         <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                         Total Users
                     </p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{stats?.users?.total ?? 0}</p>
-                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-300 text-nowrap">
+                    <p className="text-3xl font-bold text-slate-900 font-mono tracking-tight">{stats?.users?.total ?? 0}</p>
+                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-600 text-nowrap">
                         <span className="text-emerald-400 font-semibold">{stats?.users?.active ?? 0} active</span>
                         <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
                         <span className="text-amber-400 font-semibold">{stats?.users?.newToday ?? 0} new</span>
@@ -468,8 +466,8 @@ const Dashboard = () => {
                         <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                         Total Bets
                     </p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tight">{stats?.bets?.total ?? 0}</p>
-                    <div className="mt-4 h-1 w-full bg-slate-800 rounded-full overflow-hidden relative">
+                    <p className="text-3xl font-bold text-slate-900 font-mono tracking-tight">{stats?.bets?.total ?? 0}</p>
+                    <div className="mt-4 h-1 w-full bg-slate-200 rounded-full overflow-hidden relative">
                         <div className="h-full bg-amber-500 absolute left-0 top-0" style={{ width: `${stats?.bets?.winRate ?? 0}%` }}></div>
                     </div>
                 </div>
@@ -517,7 +515,7 @@ const Dashboard = () => {
                 </SectionCard>
 
                 {/* Payments */}
-                <SectionCard title="Recent & Pending Payments" description="Transaction monitoring" icon={FaCreditCard} linkTo="/payments" linkLabel="Manage">
+                <SectionCard title="Recent & Pending Payments" description="Transaction monitoring" icon={FaCreditCard} linkTo="/wallet?tab=transactions" linkLabel="View">
                     <StatRow label="Deposits" value={formatCurrency(stats?.payments?.totalDeposits)} colorClass="text-emerald-400" />
                     <StatRow label="Withdrawals" value={formatCurrency(stats?.payments?.totalWithdrawals)} colorClass="text-red-400" />
                     <StatRow label="Pending Deposits" value={pendingDeposits} colorClass="text-amber-400" />
@@ -539,9 +537,9 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Links */}
-            <div className="glass-panel glass-panel-card rounded-3xl p-8 border border-white/10 relative overflow-hidden group">
+            <div className="glass-panel glass-panel-card rounded-3xl p-8 border border-slate-200 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none group-hover:bg-amber-500/10 transition-colors duration-500"></div>
-                <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                <h3 className="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3 relative z-10">
                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
                         <FaClipboardList className="w-4 h-4 text-amber-500" />
                     </div>
@@ -555,9 +553,9 @@ const Dashboard = () => {
                         { to: "/bet-history", label: "Bet History", icon: FaHistory, color: "hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20" },
                         { to: "/reports", label: "Analytics", icon: FaChartLine, color: "hover:bg-pink-500/10 hover:text-pink-400 hover:border-pink-500/20" },
                     ].map((link, idx) => (
-                        <Link key={idx} to={link.to} className={`px-4 py-5 rounded-2xl bg-[#0F172A]/50 border border-white/5 text-slate-300 text-sm font-bold transition-all hover:-translate-y-1 hover:shadow-xl ${link.color} text-center flex flex-col items-center justify-center gap-3 group active:scale-95`}>
-                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-amber-500/10 group-hover:text-inherit transition-all">
-                                <link.icon className="w-5 h-5 opacity-70 group-hover:opacity-100" />
+                        <Link key={idx} to={link.to} className={`px-4 py-5 rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm font-bold transition-all hover:-translate-y-1 hover:shadow-lg hover:border-amber-200 ${link.color} text-center flex flex-col items-center justify-center gap-3 group active:scale-95`}>
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-amber-50 group-hover:text-amber-600 transition-all">
+                                <link.icon className="w-5 h-5 group-hover:opacity-100" />
                             </div>
                             <span className="group-hover:translate-y-[-2px] transition-transform">{link.label}</span>
                         </Link>

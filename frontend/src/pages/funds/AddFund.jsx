@@ -9,6 +9,7 @@ const AddFund = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const [config, setConfig] = useState(null);
     const paySubmitInProgress = useRef(false);
+    const payuVerifyDone = useRef(new Set());
     const [configLoading, setConfigLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
@@ -31,6 +32,9 @@ const AddFund = () => {
         if (!paymentId || !user?.id) return;
 
         if (payuSuccess === '1') {
+            const verifyKey = `${paymentId}:${user.id}`;
+            if (payuVerifyDone.current.has(verifyKey)) return;
+            payuVerifyDone.current.add(verifyKey);
             (async () => {
                 try {
                     // Pass all URL params to verify (PayU Hosted sends status, hash, txnid, amount, etc.)
@@ -51,7 +55,7 @@ const AddFund = () => {
                             }
                         }
                     } else {
-                        setError(data.message || (t('funds.payuVerifyFailed') || 'Payment could not be verified. If you paid, it may reflect shortly.'));
+                        setError(data.message || (t('funds.payuVerifyFailed') || 'Deposit could not be verified. If you paid, it may reflect shortly.'));
                     }
                     setSearchParams({ tab: 'add-fund' }, { replace: true });
                 } catch (err) {
@@ -129,7 +133,7 @@ const AddFund = () => {
                 const msg = res.status === 429
                     ? (t('funds.tooManyRequests') || 'Too many attempts. Please wait a minute and try again.')
                     : res.status === 500
-                        ? (t('funds.payuLinkFailed') || 'Payment service error. Please try again later.')
+                        ? (t('funds.payuLinkFailed') || 'Deposit service error. Please try again later.')
                         : (t('funds.networkError') || 'Network error. Please try again.');
                 setError(msg);
                 paySubmitInProgress.current = false;
@@ -158,7 +162,7 @@ const AddFund = () => {
                 form.submit();
                 return;
             }
-            setError(data.message || (t('funds.payuLinkFailed') || 'Failed to create payment link. Please try again.'));
+            setError(data.message || (t('funds.payuLinkFailed') || 'Failed to start deposit. Please try again.'));
         } catch (err) {
             setError(err.message || t('funds.networkError') || 'Network error. Please try again.');
         } finally {
@@ -302,7 +306,7 @@ const AddFund = () => {
                         </div>
 
                         <div className="mt-3 sm:mt-4 w-full bg-[#202124] rounded-xl border border-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-xs sm:text-[13px] text-gray-400 leading-relaxed">
-                            {t('funds.payuNote') || 'You will be redirected to PayU to complete the payment securely. Amount will be added to your wallet after successful payment.'}
+                            {t('funds.payuNote') || 'You will be redirected to complete the payment securely. Amount will be added to your wallet after successful payment.'}
                         </div>
                     </div>
                 </div>

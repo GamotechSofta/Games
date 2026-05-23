@@ -39,12 +39,12 @@ const ReferralLink = () => {
         <Layout title="My Referral Link">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-6">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">My Referral Link</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mb-2">My Referral Link</h1>
                     <p className="text-slate-400">Share this link with players. When they sign up using this link, they will be added to your account.</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 flex items-center gap-3">
+                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-700 flex items-center gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
                         {error}
                     </div>
@@ -62,14 +62,14 @@ const ReferralLink = () => {
                         </div>
 
                         <div className="relative z-10">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Your Unique Referral Link</label>
+                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Your Unique Referral Link</label>
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <div className="relative flex-grow">
                                     <input
                                         type="text"
                                         value={link}
                                         readOnly
-                                        className="w-full pl-4 pr-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
+                                        className="w-full pl-4 pr-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 font-mono text-sm focus:outline-none focus:border-amber-500/50 transition-colors"
                                     />
                                 </div>
                                 <button
@@ -85,7 +85,7 @@ const ReferralLink = () => {
                                     )}
                                 </button>
                             </div>
-                            <div className="mt-6 pt-6 border-t border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="flex items-start gap-3">
                                     <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">1</div>
                                     <p className="text-sm text-slate-400">Share your link via WhatsApp, Telegram, or Social Media.</p>

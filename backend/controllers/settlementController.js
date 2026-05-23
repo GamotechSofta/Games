@@ -1,78 +1,168 @@
 import DailySettlement from '../models/settlement/dailySettlement.js';
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import {
+    parseSettlementDate,
+    mapPaymentStatus,
+    computeBookieDailyCommission,
+    getBookieUserIdsMap,
+    getAdminCollectsBookies,
+    computeCommissionForBookieDay,
+    resolveSettlementPaymentStatus,
+    isSettlementDayEnded,
+} from '../utils/dailyCommission.js';
+
+function settlementKey(bookieId, dateStr) {
+    return `${bookieId}_${dateStr}`;
+}
+
+function mergeRows(commissionDays, settlements, bookie) {
+    const settlementMap = new Map();
+    settlements.forEach((s) => {
+        const dateStr = s.settlementDate ? new Date(s.settlementDate).toISOString().slice(0, 10) : '';
+        const bid = (s.bookieId?._id || s.bookieId)?.toString?.() || String(s.bookieId || '');
+        if (dateStr && bid) settlementMap.set(settlementKey(bid, dateStr), s);
+    });
+
+    const rows = [];
+    for (const day of commissionDays) {
+        const bid = bookie._id.toString();
+        const settlement = settlementMap.get(settlementKey(bid, day.date));
+        const commission = Number(day.commission) || 0;
+        const { paymentStatus, canMarkPaid, dayEnded } = resolveSettlementPaymentStatus(
+            settlement,
+            commission,
+            day.date
+        );
+
+        rows.push({
+            settlementId: settlement?._id || null,
+            bookieId: bookie._id,
+            bookieName: bookie.username,
+            bookiePhone: bookie.phone || '',
+            date: day.date,
+            revenue: day.revenue,
+            commission,
+            betCount: day.betCount,
+            paymentStatus,
+            canMarkPaid,
+            dayEnded,
+            paidAt: paymentStatus === 'paid' ? settlement?.adminProcessedAt || settlement?.updatedAt : null,
+        });
+    }
+
+    // Paid settlements on days with no bets (edge case)
+    settlements.forEach((s) => {
+        const dateStr = s.settlementDate ? new Date(s.settlementDate).toISOString().slice(0, 10) : '';
+        const bid = (s.bookieId?._id || s.bookieId)?.toString?.() || String(s.bookieId || '');
+        if (!dateStr || bid !== bookie._id.toString()) return;
+        if (rows.some((r) => r.date === dateStr)) return;
+        const commission = Number(s.amount) || 0;
+        const { paymentStatus, canMarkPaid, dayEnded } = resolveSettlementPaymentStatus(s, commission, dateStr);
+        if (mapPaymentStatus(s.status) === 'paid' && paymentStatus !== 'paid') return;
+        rows.push({
+            settlementId: s._id,
+            bookieId: bookie._id,
+            bookieName: bookie.username,
+            bookiePhone: bookie.phone || '',
+            date: dateStr,
+            revenue: 0,
+            commission,
+            betCount: 0,
+            paymentStatus,
+            canMarkPaid,
+            dayEnded,
+            paidAt: paymentStatus === 'paid' ? s.adminProcessedAt || s.updatedAt : null,
+        });
+    });
+
+    rows.sort((a, b) => b.date.localeCompare(a.date) || (a.bookieName || '').localeCompare(b.bookieName || ''));
+    return rows;
+}
 
 /**
- * Parse date string (YYYY-MM-DD) to start of day in UTC
+ * Daily commission rows (auto from bets) + payment status (paid/unpaid).
+ * Bookie: own rows. Admin: all admin_collects bookies.
  */
-const parseSettlementDate = (dateStr) => {
-    if (!dateStr) return null;
-    const [y, m, d] = dateStr.split('-').map(Number);
-    if (!y || !m || !d) return null;
-    return new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
-};
-
-/**
- * Admin: Get all settlements with filters (bookieType, bookieId, date range)
- * Bookie: Get own settlements only
- */
-export const getSettlements = async (req, res) => {
+export const getDailyCommissionSettlements = async (req, res) => {
     try {
-        const { bookieType, bookieId, startDate, endDate } = req.query;
-        const isBookie = req.admin?.role === 'bookie';
+        const { startDate, endDate, bookieId: filterBookieId } = req.query;
+        if (!startDate || !endDate) {
+            return res.status(400).json({ success: false, message: 'startDate and endDate are required (YYYY-MM-DD)' });
+        }
 
-        const query = {};
+        const isBookie = req.admin?.role === 'bookie';
+        let bookies = [];
 
         if (isBookie) {
-            query.bookieId = req.admin._id;
+            const bookie = await Admin.findById(req.admin._id)
+                .select('_id username phone commissionPercentage bookieType')
+                .lean();
+            if (!bookie || (bookie.bookieType || 'admin_collects') !== 'admin_collects') {
+                return res.status(400).json({ success: false, message: 'Daily settlement is only for Admin Collects bookies' });
+            }
+            bookies = [bookie];
         } else {
-            if (bookieType) query.bookieType = bookieType;
-            if (bookieId) query.bookieId = bookieId;
+            if (req.admin?.role !== 'super_admin') {
+                return res.status(403).json({ success: false, message: 'Only Super Admin can access' });
+            }
+            bookies = await getAdminCollectsBookies(filterBookieId || null);
         }
 
-        if (startDate || endDate) {
-            query.settlementDate = {};
-            if (startDate) {
-                const from = parseSettlementDate(startDate);
-                if (from) query.settlementDate.$gte = from;
-            }
-            if (endDate) {
-                const to = parseSettlementDate(endDate);
-                if (to) {
-                    to.setUTCDate(to.getUTCDate() + 1);
-                    query.settlementDate.$lt = to;
-                }
-            }
-            if (Object.keys(query.settlementDate).length === 0) delete query.settlementDate;
+        const bookieUserMap = await getBookieUserIdsMap();
+        const bookieIds = bookies.map((b) => b._id);
+
+        const from = parseSettlementDate(startDate);
+        const to = parseSettlementDate(endDate);
+        const settlementQuery = { bookieId: { $in: bookieIds }, bookieType: 'admin_collects' };
+        if (from) settlementQuery.settlementDate = { $gte: from };
+        if (to) {
+            const toEnd = new Date(to);
+            toEnd.setUTCDate(toEnd.getUTCDate() + 1);
+            settlementQuery.settlementDate = settlementQuery.settlementDate || {};
+            settlementQuery.settlementDate.$lt = toEnd;
         }
 
-        const settlements = await DailySettlement.find(query)
-            .populate('bookieId', 'username phone bookieType')
-            .populate('createdBy', 'username role')
-            .sort({ settlementDate: -1, createdAt: -1 })
-            .lean();
+        const settlements = await DailySettlement.find(settlementQuery).lean();
 
-        res.status(200).json({ success: true, data: settlements });
+        let allRows = [];
+        for (const bookie of bookies) {
+            const userIds = bookieUserMap[bookie._id.toString()] || [];
+            const commissionDays = await computeBookieDailyCommission(bookie, userIds, startDate, endDate);
+            const bookieSettlements = settlements.filter(
+                (s) => (s.bookieId?._id || s.bookieId)?.toString?.() === bookie._id.toString()
+            );
+            allRows = allRows.concat(mergeRows(commissionDays, bookieSettlements, bookie));
+        }
+
+        const totals = {
+            commission: allRows.reduce((s, r) => s + (r.commission || 0), 0),
+            revenue: allRows.reduce((s, r) => s + (r.revenue || 0), 0),
+            paidCommission: allRows.filter((r) => r.paymentStatus === 'paid').reduce((s, r) => s + (r.commission || 0), 0),
+            unpaidCommission: allRows.filter((r) => r.paymentStatus !== 'paid').reduce((s, r) => s + (r.commission || 0), 0),
+        };
+
+        res.status(200).json({ success: true, data: { rows: allRows, totals } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
 /**
- * Create settlement request:
- * - Admin Collects: Bookie creates (bookie requests money from admin) - bookie is the requester
- * - Bookie Collects: Admin creates (admin requests money from bookie)
+ * Admin: mark daily commission as paid or unpaid (upserts settlement record).
  */
-export const createSettlement = async (req, res) => {
+export const setDailySettlementStatus = async (req, res) => {
     try {
-        const { bookieId, bookieType, settlementDate, amount, remarks } = req.body;
-        const isBookie = req.admin?.role === 'bookie';
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({ success: false, message: 'Only Super Admin can update payment status' });
+        }
 
-        if (!settlementDate || amount == null || amount < 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Settlement date and amount (>= 0) are required',
-            });
+        const { bookieId, settlementDate, status } = req.body;
+        if (!bookieId || !settlementDate) {
+            return res.status(400).json({ success: false, message: 'bookieId and settlementDate are required' });
+        }
+        if (!['paid', 'unpaid'].includes(status)) {
+            return res.status(400).json({ success: false, message: 'status must be paid or unpaid' });
         }
 
         const parsedDate = parseSettlementDate(settlementDate);
@@ -80,343 +170,70 @@ export const createSettlement = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid settlement date (use YYYY-MM-DD)' });
         }
 
-        let finalBookieId = bookieId;
-        let finalBookieType = bookieType;
-
-        if (isBookie) {
-            // Bookie creates: only admin_collects type (bookie requests commission from admin)
-            finalBookieId = req.admin._id;
-            const bookieDoc = await Admin.findById(req.admin._id).select('bookieType').lean();
-            finalBookieType = bookieDoc?.bookieType || 'admin_collects';
-            if (finalBookieType !== 'admin_collects') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Only Admin Collects bookies can request money from admin',
-                });
-            }
-        } else {
-            // Admin creates: only bookie_collects type (admin requests platform charge from bookie)
-            if (!bookieId) {
-                return res.status(400).json({ success: false, message: 'Bookie is required' });
-            }
-            const bookieDoc = await Admin.findById(bookieId).select('bookieType role').lean();
-            if (!bookieDoc || bookieDoc.role !== 'bookie') {
-                return res.status(400).json({ success: false, message: 'Invalid bookie' });
-            }
-            finalBookieType = bookieDoc.bookieType || 'admin_collects';
-            if (finalBookieType !== 'bookie_collects') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Only Bookie Collects bookies can receive money requests from admin',
-                });
-            }
-            if (bookieType && bookieType !== finalBookieType) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Bookie type mismatch. This bookie is "${finalBookieType}"`,
-                });
-            }
+        const bookie = await Admin.findOne({ _id: bookieId, role: 'bookie', bookieType: 'admin_collects' }).lean();
+        if (!bookie) {
+            return res.status(404).json({ success: false, message: 'Admin Collects bookie not found' });
         }
 
-        const settlement = await DailySettlement.create({
-            bookieId: finalBookieId,
-            bookieType: finalBookieType,
-            settlementDate: parsedDate,
-            amount: Number(amount),
-            remarks: remarks || '',
-            status: 'pending',
-            createdBy: req.admin._id,
-        });
+        const { commission } = await computeCommissionForBookieDay(bookieId, settlementDate);
 
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
-
-        await logActivity({
-            action: 'settlement_create',
-            performedBy: req.admin.username,
-            performedByType: req.admin.role,
-            targetType: 'settlement',
-            targetId: settlement._id.toString(),
-            details: `${finalBookieType === 'admin_collects' ? 'Commission' : 'Platform charge'} ₹${amount} for ${settlement.bookieId?.username || 'bookie'} (pending bookie confirmation)`,
-            ip: getClientIp(req),
-        });
-
-        res.status(201).json({ success: true, data: settlement });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * Admin: Mark payment as sent (Admin Collects flow - admin pays bookie, then clicks Payment Sent)
- */
-export const markPaymentSent = async (req, res) => {
-    try {
-        if (req.admin?.role === 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only admin can mark payment sent' });
-        }
-
-        const { id } = req.params;
-        const settlement = await DailySettlement.findById(id);
-
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-
-        if (settlement.bookieType !== 'admin_collects') {
-            return res.status(400).json({ success: false, message: 'Only Admin Collects flow uses Payment Sent' });
-        }
-
-        if (settlement.status !== 'pending') {
-            return res.status(400).json({ success: false, message: 'Can only mark payment sent for pending requests' });
-        }
-
-        settlement.status = 'payment_sent';
-        await settlement.save();
-
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
-
-        await logActivity({
-            action: 'settlement_payment_sent',
-            performedBy: req.admin.username,
-            performedByType: req.admin.role,
-            targetType: 'settlement',
-            targetId: settlement._id.toString(),
-            details: `Admin marked payment ₹${settlement.amount} sent to ${settlement.bookieId?.username || 'bookie'}. Awaiting bookie confirmation.`,
-            ip: getClientIp(req),
-        });
-
-        res.status(200).json({ success: true, data: settlement });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * Bookie: Confirm settlement - "I have paid" (bookie_collects) or "I have received" (admin_collects)
- * Admin Collects: bookie can confirm only when status is payment_sent (admin has sent payment)
- * Bookie Collects: bookie can confirm when status is pending (admin requested)
- */
-export const bookieConfirmSettlement = async (req, res) => {
-    try {
-        if (req.admin?.role !== 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only bookie can confirm' });
-        }
-
-        const { id } = req.params;
-        const settlement = await DailySettlement.findById(id).populate('bookieId', 'username bookieType');
-
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-
-        const bid = (settlement.bookieId?._id || settlement.bookieId)?.toString();
-        if (bid !== req.admin._id.toString()) {
-            return res.status(403).json({ success: false, message: 'This settlement is not for you' });
-        }
-
-        const bType = settlement.bookieType || settlement.bookieId?.bookieType;
-        const allowedStatus = bType === 'admin_collects' ? 'payment_sent' : 'pending';
-        if (settlement.status !== allowedStatus) {
+        if (status === 'paid' && !isSettlementDayEnded(settlementDate)) {
             return res.status(400).json({
                 success: false,
-                message: bType === 'admin_collects'
-                    ? 'Admin must mark payment sent before you can confirm receipt'
-                    : 'Settlement already processed',
+                message: 'Cannot mark today as paid until the day ends. More bets may still be placed.',
             });
         }
 
-        // Admin Collects: bookie confirms received → auto-approved (no admin Accept step)
-        // Bookie Collects: bookie confirms paid → status bookie_confirmed, admin then Accept/Reject
-        settlement.status = bType === 'admin_collects' ? 'approved' : 'bookie_confirmed';
-        settlement.bookieConfirmedAt = new Date();
-        if (bType === 'admin_collects') {
-            settlement.adminProcessedAt = new Date();
-            settlement.adminRemarks = 'Auto-approved (bookie confirmed received)';
-        }
-        await settlement.save();
-
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
-
-        await logActivity({
-            action: 'settlement_bookie_confirm',
-            performedBy: req.admin.username,
-            performedByType: 'bookie',
-            targetType: 'settlement',
-            targetId: settlement._id.toString(),
-            details: `Bookie confirmed ${settlement.bookieType === 'admin_collects' ? 'received' : 'paid'} ₹${settlement.amount}`,
-            ip: getClientIp(req),
-        });
-
-        res.status(200).json({ success: true, data: settlement });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * Admin: Approve settlement (after bookie confirmed)
- */
-export const approveSettlement = async (req, res) => {
-    try {
-        if (req.admin?.role === 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only admin can approve' });
-        }
-
-        const { id } = req.params;
-        const { adminRemarks } = req.body || {};
-
-        const settlement = await DailySettlement.findById(id);
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-
-        if (settlement.status !== 'bookie_confirmed') {
-            return res.status(400).json({ success: false, message: 'Only settlements awaiting verification (after bookie confirmed) can be approved' });
-        }
-
-        settlement.status = 'approved';
-        settlement.adminProcessedAt = new Date();
-        settlement.adminRemarks = adminRemarks || 'Approved';
-        await settlement.save();
-
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
+        const settlement = await DailySettlement.findOneAndUpdate(
+            { bookieId, settlementDate: parsedDate },
+            {
+                $set: {
+                    bookieType: 'admin_collects',
+                    amount: commission,
+                    status,
+                    adminProcessedAt: status === 'paid' ? new Date() : null,
+                    adminRemarks: status === 'paid' ? 'Paid' : '',
+                },
+                $setOnInsert: {
+                    remarks: '',
+                    createdBy: req.admin._id,
+                },
+            },
+            { upsert: true, new: true, runValidators: true }
+        );
 
         await logActivity({
-            action: 'settlement_approve',
+            action: status === 'paid' ? 'settlement_mark_paid' : 'settlement_mark_unpaid',
             performedBy: req.admin.username,
             performedByType: req.admin.role,
             targetType: 'settlement',
             targetId: settlement._id.toString(),
-            details: `Settlement ₹${settlement.amount} approved for ${settlement.bookieId?.username || 'bookie'}`,
+            details: `Daily commission ₹${commission} for ${bookie.username} on ${settlementDate} marked ${status}`,
             ip: getClientIp(req),
         });
 
-        res.status(200).json({ success: true, data: settlement });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * Admin: Reject settlement (after bookie confirmed)
- */
-export const rejectSettlement = async (req, res) => {
-    try {
-        if (req.admin?.role === 'bookie') {
-            return res.status(403).json({ success: false, message: 'Only admin can reject' });
-        }
-
-        const { id } = req.params;
-        const { adminRemarks } = req.body || {};
-
-        const settlement = await DailySettlement.findById(id);
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-
-        const rejectable = ['pending', 'payment_sent', 'bookie_confirmed'];
-        if (!rejectable.includes(settlement.status)) {
-            return res.status(400).json({ success: false, message: 'Cannot reject this settlement' });
-        }
-
-        settlement.status = 'rejected';
-        settlement.adminProcessedAt = new Date();
-        settlement.adminRemarks = adminRemarks || 'Rejected';
-        await settlement.save();
-
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
-
-        await logActivity({
-            action: 'settlement_reject',
-            performedBy: req.admin.username,
-            performedByType: req.admin.role,
-            targetType: 'settlement',
-            targetId: settlement._id.toString(),
-            details: `Settlement ₹${settlement.amount} rejected for ${settlement.bookieId?.username || 'bookie'}`,
-            ip: getClientIp(req),
+        res.status(200).json({
+            success: true,
+            data: {
+                settlementId: settlement._id,
+                bookieId,
+                date: settlementDate,
+                commission,
+                paymentStatus: status,
+                paidAt: status === 'paid' ? settlement.adminProcessedAt : null,
+            },
         });
-
-        res.status(200).json({ success: true, data: settlement });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
 
-/**
- * Update settlement (only when pending)
- * Admin: can update any pending. Bookie: can update own pending (admin_collects request)
- */
-export const updateSettlement = async (req, res) => {
+/** @deprecated Legacy list — prefer GET /settlements/daily */
+export const getSettlements = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { amount, remarks } = req.body;
-
-        const settlement = await DailySettlement.findById(id);
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-        if (settlement.status !== 'pending') {
-            return res.status(400).json({ success: false, message: 'Can only edit pending settlements' });
-        }
-        if (req.admin?.role === 'bookie') {
-            const bid = (settlement.bookieId?._id || settlement.bookieId)?.toString?.();
-            if (bid !== req.admin._id?.toString?.()) {
-                return res.status(403).json({ success: false, message: 'You can only edit your own settlements' });
-            }
-        }
-
-        if (amount != null && amount >= 0) settlement.amount = Number(amount);
-        if (remarks !== undefined) settlement.remarks = remarks || '';
-        await settlement.save();
-
-        await settlement.populate([
-            { path: 'bookieId', select: 'username phone bookieType' },
-            { path: 'createdBy', select: 'username role' },
-        ]);
-
-        res.status(200).json({ success: true, data: settlement });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * Delete settlement (only when pending)
- * Admin: can delete any pending. Bookie: can delete own pending (admin_collects request)
- */
-export const deleteSettlement = async (req, res) => {
-    try {
-        const settlement = await DailySettlement.findById(req.params.id);
-        if (!settlement) {
-            return res.status(404).json({ success: false, message: 'Settlement not found' });
-        }
-        if (settlement.status !== 'pending') {
-            return res.status(400).json({ success: false, message: 'Can only delete pending settlements' });
-        }
-        if (req.admin?.role === 'bookie') {
-            const bid = (settlement.bookieId?._id || settlement.bookieId)?.toString?.();
-            if (bid !== req.admin._id?.toString?.()) {
-                return res.status(403).json({ success: false, message: 'You can only delete your own settlements' });
-            }
-        }
-        await DailySettlement.findByIdAndDelete(req.params.id);
-
-        res.status(200).json({ success: true, message: 'Settlement deleted' });
+        const { startDate, endDate } = req.query;
+        req.query = { ...req.query, startDate, endDate };
+        return getDailyCommissionSettlements(req, res);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

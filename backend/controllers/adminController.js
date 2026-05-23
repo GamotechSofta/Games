@@ -207,9 +207,7 @@ export const createBookie = async (req, res) => {
             return res.status(409).json({ success: false, message: 'A bookie with this name already exists' });
         }
 
-        // Validate bookieType
-        const validBookieTypes = ['admin_collects', 'bookie_collects'];
-        const finalBookieType = validBookieTypes.includes(bookieType) ? bookieType : 'admin_collects';
+        const finalBookieType = 'admin_collects';
 
         // Validate commission percentage
         let finalCommission = 0;
@@ -660,11 +658,13 @@ export const updateBookie = async (req, res) => {
             if (uiTheme.primaryColor !== undefined) bookie.uiTheme.primaryColor = uiTheme.primaryColor ? String(uiTheme.primaryColor).trim() : undefined;
             if (uiTheme.accentColor !== undefined) bookie.uiTheme.accentColor = uiTheme.accentColor ? String(uiTheme.accentColor).trim() : undefined;
         }
-        // Update bookieType
-        if (bookieType !== undefined) {
-            const validBookieTypes = ['admin_collects', 'bookie_collects'];
-            if (validBookieTypes.includes(bookieType)) bookie.bookieType = bookieType;
+        if (bookieType === 'bookie_collects') {
+            return res.status(400).json({
+                success: false,
+                message: 'Bookie Collects type is no longer supported. All bookies use Admin Collects.',
+            });
         }
+        bookie.bookieType = 'admin_collects';
 
         // Update commission percentage
         if (commissionPercentage !== undefined && commissionPercentage !== null) {

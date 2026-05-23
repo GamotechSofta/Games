@@ -13,7 +13,7 @@ const TAB_OPTIONS = [
     { path: '/bet-history', label: 'Bet History' },
     { path: '/reports', label: 'Report' },
     { path: '/revenue', label: 'Revenue' },
-    { path: '/payment-management', label: 'Payments' },
+    { path: '/payment-management', label: 'Transactions' },
     { path: '/daily-settlement', label: 'Daily Settlement' },
     { path: '/wallet', label: 'Wallet' },
     { path: '/help-desk', label: 'Help Desk' },

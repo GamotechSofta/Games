@@ -12,7 +12,6 @@ import BetHistory from './pages/BetHistory';
 import TopWinners from './pages/TopWinners';
 import Reports from './pages/Reports';
 import Revenue from './pages/Revenue';
-import Payments from './pages/Payments';
 import DailySettlement from './pages/DailySettlement';
 import Wallet from './pages/Wallet';
 
@@ -45,10 +44,10 @@ const PrivateRoute = ({ children }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0B1120] flex items-center justify-center">
+            <div className="min-h-screen bg-slate-100 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-                    <div className="text-amber-500 font-bold animate-pulse">Loading Panel...</div>
+                    <div className="text-amber-600 font-bold animate-pulse">Loading Panel...</div>
                 </div>
             </div>
         );
@@ -77,7 +76,7 @@ const AppRoutes = () => (
         <Route path="/top-winners" element={<PrivateRoute><TopWinners /></PrivateRoute>} />
         <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
         <Route path="/revenue" element={<PrivateRoute><Revenue /></PrivateRoute>} />
-        <Route path="/payments" element={<PrivateRoute><Payments /></PrivateRoute>} />
+        <Route path="/payments" element={<Navigate to="/wallet?tab=transactions" replace />} />
         <Route path="/daily-settlement" element={<PrivateRoute><DailySettlement /></PrivateRoute>} />
         <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
 
