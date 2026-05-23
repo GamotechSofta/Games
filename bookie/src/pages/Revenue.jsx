@@ -114,11 +114,11 @@ const Revenue = () => {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
                             <FaMoneyBillWave className="text-emerald-500" />
                             Revenue Analysis
                         </h1>
-                        <p className="text-slate-400 text-sm mt-1">
+                        <p className="text-slate-600 text-sm mt-1">
                             {isBookieCollects
                                 ? 'Track your earnings after deductions'
                                 : 'Track your commission earnings'}
@@ -139,7 +139,7 @@ const Revenue = () => {
                                 </p>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     <FaPercent className="w-2.5 h-2.5 text-slate-500" />
-                                    <span className="text-white text-sm font-bold">{data.commissionPercentage}%</span>
+                                    <span className="text-slate-900 text-sm font-bold">{data.commissionPercentage}%</span>
                                     <span className="text-slate-500 text-xs font-medium">
                                         {isBookieCollects ? 'platform fee' : 'commission'}
                                     </span>
@@ -150,7 +150,7 @@ const Revenue = () => {
                 </div>
 
                 {/* Date filters */}
-                <div className="glass-panel glass-panel-card px-4 py-3 rounded-xl border border-white/10">
+                <div className="glass-panel glass-panel-card px-4 py-3 rounded-xl border border-slate-200">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 shrink-0">
                             <FaCalendarAlt className="w-4 h-4 text-amber-500" />
@@ -165,7 +165,7 @@ const Revenue = () => {
                                     onClick={() => applyPreset(p.id)}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${activePreset === p.id
                                             ? 'bg-amber-500 text-black'
-                                            : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                                            : 'bg-white/5 text-slate-600 hover:bg-white/10 hover:text-slate-900'
                                         }`}
                                 >
                                     {p.label}
@@ -176,12 +176,12 @@ const Revenue = () => {
                         <div className="flex items-center gap-2 ml-auto">
                             <input type="date" value={dateRange.startDate}
                                 onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
-                                className="bg-white/5 text-white text-xs px-2 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-amber-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                                className="bg-white text-slate-900 text-xs px-2 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-amber-500/50 "
                             />
                             <span className="text-slate-500 text-xs">to</span>
                             <input type="date" value={dateRange.endDate}
                                 onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
-                                className="bg-white/5 text-white text-xs px-2 py-1.5 rounded-lg border border-white/10 focus:outline-none focus:border-amber-500/50 [&::-webkit-calendar-picker-indicator]:invert"
+                                className="bg-white text-slate-900 text-xs px-2 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-amber-500/50 "
                             />
                             <button type="button" onClick={fetchRevenue} disabled={loading}
                                 className="p-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 rounded-lg transition-colors disabled:opacity-50"
@@ -197,7 +197,7 @@ const Revenue = () => {
                     <div className="glass-panel h-96 rounded-2xl animate-pulse" />
                 ) : data ? (
                     <>
-                        <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
+                        <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-slate-200">
                             <table className="w-full">
                                 <tbody className="divide-y divide-white/5">
                                     {/* Your Revenue - highlighted row */}
@@ -234,15 +234,15 @@ const Revenue = () => {
 
                                     {/* Total Bet Amount */}
                                     <tr className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 text-slate-300 font-medium">Total Bet Volume</td>
-                                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-lg">
+                                        <td className="px-6 py-4 text-slate-600 font-medium">Total Bet Volume</td>
+                                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 text-lg">
                                             {formatCurrency(data.totalBetAmount)}
                                         </td>
                                     </tr>
 
                                     {/* Rate */}
                                     <tr className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 text-slate-300 font-medium">
+                                        <td className="px-6 py-4 text-slate-600 font-medium">
                                             {isBookieCollects ? 'Platform Charge Rate' : 'Commission Rate'}
                                         </td>
                                         <td className="px-6 py-4 text-right">
@@ -261,7 +261,7 @@ const Revenue = () => {
                                             <tr className="hover:bg-white/5 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-slate-300 font-medium block">Platform Charge</span>
+                                                        <span className="text-slate-600 font-medium block">Platform Charge</span>
                                                         <span className="text-xs text-slate-500">Paid to admin</span>
                                                     </div>
                                                 </td>
@@ -278,7 +278,7 @@ const Revenue = () => {
                                                         <span className="text-xs text-slate-500">Before payouts</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-mono font-bold text-white text-lg">
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 text-lg">
                                                     {formatCurrency(data.bookieGross)}
                                                 </td>
                                             </tr>
@@ -287,7 +287,7 @@ const Revenue = () => {
                                             <tr className="hover:bg-white/5 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div>
-                                                        <span className="text-slate-300 font-medium block">Winner Payouts</span>
+                                                        <span className="text-slate-600 font-medium block">Winner Payouts</span>
                                                         <span className="text-xs text-slate-500">Paid by you to winners</span>
                                                     </div>
                                                 </td>
@@ -315,10 +315,10 @@ const Revenue = () => {
 
                                     {/* Total Bets Count */}
                                     <tr className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 text-slate-300 font-medium">Total Activity</td>
+                                        <td className="px-6 py-4 text-slate-600 font-medium">Total Activity</td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-3">
-                                                <span className="text-white font-bold">{formatNumber(data.totalBets)} bets</span>
+                                                <span className="text-slate-900 font-bold">{formatNumber(data.totalBets)} bets</span>
                                                 {data.totalBets > 0 && (
                                                     <div className="text-xs flex items-center gap-2 bg-black/30 rounded-lg px-2 py-1">
                                                         <span className="text-emerald-400 font-bold">{formatNumber(data.winningBets || 0)} W</span>
@@ -345,7 +345,7 @@ const Revenue = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="inline-flex items-center gap-2">
-                                                <span className="font-bold text-white">{formatNumber(data.totalUsers)} players</span>
+                                                <span className="font-bold text-slate-900">{formatNumber(data.totalUsers)} players</span>
                                                 <FaChevronRight className="w-3 h-3 text-slate-600 group-hover:text-blue-400 transition-colors group-hover:translate-x-1" />
                                             </div>
                                         </td>
@@ -354,11 +354,11 @@ const Revenue = () => {
                             </table>
 
                             {/* Calculation Formula Display */}
-                            <div className="px-6 py-4 bg-black/40 border-t border-white/5">
+                            <div className="px-6 py-4 bg-black/40 border-t border-slate-200">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 text-center">Calculation</p>
                                 {isBookieCollects ? (
                                     <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-mono text-slate-400">
-                                        <span className="text-white">{formatCurrency(data.totalBetAmount)}</span>
+                                        <span className="text-slate-900">{formatCurrency(data.totalBetAmount)}</span>
                                         <span className="text-slate-600">–</span>
                                         <span className="text-purple-400">{formatCurrency(data.platformCharge)}</span>
                                         <span className="text-slate-600">–</span>
@@ -368,7 +368,7 @@ const Revenue = () => {
                                     </div>
                                 ) : (
                                     <div className="flex flex-wrap items-center justify-center gap-2 text-sm font-mono text-slate-400">
-                                        <span className="text-white">{formatCurrency(data.totalBetAmount)}</span>
+                                        <span className="text-slate-900">{formatCurrency(data.totalBetAmount)}</span>
                                         <span className="text-slate-600">&times;</span>
                                         <span className="text-amber-400">{data.commissionPercentage}%</span>
                                         <span className="text-slate-600">=</span>
@@ -379,11 +379,11 @@ const Revenue = () => {
                         </div>
                     </>
                 ) : (
-                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-white/10 text-center flex flex-col items-center justify-center">
+                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-slate-200 text-center flex flex-col items-center justify-center">
                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                             <FaMoneyBillWave className="w-8 h-8 text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">No Revenue Data</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">No Revenue Data</h3>
                         <p className="text-slate-400 max-w-sm mx-auto mb-6">
                             We couldn't find any revenue information for this period.
                         </p>

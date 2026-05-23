@@ -50,7 +50,7 @@ const HelpDesk = () => {
         <Layout title="Help Desk">
             <div className="max-w-[1600px] mx-auto min-w-0 h-[calc(100vh-140px)] flex flex-col">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4 shrink-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                         Help Desk
                         <span className="text-sm font-normal px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Support</span>
                     </h1>
@@ -58,7 +58,7 @@ const HelpDesk = () => {
                         <select
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="px-4 py-2 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-amber-500/50 text-sm"
+                            className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-amber-500/50 text-sm"
                         >
                             <option value="">All Status</option>
                             <option value="open">Open</option>
@@ -69,7 +69,7 @@ const HelpDesk = () => {
                         <button
                             type="button"
                             onClick={() => setFilters({ status: '' })}
-                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-colors"
+                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-200 text-slate-300 text-sm font-medium transition-colors"
                         >
                             Clear
                         </button>
@@ -78,9 +78,9 @@ const HelpDesk = () => {
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-0 flex-1">
                     {/* Ticket List */}
-                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-white/10">
-                        <div className="p-4 border-b border-white/5 bg-white/5 flex justify-between items-center shrink-0">
-                            <h2 className="font-bold text-white">Tickets</h2>
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-slate-200">
+                        <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
+                            <h2 className="font-bold text-slate-900">Tickets</h2>
                             <span className="text-xs text-slate-400">{tickets.length} tickets</span>
                         </div>
                         <div className="overflow-y-auto flex-1 custom-scrollbar">
@@ -92,15 +92,15 @@ const HelpDesk = () => {
                             ) : tickets.length === 0 ? (
                                 <div className="p-12 text-center text-slate-500">No tickets found</div>
                             ) : (
-                                <div className="divide-y divide-white/5">
+                                <div className="divide-y divide-slate-100">
                                     {tickets.map((ticket) => (
                                         <div
                                             key={ticket._id}
                                             onClick={() => setSelectedTicket(ticket)}
-                                            className={`p-4 cursor-pointer hover:bg-white/5 transition-colors border-l-4 ${selectedTicket?._id === ticket._id ? 'bg-white/5 border-l-amber-500' : 'border-l-transparent'}`}
+                                            className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors border-l-4 ${selectedTicket?._id === ticket._id ? 'bg-amber-50 border-l-amber-500' : 'border-l-transparent'}`}
                                         >
                                             <div className="flex justify-between items-center mb-2">
-                                                <h3 className={`font-semibold text-sm ${selectedTicket?._id === ticket._id ? 'text-white' : 'text-slate-300'}`}>{ticket.subject}</h3>
+                                                <h3 className={`font-semibold text-sm ${selectedTicket?._id === ticket._id ? 'text-slate-900' : 'text-slate-600'}`}>{ticket.subject}</h3>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border ${ticket.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                                         ticket.status === 'in-progress' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                                                             ticket.status === 'closed' ? 'bg-slate-500/10 text-slate-400 border-slate-500/20' :
@@ -124,12 +124,12 @@ const HelpDesk = () => {
                     </div>
 
                     {/* Ticket Details */}
-                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-white/10">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden flex flex-col border border-slate-200">
                         {selectedTicket ? (
                             <div className="flex flex-col h-full">
-                                <div className="p-6 border-b border-white/5 shrink-0 flex justify-between items-start gap-4">
+                                <div className="p-6 border-b border-slate-200 shrink-0 flex justify-between items-start gap-4">
                                     <div>
-                                        <h2 className="text-xl font-bold text-white mb-2">{selectedTicket.subject}</h2>
+                                        <h2 className="text-xl font-bold text-slate-900 mb-2">{selectedTicket.subject}</h2>
                                         <div className="flex items-center gap-3 text-xs text-slate-400">
                                             <span className="flex items-center gap-1.5">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
@@ -149,7 +149,7 @@ const HelpDesk = () => {
                                 <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
                                     <div className="mb-8">
                                         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</p>
-                                        <div className="bg-black/20 rounded-xl p-4 border border-white/5 text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
+                                        <div className="bg-black/20 rounded-xl p-4 border border-slate-200 text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">
                                             {selectedTicket.description}
                                         </div>
                                     </div>
@@ -163,11 +163,11 @@ const HelpDesk = () => {
                                                         key={i}
                                                         type="button"
                                                         onClick={() => setFullScreenImage(s.startsWith('http') ? s : `${BASE_URL}${s}`)}
-                                                        className="aspect-video rounded-lg border border-white/10 overflow-hidden hover:border-amber-500/50 transition-colors group relative"
+                                                        className="aspect-video rounded-lg border border-slate-200 overflow-hidden hover:border-amber-500/50 transition-colors group relative"
                                                     >
                                                         <img src={s.startsWith('http') ? s : `${BASE_URL}${s}`} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <span className="text-xs text-white font-medium">View Full</span>
+                                                            <span className="text-xs text-slate-900 font-medium">View Full</span>
                                                         </div>
                                                     </button>
                                                 ))}
@@ -176,7 +176,7 @@ const HelpDesk = () => {
                                     )}
                                 </div>
 
-                                <div className="p-6 border-t border-white/5 bg-black/20 shrink-0">
+                                <div className="p-6 border-t border-slate-200 bg-black/20 shrink-0">
                                     <div className="flex flex-wrap gap-3 justify-end">
                                         {selectedTicket.status === 'open' && (
                                             <>

@@ -386,7 +386,7 @@ const PlayerDetail = () => {
                         <Link to="/my-users" className="text-slate-400 hover:text-amber-500 text-sm inline-flex items-center gap-2 mb-2 transition-colors">
                             <FaArrowLeft className="w-3 h-3" /> Back to Players
                         </Link>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                             {player.username}
                             <span className="text-sm font-normal px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
                                 {player.role || 'Player'}
@@ -401,13 +401,13 @@ const PlayerDetail = () => {
                         <div className="w-32 h-32 bg-amber-500/20 rounded-full blur-3xl"></div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-6 mb-6 border-b border-white/5 pb-6">
+                    <div className="flex flex-wrap items-center justify-between gap-6 mb-6 border-b border-slate-200 pb-6">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-black font-bold text-xl shadow-lg shadow-amber-500/20">
                                 {player.username.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h2 className="text-lg font-bold text-white">Player Overview</h2>
+                                <h2 className="text-lg font-bold text-slate-900">Player Overview</h2>
                                 <p className="text-slate-400 text-sm">Manage profile and wallet</p>
                             </div>
                         </div>
@@ -415,14 +415,14 @@ const PlayerDetail = () => {
                             <button
                                 type="button"
                                 onClick={() => { setPasswordModalOpen(true); setPasswordActionError(''); setPasswordActionSuccess(''); setNewPassword(''); setConfirmPassword(''); }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-slate-900 font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
                             >
                                 <FaKey className="w-4 h-4" /> Edit Password
                             </button>
                             <button
                                 type="button"
                                 onClick={() => { setWalletModalOpen(true); setWalletActionError(''); setWalletAdjustAmount(''); }}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-900 font-bold shadow-lg shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5 active:scale-95 text-sm"
                             >
                                 <FaWallet className="w-4 h-4" /> Manage Wallet
                             </button>
@@ -443,15 +443,15 @@ const PlayerDetail = () => {
                         </div>
                         <div>
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Phone</p>
-                            <p className="text-white font-medium truncate">{player.phone || '—'}</p>
+                            <p className="text-slate-900 font-medium truncate">{player.phone || '—'}</p>
                         </div>
                         <div>
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Email</p>
-                            <p className="text-white font-medium truncate" title={player.email}>{player.email || '—'}</p>
+                            <p className="text-slate-900 font-medium truncate" title={player.email}>{player.email || '—'}</p>
                         </div>
                         <div>
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Joined</p>
-                            <p className="text-white font-medium text-sm">{player.createdAt ? new Date(player.createdAt).toLocaleDateString('en-IN') : '—'}</p>
+                            <p className="text-slate-900 font-medium text-sm">{player.createdAt ? new Date(player.createdAt).toLocaleDateString('en-IN') : '—'}</p>
                         </div>
                     </div>
                 </div>
@@ -463,7 +463,7 @@ const PlayerDetail = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${activeTab === tab.id ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                className={`px-4 py-2 rounded-md font-semibold text-sm transition-all ${activeTab === tab.id ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-slate-900 hover:bg-white/5'}`}
                             >
                                 {tab.label}
                             </button>
@@ -474,36 +474,36 @@ const PlayerDetail = () => {
                         <button
                             type="button"
                             onClick={() => setCalendarOpen((o) => !o)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black/20 border border-white/10 hover:bg-white/5 text-sm text-slate-200 transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-black/20 border border-slate-200 hover:bg-white/5 text-sm text-slate-200 transition-colors"
                         >
                             <FaCalendarAlt className="w-4 h-4 text-amber-500" />
                             {statementFrom && statementTo ? formatDateRange(statementFrom, statementTo) : 'Select Date Range'}
                         </button>
                         {calendarOpen && (
-                            <div className="absolute right-0 top-full mt-2 glass-panel glass-panel-card rounded-xl border border-white/10 shadow-2xl z-50 flex flex-col sm:flex-row shadow-black/50 overflow-hidden">
-                                <div className="min-w-[180px] border-b sm:border-b-0 sm:border-r border-white/5 p-2 bg-black/40">
+                            <div className="absolute right-0 top-full mt-2 glass-panel glass-panel-card rounded-xl border border-slate-200 shadow-2xl z-50 flex flex-col sm:flex-row shadow-black/50 overflow-hidden">
+                                <div className="min-w-[180px] border-b sm:border-b-0 sm:border-r border-slate-200 p-2 bg-black/40">
                                     {STATEMENT_PRESETS.map((p) => (
                                         <button
                                             key={p.id}
                                             type="button"
                                             onClick={() => handlePresetSelect(p.id)}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors flex items-center justify-between ${statementPreset === p.id ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors flex items-center justify-between ${statementPreset === p.id ? 'bg-amber-500/10 text-amber-500' : 'text-slate-400 hover:bg-white/5 hover:text-slate-900'}`}
                                         >
                                             {p.label}
                                             {statementPreset === p.id && <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>}
                                         </button>
                                     ))}
                                 </div>
-                                <div className="p-4 bg-[#0B1120]">
+                                <div className="p-4 bg-slate-50">
                                     <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-3">Custom Range</div>
                                     <div className="space-y-3">
                                         <div>
                                             <label className="block text-xs text-slate-400 mb-1.5">From</label>
-                                            <input type="date" value={statementFrom} onChange={(e) => setStatementFrom(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 focus:outline-none" />
+                                            <input type="date" value={statementFrom} onChange={(e) => setStatementFrom(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 focus:border-amber-500/50 focus:outline-none" />
                                         </div>
                                         <div>
                                             <label className="block text-xs text-slate-400 mb-1.5">To</label>
-                                            <input type="date" value={statementTo} onChange={(e) => setStatementTo(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white focus:border-amber-500/50 focus:outline-none" />
+                                            <input type="date" value={statementTo} onChange={(e) => setStatementTo(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 focus:border-amber-500/50 focus:outline-none" />
                                         </div>
                                         <button type="button" onClick={handleDateApply} className="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm transition-colors mt-2">
                                             Apply Filter
@@ -530,7 +530,7 @@ const PlayerDetail = () => {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm text-left">
                                         <thead>
-                                            <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                            <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
                                                 <th className="px-4 py-3 font-semibold">Date</th>
                                                 <th className="px-4 py-3 font-semibold">Description</th>
                                                 <th className="px-4 py-3 font-semibold">Type</th>
@@ -546,13 +546,13 @@ const PlayerDetail = () => {
                                                         {row.date.toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <div className="font-medium text-white">{row.name}</div>
+                                                        <div className="font-medium text-slate-900">{row.name}</div>
                                                         <div className={`text-xs inline-flex px-1.5 py-0.5 rounded font-bold mt-1 ${row.status === 'WIN' || row.status === 'CREDIT' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>{row.status}</div>
                                                     </td>
                                                     <td className="px-4 py-3 text-slate-400">{row.type}</td>
                                                     <td className="px-4 py-3 text-right font-mono text-emerald-400">{row.credited ? `+${row.credited}` : '—'}</td>
                                                     <td className="px-4 py-3 text-right font-mono text-red-400">{row.debited ? `-${row.debited}` : '—'}</td>
-                                                    <td className="px-4 py-3 text-right font-mono font-bold text-white">{formatCurrency(row.runningBalance)}</td>
+                                                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-900">{formatCurrency(row.runningBalance)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -580,7 +580,7 @@ const PlayerDetail = () => {
                                                     <FaWallet className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-white font-medium">{t.description || 'Wallet Transaction'}</p>
+                                                    <p className="text-slate-900 font-medium">{t.description || 'Wallet Transaction'}</p>
                                                     <p className="text-xs text-slate-400">{new Date(t.createdAt).toLocaleString('en-IN')}</p>
                                                 </div>
                                             </div>
@@ -607,7 +607,7 @@ const PlayerDetail = () => {
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm text-left">
                                         <thead>
-                                            <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                            <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
                                                 <th className="px-4 py-3 font-semibold">Time</th>
                                                 <th className="px-4 py-3 font-semibold">Market</th>
                                                 <th className="px-4 py-3 font-semibold">Bet Number</th>
@@ -622,9 +622,9 @@ const PlayerDetail = () => {
                                                     <td className="px-4 py-3 text-slate-400 text-xs">
                                                         {new Date(b.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                                                     </td>
-                                                    <td className="px-4 py-3 text-white font-medium">{b.marketId?.marketName || '—'} <span className="text-slate-500 text-xs font-normal">({b.betType})</span></td>
+                                                    <td className="px-4 py-3 text-slate-900 font-medium">{b.marketId?.marketName || '—'} <span className="text-slate-500 text-xs font-normal">({b.betType})</span></td>
                                                     <td className="px-4 py-3 font-mono text-amber-400 font-bold">{b.betNumber}</td>
-                                                    <td className="px-4 py-3 font-mono text-white">{formatCurrency(b.amount)}</td>
+                                                    <td className="px-4 py-3 font-mono text-slate-900">{formatCurrency(b.amount)}</td>
                                                     <td className="px-4 py-3">
                                                         <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase ${b.status === 'won' ? 'bg-emerald-500/10 text-emerald-400' : b.status === 'lost' ? 'bg-red-500/10 text-red-400' : 'bg-slate-700 text-slate-300'}`}>
                                                             {b.status}
@@ -644,46 +644,46 @@ const PlayerDetail = () => {
                         <div className="p-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-4xl">
                                 <div>
-                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                    <h3 className="text-slate-900 font-bold mb-4 flex items-center gap-2">
                                         <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
                                         Personal Info
                                     </h3>
                                     <div className="space-y-4">
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Username</span>
-                                            <span className="text-white font-medium">{player.username}</span>
+                                            <span className="text-slate-900 font-medium">{player.username}</span>
                                         </div>
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Email</span>
-                                            <span className="text-white font-medium">{player.email}</span>
+                                            <span className="text-slate-900 font-medium">{player.email}</span>
                                         </div>
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Phone</span>
-                                            <span className="text-white font-medium">{player.phone || '—'}</span>
+                                            <span className="text-slate-900 font-medium">{player.phone || '—'}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                                    <h3 className="text-slate-900 font-bold mb-4 flex items-center gap-2">
                                         <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
                                         System Info
                                     </h3>
                                     <div className="space-y-4">
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Unique ID</span>
-                                            <span className="text-white font-mono text-xs">{player._id}</span>
+                                            <span className="text-slate-900 font-mono text-xs">{player._id}</span>
                                         </div>
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Created At</span>
-                                            <span className="text-white font-medium">{player.createdAt ? new Date(player.createdAt).toLocaleString('en-IN') : '—'}</span>
+                                            <span className="text-slate-900 font-medium">{player.createdAt ? new Date(player.createdAt).toLocaleString('en-IN') : '—'}</span>
                                         </div>
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Last IP</span>
-                                            <span className="text-white font-mono text-xs">{formatIpDisplay(player.lastLoginIp)}</span>
+                                            <span className="text-slate-900 font-mono text-xs">{formatIpDisplay(player.lastLoginIp)}</span>
                                         </div>
-                                        <div className="flex justify-between border-b border-white/5 pb-2">
+                                        <div className="flex justify-between border-b border-slate-200 pb-2">
                                             <span className="text-slate-400">Source</span>
-                                            <span className="text-white font-medium capitalize">{player.source}</span>
+                                            <span className="text-slate-900 font-medium capitalize">{player.source}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -696,39 +696,39 @@ const PlayerDetail = () => {
             {/* Edit Wallet Modal */}
             {walletModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="glass-panel glass-panel-card bg-[#0B1120]/80 rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card rounded-2xl w-full max-w-md shadow-xl border border-slate-200 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
-                        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                 <FaWallet className="text-amber-500" /> Adjust Wallet Balance
                             </h3>
-                            <button type="button" onClick={() => setWalletModalOpen(false)} className="text-slate-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+                            <button type="button" onClick={() => setWalletModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-colors text-2xl leading-none">&times;</button>
                         </div>
                         <div className="p-6 space-y-6">
-                            <div className="rounded-xl bg-black/30 border border-white/5 p-4 flex items-center justify-between">
+                            <div className="rounded-xl bg-black/30 border border-slate-200 p-4 flex items-center justify-between">
                                 <span className="text-slate-400 text-sm font-medium">Current Balance</span>
                                 <span className="text-emerald-400 font-mono font-bold text-2xl">{formatCurrency(player?.walletBalance ?? 0)}</span>
                             </div>
 
                             {walletActionError && (
-                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm px-4 py-3 flex items-center gap-2">
+                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-700 text-sm px-4 py-3 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
                                     {walletActionError}
                                 </div>
                             )}
 
                             <div className="space-y-3">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Add or Deduct Amount</label>
+                                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Add or Deduct Amount</label>
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
                                         placeholder="0"
                                         value={walletAdjustAmount}
                                         onChange={(e) => setWalletAdjustAmount(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                        className="flex-1 px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 text-right font-mono font-bold"
+                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 text-right font-mono font-bold"
                                     />
-                                    <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-colors disabled:opacity-50">Credit (+)</button>
-                                    <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition-colors disabled:opacity-50">Debit (-)</button>
+                                    <button type="button" onClick={() => handleWalletAdjust('credit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-900 font-bold transition-colors disabled:opacity-50">Credit (+)</button>
+                                    <button type="button" onClick={() => handleWalletAdjust('debit')} disabled={walletActionLoading} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-slate-900 font-bold transition-colors disabled:opacity-50">Debit (-)</button>
                                 </div>
                             </div>
                         </div>
@@ -739,28 +739,28 @@ const PlayerDetail = () => {
             {/* Edit Password Modal */}
             {passwordModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="glass-panel glass-panel-card bg-[#0B1120]/80 rounded-2xl w-full max-w-md shadow-2xl shadow-black/50 border border-white/10 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card rounded-2xl w-full max-w-md shadow-xl border border-slate-200 relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
-                        <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between">
+                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                 <FaKey className="text-blue-500" /> Change Password
                             </h3>
-                            <button type="button" onClick={() => setPasswordModalOpen(false)} className="text-slate-400 hover:text-white transition-colors text-2xl leading-none">&times;</button>
+                            <button type="button" onClick={() => setPasswordModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-colors text-2xl leading-none">&times;</button>
                         </div>
                         <div className="p-6 space-y-5">
-                            <div className="rounded-xl bg-black/30 border border-white/5 p-4">
+                            <div className="rounded-xl bg-black/30 border border-slate-200 p-4">
                                 <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Player</p>
-                                <p className="text-white font-bold">{player?.username}</p>
+                                <p className="text-slate-900 font-bold">{player?.username}</p>
                             </div>
 
                             {passwordActionError && (
-                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm px-4 py-3 flex items-center gap-2">
+                                <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-700 text-sm px-4 py-3 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
                                     {passwordActionError}
                                 </div>
                             )}
                             {passwordActionSuccess && (
-                                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 text-sm px-4 py-3 flex items-center gap-2">
+                                <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 text-sm px-4 py-3 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                     {passwordActionSuccess}
                                 </div>
@@ -768,23 +768,23 @@ const PlayerDetail = () => {
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">New Password</label>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">New Password</label>
                                     <input
                                         type="password"
                                         placeholder="Enter new password (min 6 characters)"
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+                                        className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirm Password</label>
+                                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Confirm Password</label>
                                     <input
                                         type="password"
                                         placeholder="Confirm new password"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
+                                        className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-blue-500/50"
                                     />
                                 </div>
                             </div>
@@ -793,7 +793,7 @@ const PlayerDetail = () => {
                                 <button
                                     type="button"
                                     onClick={() => setPasswordModalOpen(false)}
-                                    className="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold transition-colors"
+                                    className="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-900 font-bold transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -801,7 +801,7 @@ const PlayerDetail = () => {
                                     type="button"
                                     onClick={handleChangePassword}
                                     disabled={passwordActionLoading}
-                                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-colors disabled:opacity-50"
+                                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold transition-colors disabled:opacity-50"
                                 >
                                     {passwordActionLoading ? <span className="animate-spin">⏳</span> : 'Change Password'}
                                 </button>

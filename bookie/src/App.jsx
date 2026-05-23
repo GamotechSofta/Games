@@ -45,10 +45,10 @@ const PrivateRoute = ({ children }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0B1120] flex items-center justify-center">
+            <div className="min-h-screen bg-slate-100 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"></div>
-                    <div className="text-amber-500 font-bold animate-pulse">Loading Panel...</div>
+                    <div className="text-amber-600 font-bold animate-pulse">Loading Panel...</div>
                 </div>
             </div>
         );

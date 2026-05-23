@@ -129,7 +129,7 @@ const Payments = () => {
             <div className="max-w-[1600px] mx-auto min-w-0">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3 mb-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3 mb-2">
                         <FaWallet className="text-amber-500" />
                         Payment Management
                         {!canManage && <span className="text-base font-normal px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">View Only</span>}
@@ -156,8 +156,8 @@ const Payments = () => {
                             <FaArrowDown className="w-24 h-24 text-amber-500 rotate-[-15deg]" />
                         </div>
                         <div className="relative z-10">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Deposits</p>
-                            <p className="text-3xl font-bold text-white group-hover:text-amber-400 transition-colors">{pendingCounts.deposits}</p>
+                            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Pending Deposits</p>
+                            <p className="text-3xl font-bold text-slate-900 group-hover:text-amber-400 transition-colors">{pendingCounts.deposits}</p>
                             <p className="text-xs text-amber-500 mt-2 flex items-center gap-1 font-medium">
                                 Click to filter <FaFilter className="w-3 h-3" />
                             </p>
@@ -175,8 +175,8 @@ const Payments = () => {
                             <FaArrowUp className="w-24 h-24 text-purple-500 rotate-[15deg]" />
                         </div>
                         <div className="relative z-10">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pending Withdrawals</p>
-                            <p className="text-3xl font-bold text-white group-hover:text-purple-400 transition-colors">{pendingCounts.withdrawals}</p>
+                            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Pending Withdrawals</p>
+                            <p className="text-3xl font-bold text-slate-900 group-hover:text-purple-400 transition-colors">{pendingCounts.withdrawals}</p>
                             <p className="text-xs text-purple-400 mt-2 flex items-center gap-1 font-medium">
                                 Click to filter <FaFilter className="w-3 h-3" />
                             </p>
@@ -194,8 +194,8 @@ const Payments = () => {
                             <FaClock className="w-24 h-24 text-blue-500" />
                         </div>
                         <div className="relative z-10">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Pending</p>
-                            <p className="text-3xl font-bold text-white group-hover:text-blue-400 transition-colors">{pendingCounts.total}</p>
+                            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Total Pending</p>
+                            <p className="text-3xl font-bold text-slate-900 group-hover:text-blue-400 transition-colors">{pendingCounts.total}</p>
                             <p className={`text-xs mt-2 font-medium ${pendingRequireAction ? 'text-amber-400' : 'text-emerald-400'}`}>
                                 {pendingRequireAction ? 'Requires action' : 'All clear'}
                             </p>
@@ -204,14 +204,14 @@ const Payments = () => {
                 </div>
 
                 {/* Filters */}
-                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-8 border border-white/10">
+                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-8 border border-slate-200">
                     <div className="flex flex-col sm:flex-row gap-4 items-end">
                         <div className="flex-1 w-full sm:w-auto relative">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Status</label>
+                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Status</label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
+                                className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 transition-all text-sm cursor-pointer"
                                 style={{
                                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat',
@@ -221,19 +221,19 @@ const Payments = () => {
                                     appearance: 'none'
                                 }}
                             >
-                                <option value="" className="bg-[#1a1a1a] text-white">All Status</option>
-                                <option value="pending" className="bg-[#1a1a1a] text-white">Pending</option>
-                                <option value="approved" className="bg-[#1a1a1a] text-white">Approved</option>
-                                <option value="rejected" className="bg-[#1a1a1a] text-white">Rejected</option>
-                                <option value="completed" className="bg-[#1a1a1a] text-white">Completed</option>
+                                <option value="" className="bg-white text-slate-900">All Status</option>
+                                <option value="pending" className="bg-white text-slate-900">Pending</option>
+                                <option value="approved" className="bg-white text-slate-900">Approved</option>
+                                <option value="rejected" className="bg-white text-slate-900">Rejected</option>
+                                <option value="completed" className="bg-white text-slate-900">Completed</option>
                             </select>
                         </div>
                         <div className="flex-1 w-full sm:w-auto relative">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 block">Type</label>
+                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Type</label>
                             <select
                                 value={filters.type}
                                 onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-xl bg-[#1a1a1a] border border-white/10 text-white focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm cursor-pointer"
+                                className="w-full px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30 transition-all text-sm cursor-pointer"
                                 style={{
                                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                                     backgroundRepeat: 'no-repeat',
@@ -243,15 +243,15 @@ const Payments = () => {
                                     appearance: 'none'
                                 }}
                             >
-                                <option value="" className="bg-[#1a1a1a] text-white">All Types</option>
-                                <option value="deposit" className="bg-[#1a1a1a] text-white">Deposit</option>
-                                <option value="withdrawal" className="bg-[#1a1a1a] text-white">Withdrawal</option>
+                                <option value="" className="bg-white text-slate-900">All Types</option>
+                                <option value="deposit" className="bg-white text-slate-900">Deposit</option>
+                                <option value="withdrawal" className="bg-white text-slate-900">Withdrawal</option>
                             </select>
                         </div>
                         <div>
                             <button
                                 onClick={() => setFilters({ status: '', type: '' })}
-                                className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-bold transition-colors whitespace-nowrap"
+                                className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-slate-200 text-slate-300 text-sm font-bold transition-colors whitespace-nowrap"
                             >
                                 Clear Filters
                             </button>
@@ -276,16 +276,16 @@ const Payments = () => {
                                 </div>
                             ) : (
                                 payments.map((p) => (
-                                    <div key={p._id} className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden">
+                                    <div key={p._id} className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden">
                                         <div className={`absolute top-0 left-0 w-1 h-full ${p.type === 'deposit' ? 'bg-emerald-500' : 'bg-purple-500'}`}></div>
                                         {/* Top: Player + Status */}
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                                                <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0 border border-slate-200">
                                                     {p.type === 'deposit' ? <FaArrowDown className="text-emerald-400 w-3 h-3" /> : <FaArrowUp className="text-purple-400 w-3 h-3" />}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-white text-sm truncate">{p.userId?.username || '—'}</p>
+                                                    <p className="font-bold text-slate-900 text-sm truncate">{p.userId?.username || '—'}</p>
                                                     <p className="text-xs text-slate-500 truncate font-mono">#{p._id.slice(-6).toUpperCase()}</p>
                                                 </div>
                                             </div>
@@ -295,7 +295,7 @@ const Payments = () => {
                                         </div>
 
                                         {/* Info grid */}
-                                        <div className="bg-black/20 rounded-lg p-3 mb-4 border border-white/5">
+                                        <div className="bg-black/20 rounded-lg p-3 mb-4 border border-slate-200">
                                             <div className="flex justify-between items-end mb-1">
                                                 <span className="text-xs text-slate-500 font-medium">Amount</span>
                                                 <span className={`text-lg font-bold font-mono ${p.type === 'deposit' ? 'text-emerald-400' : 'text-purple-400'}`}>
@@ -310,22 +310,22 @@ const Payments = () => {
 
                                         {/* Payment info */}
                                         {(p.upiTransactionId || p.bankDetailId) && (
-                                            <div className="mb-4 text-xs text-slate-400 bg-white/5 rounded-lg p-3 border border-white/5">
+                                            <div className="mb-4 text-xs text-slate-400 bg-white/5 rounded-lg p-3 border border-slate-200">
                                                 {p.type === 'deposit' && p.upiTransactionId && (
                                                     <div className="flex justify-between">
                                                         <span>UTR:</span>
-                                                        <span className="text-white font-mono">{p.upiTransactionId}</span>
+                                                        <span className="text-slate-900 font-mono">{p.upiTransactionId}</span>
                                                     </div>
                                                 )}
                                                 {p.type === 'withdrawal' && p.bankDetailId && (
                                                     <div className="space-y-1">
                                                         <div className="flex justify-between">
                                                             <span>Bank:</span>
-                                                            <span className="text-white">{p.bankDetailId.bankName}</span>
+                                                            <span className="text-slate-900">{p.bankDetailId.bankName}</span>
                                                         </div>
                                                         <div className="flex justify-between">
                                                             <span>Acc:</span>
-                                                            <span className="text-white font-mono">****{p.bankDetailId.accountNumber?.slice(-4)}</span>
+                                                            <span className="text-slate-900 font-mono">****{p.bankDetailId.accountNumber?.slice(-4)}</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -371,11 +371,11 @@ const Payments = () => {
                         </div>
 
                         {/* Desktop table */}
-                        <div className="hidden md:block glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
+                        <div className="hidden md:block glass-panel glass-panel-card rounded-2xl overflow-hidden border border-slate-200">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left text-sm">
                                     <thead>
-                                        <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                        <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
                                             <th className="px-3 py-3 font-semibold">Player</th>
                                             <th className="px-3 py-3 font-semibold">Type</th>
                                             <th className="px-3 py-3 font-semibold">Amount</th>
@@ -393,7 +393,7 @@ const Payments = () => {
                                                 <tr key={payment._id} className="hover:bg-white/5 transition-colors">
                                                     <td className="px-3 py-3">
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="font-semibold text-white text-sm truncate">{payment.userId?.username || 'Unknown'}</span>
+                                                            <span className="font-semibold text-slate-900 text-sm truncate">{payment.userId?.username || 'Unknown'}</span>
                                                             <span className="text-xs text-slate-500 font-mono truncate">#{payment._id.slice(-6).toUpperCase()}</span>
                                                         </div>
                                                     </td>
@@ -432,14 +432,14 @@ const Payments = () => {
                                                         <div className="flex items-center justify-end gap-1.5 flex-wrap">
                                                             <button
                                                                 onClick={() => setDetailModal({ show: true, payment })}
-                                                                className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-bold whitespace-nowrap"
+                                                                className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-slate-900 transition-colors text-xs font-bold whitespace-nowrap"
                                                             >
                                                                 View
                                                             </button>
                                                             {payment.screenshotUrl && (
                                                                 <button
                                                                     onClick={() => setImageModal({ show: true, url: getScreenshotUrl(payment.screenshotUrl) })}
-                                                                    className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-bold whitespace-nowrap"
+                                                                    className="px-2.5 py-1.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-slate-900 transition-colors text-xs font-bold whitespace-nowrap"
                                                                 >
                                                                     Proof
                                                                 </button>
@@ -476,7 +476,7 @@ const Payments = () => {
             {/* Action Modal */}
             {actionModal.show && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
+                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-slate-200 relative overflow-hidden shadow-2xl">
                         <div className={`absolute top-0 left-0 w-full h-1 ${actionModal.action === 'approve' ? 'bg-gradient-to-r from-emerald-500 to-green-400' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}></div>
 
                         <div className="flex items-center gap-4 mb-6">
@@ -485,7 +485,7 @@ const Payments = () => {
                                 {actionModal.action === 'approve' ? <FaCheck className="w-6 h-6" /> : <FaTimes className="w-6 h-6" />}
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white">
+                                <h3 className="text-xl font-bold text-slate-900">
                                     {actionModal.action === 'approve' ? 'Approve' : 'Reject'} {actionModal.payment?.type === 'deposit' ? 'Deposit' : 'Withdrawal'}
                                 </h3>
                                 <p className="text-slate-400 text-xs mt-1">
@@ -494,21 +494,21 @@ const Payments = () => {
                             </div>
                         </div>
 
-                        <div className="bg-black/40 rounded-xl p-4 mb-6 border border-white/5 space-y-3">
+                        <div className="bg-black/40 rounded-xl p-4 mb-6 border border-slate-200 space-y-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-slate-400 text-sm">Amount</span>
-                                <span className="text-xl font-bold font-mono text-white">₹{actionModal.payment?.amount?.toLocaleString()}</span>
+                                <span className="text-xl font-bold font-mono text-slate-900">₹{actionModal.payment?.amount?.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-slate-400">Player</span>
-                                <span className="text-white font-medium">{actionModal.payment?.userId?.username}</span>
+                                <span className="text-slate-900 font-medium">{actionModal.payment?.userId?.username}</span>
                             </div>
                         </div>
 
                         {actionModal.payment?.type === 'deposit' && actionModal.payment?.screenshotUrl && (
                             <div className="mb-6">
                                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Proof of Payment</p>
-                                <button onClick={() => setImageModal({ show: true, url: getScreenshotUrl(actionModal.payment.screenshotUrl) })} className="w-full h-32 rounded-lg border border-white/10 overflow-hidden relative group">
+                                <button onClick={() => setImageModal({ show: true, url: getScreenshotUrl(actionModal.payment.screenshotUrl) })} className="w-full h-32 rounded-lg border border-slate-200 overflow-hidden relative group">
                                     <img src={getScreenshotUrl(actionModal.payment.screenshotUrl)} alt="Proof" className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <span className="px-3 py-1 rounded bg-black/60 text-white text-xs font-bold backdrop-blur-sm">View Full Image</span>
@@ -518,14 +518,14 @@ const Payments = () => {
                         )}
 
                         <div className="mb-6">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">
+                            <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">
                                 Remarks {actionModal.action === 'reject' && <span className="text-red-500">*</span>}
                             </label>
                             <textarea
                                 value={adminRemarks}
                                 onChange={(e) => setAdminRemarks(e.target.value)}
                                 placeholder={actionModal.action === 'approve' ? 'Optional remarks...' : 'Reason for rejection...'}
-                                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 resize-none h-24 text-sm"
+                                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 resize-none h-24 text-sm"
                             />
                         </div>
 
@@ -575,25 +575,25 @@ const Payments = () => {
             {/* Detail Modal */}
             {detailModal.show && detailModal.payment && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel glass-panel-card w-full max-w-lg rounded-2xl border border-white/10 flex flex-col max-h-[90vh] shadow-2xl">
-                        <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0">
+                    <div className="glass-panel glass-panel-card w-full max-w-lg rounded-2xl border border-slate-200 flex flex-col max-h-[90vh] shadow-2xl">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
                             <div>
-                                <h3 className="text-xl font-bold text-white">Payment Details</h3>
+                                <h3 className="text-xl font-bold text-slate-900">Payment Details</h3>
                                 <p className="text-slate-400 text-xs mt-1">Ref ID: #{detailModal.payment._id.slice(-6).toUpperCase()}</p>
                             </div>
-                            <button onClick={() => setDetailModal({ show: false, payment: null })} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                            <button onClick={() => setDetailModal({ show: false, payment: null })} className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-slate-900 transition-colors">
                                 <FaTimes className="w-5 h-5" />
                             </button>
                         </div>
 
                         <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
                             {/* Amount Card */}
-                            <div className="bg-gradient-to-br from-white/5 to-transparent rounded-xl p-6 border border-white/5 text-center relative overflow-hidden">
+                            <div className="bg-gradient-to-br from-white/5 to-transparent rounded-xl p-6 border border-slate-200 text-center relative overflow-hidden">
                                 <div className={`absolute top-0 right-0 p-4 opacity-10 ${detailModal.payment.type === 'deposit' ? 'text-emerald-500' : 'text-purple-500'}`}>
                                     {detailModal.payment.type === 'deposit' ? <FaArrowDown className="w-24 h-24 rotate-[-15deg]" /> : <FaArrowUp className="w-24 h-24 rotate-[15deg]" />}
                                 </div>
                                 <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Amount</p>
-                                <p className="text-4xl font-bold font-mono text-white mb-2">₹{detailModal.payment.amount?.toLocaleString()}</p>
+                                <p className="text-4xl font-bold font-mono text-slate-900 mb-2">₹{detailModal.payment.amount?.toLocaleString()}</p>
                                 <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusBadge(detailModal.payment.status)}`}>
                                     {detailModal.payment.status}
                                 </span>
@@ -603,21 +603,21 @@ const Payments = () => {
                             <div className="space-y-4">
                                 <div>
                                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">User Information</h4>
-                                    <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                                    <div className="bg-black/30 rounded-xl p-4 border border-slate-200 space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-slate-400 text-sm">Username</span>
-                                            <span className="text-white font-medium">{detailModal.payment.userId?.username || 'Unknown'}</span>
+                                            <span className="text-slate-900 font-medium">{detailModal.payment.userId?.username || 'Unknown'}</span>
                                         </div>
                                         {detailModal.payment.userId?.email && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-400 text-sm">Email</span>
-                                                <span className="text-white text-sm">{detailModal.payment.userId.email}</span>
+                                                <span className="text-slate-900 text-sm">{detailModal.payment.userId.email}</span>
                                             </div>
                                         )}
                                         {detailModal.payment.userId?.phone && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-400 text-sm">Phone</span>
-                                                <span className="text-white text-sm">{detailModal.payment.userId.phone}</span>
+                                                <span className="text-slate-900 text-sm">{detailModal.payment.userId.phone}</span>
                                             </div>
                                         )}
                                     </div>
@@ -627,33 +627,33 @@ const Payments = () => {
                                 {detailModal.payment.type === 'withdrawal' && detailModal.payment.bankDetailId && (
                                     <div>
                                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Bank Details</h4>
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                                        <div className="bg-black/30 rounded-xl p-4 border border-slate-200 space-y-3">
                                             <div className="flex justify-between">
                                                 <span className="text-slate-400 text-sm">Holder</span>
-                                                <span className="text-white font-medium text-sm">{detailModal.payment.bankDetailId.accountHolderName}</span>
+                                                <span className="text-slate-900 font-medium text-sm">{detailModal.payment.bankDetailId.accountHolderName}</span>
                                             </div>
                                             {detailModal.payment.bankDetailId.bankName && (
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-400 text-sm">Bank</span>
-                                                    <span className="text-white text-sm">{detailModal.payment.bankDetailId.bankName}</span>
+                                                    <span className="text-slate-900 text-sm">{detailModal.payment.bankDetailId.bankName}</span>
                                                 </div>
                                             )}
                                             {detailModal.payment.bankDetailId.accountNumber && (
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-400 text-sm">Account</span>
-                                                    <span className="text-white font-mono text-sm">{detailModal.payment.bankDetailId.accountNumber}</span>
+                                                    <span className="text-slate-900 font-mono text-sm">{detailModal.payment.bankDetailId.accountNumber}</span>
                                                 </div>
                                             )}
                                             {detailModal.payment.bankDetailId.ifscCode && (
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-400 text-sm">IFSC</span>
-                                                    <span className="text-white font-mono text-sm">{detailModal.payment.bankDetailId.ifscCode}</span>
+                                                    <span className="text-slate-900 font-mono text-sm">{detailModal.payment.bankDetailId.ifscCode}</span>
                                                 </div>
                                             )}
                                             {detailModal.payment.bankDetailId.upiId && (
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-400 text-sm">UPI ID</span>
-                                                    <span className="text-white font-mono text-sm">{detailModal.payment.bankDetailId.upiId}</span>
+                                                    <span className="text-slate-900 font-mono text-sm">{detailModal.payment.bankDetailId.upiId}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -664,23 +664,23 @@ const Payments = () => {
                                 {detailModal.payment.type === 'deposit' && (
                                     <div>
                                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Transaction Info</h4>
-                                        <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                                        <div className="bg-black/30 rounded-xl p-4 border border-slate-200 space-y-3">
                                             {detailModal.payment.upiTransactionId && (
                                                 <div className="flex justify-between">
                                                     <span className="text-slate-400 text-sm">UTR / Ref</span>
-                                                    <span className="text-white font-mono text-sm">{detailModal.payment.upiTransactionId}</span>
+                                                    <span className="text-slate-900 font-mono text-sm">{detailModal.payment.upiTransactionId}</span>
                                                 </div>
                                             )}
                                             {detailModal.payment.userNote && (
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-slate-400 text-sm">Note</span>
-                                                    <span className="text-white text-sm italic">"{detailModal.payment.userNote}"</span>
+                                                    <span className="text-slate-900 text-sm italic">"{detailModal.payment.userNote}"</span>
                                                 </div>
                                             )}
                                         </div>
                                         {detailModal.payment.screenshotUrl && (
                                             <div className="mt-4">
-                                                <button onClick={() => setImageModal({ show: true, url: getScreenshotUrl(detailModal.payment.screenshotUrl) })} className="w-full h-40 rounded-xl border border-white/10 overflow-hidden relative group">
+                                                <button onClick={() => setImageModal({ show: true, url: getScreenshotUrl(detailModal.payment.screenshotUrl) })} className="w-full h-40 rounded-xl border border-slate-200 overflow-hidden relative group">
                                                     <img src={getScreenshotUrl(detailModal.payment.screenshotUrl)} alt="Proof" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                                                     <div className="absolute inset-0 flex items-center justify-center">
                                                         <span className="px-3 py-1 rounded bg-black/60 text-white text-xs font-bold backdrop-blur-sm shadow-lg">View Proof</span>
@@ -694,19 +694,19 @@ const Payments = () => {
                                 {/* Timeline */}
                                 <div>
                                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">History</h4>
-                                    <div className="bg-black/30 rounded-xl p-4 border border-white/5 space-y-3">
+                                    <div className="bg-black/30 rounded-xl p-4 border border-slate-200 space-y-3">
                                         <div className="flex justify-between">
                                             <span className="text-slate-400 text-sm">Created</span>
-                                            <span className="text-white text-sm">{formatDate(detailModal.payment.createdAt)}</span>
+                                            <span className="text-slate-900 text-sm">{formatDate(detailModal.payment.createdAt)}</span>
                                         </div>
                                         {detailModal.payment.processedAt && (
                                             <div className="flex justify-between">
                                                 <span className="text-slate-400 text-sm">Processed</span>
-                                                <span className="text-white text-sm">{formatDate(detailModal.payment.processedAt)}</span>
+                                                <span className="text-slate-900 text-sm">{formatDate(detailModal.payment.processedAt)}</span>
                                             </div>
                                         )}
                                         {detailModal.payment.adminRemarks && (
-                                            <div className="flex flex-col gap-1 pt-2 border-t border-white/5">
+                                            <div className="flex flex-col gap-1 pt-2 border-t border-slate-200">
                                                 <span className="text-slate-400 text-sm">Admin Remarks</span>
                                                 <span className="text-amber-400 text-sm">{detailModal.payment.adminRemarks}</span>
                                             </div>
@@ -716,7 +716,7 @@ const Payments = () => {
                             </div>
                         </div>
 
-                        <div className="p-6 border-t border-white/5 bg-black/20 flex gap-3 shrink-0">
+                        <div className="p-6 border-t border-slate-200 bg-black/20 flex gap-3 shrink-0">
                             <button
                                 onClick={() => setDetailModal({ show: false, payment: null })}
                                 className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold transition-colors"

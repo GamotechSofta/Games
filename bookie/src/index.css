@@ -22,53 +22,266 @@ input[type="number"] {
   box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
 }
 
-/* Premium Scrollbar */
+/* Light theme scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #94a3b8;
 }
 
-/* Premium Glass Effect */
+/* Light glass panels */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
-/* Lighter cards for Dashboard – easier to read and understand */
 .glass-panel-card {
-  background: rgba(51, 65, 85, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.2), 0 2px 6px -2px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px -4px rgba(15, 23, 42, 0.08);
 }
 
 .glass-panel-hover:hover {
-  background: rgba(30, 41, 59, 0.6);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: #f8fafc;
+  border-color: #cbd5e1;
   transform: translateY(-2px);
   transition: all 0.3s ease;
 }
 
 body {
-  background-color: #0B1120;
-  /* Deep Midnight Blue */
-  color: #e2e8f0;
+  background-color: #f1f5f9;
+  color: #1e293b;
   font-family: 'Outfit', sans-serif;
+}
+
+/* ── Main content: remap dark Tailwind utilities to light ── */
+.bookie-main {
+  color: #1e293b;
+}
+
+.bookie-main .text-white {
+  color: #0f172a !important;
+}
+
+.bookie-main button.text-white,
+.bookie-main .bg-emerald-600.text-white,
+.bookie-main .bg-emerald-500.text-white,
+.bookie-main .bg-red-600.text-white,
+.bookie-main .bg-red-500.text-white,
+.bookie-main .bg-red-600\/80.text-white,
+.bookie-main .bg-blue-600.text-white,
+.bookie-main .bg-blue-500.text-white,
+.bookie-main [class*="from-blue-"].text-white,
+.bookie-main [class*="from-emerald-"].text-white,
+.bookie-main [class*="bg-red-5"].text-white {
+  color: #ffffff !important;
+}
+
+.bookie-main .text-gray-100 {
+  color: #1e293b !important;
+}
+
+.bookie-main .text-gray-200 {
+  color: #334155 !important;
+}
+
+.bookie-main .text-slate-300 {
+  color: #475569 !important;
+}
+
+.bookie-main .text-slate-400 {
+  color: #64748b !important;
+}
+
+.bookie-main .text-slate-500 {
+  color: #64748b !important;
+}
+
+.bookie-main .text-red-200 {
+  color: #b91c1c !important;
+}
+
+.bookie-main .text-emerald-200,
+.bookie-main .text-green-200 {
+  color: #047857 !important;
+}
+
+.bookie-main .bg-black\/20,
+.bookie-main .bg-black\/30,
+.bookie-main .bg-black\/40,
+.bookie-main .bg-black\/50 {
+  background-color: #ffffff !important;
+}
+
+.bookie-main .bg-white\/5 {
+  background-color: #f8fafc !important;
+}
+
+.bookie-main .bg-white\/10,
+.bookie-main .hover\:bg-white\/10:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.bookie-main .bg-slate-800\/50,
+.bookie-main .bg-slate-800\/30,
+.bookie-main .bg-slate-900\/50,
+.bookie-main .bg-slate-900\/80 {
+  background-color: #f1f5f9 !important;
+}
+
+.bookie-main .border-white\/5,
+.bookie-main .border-white\/10,
+.bookie-main .border-white\/20,
+.bookie-main .hover\:border-white\/10:hover {
+  border-color: #e2e8f0 !important;
+}
+
+.bookie-main .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0;
+}
+
+.bookie-main .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+.bookie-main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.bookie-main select,
+.bookie-main textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.bookie-main input::placeholder,
+.bookie-main textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.bookie-main input:focus,
+.bookie-main select:focus,
+.bookie-main textarea:focus {
+  border-color: #f59e0b !important;
+  background-color: #ffffff !important;
+}
+
+.bookie-main table thead {
+  background-color: #f8fafc;
+}
+
+.bookie-main table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Hardcoded dark hex backgrounds in page components */
+.bookie-main [class*="bg-[#0"],
+.bookie-main [class*="bg-[#1a"],
+.bookie-main [class*="bg-[#1e"] {
+  background-color: #ffffff !important;
+}
+
+.bookie-main [class*="bg-[#0"] .text-white,
+.bookie-main [class*="bg-[#1a"].text-white {
+  color: #0f172a !important;
+}
+
+.bookie-main .\[color-scheme\:dark\] {
+  color-scheme: light;
+}
+
+/* Modal overlays stay readable */
+.bookie-main .fixed.inset-0.bg-black\/80 {
+  background-color: rgba(15, 23, 42, 0.4) !important;
+}
+
+/* Page titles (gradient text was white → invisible on light bg) */
+.bookie-main .bg-clip-text.text-transparent {
+  background-image: linear-gradient(to right, #0f172a, #475569) !important;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.bookie-page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.bookie-page-desc {
+  font-size: 0.875rem;
+  color: #475569;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+/* Alert / banner text on light tinted backgrounds */
+.bookie-main .text-amber-200,
+.bookie-main [class*="text-amber-200"] {
+  color: #92400e !important;
+}
+
+.bookie-main [class*="from-amber-500/20"] h3.text-white,
+.bookie-main [class*="from-amber-500/20"] .text-white {
+  color: #0f172a !important;
+}
+
+/* Stronger accent colors on light backgrounds */
+.bookie-main .text-emerald-400 { color: #059669 !important; }
+.bookie-main .text-blue-400 { color: #2563eb !important; }
+.bookie-main .text-purple-400 { color: #7c3aed !important; }
+.bookie-main .text-amber-400 { color: #d97706 !important; }
+.bookie-main .text-amber-300 { color: #b45309 !important; }
+.bookie-main .text-red-400 { color: #dc2626 !important; }
+.bookie-main .text-red-500 { color: #dc2626 !important; }
+
+/* Progress bars & icon chips */
+.bookie-main .bg-slate-800.rounded-full,
+.bookie-main .h-1.w-full.bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.bookie-main .rounded-xl.bg-slate-800.flex,
+.bookie-main .w-10.h-10.rounded-xl.bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+}
+
+.bookie-main .glass-panel .opacity-20,
+.bookie-main .glass-panel-card .opacity-20 {
+  opacity: 0.4 !important;
+}
+
+.bookie-main .glass-panel .group-hover\:opacity-30:hover,
+.bookie-main .glass-panel-card .group-hover\:opacity-30:hover {
+  opacity: 0.55 !important;
+}
+
+/* Skeleton loaders */
+.bookie-main .animate-pulse .bg-white\/10,
+.bookie-main .animate-pulse .bg-white\/5 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Table & list rows */
+.bookie-main .border-b.border-white\/10,
+.bookie-main .border-white\/10.last\:border-0 {
+  border-color: #f1f5f9 !important;
+}
+
+.bookie-main .hover\:bg-white\/5:hover {
+  background-color: #f8fafc !important;
 }

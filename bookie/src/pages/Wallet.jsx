@@ -138,12 +138,12 @@ const Wallet = () => {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
                             <FaWallet className="text-amber-500" />
                             Wallet Management
                             {!canManage && <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-400 text-xs font-normal border border-slate-700">View Only</span>}
                         </h1>
-                        <p className="text-slate-400 text-sm mt-1">
+                        <p className="text-slate-600 text-sm mt-1">
                             {canManage
                                 ? 'Manage player balances and transactions'
                                 : 'Overview of player wallet balances'}
@@ -169,19 +169,19 @@ const Wallet = () => {
                 </div>
 
                 {/* Summary Card */}
-                <div className="glass-panel glass-panel-card p-6 rounded-2xl border border-white/10 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card p-6 rounded-2xl border border-slate-200 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-6 opacity-5">
                         <FaCoins className="w-32 h-32 text-amber-500 -mb-10 -mr-10 rotate-12" />
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-6 relative z-10">
                         <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Player Balance</p>
+                            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Total Player Balance</p>
                             <p className="text-4xl font-mono font-bold text-amber-500 tracking-tight">₹{totalBalance.toLocaleString()}</p>
                         </div>
                         <div className="flex items-center gap-8">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 text-right">Active Wallets</p>
-                                <p className="text-2xl font-bold text-white text-right">{wallets.length}</p>
+                                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1 text-right">Active Wallets</p>
+                                <p className="text-2xl font-bold text-slate-900 text-right">{wallets.length}</p>
                             </div>
                         </div>
                     </div>
@@ -190,12 +190,12 @@ const Wallet = () => {
                 {/* Controls */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                     {/* Tabs */}
-                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto">
+                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-slate-200 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab('wallets')}
                             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'wallets'
                                 ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                : 'text-slate-400 hover:text-slate-900 hover:bg-white/5'
                                 }`}
                         >
                             <FaWallet className="w-4 h-4" />
@@ -205,7 +205,7 @@ const Wallet = () => {
                             onClick={() => setActiveTab('transactions')}
                             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'transactions'
                                 ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                : 'text-slate-400 hover:text-slate-900 hover:bg-white/5'
                                 }`}
                         >
                             <FaHistory className="w-4 h-4" />
@@ -221,12 +221,12 @@ const Wallet = () => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={activeTab === 'wallets' ? "Search players..." : "Search transactions..."}
-                            className="w-full pl-11 pr-10 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm font-medium"
+                            className="w-full pl-11 pr-10 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all text-sm font-medium"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 text-slate-500 hover:text-slate-900 transition-colors"
                             >
                                 <FaTimes className="w-3 h-3" />
                             </button>
@@ -241,13 +241,13 @@ const Wallet = () => {
                         ))}
                     </div>
                 ) : activeTab === 'wallets' ? (
-                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-slate-200">
                         <table className="w-full">
-                            <thead className="bg-white/5 border-b border-white/5 text-left">
+                            <thead className="bg-white/5 border-b border-slate-200 text-left">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Player</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Balance</th>
-                                    {canManage && <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Actions</th>}
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Player</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Balance</th>
+                                    {canManage && <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Actions</th>}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -265,7 +265,7 @@ const Wallet = () => {
                                                     {(w.userId?.username || '?').charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm">{w.userId?.username || 'Unknown'}</p>
+                                                    <p className="font-bold text-slate-900 text-sm">{w.userId?.username || 'Unknown'}</p>
                                                     <p className="text-xs text-slate-500">{w.userId?.email || 'No email'}</p>
                                                 </div>
                                             </div>
@@ -297,14 +297,14 @@ const Wallet = () => {
                         </table>
                     </div>
                 ) : (
-                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-slate-200">
                         <table className="w-full">
-                            <thead className="bg-white/5 border-b border-white/5 text-left">
+                            <thead className="bg-white/5 border-b border-slate-200 text-left">
                                 <tr>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Player</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Date</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Player</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-600 uppercase tracking-wider">Type</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">Amount</th>
+                                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider hidden sm:table-cell">Date</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -322,7 +322,7 @@ const Wallet = () => {
                                                     {(t.userId?.username || '?').charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm">{t.userId?.username || 'Unknown'}</p>
+                                                    <p className="font-bold text-slate-900 text-sm">{t.userId?.username || 'Unknown'}</p>
                                                     {t.description && <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{t.description}</p>}
                                                 </div>
                                             </div>
@@ -354,7 +354,7 @@ const Wallet = () => {
             {/* Adjust Balance Modal */}
             {adjustModal.show && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-white/10 relative overflow-hidden shadow-2xl">
+                    <div className="glass-panel glass-panel-card w-full max-w-md rounded-2xl p-6 border border-slate-200 relative overflow-hidden shadow-2xl">
                         {/* Header gradient */}
                         <div className={`absolute top-0 left-0 w-full h-1 ${adjustModal.type === 'credit' ? 'bg-gradient-to-r from-emerald-500 to-green-400' : 'bg-gradient-to-r from-red-500 to-orange-500'}`}></div>
 
@@ -367,27 +367,27 @@ const Wallet = () => {
                                     {adjustModal.type === 'credit' ? <FaPlus className="w-5 h-5" /> : <FaMinus className="w-5 h-5" />}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-white leading-tight">
+                                    <h3 className="text-xl font-bold text-slate-900 leading-tight">
                                         {adjustModal.type === 'credit' ? 'Add Funds' : 'Deduct Funds'}
                                     </h3>
                                     <p className="text-slate-400 text-xs">
-                                        Wallet: <span className="text-white font-bold">{adjustModal.wallet?.userId?.username}</span>
+                                        Wallet: <span className="text-slate-900 font-bold">{adjustModal.wallet?.userId?.username}</span>
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={closeAdjust} className="text-slate-500 hover:text-white transition-colors">
+                            <button onClick={closeAdjust} className="text-slate-500 hover:text-slate-900 transition-colors">
                                 <FaTimes className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div className="bg-black/40 rounded-xl p-4 mb-6 border border-white/5 flex items-center justify-between">
+                        <div className="bg-black/40 rounded-xl p-4 mb-6 border border-slate-200 flex items-center justify-between">
                             <span className="text-slate-400 text-sm font-medium">Current Balance</span>
                             <span className="text-xl font-mono font-bold text-amber-500">₹{adjustModal.wallet?.balance?.toLocaleString()}</span>
                         </div>
 
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                                     Amount (₹)
                                 </label>
                                 <div className="relative">
@@ -396,7 +396,7 @@ const Wallet = () => {
                                         value={adjustAmount}
                                         onChange={(e) => setAdjustAmount(e.target.value)}
                                         placeholder="0"
-                                        className="w-full px-4 py-4 rounded-xl bg-black/40 border border-white/10 text-white text-2xl font-bold placeholder-slate-700 focus:outline-none focus:border-white/20 transition-all text-center"
+                                        className="w-full px-4 py-4 rounded-xl bg-white border border-slate-200 text-slate-900 text-2xl font-bold placeholder-slate-700 focus:outline-none focus:border-white/20 transition-all text-center"
                                         min="1"
                                         autoFocus
                                     />
@@ -406,7 +406,7 @@ const Wallet = () => {
                             {adjustAmount && Number(adjustAmount) > 0 && (
                                 <div className="flex items-center justify-between text-sm px-2">
                                     <span className="text-slate-500">New Balance Preview</span>
-                                    <span className="font-mono font-bold text-white">
+                                    <span className="font-mono font-bold text-slate-900">
                                         ₹{(adjustModal.type === 'credit'
                                             ? (adjustModal.wallet?.balance || 0) + Number(adjustAmount)
                                             : Math.max(0, (adjustModal.wallet?.balance || 0) - Number(adjustAmount))
@@ -417,7 +417,7 @@ const Wallet = () => {
 
                             {securityPasswordRequired && (
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 flex items-center gap-2">
                                         <FaLock className="w-3.5 h-3.5 text-purple-400" />
                                         Security password
                                     </label>
@@ -426,7 +426,7 @@ const Wallet = () => {
                                         value={adjustSecurityPassword}
                                         onChange={(e) => setAdjustSecurityPassword(e.target.value)}
                                         placeholder="Enter security password to confirm"
-                                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-white placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                        className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                                         autoComplete="off"
                                     />
                                 </div>

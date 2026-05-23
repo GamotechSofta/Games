@@ -70,14 +70,14 @@ const TopWinners = () => {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+                        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3 tracking-tight">
                             <FaTrophy className="text-amber-500" />
                             Leaderboard
                         </h1>
-                        <p className="text-slate-400 text-sm mt-1">Most successful players on your platform</p>
+                        <p className="text-slate-600 text-sm mt-1">Most successful players on your platform</p>
                     </div>
 
-                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-white/10 w-full sm:w-auto overflow-x-auto">
+                    <div className="glass-panel glass-panel-card p-1 rounded-xl flex items-center gap-1 border border-slate-200 w-full sm:w-auto overflow-x-auto">
                         {[
                             { id: 'today', label: 'Today' },
                             { id: 'week', label: 'This Week' },
@@ -89,7 +89,7 @@ const TopWinners = () => {
                                 onClick={() => setTimeRange(range.id)}
                                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${timeRange === range.id
                                         ? 'bg-amber-500 text-black shadow-lg'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                        : 'text-slate-400 hover:text-slate-900 hover:bg-white/5'
                                     }`}
                             >
                                 {range.label}
@@ -105,11 +105,11 @@ const TopWinners = () => {
                         ))}
                     </div>
                 ) : winners.length === 0 ? (
-                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-white/10 text-center flex flex-col items-center justify-center">
+                    <div className="glass-panel glass-panel-card p-16 rounded-2xl border border-slate-200 text-center flex flex-col items-center justify-center">
                         <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                             <FaTrophy className="w-8 h-8 text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-white mb-2">No Winners Found</h3>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">No Winners Found</h3>
                         <p className="text-slate-400 max-w-sm mx-auto">
                             No winning bets recorded for the selected time period.
                         </p>
@@ -121,7 +121,7 @@ const TopWinners = () => {
                             return (
                                 <div
                                     key={winner.userId?._id || index}
-                                    className={`glass-panel glass-panel-card p-6 rounded-2xl border transition-transform hover:scale-[1.02] duration-300 relative overflow-hidden group ${index < 3 ? style.border : 'border-white/10'
+                                    className={`glass-panel glass-panel-card p-6 rounded-2xl border transition-transform hover:scale-[1.02] duration-300 relative overflow-hidden group ${index < 3 ? style.border : 'border-slate-200'
                                         }`}
                                 >
                                     {/* Background Glow for Top 3 */}
@@ -136,7 +136,7 @@ const TopWinners = () => {
                                                 {style.icon}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-white text-lg truncate max-w-[120px]">
+                                                <h3 className="font-bold text-slate-900 text-lg truncate max-w-[120px]">
                                                     {winner.userId?.username || 'Unknown'}
                                                 </h3>
                                                 <p className="text-xs text-slate-500 font-mono">
@@ -146,7 +146,7 @@ const TopWinners = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3 relative z-10 bg-black/20 rounded-xl p-4 border border-white/5">
+                                    <div className="space-y-3 relative z-10 bg-black/20 rounded-xl p-4 border border-slate-200">
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Won</span>
                                             <span className={`font-mono font-bold text-lg ${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-slate-200' : index === 2 ? 'text-orange-400' : 'text-emerald-400'
@@ -157,11 +157,11 @@ const TopWinners = () => {
                                         <div className="w-full h-px bg-white/5"></div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-slate-500">Win Rate</span>
-                                            <span className="text-white font-medium">{winner.winRate}%</span>
+                                            <span className="text-slate-900 font-medium">{winner.winRate}%</span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-slate-500">Total Wins</span>
-                                            <span className="text-white font-medium">{winner.totalWins} bets</span>
+                                            <span className="text-slate-900 font-medium">{winner.totalWins} bets</span>
                                         </div>
                                     </div>
                                 </div>

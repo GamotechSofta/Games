@@ -101,14 +101,14 @@ const BetHistory = () => {
         <Layout title="Bet History">
             <div className="max-w-[1400px] mx-auto min-w-0">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
                         Bet History
                         <span className="text-sm font-normal px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">Records</span>
                     </h1>
                 </div>
 
                 {/* Date range */}
-                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-6 border border-white/10">
+                <div className="glass-panel glass-panel-card p-4 rounded-2xl mb-6 border border-slate-200">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Date range</p>
                     <div className="flex flex-wrap gap-2 mb-3">
                         {RANGES.map((r) => (
@@ -118,8 +118,8 @@ const BetHistory = () => {
                                 onClick={() => setDateRange(r.id)}
                                 className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                                     dateRange === r.id
-                                        ? 'bg-amber-500 text-white'
-                                        : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                                        ? 'bg-amber-500 text-black'
+                                        : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200'
                                 }`}
                             >
                                 {r.label}
@@ -132,14 +132,14 @@ const BetHistory = () => {
                                 type="date"
                                 value={customStart}
                                 onChange={(e) => setCustomStart(e.target.value)}
-                                className="px-3 py-2 rounded-xl bg-[#1a1a1a] border border-white/10 text-white text-sm [color-scheme:dark]"
+                                className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm"
                             />
                             <span className="text-slate-500">to</span>
                             <input
                                 type="date"
                                 value={customEnd}
                                 onChange={(e) => setCustomEnd(e.target.value)}
-                                className="px-3 py-2 rounded-xl bg-[#1a1a1a] border border-white/10 text-white text-sm [color-scheme:dark]"
+                                className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm"
                             />
                         </div>
                     )}
@@ -154,11 +154,11 @@ const BetHistory = () => {
                         Loading history...
                     </div>
                 ) : (
-                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-white/10">
+                    <div className="glass-panel glass-panel-card rounded-2xl overflow-hidden border border-slate-200">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
+                                    <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-xs uppercase tracking-wider">
                                         <th className="px-6 py-4 font-semibold">ID</th>
                                         <th className="px-6 py-4 font-semibold">Player</th>
                                         <th className="px-6 py-4 font-semibold">Market</th>
@@ -176,7 +176,7 @@ const BetHistory = () => {
                                             <tr key={bet._id} className="hover:bg-white/5 transition-colors group">
                                                 <td className="px-6 py-4 text-slate-500 font-mono text-xs">{bet._id?.slice(-8).toUpperCase()}</td>
                                                 <td className="px-6 py-4">
-                                                    <div className="font-medium text-white group-hover:text-amber-400 transition-colors">{bet.userId?.username || bet.userId}</div>
+                                                    <div className="font-medium text-slate-900 group-hover:text-amber-400 transition-colors">{bet.userId?.username || bet.userId}</div>
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-300">
                                                     {typeof bet.marketId === 'object' && bet.marketId !== null
@@ -188,7 +188,7 @@ const BetHistory = () => {
                                                         {bet.betType}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-mono font-bold text-white">₹{bet.amount}</td>
+                                                <td className="px-6 py-4 text-right font-mono font-bold text-slate-900">₹{bet.amount}</td>
                                                 <td className="px-6 py-4 text-center">
                                                     <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold border ${bet.status === 'won' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                                         bet.status === 'lost' ? 'bg-red-500/10 text-red-400 border-red-500/20' :

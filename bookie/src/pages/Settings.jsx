@@ -154,20 +154,20 @@ const Settings = () => {
                         <FaCog className="w-5 h-5 text-slate-400" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold text-white tracking-tight">Account Settings</h1>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Account Settings</h1>
                         <p className="text-slate-500 text-xs">Preferences and configuration</p>
                     </div>
                 </div>
 
                 {/* Account Type Card */}
-                <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
+                <div className="glass-panel glass-panel-card p-4 rounded-xl border border-slate-200 relative overflow-hidden">
                     <div className={`absolute top-0 left-0 w-1 h-full ${isBookieCollects ? 'bg-purple-500' : 'bg-emerald-500'}`}></div>
                     <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isBookieCollects ? 'bg-purple-500/10' : 'bg-emerald-500/10'}`}>
                             {isBookieCollects ? <FaBuilding className="w-4 h-4 text-purple-400" /> : <FaHandHoldingUsd className="w-4 h-4 text-emerald-400" />}
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-base font-bold text-white flex items-center gap-2 flex-wrap">
+                            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2 flex-wrap">
                                 {isBookieCollects ? 'Bookie Collects Account' : 'Admin Collects Account'}
                                 <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border font-bold ${isBookieCollects ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>Active</span>
                             </h2>
@@ -180,9 +180,9 @@ const Settings = () => {
 
                 {/* Security Password (Bookie Collects only) */}
                 {isBookieCollects && (
-                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-slate-200 relative overflow-hidden">
                         <div className="relative z-10">
-                            <h2 className="text-base font-bold text-white mb-1 flex items-center gap-2">
+                            <h2 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
                                 <FaLock className="w-4 h-4 text-purple-400" />
                                 Security Password
                             </h2>
@@ -196,7 +196,7 @@ const Settings = () => {
                                             value={secPwdForm.current}
                                             onChange={(e) => { setSecPwdForm((f) => ({ ...f, current: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
                                             placeholder="Current password"
-                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
                                             autoComplete="current-password"
                                         />
                                     </div>
@@ -209,7 +209,7 @@ const Settings = () => {
                                             value={secPwdForm.new}
                                             onChange={(e) => { setSecPwdForm((f) => ({ ...f, new: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
                                             placeholder="Min 4 characters"
-                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
                                             autoComplete="new-password"
                                             minLength={4}
                                         />
@@ -221,7 +221,7 @@ const Settings = () => {
                                             value={secPwdForm.confirm}
                                             onChange={(e) => { setSecPwdForm((f) => ({ ...f, confirm: e.target.value })); setSecPwdMsg({ type: '', text: '' }); }}
                                             placeholder="Confirm"
-                                            className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
+                                            className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder-slate-600 focus:outline-none focus:border-purple-500/50 transition-all"
                                             autoComplete="new-password"
                                         />
                                     </div>
@@ -247,9 +247,9 @@ const Settings = () => {
 
                 {/* Payment Settings */}
                 {isBookieCollects ? (
-                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 relative overflow-hidden">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-slate-200 relative overflow-hidden">
                         <div className="relative z-10">
-                            <h2 className="text-base font-bold text-white mb-2 flex items-center gap-2">
+                            <h2 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
                                 <FaCreditCard className="text-amber-500 w-4 h-4" />
                                 Payment Configuration
                             </h2>
@@ -268,7 +268,7 @@ const Settings = () => {
                                                     value={id}
                                                     onChange={(e) => { updateUpiRow(idx, e.target.value); setMsg({ type: '', text: '' }); }}
                                                     placeholder="e.g. username@upi"
-                                                    className="w-full px-3 py-2 pl-9 rounded-lg bg-black/40 border border-white/10 text-white text-sm font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                                    className="w-full px-3 py-2 pl-9 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm font-mono placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
                                                 />
                                                 <FaCreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
                                                 {currentUpiIds.includes(id) && id && (
@@ -293,7 +293,7 @@ const Settings = () => {
                                     <select
                                         value={upiDistributionType}
                                         onChange={(e) => setUpiDistributionType(e.target.value)}
-                                        className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50"
+                                        className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-amber-500/50"
                                     >
                                         <option value="all">Show all – every user sees all UPI IDs</option>
                                         <option value="round_robin_user">Round robin – each user gets one different UPI ID</option>
@@ -309,7 +309,7 @@ const Settings = () => {
                                                 max={10000}
                                                 value={upiBatchSize}
                                                 onChange={(e) => setUpiBatchSize(Math.max(1, Math.min(10000, parseInt(e.target.value, 10) || 10)))}
-                                                className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm focus:outline-none focus:border-amber-500/50"
+                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-amber-500/50"
                                             />
                                         </div>
                                     )}
@@ -323,7 +323,7 @@ const Settings = () => {
                                                 value={upiSecurityPassword}
                                                 onChange={(e) => { setUpiSecurityPassword(e.target.value); setMsg({ type: '', text: '' }); }}
                                                 placeholder="Required to save"
-                                                className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
+                                                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-all"
                                                 autoComplete="off"
                                             />
                                         </div>
@@ -347,11 +347,11 @@ const Settings = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-white/10 text-center">
+                    <div className="glass-panel glass-panel-card p-4 rounded-xl border border-slate-200 text-center">
                         <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2 border border-slate-700">
                             <FaShieldAlt className="w-5 h-5 text-slate-400" />
                         </div>
-                        <h3 className="text-base font-bold text-white mb-1">Managed by Admin</h3>
+                        <h3 className="text-base font-bold text-slate-900 mb-1">Managed by Admin</h3>
                         <p className="text-slate-500 text-xs">Admin Collects plan—payment config is handled by admin.</p>
                     </div>
                 )}

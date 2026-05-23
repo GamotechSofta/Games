@@ -63,23 +63,23 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#0B1120] flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/10 rounded-full blur-[100px]"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]"></div>
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-400/15 rounded-full blur-[100px]"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-sky-400/10 rounded-full blur-[100px]"></div>
             </div>
 
-            <div className="glass-panel glass-panel-card rounded-2xl p-8 w-full max-w-md relative z-10 shadow-2xl shadow-black/50">
+            <div className="glass-panel glass-panel-card rounded-2xl p-8 w-full max-w-md relative z-10 shadow-xl shadow-slate-200/80">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent mb-2 tracking-tight">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 bg-clip-text text-transparent mb-2 tracking-tight">
                         Bookie Panel
                     </h1>
-                    <p className="text-slate-400 text-sm">Secure access for authorized partners</p>
+                    <p className="text-slate-500 text-sm">Secure access for authorized partners</p>
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-sm flex items-center gap-3">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-red-500 shrink-0"></div>
                         {error}
                     </div>
@@ -87,7 +87,7 @@ const Login = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-2">
+                        <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
                             Phone Number
                         </label>
                         <input
@@ -98,14 +98,14 @@ const Login = () => {
                                 setError('');
                             }}
                             maxLength={10}
-                            className="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:bg-black/30 transition-all font-mono"
+                            className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-mono"
                             placeholder="10-digit mobile number"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-2">
+                        <label className="block text-slate-600 text-xs font-bold uppercase tracking-wider mb-2">
                             Password
                         </label>
                         <input
@@ -115,7 +115,7 @@ const Login = () => {
                                 setPassword(e.target.value);
                                 setError('');
                             }}
-                            className="w-full px-4 py-3.5 bg-black/20 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:bg-black/30 transition-all"
+                            className="w-full px-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
                             placeholder="••••••••"
                             required
                         />

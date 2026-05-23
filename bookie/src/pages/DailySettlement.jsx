@@ -243,7 +243,7 @@ const DailySettlement = () => {
         <Layout title="Daily Settlement">
             <div className="max-w-[1600px] mx-auto min-w-0 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
                         <FaMoneyBillWave className="text-amber-500 w-5 h-5" />
                         Daily Settlement
                     </h1>
@@ -252,24 +252,24 @@ const DailySettlement = () => {
                     </span>
                 </div>
 
-                <div className="glass-panel glass-panel-card p-3 rounded-lg border border-white/10">
+                <div className="glass-panel glass-panel-card p-3 rounded-lg border border-slate-200">
                     <div className="flex flex-wrap items-center gap-2">
                         {[
                             ...PRESETS,
                             { id: 'last_month', label: 'Last Month', getRange: getLastMonthRange },
                         ].map((p) => (
                             <button key={p.id} type="button" onClick={() => applyPreset(p.id)}
-                                className={`px-2 py-1 rounded text-xs font-medium ${activePreset === p.id ? 'bg-amber-500 text-black' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'}`}
+                                className={`px-2 py-1 rounded text-xs font-medium ${activePreset === p.id ? 'bg-amber-500 text-black' : 'bg-slate-700/50 text-slate-600 hover:bg-slate-600/50'}`}
                             >{p.label}</button>
                         ))}
                         <input type="date" value={dateRange.startDate}
                             onChange={(e) => { setDateRange((r) => ({ ...r, startDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 py-1 bg-[#1a1a1a] border border-white/10 rounded text-white text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
+                            className="px-2 py-1 bg-white border border-slate-200 rounded text-slate-900 text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
                         />
                         <span className="text-slate-500 text-xs">to</span>
                         <input type="date" value={dateRange.endDate}
                             onChange={(e) => { setDateRange((r) => ({ ...r, endDate: e.target.value })); setActivePreset(''); }}
-                            className="px-2 py-1 bg-[#1a1a1a] border border-white/10 rounded text-white text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
+                            className="px-2 py-1 bg-white border border-slate-200 rounded text-slate-900 text-xs w-[120px] focus:ring-1 focus:ring-amber-500"
                         />
                         <button type="button" onClick={() => { fetchSettlements(); if (bookieType === 'admin_collects') fetchDailyCommission(); }} disabled={loading}
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded text-xs disabled:opacity-50"
@@ -284,8 +284,8 @@ const DailySettlement = () => {
                         <div className="flex flex-wrap items-center gap-3">
                             <span className="text-xs font-bold text-amber-400">Pending ({pendingSettlements.length})</span>
                             {pendingSettlements.map((s) => (
-                                <div key={s._id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-black/20 border border-white/5">
-                                    <span className="text-white text-xs">{formatDate(s.settlementDate)}</span>
+                                <div key={s._id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-black/20 border border-slate-200">
+                                    <span className="text-slate-900 text-xs">{formatDate(s.settlementDate)}</span>
                                     <span className="font-bold text-amber-400 text-sm">{formatCurrency(s.amount)}</span>
                                     <button type="button" onClick={() => handleConfirm(s._id)} disabled={confirming === s._id}
                                         className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs disabled:opacity-50"
@@ -302,7 +302,7 @@ const DailySettlement = () => {
                     Total: {formatCurrency(isAdminCollects ? dailyCommission.reduce((s, d) => s + d.commission, 0) : totalAmount)}
                 </div>
 
-                <div className="glass-panel glass-panel-card rounded-lg overflow-hidden border border-white/10">
+                <div className="glass-panel glass-panel-card rounded-lg overflow-hidden border border-slate-200">
                     {loading ? (
                         <div className="p-8 text-center text-slate-400 text-sm">
                             <div className="animate-spin rounded-full h-6 w-6 border-2 border-amber-500/20 border-t-amber-500 mx-auto mb-2" />
@@ -315,7 +315,7 @@ const DailySettlement = () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-[10px] uppercase">
+                                        <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-[10px] uppercase">
                                             <th className="text-left px-3 py-2 font-medium">Date</th>
                                             <th className="text-right px-2 py-2 font-medium">Revenue</th>
                                             <th className="text-right px-2 py-2 font-medium">Commission</th>
@@ -328,7 +328,7 @@ const DailySettlement = () => {
                                             const s = settlementByDate[row.date];
                                             return (
                                                 <tr key={row.date} className="hover:bg-white/5">
-                                                    <td className="px-3 py-2 text-white">{formatDate(row.date)}</td>
+                                                    <td className="px-3 py-2 text-slate-900">{formatDate(row.date)}</td>
                                                     <td className="px-2 py-2 text-right font-mono text-blue-400">{formatCurrency(row.betVolume)}</td>
                                                     <td className="px-2 py-2 text-right font-mono font-bold text-emerald-400">{formatCurrency(row.commission)}</td>
                                                     <td className="px-2 py-2">
@@ -372,7 +372,7 @@ const DailySettlement = () => {
                         <div className="overflow-x-auto">
                             <table className="w-full text-xs">
                                 <thead>
-                                    <tr className="border-b border-white/5 bg-white/5 text-slate-400 text-[10px] uppercase">
+                                    <tr className="border-b border-slate-200 bg-white/5 text-slate-400 text-[10px] uppercase">
                                         <th className="text-left px-3 py-2 font-medium">Date</th>
                                         <th className="text-right px-2 py-2 font-medium">Amount</th>
                                         <th className="text-left px-2 py-2 font-medium">Status</th>
@@ -382,7 +382,7 @@ const DailySettlement = () => {
                                 <tbody className="divide-y divide-white/5">
                                     {settlements.map((s) => (
                                         <tr key={s._id} className="hover:bg-white/5">
-                                            <td className="px-3 py-2 text-white">{formatDate(s.settlementDate)}</td>
+                                            <td className="px-3 py-2 text-slate-900">{formatDate(s.settlementDate)}</td>
                                             <td className="px-2 py-2 text-right font-mono font-bold text-purple-400">{formatCurrency(s.amount)}</td>
                                             <td className="px-2 py-2">
                                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-semibold border ${getStatusBadge(s.status)}`}>
@@ -408,19 +408,19 @@ const DailySettlement = () => {
             {/* Edit Modal */}
             {editModal && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-slate-800 rounded-xl border border-white/10 w-full max-w-md p-6 shadow-xl">
+                    <div className="bg-slate-800 rounded-xl border border-slate-200 w-full max-w-md p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-white">Edit Request</h3>
+                            <h3 className="text-lg font-bold text-slate-900">Edit Request</h3>
                             <button type="button" onClick={() => setEditModal(null)} className="p-2 rounded-lg hover:bg-white/10 text-slate-400"><FaTimes className="w-5 h-5" /></button>
                         </div>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate-400 mb-1">Amount (Rs) *</label>
-                                <input type="number" min="0" step="0.01" value={editModal.amount} onChange={(e) => setEditModal((m) => ({ ...m, amount: e.target.value }))} className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500" />
+                                <input type="number" min="0" step="0.01" value={editModal.amount} onChange={(e) => setEditModal((m) => ({ ...m, amount: e.target.value }))} className="w-full px-3 py-2 bg-slate-700 border border-slate-200 rounded-lg text-slate-900 text-sm focus:ring-2 focus:ring-amber-500" />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-400 mb-1">Remarks</label>
-                                <input type="text" value={editModal.remarks} onChange={(e) => setEditModal((m) => ({ ...m, remarks: e.target.value }))} className="w-full px-3 py-2 bg-slate-700 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-amber-500" />
+                                <input type="text" value={editModal.remarks} onChange={(e) => setEditModal((m) => ({ ...m, remarks: e.target.value }))} className="w-full px-3 py-2 bg-slate-700 border border-slate-200 rounded-lg text-slate-900 text-sm focus:ring-2 focus:ring-amber-500" />
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">

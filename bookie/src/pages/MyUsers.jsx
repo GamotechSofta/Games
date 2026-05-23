@@ -68,8 +68,8 @@ const MyUsers = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">My Players</h1>
-                    <p className="text-slate-400 text-sm mt-1">Manage and monitor your player base</p>
+                    <h1 className="bookie-page-title">My Players</h1>
+                    <p className="text-slate-600 text-sm mt-1">Manage and monitor your player base</p>
                 </div>
                 <button
                     type="button"
@@ -83,30 +83,30 @@ const MyUsers = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden group">
                     <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total</p>
-                    <p className="text-2xl font-bold text-white font-mono">{users.length}</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono">{users.length}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <FaUserPlus className="w-8 h-8" />
                     </div>
                 </div>
-                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden group">
                     <p className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">Active</p>
-                    <p className="text-2xl font-bold text-white font-mono">{activeCount}</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono">{activeCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-emerald-500"></div>
                     </div>
                 </div>
-                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden group">
                     <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">Suspended</p>
-                    <p className="text-2xl font-bold text-white font-mono">{suspendedCount}</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono">{suspendedCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-red-500"></div>
                     </div>
                 </div>
-                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-white/10 relative overflow-hidden group">
+                <div className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden group">
                     <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">Online</p>
-                    <p className="text-2xl font-bold text-white font-mono">{onlineCount}</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono">{onlineCount}</p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-amber-500"></div>
                     </div>
@@ -124,13 +124,13 @@ const MyUsers = () => {
                         placeholder="Search by name, email or phone..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-3 pr-10 py-3 bg-transparent border-none text-white placeholder-slate-500 focus:outline-none focus:ring-0 text-sm sm:text-base font-medium"
+                        className="w-full pl-3 pr-10 py-3 bg-transparent border-none text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm sm:text-base font-medium"
                     />
                     {searchQuery && (
                         <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-4 text-slate-400 hover:text-white transition-colors"
+                            className="absolute right-4 text-slate-400 hover:text-slate-900 transition-colors"
                         >
                             ✕
                         </button>
@@ -140,7 +140,7 @@ const MyUsers = () => {
 
             {/* Error */}
             {error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 flex items-center gap-3">
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-700 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-red-500"></div>
                     {error}
                 </div>
@@ -158,7 +158,7 @@ const MyUsers = () => {
                         <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
                             <FaUserPlus className="w-6 h-6 text-slate-500" />
                         </div>
-                        <h3 className="text-white font-bold mb-1">No Players Found</h3>
+                        <h3 className="text-slate-900 font-bold mb-1">No Players Found</h3>
                         <p className="text-sm text-slate-500 mb-6">Start building your network by adding players.</p>
                         <button
                             type="button"
@@ -176,7 +176,7 @@ const MyUsers = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead>
-                                <tr className="border-b border-white/5 bg-white/5">
+                                <tr className="border-b border-slate-200 bg-white/5">
                                     <th className="px-4 py-4 text-xs font-bold text-slate-300 uppercase w-12 tracking-wider">#</th>
                                     <th className="px-4 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Name</th>
                                     <th className="px-4 py-4 text-xs font-bold text-slate-300 uppercase tracking-wider">Contact</th>
@@ -243,7 +243,7 @@ const MyUsers = () => {
             {!loading && users.length > 0 && (
                 <div className="mt-4 flex items-center justify-between text-xs text-slate-500 px-2">
                     <p>
-                        Showing <span className="text-white font-bold">{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
+                        Showing <span className="text-slate-900 font-bold">{filteredUsers.length}</span> player{filteredUsers.length !== 1 ? 's' : ''}
                         {searchQuery && filteredUsers.length !== users.length && (
                             <span> (filtered from {users.length})</span>
                         )}
