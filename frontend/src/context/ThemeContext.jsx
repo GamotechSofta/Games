@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { runThemeTransition } from '../utils/themeTransition';
+import { isThemeTransitionRunning, runThemeTransition } from '../utils/themeTransition';
 
 export const THEME_STORAGE_KEY = 'app-theme';
 
@@ -47,7 +47,7 @@ export function ThemeProvider({ children }) {
 
   const setTheme = useCallback((next, options = {}) => {
     const target = next === 'light' ? 'light' : 'dark';
-    if (target === theme) return;
+    if (target === theme || isThemeTransitionRunning()) return;
 
     const commit = () => setThemeState(target);
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HiMoon, HiSun, HiChevronDown } from 'react-icons/hi';
 import { useTheme } from '../context/ThemeContext';
+import { isThemeTransitionRunning } from '../utils/themeTransition';
 
 const LANGUAGES = [
   { code: 'en', flag: '🇬🇧', label: 'English' },
@@ -14,11 +15,6 @@ const LANGUAGES = [
   { code: 'kn', flag: '🇮🇳', label: 'ಕನ್ನಡ' },
   { code: 'ml', flag: '🇮🇳', label: 'മലയാളം' },
   { code: 'pa', flag: '🇮🇳', label: 'ਪੰਜਾਬੀ' },
-];
-
-const THEME_OPTIONS = [
-  { value: 'light', labelKey: 'theme.light', Icon: HiSun },
-  { value: 'dark', labelKey: 'theme.dark', Icon: HiMoon },
 ];
 
 function MenuPanel({ children, collapsed, className = '' }) {
@@ -37,9 +33,8 @@ function MenuPanel({ children, collapsed, className = '' }) {
 
 export default function SidebarLocaleSettings({ collapsed }) {
   const { t, i18n } = useTranslation();
-  const { theme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [langOpen, setLangOpen] = useState(false);
-  const [themeOpen, setThemeOpen] = useState(false);
 
   const currentLang = LANGUAGES.find((l) => l.code === i18n.language) || LANGUAGES[0];
   const ThemeIcon = theme === 'light' ? HiSun : HiMoon;
@@ -56,67 +51,23 @@ export default function SidebarLocaleSettings({ collapsed }) {
           : 'flex flex-col gap-2 border-t border-gray-200 pt-3 dark:border-white/[0.06]'
       }
     >
-      {/* Theme */}
-      <div
-        className="relative"
-        onMouseLeave={() => collapsed && setThemeOpen(false)}
+      {/* Theme — click toggles light/dark (no dropdown) */}
+      <button
+        type="button"
+        onClick={(e) => {
+          if (!isThemeTransitionRunning()) toggleTheme({ origin: e });
+        }}
+        className={btnClass}
+        aria-label={t('theme.label')}
+        title={t(theme === 'light' ? 'theme.dark' : 'theme.light')}
       >
-        <button
-          type="button"
-          onClick={() => setThemeOpen((v) => !v)}
-          onMouseEnter={() => collapsed && setThemeOpen(true)}
-          className={btnClass}
-          aria-label={t('theme.label')}
-        >
-          <ThemeIcon className="h-5 w-5 shrink-0" />
-          {!collapsed && (
-            <>
-              <span className="dashboard-nav-label flex-1">
-                {t(theme === 'light' ? 'theme.light' : 'theme.dark')}
-              </span>
-              <HiChevronDown
-                className={`h-4 w-4 shrink-0 text-gray-400 transition-transform dark:text-white/40 ${themeOpen ? 'rotate-180' : ''}`}
-              />
-            </>
-          )}
-        </button>
-        {themeOpen && (
-          <>
-            <button
-              type="button"
-              className="fixed inset-0 z-[110]"
-              aria-label="Close"
-              onClick={() => setThemeOpen(false)}
-            />
-            <MenuPanel collapsed={collapsed}>
-              <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
-                {t('theme.label')}
-              </p>
-              {THEME_OPTIONS.map(({ value, labelKey, Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={(e) => {
-                    if (theme !== value) {
-                      setTheme(value, { origin: e });
-                    }
-                    setThemeOpen(false);
-                  }}
-                  className={[
-                    'flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition-colors',
-                    theme === value
-                      ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
-                      : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05]',
-                  ].join(' ')}
-                >
-                  <Icon className="h-4 w-4 shrink-0 text-gray-500 dark:text-[#b0b0b0]" />
-                  {t(labelKey)}
-                </button>
-              ))}
-            </MenuPanel>
-          </>
+        <ThemeIcon className="h-5 w-5 shrink-0" />
+        {!collapsed && (
+          <span className="dashboard-nav-label flex-1">
+            {t(theme === 'light' ? 'theme.light' : 'theme.dark')}
+          </span>
         )}
-      </div>
+      </button>
 
       {/* Language */}
       <div

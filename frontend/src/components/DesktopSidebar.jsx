@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaTelegram, FaWhatsapp, FaInstagram } from 'react-icons/fa';
-import { triggerApkDownload } from '../utils/downloads';
 import { clearUserAuth } from '../utils/auth';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
 import {
@@ -11,7 +10,6 @@ import {
   HiUser,
   HiGift,
   HiChatAlt2,
-  HiDesktopComputer,
   HiClipboardList,
   HiCash,
   HiChartBar,
@@ -237,28 +235,6 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
           )}
         </button>
 
-        {/* Free money */}
-        <button
-          type="button"
-          onClick={() => go('/funds?tab=add-fund')}
-          className={[
-            'mb-4 w-full overflow-hidden rounded-[14px] border border-gray-200 transition-all duration-[250ms] hover:brightness-110 dark:border-white/[0.06]',
-            collapsed ? 'mx-auto h-14 w-14 p-1' : 'px-3 py-3 text-left',
-          ].join(' ')}
-          style={{
-            background: 'linear-gradient(135deg, #0f3d35 0%, #0a1f1c 55%, #111111 100%)',
-          }}
-          title={t('sidebar.freeMoney')}
-        >
-          {collapsed ? (
-            <span className="flex h-full w-full flex-col items-center justify-center text-[9px] font-semibold leading-tight text-white/90">
-              {t('sidebar.freeMoneyShort')}
-            </span>
-          ) : (
-            <span className="text-[13px] font-semibold text-white/95">{t('sidebar.freeMoney')}</span>
-          )}
-        </button>
-
         {/* Main nav */}
         <nav className="flex flex-col gap-0.5">
           {MAIN_NAV.map((item) => {
@@ -382,33 +358,6 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
         <div className="flex shrink-0 flex-col gap-3 bg-gray-50 px-1 py-3 dark:bg-[#111111]">
           <SidebarLocaleSettings collapsed={collapsed} />
           <div className="border-t border-gray-200 pt-3 flex flex-col gap-3 dark:border-white/[0.06]">
-          {/* Windows / app card */}
-          <button
-            type="button"
-            onClick={() => triggerApkDownload()}
-            className={[
-              'w-full rounded-[14px] border border-gray-200 bg-white transition-all duration-[250ms] hover:bg-gray-50 dark:border-white/[0.06] dark:bg-[#1a1a1a] dark:hover:bg-[#222222]',
-              collapsed ? 'flex justify-center p-2' : 'flex items-center gap-3 px-3 py-3 text-left',
-            ].join(' ')}
-          >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[#2563eb]">
-              <HiDesktopComputer className="h-5 w-5 text-white" />
-            </span>
-            {!collapsed && (
-              <>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-semibold text-gray-900 dark:text-white/90">
-                    {t('sidebar.appWindowsTitle')}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-gray-500 dark:text-white/45">
-                    {t('sidebar.appWindowsSubtitle')}
-                  </p>
-                </div>
-                <HiChevronRight className={`h-4 w-4 shrink-0 ${iconColorClass(false)}`} />
-              </>
-            )}
-          </button>
-
           {/* Social */}
           {!collapsed ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -420,7 +369,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                     target="_blank"
                     rel="noopener noreferrer"
                     title={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2a2a2a] text-[#b0b0b0] transition-all duration-[250ms] hover:bg-[#333] hover:text-[#d4d4d4]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-gray-600 transition-all duration-[250ms] hover:bg-gray-200 hover:text-gray-900 dark:border-transparent dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]"
                   >
                     <Icon className="h-4 w-4" aria-hidden />
                   </a>
@@ -430,7 +379,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                   className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-[#2a2a2a] dark:text-white/55 dark:hover:text-white/85"
                   aria-label="More"
                 >
-                  <HiDotsVertical className="h-4 w-4 text-[#b0b0b0]" />
+                  <HiDotsVertical className="h-4 w-4 text-current" />
                 </button>
               </div>
             </div>
@@ -443,7 +392,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2a2a2a] text-[#b0b0b0]"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-gray-600 dark:border-transparent dark:bg-[#2a2a2a] dark:text-[#b0b0b0]"
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </a>

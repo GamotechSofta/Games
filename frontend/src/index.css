@@ -289,74 +289,50 @@ body {
   animation: download-btn-blink 1.8s ease-in-out infinite;
 }
 
-/* Theme toggle — circular reveal from click */
-@property --theme-r {
-  syntax: '<length>';
-  initial-value: 0px;
-  inherits: false;
-}
+/* Theme toggle — advanced circular reveal (View Transition + veil fallback) */
 
-/* View Transition API (Chrome / Edge / Safari 18+) */
-html.theme-transition-active {
+/* Snapshot on body so portaled header / bottom nav are included */
+body.theme-transition-active {
   view-transition-name: root;
 }
 
-html.theme-transition-active::view-transition-old(root),
-html.theme-transition-active::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
+::view-transition-group(root) {
+  animation-duration: 0.92s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-html.theme-transition-active::view-transition-old(root) {
+body.theme-transition-active::view-transition-old(root),
+body.theme-transition-active::view-transition-new(root) {
+  animation: none !important;
+  mix-blend-mode: normal;
+  height: 100%;
+  width: 100%;
+  inset: 0;
+}
+
+body.theme-transition-active::view-transition-old(root) {
   z-index: 1;
 }
 
-html.theme-transition-active::view-transition-new(root) {
+body.theme-transition-active::view-transition-new(root) {
   z-index: 2;
-  clip-path: circle(0 at var(--theme-origin-x) var(--theme-origin-y));
-  animation: theme-vt-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* Clip-path driven by JS (Web Animations API on pseudo-element) */
 }
 
-@keyframes theme-vt-reveal {
-  to {
-    clip-path: circle(var(--theme-reveal-max, 150vmax) at var(--theme-origin-x) var(--theme-origin-y));
-  }
-}
-
-/* Fallback veil — transparent hole grows over new theme (no solid new-color disk) */
+/* Fallback: old-theme veil; JS animates soft mask hole via rAF */
 .theme-transition-veil {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 2147483646;
   pointer-events: none;
-  background: var(--veil-bg);
-  --theme-r: 0px;
-  -webkit-mask-image: radial-gradient(
-    circle at var(--theme-x) var(--theme-y),
-    transparent var(--theme-r),
-    #000 calc(var(--theme-r) + 1px)
-  );
-  mask-image: radial-gradient(
-    circle at var(--theme-x) var(--theme-y),
-    transparent var(--theme-r),
-    #000 calc(var(--theme-r) + 1px)
-  );
-}
-
-.theme-transition-veil--animate {
-  animation: theme-veil-reveal 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes theme-veil-reveal {
-  to {
-    --theme-r: var(--theme-max-r);
-  }
+  will-change: mask-image, -webkit-mask-image;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.theme-transition-active::view-transition-new(root) {
-    animation: none !important;
-    clip-path: none !important;
+  body.theme-transition-active {
+    view-transition-name: none !important;
   }
 
   .theme-transition-veil {
