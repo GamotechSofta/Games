@@ -16,6 +16,7 @@ import {
     verifyHostedResponseHash,
 } from '../utils/payuService.js';
 import logger from '../utils/logger.js';
+import { toClientPayment } from '../utils/paymentDisplay.js';
 
 // ============ CONFIG API ============
 
@@ -368,7 +369,10 @@ export const getMyDeposits = async (req, res) => {
             .limit(100)
             .lean();
 
-        res.status(200).json({ success: true, data: deposits });
+        res.status(200).json({
+            success: true,
+            data: deposits.map((p) => toClientPayment(p)),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -391,7 +395,10 @@ export const getMyWithdrawals = async (req, res) => {
             .limit(100)
             .lean();
 
-        res.status(200).json({ success: true, data: withdrawals });
+        res.status(200).json({
+            success: true,
+            data: withdrawals.map((p) => toClientPayment(p)),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -460,6 +467,30 @@ export const updatePaymentLimits = async (req, res) => {
  * PayU redirect landing: backend receives redirect from PayU (GET or POST), then 302 to frontend.
  * No auth required.
  */
+/** Credit wallet once per PayU payment (idempotent by paymentId referenceId). */
+async function creditWalletForPayU(userId, amount, paymentId) {
+    const refId = String(paymentId);
+    const numAmount = Number(amount) || 0;
+    const existingTx = await WalletTransaction.findOne({ userId, referenceId: refId }).lean();
+    if (existingTx) {
+        const wallet = await Wallet.findOne({ userId });
+        return wallet || { balance: 0 };
+    }
+    const wallet = await Wallet.findOneAndUpdate(
+        { userId },
+        { $inc: { balance: numAmount } },
+        { new: true, upsert: true }
+    );
+    await WalletTransaction.create({
+        userId,
+        type: 'credit',
+        amount: numAmount,
+        description: 'Deposit credited',
+        referenceId: refId,
+    });
+    return wallet;
+}
+
 export const payuRedirect = (req, res) => {
     const frontendBase = (process.env.FRONTEND_BASE_URL || 'http://localhost:5173').replace(/\/$/, '');
     let qs = (req.url && req.url.includes('?')) ? req.url.split('?')[1] : '';
@@ -578,15 +609,16 @@ export const verifyPayUPayment = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized' });
         }
         if (payment.method !== 'payu') {
-            return res.status(400).json({ success: false, message: 'Not a PayU payment' });
+            return res.status(400).json({ success: false, message: 'Not an online deposit payment' });
         }
         if (payment.status === 'approved') {
             logger.info('PayU verify duplicate callback (already approved)', { paymentId, userId });
+            const wallet = await Wallet.findOne({ userId: payment.userId._id }).lean();
             return res.status(200).json({
                 success: true,
                 alreadyProcessed: true,
                 message: 'Payment already credited',
-                data: { amount: payment.amount },
+                data: { amount: payment.amount, balance: wallet?.balance },
             });
         }
         if (payment.status === 'rejected') {
@@ -638,7 +670,7 @@ export const verifyPayUPayment = async (req, res) => {
                 {
                     $set: {
                         status: 'approved',
-                        adminRemarks: 'Auto-approved via PayU Hosted',
+                        adminRemarks: 'Approved',
                         processedAt: new Date(),
                     },
                 },
@@ -648,11 +680,12 @@ export const verifyPayUPayment = async (req, res) => {
                 const current = await Payment.findById(paymentId).select('status').lean();
                 if (current?.status === 'approved') {
                     logger.info('PayU verify duplicate callback (status already approved)', { paymentId, userId });
+                    const wallet = await Wallet.findOne({ userId: payment.userId._id }).lean();
                     return res.status(200).json({
                         success: true,
                         alreadyProcessed: true,
                         message: 'Payment already credited',
-                        data: { amount: payment.amount },
+                        data: { amount: payment.amount, balance: wallet?.balance },
                     });
                 }
                 return res.status(200).json({
@@ -661,18 +694,7 @@ export const verifyPayUPayment = async (req, res) => {
                     data: { status: current?.status || 'unknown' },
                 });
             }
-            const wallet = await Wallet.findOneAndUpdate(
-                { userId: payment.userId._id },
-                { $inc: { balance: payment.amount } },
-                { new: true, upsert: true }
-            );
-            await WalletTransaction.create({
-                userId: payment.userId._id,
-                type: 'credit',
-                amount: Number(payment.amount) || 0,
-                description: 'PayU deposit credited',
-                referenceId: String(paymentId),
-            });
+            const wallet = await creditWalletForPayU(payment.userId._id, payment.amount, paymentId);
             await logActivity({
                 action: 'payu_deposit_verified',
                 performedBy: userId,
@@ -705,7 +727,7 @@ export const verifyPayUPayment = async (req, res) => {
             {
                 $set: {
                     status: 'approved',
-                    adminRemarks: 'Auto-approved via PayU',
+                    adminRemarks: 'Approved',
                     processedAt: new Date(),
                 },
             },
@@ -715,11 +737,12 @@ export const verifyPayUPayment = async (req, res) => {
             const current = await Payment.findById(paymentId).select('status').lean();
             if (current?.status === 'approved') {
                 logger.info('PayU verify duplicate callback (links status already approved)', { paymentId, userId });
+                const wallet = await Wallet.findOne({ userId: payment.userId._id }).lean();
                 return res.status(200).json({
                     success: true,
                     alreadyProcessed: true,
                     message: 'Payment already credited',
-                    data: { amount: payment.amount },
+                    data: { amount: payment.amount, balance: wallet?.balance },
                 });
             }
             return res.status(200).json({
@@ -728,18 +751,7 @@ export const verifyPayUPayment = async (req, res) => {
                 data: { status: current?.status || 'unknown' },
             });
         }
-        const wallet = await Wallet.findOneAndUpdate(
-            { userId: payment.userId._id },
-            { $inc: { balance: payment.amount } },
-            { new: true, upsert: true }
-        );
-        await WalletTransaction.create({
-            userId: payment.userId._id,
-            type: 'credit',
-            amount: Number(payment.amount) || 0,
-            description: 'PayU deposit credited',
-            referenceId: String(paymentId),
-        });
+        const wallet = await creditWalletForPayU(payment.userId._id, payment.amount, paymentId);
         await logActivity({
             action: 'payu_deposit_verified',
             performedBy: userId,
@@ -772,8 +784,10 @@ export const verifyPayUPayment = async (req, res) => {
  */
 export const getPayments = async (req, res) => {
     try {
-        const { status, type, bookieId: filterBookieId } = req.query;
+        const { status, type, bookieId: filterBookieId, view } = req.query;
         const query = {};
+        const isPanelUser = ['super_admin', 'bookie', 'specific_admin'].includes(req.admin?.role);
+        const panelView = view || 'payu_log';
 
         if (req.admin?.role === 'bookie') {
             // Bookie: show payments from their users (bookieId match OR userId match for old payments)
@@ -792,8 +806,18 @@ export const getPayments = async (req, res) => {
         }
         // Admin without filter: no bookieId restriction → sees ALL payments
 
-        if (status) query.status = status;
-        if (type) query.type = type;
+        if (isPanelUser && panelView === 'payu_log') {
+            // Transaction log: only successful PayU deposits (no manual/pending approval queue)
+            query.method = 'payu';
+            query.type = 'deposit';
+            query.status = { $in: ['approved', 'completed'] };
+        } else if (isPanelUser && panelView === 'withdrawals') {
+            query.type = 'withdrawal';
+            if (status) query.status = status;
+        } else {
+            if (status) query.status = status;
+            if (type) query.type = type;
+        }
 
         const payments = await Payment.find(query)
             .populate('userId', 'username email phone')
@@ -803,7 +827,10 @@ export const getPayments = async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(1000);
 
-        res.status(200).json({ success: true, data: payments });
+        res.status(200).json({
+            success: true,
+            data: payments.map((p) => toClientPayment(p)),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -815,7 +842,7 @@ export const getPayments = async (req, res) => {
  */
 export const getPendingCount = async (req, res) => {
     try {
-        const query = { status: 'pending' };
+        const query = { status: 'pending', type: 'withdrawal' };
         
         if (req.admin?.role === 'bookie') {
             // Bookie: count payments for their users
@@ -837,15 +864,16 @@ export const getPendingCount = async (req, res) => {
             }
         }
 
-        const depositCount = await Payment.countDocuments({ ...query, type: 'deposit' });
-        const withdrawalCount = await Payment.countDocuments({ ...query, type: 'withdrawal' });
+        // Deposits are automatic via PayU — no pending deposit queue on admin/bookie panels
+        const depositCount = 0;
+        const withdrawalCount = await Payment.countDocuments(query);
 
         res.status(200).json({
             success: true,
             data: {
                 deposits: depositCount,
                 withdrawals: withdrawalCount,
-                total: depositCount + withdrawalCount,
+                total: withdrawalCount,
             },
         });
     } catch (error) {

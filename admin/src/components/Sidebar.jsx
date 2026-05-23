@@ -31,7 +31,7 @@ const ALL_MENU_ITEMS = [
     { path: '/bet-history', label: 'Bet History', icon: FaHistory },
     { path: '/reports', label: 'Report', icon: FaChartLine },
     { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
-    { path: '/payment-management', label: 'Payments', icon: FaCreditCard },
+    { path: '/payment-management', label: 'Transactions', icon: FaCreditCard },
     { path: '/game-management', label: 'Games', icon: FaGamepad },
     { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
     { path: '/wallet', label: 'Wallet', icon: FaWallet },

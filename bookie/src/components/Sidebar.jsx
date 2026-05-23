@@ -58,7 +58,6 @@ const Sidebar = ({ user, onLogout, isOpen = true, onClose }) => {
             title: "Financials",
             items: [
                 { path: '/revenue', label: 'Revenue Log', icon: FaMoneyBillWave },
-                { path: '/payments', label: 'Payment Requests', icon: FaCreditCard },
                 { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
                 { path: '/wallet', label: 'Wallet Manager', icon: FaWallet },
             ]

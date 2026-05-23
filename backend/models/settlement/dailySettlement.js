@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 
 /**
- * Daily Payment Settlement - tracks Given and Received between Admin and Bookies
- * - Admin Collects: Admin gives commission to bookie. Flow: Admin adds -> Bookie "I have received" -> Admin Accept/Reject
- * - Bookie Collects: Bookie pays platform charge to admin. Flow: Admin adds / from revenue -> Bookie "I have paid" -> Admin Accept/Reject
+ * Daily commission settlement (Admin Collects).
+ * Commission amount is computed from bets; admin marks paid/unpaid per day.
  */
 const dailySettlementSchema = new mongoose.Schema({
     bookieId: {
@@ -38,8 +37,8 @@ const dailySettlementSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'payment_sent', 'bookie_confirmed', 'approved', 'rejected'],
-        default: 'pending',
+        enum: ['unpaid', 'paid', 'pending', 'payment_sent', 'bookie_confirmed', 'approved', 'rejected'],
+        default: 'unpaid',
     },
     bookieConfirmedAt: { type: Date },
     adminProcessedAt: { type: Date },

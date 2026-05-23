@@ -4,6 +4,7 @@ import Bet from '../models/bet/bet.js';
 import Admin from '../models/admin/admin.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { toClientWalletTransaction } from '../utils/paymentDisplay.js';
 
 export const getAllWallets = async (req, res) => {
     try {
@@ -65,7 +66,10 @@ export const getTransactions = async (req, res) => {
             .sort({ createdAt: -1 })
             .limit(1000);
 
-        res.status(200).json({ success: true, data: transactions });
+        res.status(200).json({
+            success: true,
+            data: transactions.map((t) => toClientWalletTransaction(t)),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -96,8 +100,10 @@ export const getMyTransactions = async (req, res) => {
             .limit(limit)
             .lean();
 
+        const sanitizeList = (list) => (list || []).map((t) => toClientWalletTransaction(t));
+
         if (!includeBet || !Array.isArray(transactions) || transactions.length === 0) {
-            return res.status(200).json({ success: true, data: transactions });
+            return res.status(200).json({ success: true, data: sanitizeList(transactions) });
         }
 
         const isObjectIdLike = (v) => typeof v === 'string' && /^[a-f\d]{24}$/i.test(v.trim());
@@ -106,7 +112,7 @@ export const getMyTransactions = async (req, res) => {
         );
 
         if (refIds.length === 0) {
-            return res.status(200).json({ success: true, data: transactions });
+            return res.status(200).json({ success: true, data: sanitizeList(transactions) });
         }
 
         const bets = await Bet.find({ _id: { $in: refIds }, userId })
@@ -130,7 +136,7 @@ export const getMyTransactions = async (req, res) => {
             };
         });
 
-        return res.status(200).json({ success: true, data: enriched });
+        return res.status(200).json({ success: true, data: sanitizeList(enriched) });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import { sanitizeDisplayText, isGenericPaymentRemark } from '../../utils/paymentDisplay';
 
 const AddFundHistory = () => {
     const { t } = useTranslation();
@@ -25,6 +26,11 @@ const AddFundHistory = () => {
             const depositData = await depositRes.json();
             const walletTxData = await walletTxRes.json();
             const paymentDeposits = depositData.success ? (depositData.data || []) : [];
+            const approvedDepositIds = new Set(
+                paymentDeposits
+                    .filter((p) => p.status === 'approved' || p.status === 'completed')
+                    .map((p) => p._id?.toString?.() || String(p._id))
+            );
             const walletCredits = walletTxData.success
                 ? (walletTxData.data || [])
                     .filter((tx) => {
@@ -32,23 +38,27 @@ const AddFundHistory = () => {
                         if (tx.type !== 'credit') return false;
                         if (desc.includes('win')) return false;
                         if (desc.includes('bet cancelled')) return false;
+                        const ref = tx.referenceId ? String(tx.referenceId) : '';
+                        if (ref && approvedDepositIds.has(ref)) return false;
+                        if (desc.includes('deposit credited') && ref && approvedDepositIds.has(ref)) return false;
                         return (
                             desc.includes('admin') ||
                             desc.includes('bookie') ||
-                            desc.includes('payu') ||
-                            desc.includes('deposit')
+                            (desc.includes('deposit') && !ref)
                         );
                     })
-                    .map((tx) => ({
+                    .map((tx) => {
+                        const remark = sanitizeDisplayText(tx.description);
+                        return {
                         _id: `wallet-credit-${tx._id || tx.createdAt}`,
                         amount: Number(tx.amount) || 0,
                         status: 'approved',
                         createdAt: tx.createdAt,
                         processedAt: tx.createdAt,
-                        adminRemarks: tx.description || 'Wallet credit',
-                        method: 'wallet',
+                        adminRemarks: remark && !isGenericPaymentRemark(remark) ? remark : undefined,
                         isWalletHistory: true,
-                    }))
+                    };
+                    })
                 : [];
 
             const merged = [...paymentDeposits, ...walletCredits].sort(
@@ -249,9 +259,9 @@ const AddFundHistory = () => {
                                         <span className="text-gray-500">{t('funds.utrLabel')}</span> {deposit.upiTransactionId}
                                     </p>
                                 )}
-                                {deposit.adminRemarks && (
+                                {deposit.adminRemarks && !isGenericPaymentRemark(deposit.adminRemarks) && (
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
-                                        <span className="text-gray-500">{t('funds.adminLabel')}</span> {deposit.adminRemarks}
+                                        <span className="text-gray-500">{t('funds.adminLabel')}</span> {sanitizeDisplayText(deposit.adminRemarks)}
                                     </p>
                                 )}
                                 {deposit.processedAt && (

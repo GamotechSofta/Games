@@ -270,21 +270,10 @@ export const getRevenueReport = async (req, res) => {
             const commPct = bookie.commissionPercentage || 0;
             const bType = bookie.bookieType || 'admin_collects';
 
-            let bookieShare, adminPool, adminProfit;
-            if (bType === 'bookie_collects') {
-                // Bookie collects all money & handles payouts. Pays admin platform charge (commPct%).
-                // Admin profit = platform charge only (admin does NOT pay payouts).
-                // Bookie net = (bet volume - platform charge - payouts).
-                adminPool = Math.round((totalBetAmount * commPct / 100) * 100) / 100;
-                bookieShare = Math.round((totalBetAmount - adminPool - totalPayouts) * 100) / 100;
-                adminProfit = adminPool;
-            } else {
-                // Admin collects all money & handles payouts. Pays bookie commission (commPct%).
-                // Admin profit = (bet volume - commission - payouts).
-                bookieShare = Math.round((totalBetAmount * commPct / 100) * 100) / 100;
-                adminPool = Math.round((totalBetAmount - bookieShare) * 100) / 100;
-                adminProfit = Math.round((adminPool - totalPayouts) * 100) / 100;
-            }
+            // Admin collects bets; pays bookie commission (all bookies use admin_collects).
+            const bookieShare = Math.round((totalBetAmount * commPct / 100) * 100) / 100;
+            const adminPool = Math.round((totalBetAmount - bookieShare) * 100) / 100;
+            const adminProfit = Math.round((adminPool - totalPayouts) * 100) / 100;
 
             totalBookieCommission += bookieShare;
             totalAdminProfit += adminProfit;
@@ -340,9 +329,8 @@ export const getRevenueReport = async (req, res) => {
             totalAdminProfit += directStats.adminProfit;
         }
 
-        // Build per-type sub-summaries
-        const adminCollectsBookies = bookieRevenues.filter(b => (b.bookieType || 'admin_collects') === 'admin_collects');
-        const bookieCollectsBookies = bookieRevenues.filter(b => b.bookieType === 'bookie_collects');
+        // Bookie players (users under bookies) — exclude legacy bookie_collects type from totals
+        const bookieUsersBookies = bookieRevenues.filter((b) => b.bookieType !== 'bookie_collects');
 
         const calcSubSummary = (list) => ({
             totalBets: Math.round(list.reduce((s, b) => s + b.totalBetAmount, 0) * 100) / 100,
@@ -357,10 +345,10 @@ export const getRevenueReport = async (req, res) => {
         return res.status(200).json({
             success: true,
             data: {
-                bookies: bookieRevenues,
+                bookies: bookieUsersBookies,
                 directUsers: directStats,
-                adminCollectsSummary: calcSubSummary(adminCollectsBookies),
-                bookieCollectsSummary: calcSubSummary(bookieCollectsBookies),
+                bookieUsersSummary: calcSubSummary(bookieUsersBookies),
+                adminCollectsSummary: calcSubSummary(bookieUsersBookies),
                 summary: {
                     grandTotalBets: Math.round(grandTotalBets * 100) / 100,
                     grandTotalPayouts: Math.round(grandTotalPayouts * 100) / 100,

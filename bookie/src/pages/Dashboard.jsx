@@ -377,7 +377,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex flex-wrap gap-3">
                             {pendingPayments > 0 && (
-                                <Link to="/payments" className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
+                                <Link to="/wallet?tab=transactions" className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95">
                                     {pendingPayments} Pending Payment{pendingPayments !== 1 ? 's' : ''} →
                                 </Link>
                             )}
@@ -515,7 +515,7 @@ const Dashboard = () => {
                 </SectionCard>
 
                 {/* Payments */}
-                <SectionCard title="Recent & Pending Payments" description="Transaction monitoring" icon={FaCreditCard} linkTo="/payments" linkLabel="Manage">
+                <SectionCard title="Recent & Pending Payments" description="Transaction monitoring" icon={FaCreditCard} linkTo="/wallet?tab=transactions" linkLabel="View">
                     <StatRow label="Deposits" value={formatCurrency(stats?.payments?.totalDeposits)} colorClass="text-emerald-400" />
                     <StatRow label="Withdrawals" value={formatCurrency(stats?.payments?.totalWithdrawals)} colorClass="text-red-400" />
                     <StatRow label="Pending Deposits" value={pendingDeposits} colorClass="text-amber-400" />

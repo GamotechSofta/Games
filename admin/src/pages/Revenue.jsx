@@ -15,7 +15,6 @@ import {
     FaPercent,
     FaUserShield,
     FaHandHoldingUsd,
-    FaBuilding,
 } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
@@ -72,9 +71,8 @@ const formatNumber = (n) => {
 };
 
 const TABS = [
-    { id: 'direct', label: 'Direct Users', icon: FaUserShield, color: 'blue', desc: 'Your own users (100% admin revenue)' },
-    { id: 'admin_collects', label: 'Admin Collects', icon: FaHandHoldingUsd, color: 'emerald', desc: 'Admin collects, pays bookie commission' },
-    { id: 'bookie_collects', label: 'Bookie Collects', icon: FaBuilding, color: 'purple', desc: 'Bookie collects, pays admin platform charge' },
+    { id: 'direct', label: 'Admin Direct Users collects', icon: FaUserShield, color: 'blue', desc: 'Players registered directly with admin (no bookie)' },
+    { id: 'admin_collects', label: 'Bookie users Collects', icon: FaHandHoldingUsd, color: 'emerald', desc: 'Players under bookies — admin collects bets, pays bookie commission' },
 ];
 
 // ======================== SUMMARY CARDS ========================
@@ -92,15 +90,6 @@ const AdminCollectsSummaryCards = ({ summary }) => (
         <SummaryCard label="Bets Volume" value={formatCurrency(summary.totalBets)} color="blue" icon={FaChartBar} />
         <SummaryCard label="Payouts" value={formatCurrency(summary.totalPayouts)} color="red" icon={FaCoins} />
         <SummaryCard label="Bookie Commission" value={formatCurrency(summary.totalBookieShare)} color="orange" icon={FaUserTie} sub="Paid to bookies" />
-        <ProfitCard label="Admin Profit" value={summary.totalAdminProfit} />
-    </div>
-);
-
-const BookieCollectsSummaryCards = ({ summary }) => (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        <SummaryCard label="Bets Volume" value={formatCurrency(summary.totalBets)} color="blue" icon={FaChartBar} />
-        <SummaryCard label="Payouts" value={formatCurrency(summary.totalPayouts)} color="red" icon={FaCoins} sub="Handled by bookies" />
-        <SummaryCard label="Platform Charge" value={formatCurrency(summary.totalAdminPool)} color="emerald" icon={FaBuilding} sub="Received from bookies" />
         <ProfitCard label="Admin Profit" value={summary.totalAdminProfit} />
     </div>
 );
@@ -158,7 +147,7 @@ const ProfitCard = ({ label, value, className = '' }) => {
 
 const AdminCollectsTable = ({ bookies }) => {
     const sorted = [...bookies].sort((a, b) => b.totalBetAmount - a.totalBetAmount);
-    if (sorted.length === 0) return <EmptyState text="No admin-collects bookies with data for this period" />;
+    if (sorted.length === 0) return <EmptyState text="No bookie player revenue for this period" />;
     return (
         <>
             {/* Desktop */}
@@ -205,63 +194,7 @@ const AdminCollectsTable = ({ bookies }) => {
             {/* Mobile */}
             <div className="md:hidden divide-y divide-gray-700/40">
                 {sorted.map((b) => (
-                    <BookieMobileCard key={b.bookieId} b={b} type="admin_collects" />
-                ))}
-            </div>
-        </>
-    );
-};
-
-const BookieCollectsTable = ({ bookies }) => {
-    const sorted = [...bookies].sort((a, b) => b.totalBetAmount - a.totalBetAmount);
-    if (sorted.length === 0) return <EmptyState text="No bookie-collects bookies with data for this period" />;
-    return (
-        <>
-            {/* Desktop */}
-            <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="bg-gray-700/40 text-gray-400 text-[11px] uppercase tracking-wider">
-                            <th className="text-left px-4 py-3 font-medium">Bookie</th>
-                            <th className="text-right px-3 py-3 font-medium">Users</th>
-                            <th className="text-right px-3 py-3 font-medium">Total Bets</th>
-                            <th className="text-right px-3 py-3 font-medium">Payouts</th>
-                            <th className="text-center px-3 py-3 font-medium">Platform Charge %</th>
-                            <th className="text-right px-3 py-3 font-medium">Platform Income</th>
-                            <th className="text-right px-3 py-3 font-medium">Bookie Keeps</th>
-                            <th className="text-right px-4 py-3 font-medium">Admin Profit</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-700/40">
-                        {sorted.map((b) => (
-                            <tr key={b.bookieId} className="hover:bg-gray-700/20 transition-colors">
-                                <td className="px-4 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full shrink-0 ${b.bookieStatus === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                                        <div className="min-w-0">
-                                            <Link to={`/revenue/${b.bookieId}`} className="font-medium text-white truncate hover:text-amber-400 transition-colors">{b.bookieName}</Link>
-                                            {b.bookiePhone && <p className="text-[11px] text-gray-500">{b.bookiePhone}</p>}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="text-right px-3 py-3 text-gray-300 text-xs">{formatNumber(b.totalUsers)}</td>
-                                <td className="text-right px-3 py-3 text-white font-medium">{formatCurrency(b.totalBetAmount)}</td>
-                                <td className="text-right px-3 py-3 text-red-400">{formatCurrency(b.totalPayouts)}</td>
-                                <td className="text-center px-3 py-3">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-400">{b.commissionPercentage}%</span>
-                                </td>
-                                <td className="text-right px-3 py-3 text-emerald-400 font-medium">{formatCurrency(b.adminPool)}</td>
-                                <td className="text-right px-3 py-3 text-gray-300">{formatCurrency(b.bookieShare)}</td>
-                                <td className={`text-right px-4 py-3 font-semibold ${b.adminProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(b.adminProfit)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            {/* Mobile */}
-            <div className="md:hidden divide-y divide-gray-700/40">
-                {sorted.map((b) => (
-                    <BookieMobileCard key={b.bookieId} b={b} type="bookie_collects" />
+                    <BookieMobileCard key={b.bookieId} b={b} />
                 ))}
             </div>
         </>
@@ -291,7 +224,7 @@ const DirectUsersSection = ({ stats }) => {
                 </div>
             </div>
             <p className="text-xs text-gray-500 mt-3 text-center">
-                Direct users have no bookie — 100% of bet volume goes to admin. Profit = Bets - Payouts.
+                Admin direct users have no bookie — 100% of bet volume goes to admin. Profit = Bets − Payouts.
             </p>
         </div>
     );
@@ -299,7 +232,7 @@ const DirectUsersSection = ({ stats }) => {
 
 // ======================== HELPERS ========================
 
-const BookieMobileCard = ({ b, type }) => (
+const BookieMobileCard = ({ b }) => (
     <div className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2 min-w-0">
@@ -309,7 +242,7 @@ const BookieMobileCard = ({ b, type }) => (
                     {b.bookiePhone && <p className="text-[11px] text-gray-500">{b.bookiePhone}</p>}
                 </div>
             </div>
-            <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${type === 'bookie_collects' ? 'bg-purple-500/15 text-purple-400' : 'bg-amber-500/15 text-amber-400'}`}>
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-amber-500/15 text-amber-400">
                 {b.commissionPercentage}%
             </span>
         </div>
@@ -323,9 +256,9 @@ const BookieMobileCard = ({ b, type }) => (
                 <p className="text-xs font-semibold text-red-400 truncate">{formatCurrency(b.totalPayouts)}</p>
             </div>
             <div className="bg-gray-700/30 rounded-lg px-2.5 py-2">
-                <p className="text-[10px] text-gray-500 uppercase">{type === 'bookie_collects' ? 'Platform Income' : 'Bookie Comm.'}</p>
-                <p className={`text-xs font-semibold truncate ${type === 'bookie_collects' ? 'text-emerald-400' : 'text-orange-400'}`}>
-                    {formatCurrency(type === 'bookie_collects' ? b.adminPool : b.bookieShare)}
+                <p className="text-[10px] text-gray-500 uppercase">Bookie Comm.</p>
+                <p className="text-xs font-semibold truncate text-orange-400">
+                    {formatCurrency(b.bookieShare)}
                 </p>
             </div>
             <div className="bg-gray-700/30 rounded-lg px-2.5 py-2">
@@ -337,7 +270,7 @@ const BookieMobileCard = ({ b, type }) => (
         </div>
         <div className="flex items-center gap-3 mt-2 text-[11px] text-gray-500">
             <span>{formatNumber(b.totalUsers)} users</span>
-            <span>{type === 'bookie_collects' ? `Bookie keeps: ${formatCurrency(b.bookieShare)}` : `Admin keeps: ${formatCurrency(b.adminPool)}`}</span>
+            <span>Admin keeps: {formatCurrency(b.adminPool)}</span>
         </div>
     </div>
 );
@@ -401,10 +334,8 @@ const Revenue = () => {
 
     const bookies = data?.bookies || [];
     const direct = data?.directUsers;
-    const adminCollectsBookies = bookies.filter(b => (b.bookieType || 'admin_collects') === 'admin_collects');
-    const bookieCollectsBookies = bookies.filter(b => b.bookieType === 'bookie_collects');
-    const acSummary = data?.adminCollectsSummary || {};
-    const bcSummary = data?.bookieCollectsSummary || {};
+    const bookieUsersBookies = bookies.filter((b) => (b.bookieType || 'admin_collects') !== 'bookie_collects');
+    const acSummary = data?.bookieUsersSummary || data?.adminCollectsSummary || {};
     const overallSummary = data?.summary;
 
     return (
@@ -416,7 +347,7 @@ const Revenue = () => {
                         <FaMoneyBillWave className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500 shrink-0" />
                         Revenue
                     </h1>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Revenue breakdown by source — Direct Users, Admin Collects, and Bookie Collects</p>
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Revenue — Admin direct users and bookie players</p>
                 </div>
 
                 {/* Date filters */}
@@ -452,16 +383,34 @@ const Revenue = () => {
                     </div>
                 </div>
 
-                {/* Overall summary strip */}
+                {/* Overall summary — highlighted */}
                 {!loading && data && overallSummary && (
-                    <div className="bg-gray-800/60 rounded-xl border border-gray-700/50 p-3 sm:p-4">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Overall</p>
-                            <div className="flex flex-wrap gap-4 sm:gap-6 text-xs sm:text-sm">
-                                <div><span className="text-gray-500">Bets: </span><span className="text-white font-bold">{formatCurrency(overallSummary.grandTotalBets)}</span></div>
-                                <div><span className="text-gray-500">Payouts: </span><span className="text-red-400 font-bold">{formatCurrency(overallSummary.grandTotalPayouts)}</span></div>
-                                <div><span className="text-gray-500">Bookie Payouts: </span><span className="text-orange-400 font-bold">{formatCurrency(overallSummary.totalBookieCommission)}</span></div>
-                                <div><span className="text-gray-500">Total Net Profit: </span><span className={`font-bold ${overallSummary.totalAdminProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(overallSummary.totalAdminProfit)}</span></div>
+                    <div className="rounded-xl border-2 border-amber-500/40 bg-gradient-to-br from-gray-800/90 to-gray-900/90 p-4 sm:p-5 shadow-lg shadow-amber-500/5">
+                        <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3 sm:mb-4">Overall</p>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-3 sm:px-4 sm:py-4">
+                                <p className="text-[10px] sm:text-xs font-semibold text-blue-300/90 uppercase tracking-wide">Bets</p>
+                                <p className="text-lg sm:text-2xl font-bold text-blue-400 mt-1">{formatCurrency(overallSummary.grandTotalBets)}</p>
+                            </div>
+                            <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-3 sm:px-4 sm:py-4">
+                                <p className="text-[10px] sm:text-xs font-semibold text-red-300/90 uppercase tracking-wide">Payouts</p>
+                                <p className="text-lg sm:text-2xl font-bold text-red-400 mt-1">{formatCurrency(overallSummary.grandTotalPayouts)}</p>
+                            </div>
+                            <div className="rounded-lg border border-orange-500/40 bg-orange-500/10 px-3 py-3 sm:px-4 sm:py-4">
+                                <p className="text-[10px] sm:text-xs font-semibold text-orange-300/90 uppercase tracking-wide">Bookie Commission</p>
+                                <p className="text-lg sm:text-2xl font-bold text-orange-400 mt-1">{formatCurrency(overallSummary.totalBookieCommission)}</p>
+                            </div>
+                            <div className={`rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-4 col-span-2 lg:col-span-1 ${
+                                overallSummary.totalAdminProfit >= 0
+                                    ? 'border-emerald-400/60 bg-emerald-500/15 ring-1 ring-emerald-400/30'
+                                    : 'border-red-400/60 bg-red-500/15 ring-1 ring-red-400/30'
+                            }`}>
+                                <p className={`text-[10px] sm:text-xs font-bold uppercase tracking-wide ${
+                                    overallSummary.totalAdminProfit >= 0 ? 'text-emerald-300' : 'text-red-300'
+                                }`}>Total Net Profit</p>
+                                <p className={`text-xl sm:text-2xl font-extrabold mt-1 ${
+                                    overallSummary.totalAdminProfit >= 0 ? 'text-emerald-400' : 'text-red-400'
+                                }`}>{formatCurrency(overallSummary.totalAdminProfit)}</p>
                             </div>
                         </div>
                     </div>
@@ -483,7 +432,6 @@ const Revenue = () => {
                                 const colorMap = {
                                     blue: isActive ? 'bg-blue-600 text-white border-blue-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
                                     emerald: isActive ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
-                                    purple: isActive ? 'bg-purple-600 text-white border-purple-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
                                 };
                                 return (
                                     <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -507,7 +455,7 @@ const Revenue = () => {
                                     <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
                                         <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
                                             <FaUserShield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
-                                            Direct Users Revenue
+                                            Admin Direct Users collects
                                         </h2>
                                     </div>
                                     <DirectUsersSection stats={direct} />
@@ -522,27 +470,11 @@ const Revenue = () => {
                                     <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
                                         <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
                                             <FaHandHoldingUsd className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-                                            Admin Collects — Bookie Breakdown
+                                            Bookie users Collects — Breakdown
                                         </h2>
-                                        <p className="text-[11px] text-gray-500 mt-0.5">Admin collects all payments. Bookie gets commission % from bet volume.</p>
+                                        <p className="text-[11px] text-gray-500 mt-0.5">Players under bookies. Admin collects bets and pays bookie commission %.</p>
                                     </div>
-                                    <AdminCollectsTable bookies={adminCollectsBookies} />
-                                </div>
-                            </>
-                        )}
-
-                        {activeTab === 'bookie_collects' && (
-                            <>
-                                <BookieCollectsSummaryCards summary={bcSummary} />
-                                <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
-                                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
-                                        <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
-                                            <FaBuilding className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
-                                            Bookie Collects — Bookie Breakdown
-                                        </h2>
-                                        <p className="text-[11px] text-gray-500 mt-0.5">Bookie collects all payments. Admin receives platform charge % from bet volume.</p>
-                                    </div>
-                                    <BookieCollectsTable bookies={bookieCollectsBookies} />
+                                    <AdminCollectsTable bookies={bookieUsersBookies} />
                                 </div>
                             </>
                         )}
@@ -573,38 +505,21 @@ const Revenue = () => {
                 <div className="hidden print:block mt-8 p-6 bg-white text-black rounded-lg">
                     <h2 className="text-xl font-bold mb-2">Revenue Report ({dateRange.startDate} to {dateRange.endDate})</h2>
 
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Direct Users</h3>
+                    <h3 className="text-lg font-semibold mt-4 mb-2">Admin Direct Users collects</h3>
                     <p>Bets: {formatCurrency(direct?.totalBetAmount)} | Payouts: {formatCurrency(direct?.totalPayouts)} | Profit: {formatCurrency(direct?.adminProfit)}</p>
 
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Admin Collects Bookies</h3>
+                    <h3 className="text-lg font-semibold mt-4 mb-2">Bookie users Collects</h3>
                     <table className="w-full text-sm border-collapse mb-4">
                         <thead><tr className="border-b-2 border-gray-300">
                             <th className="text-left py-2">Bookie</th><th className="text-right py-2">Bets</th><th className="text-right py-2">Payouts</th>
                             <th className="text-center py-2">Comm %</th><th className="text-right py-2">Commission</th><th className="text-right py-2">Admin Profit</th>
                         </tr></thead>
                         <tbody>
-                            {adminCollectsBookies.map((b) => (
+                            {bookieUsersBookies.map((b) => (
                                 <tr key={b.bookieId} className="border-b border-gray-200">
                                     <td className="py-1.5">{b.bookieName}</td><td className="text-right py-1.5">{formatCurrency(b.totalBetAmount)}</td>
                                     <td className="text-right py-1.5">{formatCurrency(b.totalPayouts)}</td><td className="text-center py-1.5">{b.commissionPercentage}%</td>
                                     <td className="text-right py-1.5">{formatCurrency(b.bookieShare)}</td><td className="text-right py-1.5">{formatCurrency(b.adminProfit)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Bookie Collects Bookies</h3>
-                    <table className="w-full text-sm border-collapse mb-4">
-                        <thead><tr className="border-b-2 border-gray-300">
-                            <th className="text-left py-2">Bookie</th><th className="text-right py-2">Bets</th><th className="text-right py-2">Payouts</th>
-                            <th className="text-center py-2">Platform %</th><th className="text-right py-2">Platform Income</th><th className="text-right py-2">Admin Profit</th>
-                        </tr></thead>
-                        <tbody>
-                            {bookieCollectsBookies.map((b) => (
-                                <tr key={b.bookieId} className="border-b border-gray-200">
-                                    <td className="py-1.5">{b.bookieName}</td><td className="text-right py-1.5">{formatCurrency(b.totalBetAmount)}</td>
-                                    <td className="text-right py-1.5">{formatCurrency(b.totalPayouts)}</td><td className="text-center py-1.5">{b.commissionPercentage}%</td>
-                                    <td className="text-right py-1.5">{formatCurrency(b.adminPool)}</td><td className="text-right py-1.5">{formatCurrency(b.adminProfit)}</td>
                                 </tr>
                             ))}
                         </tbody>

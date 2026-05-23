@@ -395,7 +395,7 @@ const Reports = () => {
                             {[
                                 { to: '/revenue', label: 'Revenue Details', icon: FaMoneyBillWave, description: 'Revenue breakdown', color: 'emerald' },
                                 { to: '/bet-history', label: 'Bet History', icon: FaHistory, description: 'View all placed bets', color: 'blue' },
-                                { to: '/payments', label: 'Payments', icon: FaCreditCard, description: 'Manage transactions', color: 'purple' },
+                                { to: '/wallet?tab=transactions', label: 'Transactions', icon: FaCreditCard, description: 'Deposits & wallet activity', color: 'purple' },
                                 { to: '/my-users', label: 'My Players', icon: FaUsers, description: 'Active player list', color: 'amber' },
                             ].map((item) => (
                                 <Link
