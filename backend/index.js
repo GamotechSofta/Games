@@ -229,6 +229,7 @@ console.log('[CRON] Next run will reset all market results at midnight IST');
 console.log(`[BOOT] GAP signature mode: ${signatureEnabled ? 'enabled' : 'disabled'}`);
 console.log('[BOOT] Mounted routes: /api/wallet, /api/game, /api/v1/wallet, /api/v1/game');
 console.log('═══════════════════════════════════════════════════════════');
+console.log("CI/CD Pipeline Working With Prajwal");
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
