@@ -196,8 +196,7 @@ app.use((err, req, res, next) => {
         });
     }
 });
-console.log("CI/CD Pipeline Working time 2");
-console.log("CI/CD Pipeline Demo With Nikhil");
+
 // Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
 // Runs every day at 00:00 IST to clear opening/closing numbers for fresh day
 cron.schedule('30 18 * * *', async () => {
@@ -222,14 +221,6 @@ cron.schedule('30 18 * * *', async () => {
     timezone: 'UTC'
 });
 
-console.log('═══════════════════════════════════════════════════════════');
-console.log('[CRON] ✓ Scheduled market reset job');
-console.log('[CRON] Schedule: Every day at 00:00 IST (18:30 UTC)');
-console.log('[CRON] Next run will reset all market results at midnight IST');
-console.log(`[BOOT] GAP signature mode: ${signatureEnabled ? 'enabled' : 'disabled'}`);
-console.log('[BOOT] Mounted routes: /api/wallet, /api/game, /api/v1/wallet, /api/v1/game');
-console.log('═══════════════════════════════════════════════════════════');
-console.log("CI/CD Pipeline Working With Prajwal");
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
