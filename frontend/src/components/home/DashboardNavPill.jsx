@@ -28,7 +28,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
 
   return (
     <nav
-      className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-1.5 font-sans dark:border-white/[0.06] dark:bg-[#1a1a1a]"
+      className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-1.5 py-1 font-sans dark:border-white/[0.06] dark:bg-[#1a1a1a]"
       aria-label={t('navigation.home')}
     >
       {NAV_TABS.map((tab) => {
@@ -40,7 +40,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
             type="button"
             onClick={() => onPanelChange?.(tab.panel)}
             className={[
-              'flex items-center gap-2 rounded-full px-3 py-1.5 transition-all',
+              'flex items-center gap-1.5 rounded-full px-2.5 py-1 transition-all',
               active
                 ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.4)] dark:bg-[#e60000] dark:shadow-[0_0_14px_rgba(230,0,0,0.45)]'
                 : 'text-gray-600 hover:bg-white hover:text-[#D32F2F] dark:text-white dark:hover:bg-white/[0.06] dark:hover:text-white',
@@ -50,7 +50,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
           >
             <span
               className={[
-                'flex h-9 w-9 items-center justify-center rounded-[10px] transition-all',
+                'flex h-8 w-8 items-center justify-center rounded-[9px] transition-all',
                 active
                   ? 'bg-white/12 text-white'
                   : 'text-gray-500 dark:text-white',
@@ -60,7 +60,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
             </span>
             <span
               className={[
-                'text-sm font-semibold leading-none whitespace-nowrap',
+                'text-[13px] font-semibold leading-none whitespace-nowrap',
                 active ? 'text-white' : 'text-inherit',
               ].join(' ')}
             >

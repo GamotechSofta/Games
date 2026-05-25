@@ -99,11 +99,6 @@ const AppHeader = () => {
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   }).format(displayBalance);
-  const formattedMobileBalance = new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  }).format(displayBalance);
-
   const isDashboardRoute = location.pathname === '/' || location.pathname === '/markets';
 
   return (
@@ -127,19 +122,7 @@ const AppHeader = () => {
 
           {isDashboardRoute ? (
             <div className="flex items-center justify-between gap-2 min-w-0 md:hidden">
-              <div className="flex items-center gap-2 min-w-0">
-                <button
-                  type="button"
-                  onClick={handleProfileClick}
-                  className={`flex h-10 w-10 items-center justify-center active:scale-95 transition ${
-                    isLight ? 'text-gray-800' : 'text-white'
-                  }`}
-                  aria-label={t('navigation.menu', { defaultValue: 'Menu' })}
-                >
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
-                  </svg>
-                </button>
+              <div className="flex items-center min-w-0 pl-1 sm:pl-1.5">
                 <Link to="/" className="flex items-center min-w-0">
                   <img
                     src={aakdaLogo}
@@ -153,23 +136,12 @@ const AppHeader = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/funds?tab=add-fund')}
-                  className={`flex items-center gap-1.5 rounded-full border pl-2.5 pr-1.5 py-1.5 transition active:scale-95 ${
-                    isLight
-                      ? 'border-[#f3d6a0] bg-white text-gray-900 shadow-[0_4px_18px_rgba(15,23,42,0.08)]'
-                      : 'border-[#5a4721] bg-[#15120d] text-white shadow-[0_8px_26px_rgba(0,0,0,0.28)]'
-                  }`}
+                  className="flex min-w-0 items-center gap-2 pl-3 pr-1.5 py-1.5 transition-colors active:scale-95"
                 >
-                  <span className={`flex h-7 w-7 items-center justify-center rounded-full ${isLight ? 'bg-[#fff3cf]' : 'bg-[#2e220f]'}`}>
-                    <img
-                      src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
-                      alt=""
-                      className="h-4 w-4 object-contain"
-                    />
+                  <span className="max-w-[92px] truncate text-sm font-semibold text-gray-900 dark:text-white">
+                    {formattedBalance}
                   </span>
-                  <span className="max-w-[92px] truncate text-[13px] font-extrabold">
-                    ₹ {formattedMobileBalance}
-                  </span>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#f3b61b] text-black shadow-[0_4px_12px_rgba(243,182,27,0.35)]">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
                     <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z" />
                     </svg>
@@ -192,6 +164,36 @@ const AppHeader = () => {
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile')}
+                  className={`flex h-10 w-10 items-center justify-center active:scale-95 transition ${
+                    isLight
+                      ? user
+                        ? 'text-amber-600'
+                        : 'text-gray-800'
+                      : user
+                        ? 'text-white'
+                        : 'text-white'
+                  }`}
+                  aria-label="Profile"
+                  title="Profile"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill={user ? 'currentColor' : 'none'}
+                    stroke={user ? 'none' : 'currentColor'}
+                    strokeWidth={user ? 0 : 1.8}
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                 </button>
               </div>
             </div>

@@ -192,7 +192,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
 
   return (
     <div
-      className="relative z-40 hidden h-full min-h-0 shrink-0 overflow-visible md:flex"
+      className="relative z-40 hidden h-full min-h-0 shrink-0 overflow-visible transition-[width] duration-300 ease-in-out md:flex"
       style={{ width }}
     >
       {/* Collapse — sits above main content (hero) */}
@@ -208,7 +208,7 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
       </button>
 
     <aside
-      className="relative flex h-full w-full flex-col overflow-visible border-r border-gray-200 bg-white font-sans dark:border-white/[0.06] dark:bg-[#1d1e20]"
+      className="relative flex h-full w-full flex-col overflow-visible border-r border-gray-200 bg-white font-sans transition-[width] duration-300 ease-in-out dark:border-white/[0.06] dark:bg-[#1d1e20]"
       aria-label={t('sidebar.expand')}
     >
       <div className="flex min-h-0 flex-1 flex-col px-2">
