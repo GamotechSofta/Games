@@ -217,7 +217,7 @@ const BottomNavbar = () => {
         />
         <aside
           aria-hidden={!menuOpen}
-          className={`fixed inset-y-0 right-0 z-[10020] flex w-[min(92vw,360px)] max-w-full flex-col border-l border-white/10 bg-white text-gray-900 shadow-[-16px_0_48px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-out will-change-transform dark:bg-[#1d1e20] dark:text-white md:hidden ${menuOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'}`}
+          className={`fixed inset-y-0 right-0 z-[10020] flex w-[min(78vw,300px)] max-w-full flex-col border-l border-white/10 bg-white text-gray-900 shadow-[-16px_0_48px_rgba(0,0,0,0.3)] transition-transform duration-300 ease-out will-change-transform dark:bg-[#1d1e20] dark:text-white md:hidden ${menuOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'}`}
           style={{
             paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
             paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',

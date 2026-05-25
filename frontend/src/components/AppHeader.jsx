@@ -121,46 +121,45 @@ const AppHeader = () => {
           {isDashboardRoute && <MobileInstallBanner />}
 
           {isDashboardRoute ? (
-            <div className="flex items-center justify-between gap-2 min-w-0 md:hidden">
-              <div className="flex items-center min-w-0 pl-1 sm:pl-1.5">
-                <Link to="/" className="flex items-center min-w-0">
-                  <img
-                    src={aakdaLogo}
-                    alt="Aakda"
-                    className="h-9 w-auto max-w-[122px] object-contain object-left"
-                  />
-                </Link>
-              </div>
+            <div className="flex items-center gap-4 min-w-0 md:hidden">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="shrink-0 rounded-xl p-1 transition-transform duration-200 active:scale-[0.98]"
+                aria-label="Aakda home"
+              >
+                <img
+                  src={aakdaLogo}
+                  alt="Aakda"
+                  className="h-10 w-auto object-contain"
+                />
+              </button>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="ml-auto flex shrink-0 items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/funds?tab=add-fund')}
-                  className="flex min-w-0 items-center gap-2 pl-3 pr-1.5 py-1.5 transition-colors active:scale-95"
+                  onClick={triggerApkDownload}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
+                  aria-label={t('header.downloadApp')}
+                  title={t('header.downloadApp')}
                 >
-                  <span className="max-w-[92px] truncate text-sm font-semibold text-gray-900 dark:text-white">
-                    {formattedBalance}
-                  </span>
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
-                    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z" />
-                    </svg>
-                  </span>
+                  <svg className="h-[18px] w-[18px] text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => navigate('/notifications')}
-                  className={`relative flex h-10 w-10 items-center justify-center active:scale-95 transition ${
-                    isLight ? 'text-gray-800' : 'text-white'
-                  }`}
+                  className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
                   aria-label="Notifications"
                   title="Notifications"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <svg className="h-[18px] w-[18px] text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
                   {notificationCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#e60000] text-white text-[10px] font-bold">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
@@ -168,32 +167,17 @@ const AppHeader = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate('/profile')}
-                  className={`flex h-10 w-10 items-center justify-center active:scale-95 transition ${
-                    isLight
-                      ? user
-                        ? 'text-amber-600'
-                        : 'text-gray-800'
-                      : user
-                        ? 'text-white'
-                        : 'text-white'
-                  }`}
-                  aria-label="Profile"
-                  title="Profile"
+                  onClick={() => navigate('/funds?tab=add-fund')}
+                  className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill={user ? 'currentColor' : 'none'}
-                    stroke={user ? 'none' : 'currentColor'}
-                    strokeWidth={user ? 0 : 1.8}
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {formattedBalance}
+                  </span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
+                    <svg className="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z" />
+                    </svg>
+                  </span>
                 </button>
               </div>
             </div>
