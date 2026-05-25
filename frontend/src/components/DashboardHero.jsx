@@ -16,6 +16,12 @@ const CATEGORIES = [
 const panelClass =
   'rounded-2xl border border-gray-200 bg-white overflow-hidden dark:border-white/[0.06] dark:bg-[#1a1a1a]';
 
+const controlPanelClass =
+  'min-h-[44px] rounded-[18px] border border-gray-200 bg-white shadow-sm dark:border-white/[0.04] dark:bg-[#282828] dark:shadow-none';
+
+const categoryControlClass =
+  'shrink-0 min-h-[44px] rounded-[18px] border px-5 py-2.5 text-sm font-medium transition-all duration-200';
+
 export default function DashboardHero({ searchQuery = '', onSearchChange }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -86,16 +92,16 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
       <div className="flex gap-3">
         <form
           onSubmit={handleSearchSubmit}
-          className={`flex min-w-0 flex-[7] items-center gap-3 px-4 py-3 ${panelClass}`}
+          className={`flex min-w-0 flex-[7] items-center gap-3 px-4 py-3 ${controlPanelClass}`}
           role="search"
         >
-          <HiOutlineMagnifyingGlass className="h-5 w-5 shrink-0 text-gray-400 dark:text-white/45" strokeWidth={1.75} />
+          <HiOutlineMagnifyingGlass className="h-5 w-5 shrink-0 text-gray-400 dark:text-white/55" strokeWidth={1.75} />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => onSearchChange?.(e.target.value)}
             placeholder={t('dashboard.searchPlaceholder')}
-            className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none dark:text-white dark:placeholder:text-white/40"
+            className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none dark:text-white/90 dark:placeholder:text-white/45"
             aria-label={t('dashboard.searchPlaceholder')}
             enterKeyHint="search"
           />
@@ -103,7 +109,7 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
             <button
               type="button"
               onClick={clearSearch}
-              className="shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-800 dark:text-gray-800 dark:text-white"
+              className="shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
               aria-label={t('common.clear')}
             >
               <HiOutlineXMark className="h-5 w-5" strokeWidth={1.75} />
@@ -114,9 +120,9 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
         <button
           type="button"
           onClick={() => navigate('/games?category=highEarning')}
-          className={`flex min-w-0 flex-[3] items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 dark:text-white/80 dark:hover:bg-[#222] dark:hover:text-white ${panelClass}`}
+          className={`flex min-w-0 flex-[3] items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 dark:text-white/90 dark:hover:bg-[#303030] dark:hover:text-white ${controlPanelClass}`}
         >
-          <HiOutlineAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-gray-500 dark:text-white/50" strokeWidth={1.75} />
+          <HiOutlineAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-gray-500 dark:text-white/65" strokeWidth={1.75} />
           <span className="truncate">{t('dashboard.providers')}</span>
         </button>
       </div>
@@ -135,10 +141,10 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
                 type="button"
                 onClick={() => handleCategory(cat)}
                 className={[
-                  'shrink-0 rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-200',
+                  categoryControlClass,
                   active
-                    ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.35)] dark:bg-[#e60000] dark:shadow-[0_0_20px_rgba(230,0,0,0.35)]'
-                    : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.06] dark:bg-[#1a1a1a] dark:text-white/65 dark:hover:bg-[#222] dark:hover:text-white/90',
+                    ? 'border-[#D32F2F] bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.35)] dark:border-[#e60000] dark:bg-[#e60000] dark:text-white dark:shadow-[0_0_20px_rgba(230,0,0,0.35)]'
+                    : 'border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.04] dark:bg-[#282828] dark:text-white dark:shadow-none dark:hover:bg-[#303030] dark:hover:text-white',
                 ].join(' ')}
               >
                 {t(cat.labelKey)}

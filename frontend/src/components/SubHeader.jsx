@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiOutlineCash } from 'react-icons/hi';
 import { getBalance, updateUserBalance } from '../api/bets';
 import { useTheme } from '../context/ThemeContext';
+import {
+  isMobileInstallBannerDismissed,
+  MOBILE_INSTALL_BANNER_EVENT,
+  shouldShowMobileInstallBanner,
+  getMobileDashboardSubHeaderTop,
+} from '../utils/mobileInstallBanner';
 
 /**
  * Sub-header matching photo: golden borders, username (left), DEPOSIT/WITHDRAWAL (center), wallet + balance (right).
@@ -12,10 +18,13 @@ import { useTheme } from '../context/ThemeContext';
 const SubHeader = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLight } = useTheme();
   const [balance, setBalance] = useState(null);
+  const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
 
-  const headerHeight = 'calc(3rem + env(safe-area-inset-top, 0px))';
+  const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
+  const headerHeight = getMobileDashboardSubHeaderTop(hasPromoBanner);
 
   const loadStoredBalance = () => {
     try {
@@ -47,6 +56,22 @@ const SubHeader = () => {
     return () => window.removeEventListener('userLogin', onLogin);
   }, []);
 
+  useEffect(() => {
+    const syncBannerState = () => setBannerDismissed(isMobileInstallBannerDismissed());
+    const onBannerChange = (event) => {
+      setBannerDismissed(Boolean(event?.detail?.dismissed));
+    };
+
+    syncBannerState();
+    window.addEventListener(MOBILE_INSTALL_BANNER_EVENT, onBannerChange);
+    window.addEventListener('storage', syncBannerState);
+
+    return () => {
+      window.removeEventListener(MOBILE_INSTALL_BANNER_EVENT, onBannerChange);
+      window.removeEventListener('storage', syncBannerState);
+    };
+  }, [location.pathname]);
+
   const displayBalance = balance != null ? Number(balance) : 0;
   const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
 
@@ -55,7 +80,7 @@ const SubHeader = () => {
       className={`fixed left-0 right-0 z-40 w-full border-t md:hidden ${
         isLight
           ? 'bg-white border-amber-500/50 shadow-sm'
-          : 'bg-black border-amber-500/60'
+          : 'bg-[#141415] border-amber-500/60'
       }`}
       style={{ top: headerHeight }}
     >

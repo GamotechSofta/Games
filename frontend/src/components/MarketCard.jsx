@@ -1,13 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiOutlineClock, HiOutlinePlay } from 'react-icons/hi';
-import { HiStar } from 'react-icons/hi';
-import { BsSuitSpadeFill, BsSuitHeartFill, BsSuitDiamondFill, BsSuitClubFill } from 'react-icons/bs';
+import { HiChevronRight, HiOutlineClock, HiOutlinePlay } from 'react-icons/hi';
 import { MARKET_SECTION_THEME } from '../config/dashboardTheme';
-
-const suitIcons = [BsSuitSpadeFill, BsSuitHeartFill, BsSuitDiamondFill, BsSuitClubFill];
-const suitColors = ['text-gray-800 dark:text-gray-300', 'text-[#D32F2F] dark:text-[#e60000]', 'text-[#D32F2F] dark:text-[#e60000]', 'text-gray-800 dark:text-gray-300'];
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -20,29 +15,26 @@ const toMarketNameKey = (name) => {
 
 const BADGE_STYLES = {
   popular: {
-    open: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950/90 dark:text-green-400 dark:border-green-700/80',
-    closed: 'bg-red-50 text-[#D32F2F] border-red-200 dark:bg-red-950/90 dark:text-red-400 dark:border-red-800/80',
+    open: 'bg-green-50 text-green-700 border-green-200 dark:bg-[#143524] dark:text-[#86efac] dark:border-[#1f7a45]',
+    closed: 'bg-red-50 text-[#D32F2F] border-red-200 dark:bg-[#3a1216] dark:text-[#fca5a5] dark:border-[#b91c1c]',
   },
   live: {
-    open: 'bg-green-50 text-green-600 border-green-200 dark:bg-green-950/90 dark:text-green-400 dark:border-green-700/80',
-    closed: 'bg-green-50/80 text-green-700 border-green-200 dark:bg-green-950/70 dark:text-green-500 dark:border-green-800/60',
+    open: 'bg-green-50 text-green-700 border-green-200 dark:bg-[#143524] dark:text-[#86efac] dark:border-[#1f7a45]',
+    closed: 'bg-green-50/80 text-green-700 border-green-200 dark:bg-[#1e2f25] dark:text-[#bbf7d0] dark:border-[#2f6d49]',
   },
   night: {
-    open: 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/90 dark:text-blue-400 dark:border-blue-700/80',
-    closed: 'bg-blue-50/80 text-blue-700 border-blue-200 dark:bg-blue-950/70 dark:text-blue-500 dark:border-blue-800/60',
+    open: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-[#12283f] dark:text-[#93c5fd] dark:border-[#2563eb]',
+    closed: 'bg-blue-50/80 text-blue-700 border-blue-200 dark:bg-[#1b2738] dark:text-[#bfdbfe] dark:border-[#315b8a]',
   },
 };
 
-export default function MarketCard({ market, index = 0, section = 'popular' }) {
+export default function MarketCard({ market, section = 'popular' }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
 
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClickable = isOpen;
-
-  const SuitIcon = suitIcons[index % suitIcons.length];
-  const suitColor = suitColors[index % suitColors.length];
 
   const handleClick = () => {
     if (isClickable) {
@@ -59,8 +51,14 @@ export default function MarketCard({ market, index = 0, section = 'popular' }) {
     defaultValue: market.gameName,
   });
 
+  const resultValue = market.result || '***-**-***';
   const badgeStyle = BADGE_STYLES[section]?.[isOpen ? 'open' : 'closed'] || BADGE_STYLES.popular.closed;
-  const showPlayBtn = isOpen && theme.playBtn;
+  const statusLabel =
+    market.status === 'open'
+      ? t('markets.marketIsOpen')
+      : market.status === 'running'
+        ? t('markets.closingIsRunning')
+        : t('markets.marketClosed');
 
   return (
     <div
@@ -68,45 +66,44 @@ export default function MarketCard({ market, index = 0, section = 'popular' }) {
       tabIndex={isClickable ? 0 : undefined}
       onClick={handleClick}
       onKeyDown={(e) => isClickable && (e.key === 'Enter' || e.key === ' ') && handleClick()}
-      className={`bg-white dark:bg-[#161616] rounded-xl border-2 overflow-hidden w-full h-full transition-all duration-200 ${theme.cardBorder} ${
-        isClickable ? 'cursor-pointer hover:shadow-lg dark:hover:shadow-black/50' : ''
+      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 dark:border-white/[0.14] dark:bg-[#1f2023] dark:shadow-[0_14px_28px_rgba(0,0,0,0.24)] ${
+        isClickable
+          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:hover:border-white/[0.2] dark:hover:shadow-[0_18px_36px_rgba(0,0,0,0.34)]'
+          : ''
       }`}
     >
-      <div className="flex justify-center pt-3 pb-1 px-3">
-        <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide border ${badgeStyle}`}>
-          {market.status === 'open' && t('markets.marketIsOpen')}
-          {market.status === 'running' && t('markets.closingIsRunning')}
-          {market.status === 'closed' && t('markets.marketClosed')}
+      <div className="flex flex-col items-start justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-white/[0.08] sm:flex-row sm:items-center">
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] sm:text-[10px] sm:tracking-[0.14em] ${badgeStyle}`}>
+          {statusLabel}
         </span>
+        <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-white/72">
+          <HiOutlineClock className="h-3.5 w-3.5 shrink-0" />
+          <span className="break-words">{market.timeRange}</span>
+        </div>
       </div>
 
-      <div className="px-3 pb-3 flex items-end justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1 mb-1.5">
-            <HiOutlineClock className="w-3.5 h-3.5 text-gray-400 dark:text-[#707070] shrink-0" />
-            <span className="text-[11px] text-gray-500 dark:text-[#b0b0b0] font-medium truncate">
-              {market.timeRange}
-            </span>
-          </div>
-
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white leading-tight mb-1.5 break-words">
+      <div className="flex flex-1 flex-col px-4 py-4">
+        <div className="flex-1">
+          <h3 className="break-words text-[15px] font-semibold leading-snug text-gray-900 dark:text-white">
             {displayName}
           </h3>
 
-          <div className="flex items-center gap-1 mb-2">
-            <div className="flex">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <HiStar key={s} className="w-3 h-3 text-amber-400" />
-              ))}
+          <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5 dark:border-white/[0.08] dark:bg-[#18191c]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-white/50">
+              Result
             </div>
-            <span className="text-[11px] text-gray-500 dark:text-[#b0b0b0] font-medium">(4.8)</span>
+            <div className="mt-1 break-all font-mono text-sm font-bold tracking-[0.12em] text-gray-900 dark:text-white sm:tracking-[0.22em]">
+              {resultValue}
+            </div>
           </div>
+        </div>
 
+        <div className="mt-4 flex items-start justify-between gap-3">
           {market.status === 'closed' ? (
             <button
               type="button"
               onClick={handleTomorrow}
-              className={`text-[11px] font-semibold hover:underline text-left ${
+              className={`max-w-[calc(100%-3.5rem)] text-left text-[11px] font-semibold leading-snug hover:underline ${
                 section === 'popular'
                   ? 'text-[#D32F2F] dark:text-[#e60000]'
                   : `text-[#D32F2F] ${theme.action}`
@@ -115,22 +112,24 @@ export default function MarketCard({ market, index = 0, section = 'popular' }) {
               {t('markets.runningForTomorrow')}
             </button>
           ) : (
-            <p className={`text-[11px] font-semibold text-green-600 ${theme.action}`}>
+            <p className={`max-w-[calc(100%-3.5rem)] text-[11px] font-semibold leading-snug ${theme.action}`}>
               {t('markets.tapToPlay')}
             </p>
           )}
-        </div>
 
-        <div className="shrink-0 mb-1">
-          {showPlayBtn ? (
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme.playBtn}`}>
-              <HiOutlinePlay className="w-5 h-5 text-gray-900 dark:text-white ml-0.5" />
-            </div>
-          ) : (
-            <div className="w-10 h-10 flex items-center justify-center">
-              <SuitIcon className={`w-8 h-8 ${suitColor}`} />
-            </div>
-          )}
+          <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+              isOpen
+                ? 'border-[#e60000]/20 bg-[#e60000] text-white shadow-[0_10px_24px_rgba(230,0,0,0.22)]'
+                : 'border-gray-200 bg-white text-gray-400 dark:border-white/[0.1] dark:bg-[#18191c] dark:text-white/58'
+            }`}
+          >
+            {isOpen ? (
+              <HiOutlinePlay className="ml-0.5 h-5 w-5" />
+            ) : (
+              <HiChevronRight className="h-5 w-5" />
+            )}
+          </div>
         </div>
       </div>
     </div>

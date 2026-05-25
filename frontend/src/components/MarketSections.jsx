@@ -55,7 +55,7 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 w-full">
+      <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3 w-full">
         {markets.map((market, i) => (
           <div key={market.id} className="min-w-0">
             <MarketCard market={market} index={i} section={section} />
@@ -150,9 +150,9 @@ export default function MarketSections({ searchQuery = '' }) {
         {[1, 2, 3].map((s) => (
           <div key={s}>
             <div className="h-5 w-40 bg-gray-200 dark:bg-[#1a1a1a] rounded skeleton-shimmer mb-3" />
-            <div className="flex gap-3 w-full">
+            <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3 w-full">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex-1 min-w-0 h-[160px] bg-gray-100 dark:bg-[#161616] rounded-xl skeleton-shimmer" />
+                <div key={i} className="min-w-0 h-[160px] bg-gray-100 dark:bg-[#161616] rounded-xl skeleton-shimmer" />
               ))}
             </div>
           </div>

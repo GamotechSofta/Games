@@ -108,8 +108,8 @@ const BottomNavbar = () => {
       }}
     >
       {/* Backplate to prevent white background showing behind navbar */}
-      <div className="absolute inset-0 bg-[#f5f5f7] dark:bg-black pointer-events-none" />
-      <div className="relative bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
+      <div className="absolute inset-0 bg-[#f5f5f7] dark:bg-[#141415] pointer-events-none" />
+      <div className="relative bg-white dark:bg-[#141415] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-[0_2px_12px_rgba(0,0,0,0.12)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)] flex items-end justify-around px-0.5 py-1.5 min-h-[52px]">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const isCenter = item.isCenter;
@@ -131,7 +131,7 @@ const BottomNavbar = () => {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.35)] transition-all duration-200 ${
                     active
-                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-white dark:ring-offset-black scale-105'
+                      ? 'bg-[#f3b61b] ring-2 ring-[#f3b61b]/60 ring-offset-1 ring-offset-white dark:ring-offset-[#141415] scale-105'
                       : 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700'
                   }`}
                 >

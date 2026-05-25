@@ -37,7 +37,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen min-h-ios-screen w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-[#0a0a0a]">
+    <div className="min-h-screen min-h-ios-screen w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-[#141415]">
       <WalletSection />
       <Section1 />
     </div>

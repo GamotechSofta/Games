@@ -8,13 +8,13 @@ import aakdaLogo from '../config/logo';
 import LanguageSwitcher from './LanguageSwitcher';
 import ThemeSwitcher from './ThemeSwitcher';
 import { useTheme } from '../context/ThemeContext';
+import MobileInstallBanner from './MobileInstallBanner';
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const { isLight } = useTheme();
-  const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
 
@@ -35,15 +35,7 @@ const AppHeader = () => {
   useEffect(() => {
     // Check if user is logged in
     const checkUser = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          setUser(JSON.parse(userData));
-        } catch (e) {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
+      if (!localStorage.getItem('user')) {
         setNotificationCount(0);
       }
       loadStoredBalance();
@@ -95,10 +87,6 @@ const AppHeader = () => {
     refreshNotificationCount();
   }, [location.pathname, refreshNotificationCount]);
 
-  const handleProfileClick = () => {
-    navigate(user ? '/profile' : '/login');
-  };
-
   const displayBalance = balance != null ? Number(balance) : 0;
   const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
 
@@ -110,7 +98,7 @@ const AppHeader = () => {
       <div
         className={`fixed top-0 left-0 right-0 z-50 w-full min-w-0 border-b
           ${isDashboardDesktopRoute ? 'md:hidden' : ''}
-          ${isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-black border-white/5'}
+          ${isLight ? 'bg-white border-gray-200 shadow-sm' : 'bg-[#141415] border-white/5'}
           pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))]
           sm:pl-[max(0.75rem,env(safe-area-inset-left))] sm:pr-[max(0.75rem,env(safe-area-inset-right))]
           md:pl-[max(1rem,env(safe-area-inset-left))] md:pr-[max(1rem,env(safe-area-inset-right))]
@@ -121,7 +109,10 @@ const AppHeader = () => {
           sm:pt-[max(0.5rem,calc(0.375rem+env(safe-area-inset-top,0px)))]
           md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]`}
       >
-        <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0">
+        <div className="flex flex-col gap-2">
+          {isDashboardDesktopRoute && <MobileInstallBanner />}
+
+          <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0">
           {/* Logo */}
           <div className="flex items-center min-w-0 shrink-0">
             <Link
@@ -138,8 +129,12 @@ const AppHeader = () => {
 
           {/* Right side - buttons */}
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 shrink-0 min-w-0">
-            <ThemeSwitcher variant="auto" />
-            <LanguageSwitcher variant="auto" />
+            <div className="md:hidden">
+              <ThemeSwitcher variant="auto" />
+            </div>
+            <div className="md:hidden">
+              <LanguageSwitcher variant="auto" />
+            </div>
 
             {/* Download App - middle (blink so user notices) */}
             <button
@@ -194,36 +189,8 @@ const AppHeader = () => {
               />
               <span className={`text-xs lg:text-sm xl:text-base font-bold truncate max-w-[80px] lg:max-w-[100px] xl:max-w-none ${isLight ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>{formattedBalance}</span>
             </button>
-
-            {/* Profile - hidden on mobile */}
-            <button
-              type="button"
-              onClick={handleProfileClick}
-              className={`hidden md:flex w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-lg border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 touch-manipulation ${
-                isLight
-                  ? user
-                    ? 'bg-amber-50 border-amber-300 hover:bg-amber-100'
-                    : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
-                  : `bg-gradient-to-br from-gray-800 to-gray-900 ${user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'}`
-              }`}
-              title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
-              aria-label="Profile"
-            >
-              <svg
-                className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-yellow-500 dark:text-yellow-400' : isLight ? 'text-gray-700' : 'text-gray-900 dark:text-white'}`}
-                fill={user ? 'currentColor' : 'none'}
-                stroke={user ? 'none' : 'currentColor'}
-                strokeWidth={user ? 0 : 1.5}
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
           </div>
+        </div>
         </div>
       </div>
     </>

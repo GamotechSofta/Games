@@ -8,10 +8,10 @@ export default function DesktopDashboardLayout({
   onPanelChange,
   contentClassName = 'flex flex-1 flex-col px-5 py-5',
 }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   return (
-    <div className="flex min-h-screen w-full bg-[#f5f5f7] dark:bg-black">
+    <div className="flex min-h-screen w-full bg-[#f5f5f7] dark:bg-[#141415]">
       <DesktopSidebar
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((c) => !c)}

@@ -34,6 +34,12 @@ import Wallet from '../pages/Wallet';
 import AdminDashboard from '../admin/AdminDashboard';
 import GameManager from '../admin/GameManager';
 import Transactions from '../admin/Transactions';
+import {
+  isMobileInstallBannerDismissed,
+  MOBILE_INSTALL_BANNER_EVENT,
+  shouldShowMobileInstallBanner,
+  getMobileDashboardContentTop,
+} from '../utils/mobileInstallBanner';
 
 // When PayU redirects to /?payu_failed=1 or payu_success=1, send user to /funds so the app loads and AddFund can show the modal
 const PayURedirect = () => {
@@ -105,6 +111,7 @@ const Layout = ({ children }) => {
   const { isDesktop } = useBreakpoint();
   const onPanelChange = useDashboardNav();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
+  const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
   const isLoginPage = location.pathname === '/login';
   const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
@@ -134,6 +141,22 @@ const Layout = ({ children }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const syncBannerState = () => setBannerDismissed(isMobileInstallBannerDismissed());
+    const onBannerChange = (event) => {
+      setBannerDismissed(Boolean(event?.detail?.dismissed));
+    };
+
+    syncBannerState();
+    window.addEventListener(MOBILE_INSTALL_BANNER_EVENT, onBannerChange);
+    window.addEventListener('storage', syncBannerState);
+
+    return () => {
+      window.removeEventListener(MOBILE_INSTALL_BANNER_EVENT, onBannerChange);
+      window.removeEventListener('storage', syncBannerState);
+    };
+  }, [location.pathname]);
+
   const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
   if (isAdminPanel) {
     return <>{children}</>;
@@ -152,7 +175,7 @@ const Layout = ({ children }) => {
     const showDashboardNav = isDashboardShellPage;
 
     return (
-      <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-black">
+      <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-[#141415]">
         <DesktopDashboardLayout
           activePanel={showDashboardNav ? activePanel || (location.pathname === '/markets' ? 'markets' : 'home') : undefined}
           onPanelChange={showDashboardNav ? onPanelChange : undefined}
@@ -165,11 +188,12 @@ const Layout = ({ children }) => {
 
   // Mobile dashboard home/markets
   if (isDashboardShellPage) {
+    const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
     return (
-      <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-black">
+      <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-[#141415]">
         <AppHeader />
         <SubHeader />
-        <div className="pt-[calc(100px+env(safe-area-inset-top,0px))] sm:pt-[calc(104px+env(safe-area-inset-top,0px))]">
+        <div style={{ paddingTop: getMobileDashboardContentTop(hasPromoBanner) }}>
           {children}
         </div>
         <BottomNavbar />
