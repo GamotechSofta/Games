@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiOutlineHome, HiOutlineSquares2X2 } from 'react-icons/hi2';
-import { MdOutlineAccountBalanceWallet, MdOutlineAssessment, MdOutlineReceiptLong } from 'react-icons/md';
+import { MdOutlineAccountBalanceWallet, MdOutlineReceiptLong } from 'react-icons/md';
 import { HiOutlineXMark } from 'react-icons/hi2';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
 import { clearUserAuth } from '../utils/auth';
@@ -116,7 +116,7 @@ const BottomNavbar = () => {
   const navItems = [
     { id: 'home', label: t('navigation.home'), path: '/', Icon: HiOutlineHome },
     { id: 'my-bids', label: t('navigation.myBets'), path: '/bids', Icon: MdOutlineReceiptLong },
-    { id: 'results', label: t('navigation.results', { defaultValue: 'Results' }), path: '/market-result-history', Icon: MdOutlineAssessment },
+    { id: 'support', label: t('sidebar.support', { defaultValue: 'Support' }), path: '/support', Icon: HiChatAlt2 },
     { id: 'add-funds', label: t('funds.addFund', { defaultValue: 'Add Funds' }), path: '/funds?tab=add-fund', Icon: MdOutlineAccountBalanceWallet },
     { id: 'menu', label: t('navigation.menu', { defaultValue: 'Menu' }), path: '/profile', Icon: HiOutlineSquares2X2 },
   ];
