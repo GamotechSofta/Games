@@ -3,17 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight, HiMiniPlay } from 'react-icons/hi2';
 import {
-  MdAccountBalanceWallet,
-  MdAutoAwesome,
-  MdEmojiEvents,
-  MdFlashOn,
   MdLocalFireDepartment,
-  MdOutlineHeadsetMic,
   MdOutlineLiveTv,
-  MdOutlineSecurity,
   MdOutlineSportsEsports,
-  MdOutlineWorkspacePremium,
-  MdShowChart,
 } from 'react-icons/md';
 import { API_BASE_URL } from '../../config/api';
 import { GAMES } from '../../config/games';
@@ -37,85 +29,66 @@ const MOBILE_HOME_BANNERS = [
 
 const QUICK_LINKS = [
   {
+    id: 'casino',
+    label: 'Casino',
+    icon: CasinoChipIcon,
+    path: '/games?category=highEarning',
+    imageSrc: '/images/home/casino-card.png',
+    iconColor: '#d58cff',
+    darkCardClass:
+      'border-[#6a3d8e] bg-[linear-gradient(135deg,#2b1438_0%,#17111f_52%,#0d0c14_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(141,88,184,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#dcc6ef] bg-[linear-gradient(135deg,#ffffff_0%,#fcf7ff_52%,#f3e8ff_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(120,84,158,0.12)]',
+    darkIconClass:
+      'border-[#8d58b8]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(213,140,255,0.42),rgba(67,31,95,0.96))]',
+    lightIconClass:
+      'border-[#d8b4fe] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(233,213,255,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
+  },
+  {
     id: 'markets',
     label: 'Markets',
-    icon: MdShowChart,
+    icon: MarketsIcon,
     path: '/markets',
     active: true,
-    accent: 'text-[#e53935] dark:text-[#ff5a52]',
-    ring: 'ring-[#e53935]/20 dark:ring-[#ff5a52]/25',
-    bg: 'bg-red-50 dark:bg-[#2a1212]',
+    iconColor: '#ff5a52',
+    darkCardClass:
+      'border-[#8f2a2a] bg-[linear-gradient(135deg,#371015_0%,#211012_52%,#110b0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(182,60,60,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f4c1c1] bg-[linear-gradient(135deg,#ffffff_0%,#fff5f5_52%,#ffe7e7_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(219,74,74,0.12)]',
+    darkIconClass:
+      'border-[#b63c3c]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,94,94,0.46),rgba(85,19,19,0.96))]',
+    lightIconClass:
+      'border-[#fca5a5] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(254,226,226,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
   },
   {
     id: 'starline',
     label: 'Starline',
-    icon: MdAutoAwesome,
+    icon: StarlineIcon,
     path: '/startline-dashboard',
-    accent: 'text-amber-500 dark:text-amber-300',
-    ring: 'ring-amber-200 dark:ring-amber-400/20',
-    bg: 'bg-amber-50 dark:bg-[#2b210d]',
-  },
-  {
-    id: 'casino',
-    label: 'Casino',
-    icon: MdOutlineWorkspacePremium,
-    path: '/games?category=highEarning',
-    accent: 'text-amber-500 dark:text-amber-300',
-    ring: 'ring-amber-200 dark:ring-amber-400/20',
-    bg: 'bg-amber-50 dark:bg-[#2b210d]',
-  },
-  {
-    id: 'skill-games',
-    label: 'Skill Games',
-    icon: MdOutlineSportsEsports,
-    path: '/games?category=skills',
-    accent: 'text-violet-500 dark:text-violet-300',
-    ring: 'ring-violet-200 dark:ring-violet-400/20',
-    bg: 'bg-violet-50 dark:bg-[#1c1630]',
+    iconColor: '#ffd75a',
+    darkCardClass:
+      'border-[#8b6a1d] bg-[linear-gradient(135deg,#3a2b10_0%,#241d10_52%,#13100b_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(185,146,46,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f2d89f] bg-[linear-gradient(135deg,#ffffff_0%,#fff9eb_52%,#fff3d6_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(199,155,53,0.12)]',
+    darkIconClass:
+      'border-[#b9922e]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,215,90,0.42),rgba(100,73,14,0.96))]',
+    lightIconClass:
+      'border-[#facc15] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(254,243,199,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
   },
   {
     id: 'king-bazaar',
     label: 'King Bazaar',
-    icon: MdEmojiEvents,
+    icon: CrownIcon,
     path: '/king-bazaar-market',
-    accent: 'text-amber-500 dark:text-amber-300',
-    ring: 'ring-amber-200 dark:ring-amber-400/20',
-    bg: 'bg-amber-50 dark:bg-[#2b210d]',
-  },
-];
-
-const WHY_CHOOSE_ITEMS = [
-  {
-    id: 'secure',
-    icon: MdOutlineSecurity,
-    title: '100% Secure',
-    subtitle: 'Safe & trusted platform',
-    iconClass: 'text-orange-500 dark:text-orange-300',
-    bgClass: 'bg-orange-50 dark:bg-[#2a1a12]',
-  },
-  {
-    id: 'fast-payouts',
-    icon: MdFlashOn,
-    title: 'Fast Payouts',
-    subtitle: 'Quick deposits & withdrawals',
-    iconClass: 'text-amber-500 dark:text-amber-300',
-    bgClass: 'bg-amber-50 dark:bg-[#2a220d]',
-  },
-  {
-    id: 'support',
-    icon: MdOutlineHeadsetMic,
-    title: '24/7 Support',
-    subtitle: "We're here for you anytime",
-    iconClass: 'text-indigo-500 dark:text-indigo-300',
-    bgClass: 'bg-indigo-50 dark:bg-[#151b31]',
-  },
-  {
-    id: 'fair-play',
-    icon: MdOutlineWorkspacePremium,
-    title: 'Fair Play',
-    subtitle: 'Transparent & fair gameplay',
-    iconClass: 'text-purple-500 dark:text-purple-300',
-    bgClass: 'bg-purple-50 dark:bg-[#221633]',
+    iconColor: '#ffb149',
+    darkCardClass:
+      'border-[#8f5a1d] bg-[linear-gradient(135deg,#392110_0%,#24170f_52%,#120d0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(188,120,48,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f0c28e] bg-[linear-gradient(135deg,#ffffff_0%,#fff7ed_52%,#ffe8cc_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(206,128,38,0.12)]',
+    darkIconClass:
+      'border-[#bc7830]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,177,73,0.38),rgba(92,52,15,0.96))]',
+    lightIconClass:
+      'border-[#fdba74] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(255,237,213,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
   },
 ];
 
@@ -183,6 +156,43 @@ const getMarketStatus = (market) => {
   return { status: 'open' };
 };
 
+function MarketsIcon({ className = '', style }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
+      <path d="M5 18V11" strokeLinecap="round" />
+      <path d="M12 18V7" strokeLinecap="round" />
+      <path d="M19 18V4" strokeLinecap="round" />
+      <path d="M4 19.5h16" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function StarlineIcon({ className = '', style }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.7l2.58 5.23 5.77.84-4.18 4.08.98 5.75L12 15.86 6.85 18.6l.98-5.75L3.65 8.77l5.77-.84L12 2.7z" />
+    </svg>
+  );
+}
+
+function CasinoChipIcon({ className = '', style }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="4.1" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 3.5v3.1M12 17.4v3.1M20.5 12h-3.1M6.6 12H3.5M17.85 6.15l-2.2 2.2M8.35 15.65l-2.2 2.2M17.85 17.85l-2.2-2.2M8.35 8.35l-2.2-2.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CrownIcon({ className = '', style }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M4 18.5h16l-1.15-8.26-4.23 3.2L12 5.5l-2.62 7.94-4.23-3.2L4 18.5zm3.5-2h9a1 1 0 100-2h-9a1 1 0 100 2z" />
+    </svg>
+  );
+}
+
 function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
@@ -204,37 +214,54 @@ function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction
 
 function QuickAccessTile({ item, onClick, isLight }) {
   const Icon = item.icon;
+  const cardClass = isLight ? item.lightCardClass : item.darkCardClass;
+  const iconShellClass = isLight ? item.lightIconClass : item.darkIconClass;
+  const titleStyle = isLight ? { color: '#1f2937' } : { color: '#ffffff' };
+  const iconStyle = { color: item.iconColor };
+
+  if (item.imageSrc) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="group relative block w-full min-w-0 overflow-hidden rounded-[18px] text-left transition active:scale-[0.98]"
+      >
+        <img
+          src={item.imageSrc}
+          alt={item.label}
+          className="block h-auto w-full rounded-[18px] object-contain"
+          loading="lazy"
+        />
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={[
-        'flex min-w-0 flex-col items-center justify-center gap-2 rounded-2xl border px-2 py-3 transition active:scale-[0.98]',
-        isLight
-          ? 'bg-white text-gray-900 border-gray-200 shadow-[0_6px_18px_rgba(15,23,42,0.06)]'
-          : 'bg-[#111111] text-white border-white/8 shadow-[0_10px_24px_rgba(0,0,0,0.3)]',
-        item.active
-          ? isLight
-            ? 'border-[#ef5350]/40 shadow-[0_10px_24px_rgba(239,83,80,0.1)]'
-            : 'border-[#ff3030] shadow-[0_0_22px_rgba(255,48,48,0.16)]'
-          : '',
-      ].join(' ')}
+      className={`group relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-[18px] border px-3 py-2.5 text-left transition active:scale-[0.98] ${cardClass}`}
     >
-      <span
-        className={`flex h-11 w-11 items-center justify-center rounded-xl ${
-          item.active
-            ? isLight
-              ? 'bg-red-50'
-              : 'bg-[#1a0f11]'
-            : isLight
-              ? item.bg
-              : 'bg-white/[0.03]'
+      <div
+        className={`pointer-events-none absolute inset-0 ${
+          isLight
+            ? 'bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.18)_42%,rgba(255,255,255,0.04))]'
+            : 'bg-[linear-gradient(180deg,rgba(255,255,255,0.1),transparent_42%,rgba(0,0,0,0.22))]'
         }`}
-      >
-        <Icon className={`h-6 w-6 ${item.active ? 'text-[#e53935] dark:text-[#ff5a52]' : item.accent}`} />
+      />
+      <span className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-[0_4px_12px_rgba(0,0,0,0.22)] ${iconShellClass}`}>
+        <Icon className="h-5 w-5" style={iconStyle} />
       </span>
-      <span className={`line-clamp-2 text-center text-[11px] font-semibold leading-tight ${item.active ? 'text-[#e53935] dark:text-[#ff5a52]' : ''}`}>
+      <span className="relative z-10 min-w-0 flex-1 truncate text-[10.5px] font-semibold" style={titleStyle}>
         {item.label}
+      </span>
+      <span
+        className={`relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+          isLight ? 'border-black/10 bg-white/80 shadow-[0_4px_10px_rgba(15,23,42,0.08)]' : 'bg-black/12'
+        }`}
+        style={isLight ? { color: item.iconColor } : { color: item.iconColor, borderColor: `${item.iconColor}88` }}
+      >
+        <HiMiniArrowRight className="h-2.5 w-2.5" />
       </span>
     </button>
   );
@@ -379,19 +406,6 @@ function TopGameCard({ game, onClick }) {
   );
 }
 
-function WhyChooseCard({ item }) {
-  const Icon = item.icon;
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-[#141414] dark:shadow-[0_14px_28px_rgba(0,0,0,0.34)]">
-      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.bgClass}`}>
-        <Icon className={`h-6 w-6 ${item.iconClass}`} />
-      </span>
-      <div className="mt-3 text-[15px] font-bold text-gray-900 dark:text-white">{item.title}</div>
-      <div className="mt-1 text-xs leading-5 text-gray-500 dark:text-white/60">{item.subtitle}</div>
-    </div>
-  );
-}
-
 export default function MobileHomeDashboard() {
   const { t } = useTranslation();
   const { isLight } = useTheme();
@@ -458,7 +472,7 @@ export default function MobileHomeDashboard() {
       <HeroBanner t={t} navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
 
       <div className="space-y-5 px-3 pt-3 sm:px-4">
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 gap-2.5 pt-0.5">
           {QUICK_LINKS.map((item) => (
             <QuickAccessTile key={item.id} item={item} onClick={() => navigate(item.path)} isLight={isLight} />
           ))}
@@ -548,45 +562,6 @@ export default function MobileHomeDashboard() {
           </div>
         </div>
 
-        <div>
-          <SectionHeader
-            icon={MdOutlineSecurity}
-            iconClassName="text-amber-500"
-            title={t('homeMobile.whyChooseAakda', { defaultValue: 'Why Choose Aakda' })}
-            actionLabel={t('common.more', { defaultValue: 'More' })}
-            onAction={() => navigate('/support')}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            {WHY_CHOOSE_ITEMS.map((item) => (
-              <WhyChooseCard key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-gray-200 bg-gradient-to-r from-[#fff7ea] via-white to-[#fff2f0] px-4 py-4 shadow-[0_8px_22px_rgba(15,23,42,0.05)] dark:border-white/10 dark:bg-gradient-to-r dark:from-[#17100c] dark:via-[#131313] dark:to-[#160d0d] dark:shadow-[0_16px_32px_rgba(0,0,0,0.34)]">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-              <MdAccountBalanceWallet className="h-6 w-6" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold text-gray-900 dark:text-white">
-                {t('homeMobile.walletBoost', { defaultValue: 'Boost your wallet instantly' })}
-              </div>
-              <div className="mt-1 text-xs leading-5 text-gray-600 dark:text-white/60">
-                {t('homeMobile.walletBoostSubtitle', {
-                  defaultValue: 'Add funds, place bids faster, and track every market from one place.',
-                })}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate('/funds?tab=add-fund')}
-              className="rounded-full bg-[#e53935] px-4 py-2 text-xs font-bold text-white shadow-[0_10px_24px_rgba(229,57,53,0.28)]"
-            >
-              {t('header.deposit', { defaultValue: 'Deposit' })}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
