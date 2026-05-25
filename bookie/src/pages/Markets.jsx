@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL } from '../utils/api';
+import { buildApiUrl } from '../utils/api';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { FaChartBar, FaStar, FaCrown, FaChartLine } from 'react-icons/fa';
 
@@ -21,7 +21,7 @@ const Markets = () => {
     const fetchRegularMarkets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
+            const response = await fetch(buildApiUrl('/markets/get-markets?marketType=main'));
             const data = await response.json();
             if (data.success) {
                 // Filter to ensure only main/regular markets (exclude starline and king)
@@ -34,7 +34,7 @@ const Markets = () => {
                 setError('Failed to fetch regular markets');
             }
         } catch (err) {
-            setError('Network error. Please check if the server is running.');
+            setError(err.message || 'Network error. Please check if the server is running.');
         } finally {
             setLoading(false);
         }
@@ -43,7 +43,7 @@ const Markets = () => {
     const fetchStarlineMarkets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=startline`);
+            const response = await fetch(buildApiUrl('/markets/get-markets?marketType=startline'));
             const data = await response.json();
             if (data.success) {
                 // Filter to ensure only starline markets
@@ -53,7 +53,7 @@ const Markets = () => {
                 setError('Failed to fetch starline markets');
             }
         } catch (err) {
-            setError('Network error. Please check if the server is running.');
+            setError(err.message || 'Network error. Please check if the server is running.');
         } finally {
             setLoading(false);
         }
@@ -62,7 +62,7 @@ const Markets = () => {
     const fetchKingMarkets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
+            const response = await fetch(buildApiUrl('/markets/get-markets?marketType=king'));
             const data = await response.json();
             if (data.success) {
                 // Filter to ensure only king markets
@@ -72,7 +72,7 @@ const Markets = () => {
                 setError('Failed to fetch king bazaar markets');
             }
         } catch (err) {
-            setError('Network error. Please check if the server is running.');
+            setError(err.message || 'Network error. Please check if the server is running.');
         } finally {
             setLoading(false);
         }

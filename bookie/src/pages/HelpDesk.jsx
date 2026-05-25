@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { API_BASE_URL, bookieFetch } from '../utils/api';
-
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1').replace('/api/v1', '') || 'http://localhost:3010';
+import { API_BASE_URL, API_ORIGIN, bookieFetch } from '../utils/api';
 
 const HelpDesk = () => {
     const [tickets, setTickets] = useState([]);
@@ -162,10 +160,10 @@ const HelpDesk = () => {
                                                     <button
                                                         key={i}
                                                         type="button"
-                                                        onClick={() => setFullScreenImage(s.startsWith('http') ? s : `${BASE_URL}${s}`)}
+                                                        onClick={() => setFullScreenImage(s.startsWith('http') ? s : `${API_ORIGIN}${s}`)}
                                                         className="aspect-video rounded-lg border border-slate-200 overflow-hidden hover:border-amber-500/50 transition-colors group relative"
                                                     >
-                                                        <img src={s.startsWith('http') ? s : `${BASE_URL}${s}`} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                        <img src={s.startsWith('http') ? s : `${API_ORIGIN}${s}`} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                             <span className="text-xs text-slate-900 font-medium">View Full</span>
                                                         </div>

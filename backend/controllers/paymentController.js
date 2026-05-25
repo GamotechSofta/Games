@@ -8,7 +8,6 @@ import bcrypt from 'bcryptjs';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { uploadToCloudinary } from '../config/cloudinary.js';
-import { decrypt } from '../utils/encryption.js';
 import {
     createPaymentLink,
     getPaymentLinkTransactions,
@@ -45,130 +44,14 @@ async function getPaymentLimits() {
 }
 
 /**
- * Get payment configuration (UPI details, limits)
- * Public API - accepts optional ?userId to resolve correct UPI based on bookie type
- * Limits (min/max deposit & withdrawal) are admin-set via Settings; only admin can change them.
+ * Get payment limits for Add Fund and Withdraw screens.
  */
 export const getPaymentConfig = async (req, res) => {
     try {
-        const { userId } = req.query;
-
-        // UPI: 1) DB (super_admin/bookie), 2) code fallback (no env)
-        const UPI_FALLBACK_ID = 'example@paytm';
-        const UPI_FALLBACK_NAME = 'Golden Games';
-        let upiIds = [UPI_FALLBACK_ID];
-        let upiName = UPI_FALLBACK_NAME;
-
-        const resolveUpiFromAdmin = (admin) => {
-            if (!admin) return null;
-            if (admin.upiIds && Array.isArray(admin.upiIds) && admin.upiIds.length > 0) {
-                return admin.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
-            }
-            if (admin.upiId) {
-                const d = decrypt(admin.upiId);
-                return d ? [d] : [];
-            }
-            return [];
-        };
-
-        const applyDistribution = (ids, type, batchSize, uid, userDoc, bookieId) => {
-            if (!ids || ids.length === 0) return ids;
-            if (ids.length === 1) return ids;
-            const t = type || 'all';
-            if (t === 'all') return ids;
-
-            if (t === 'random') {
-                const idx = Math.floor(Math.random() * ids.length);
-                return [ids[idx]];
-            }
-
-            if (t === 'round_robin_user' && uid) {
-                let h = 0;
-                const str = String(uid);
-                for (let i = 0; i < str.length; i++) h = ((h << 5) - h) + str.charCodeAt(i) | 0;
-                const idx = Math.abs(h) % ids.length;
-                return [ids[idx]];
-            }
-
-            if (t === 'batch_n' && userDoc && batchSize > 0) {
-                const filter = bookieId
-                    ? { referredBy: bookieId, createdAt: { $lt: userDoc.createdAt } }
-                    : { createdAt: { $lt: userDoc.createdAt } };
-                return User.countDocuments(filter).then((count) => {
-                    const batchIndex = Math.floor(count / batchSize);
-                    const idx = batchIndex % ids.length;
-                    return [ids[idx]];
-                });
-            }
-
-            return ids;
-        };
-
-        let sourceAdmin = null;
-        let bookieIdForScope = null;
-
-        try {
-            if (userId) {
-                const user = await User.findById(userId).select('referredBy createdAt').lean();
-                if (user?.referredBy) {
-                    const bookie = await Admin.findById(user.referredBy).select('bookieType upiId upiIds upiDistributionType upiBatchSize username').lean();
-                    if (bookie?.bookieType === 'bookie_collects') {
-                        const ids = resolveUpiFromAdmin(bookie);
-                        if (ids.length > 0) {
-                            upiIds = ids;
-                            upiName = bookie.username || 'Bookie';
-                            sourceAdmin = bookie;
-                            bookieIdForScope = user.referredBy?.toString?.() || user.referredBy;
-                        }
-                    } else {
-                        const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
-                        const ids = resolveUpiFromAdmin(superAdmin);
-                        if (ids.length > 0) {
-                            upiIds = ids;
-                            upiName = superAdmin.username || upiName;
-                            sourceAdmin = superAdmin;
-                        }
-                    }
-                } else {
-                    const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
-                    const ids = resolveUpiFromAdmin(superAdmin);
-                    if (ids.length > 0) {
-                        upiIds = ids;
-                        upiName = superAdmin.username || upiName;
-                        sourceAdmin = superAdmin;
-                    }
-                }
-
-                if (sourceAdmin && upiIds.length > 1) {
-                    const distributed = await applyDistribution(
-                        upiIds,
-                        sourceAdmin.upiDistributionType,
-                        sourceAdmin.upiBatchSize ?? 10,
-                        userId,
-                        user,
-                        bookieIdForScope
-                    );
-                    upiIds = Array.isArray(distributed) ? distributed : upiIds;
-                }
-            } else {
-                const superAdmin = await Admin.findOne({ role: 'super_admin', $or: [{ upiId: { $ne: '' } }, { 'upiIds.0': { $exists: true } }] }).select('upiId upiIds upiDistributionType upiBatchSize username').lean();
-                const ids = resolveUpiFromAdmin(superAdmin);
-                if (ids.length > 0) {
-                    upiIds = ids;
-                    upiName = superAdmin.username || upiName;
-                }
-            }
-        } catch (err) {
-            console.error('Error resolving UPI for user:', userId, err.message);
-        }
-
         const limits = await getPaymentLimits();
         res.status(200).json({
             success: true,
             data: {
-                upiId: upiIds[0] || UPI_FALLBACK_ID,
-                upiIds,
-                upiName,
                 minDeposit: limits.minDeposit,
                 maxDeposit: limits.maxDeposit,
                 minWithdrawal: limits.minWithdrawal,

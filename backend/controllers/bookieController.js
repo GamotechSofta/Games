@@ -1,6 +1,5 @@
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
-import { encrypt, decrypt } from '../utils/encryption.js';
 import { generateBookieToken } from '../utils/jwt.js';
 
 /**
@@ -184,100 +183,6 @@ export const updateTheme = async (req, res) => {
             message: 'Theme updated',
             data: { uiTheme: bookie.uiTheme },
         });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * GET /bookie/upi - Get bookie's UPI ID(s) (decrypted)
- */
-export const getBookieUpi = async (req, res) => {
-    try {
-        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' }).select('upiId upiIds upiDistributionType upiBatchSize bookieType').lean();
-        if (!bookie) {
-            return res.status(403).json({ success: false, message: 'Bookie access required' });
-        }
-        let upiIds = [];
-        if (bookie.upiIds && Array.isArray(bookie.upiIds) && bookie.upiIds.length > 0) {
-            upiIds = bookie.upiIds.map((enc) => (enc ? decrypt(enc) : '')).filter(Boolean);
-        } else if (bookie.upiId) {
-            const dec = decrypt(bookie.upiId);
-            if (dec) upiIds = [dec];
-        }
-        res.status(200).json({
-            success: true,
-            data: {
-                upiIds,
-                upiId: upiIds[0] || '',
-                bookieType: bookie.bookieType || 'admin_collects',
-                upiDistributionType: bookie.upiDistributionType || 'all',
-                upiBatchSize: bookie.upiBatchSize ?? 10,
-            },
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
-};
-
-/**
- * PATCH /bookie/upi - Set/update bookie's UPI ID (only for bookie_collects type)
- * Body: { upiId: string, securityPassword?: string } - securityPassword required if bookie has set one
- */
-export const setBookieUpi = async (req, res) => {
-    try {
-        const bookie = await Admin.findOne({ _id: req.admin._id, role: 'bookie' })
-            .select('bookieType upiId securityPassword')
-            .select('+securityPassword');
-        if (!bookie) {
-            return res.status(403).json({ success: false, message: 'Bookie access required' });
-        }
-        if (bookie.bookieType !== 'bookie_collects') {
-            return res.status(400).json({ success: false, message: 'UPI management is only available for "Bookie Collects" type accounts' });
-        }
-        if (bookie.securityPassword) {
-            const securityPassword = (req.body.securityPassword || '').trim();
-            if (!securityPassword) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Security password is required to change UPI ID',
-                    code: 'SECURITY_PASSWORD_REQUIRED',
-                });
-            }
-            const valid = await bookie.compareSecurityPassword(securityPassword);
-            if (!valid) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Invalid security password',
-                    code: 'SECURITY_PASSWORD_INVALID',
-                });
-            }
-        }
-        const { upiIds: rawIds, upiId: singleUpi, upiDistributionType, upiBatchSize } = req.body;
-        const ids = Array.isArray(rawIds) ? rawIds : (rawIds != null ? [rawIds] : (singleUpi != null ? [singleUpi] : []));
-        const trimmed = ids.map((id) => String(id || '').trim()).filter(Boolean);
-        bookie.upiIds = trimmed.map((id) => encrypt(id));
-        bookie.upiId = trimmed[0] ? encrypt(trimmed[0]) : '';
-        if (upiDistributionType != null && ['all', 'round_robin_user', 'batch_n', 'random'].includes(upiDistributionType)) {
-            bookie.upiDistributionType = upiDistributionType;
-        }
-        if (upiBatchSize != null) {
-            const n = Math.min(10000, Math.max(1, parseInt(upiBatchSize, 10) || 10));
-            bookie.upiBatchSize = n;
-        }
-        await bookie.save({ validateBeforeSave: false });
-
-        await logActivity({
-            action: 'bookie_update_upi',
-            performedBy: bookie.username,
-            performedByType: 'bookie',
-            targetType: 'admin',
-            targetId: bookie._id.toString(),
-            details: `Bookie "${bookie.username}" updated their UPI IDs (${trimmed.length} ID(s))`,
-            ip: getClientIp(req),
-        });
-
-        res.status(200).json({ success: true, message: 'UPI IDs updated successfully', data: { upiIds: trimmed } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
