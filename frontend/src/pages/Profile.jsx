@@ -57,6 +57,8 @@ const signOutButtonBase =
 const signOutDesktopClass = `${signOutButtonBase} w-auto min-w-[200px] px-8`;
 const signOutMobileClass = `${signOutButtonBase} w-full text-base touch-manipulation`;
 
+const profileBackBtnClass = `min-h-[44px] min-w-[44px] flex shrink-0 items-center justify-center touch-manipulation transition-transform active:scale-95 select-none ${iconBtn}`;
+
 function InfoField({ label, value, onCopy, copied, mono }) {
   return (
     <div className={`rounded-lg border bg-gray-50 px-2.5 py-2 dark:bg-[#1a1a1a] ${borderNested}`}>
@@ -200,6 +202,10 @@ const Profile = () => {
         navigate(prev);
         return;
       }
+      if (window.history.length > 1) {
+        navigate(-1);
+        return;
+      }
     } catch (_) {}
     navigate('/');
   };
@@ -235,13 +241,15 @@ const Profile = () => {
   });
 
   return (
-    <div className="w-full min-w-0">
-      {/* Mobile header */}
-      <div className={`mb-3 flex items-center gap-3 border-b pb-3 md:hidden ${borderDivider}`}>
-        <button type="button" onClick={handleBack} className={`h-9 w-9 shrink-0 ${iconBtn}`} aria-label={t('common.back')}>
-          <HiOutlineArrowLeft className="h-5 w-5" />
+    <div className="w-full min-w-0 px-4 md:px-0">
+      {/* Mobile sticky header */}
+      <div
+        className={`sticky top-0 z-30 -mx-4 mb-3 flex items-center gap-3 border-b bg-[#f5f5f7]/95 px-4 pb-3 pt-[max(0.25rem,env(safe-area-inset-top,0px))] backdrop-blur-md dark:bg-black/95 md:hidden ${borderDivider}`}
+      >
+        <button type="button" onClick={handleBack} className={profileBackBtnClass} aria-label={t('common.back')}>
+          <HiOutlineArrowLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
         </button>
-        <h1 className={`flex-1 text-lg font-semibold ${textPrimary}`}>{t('profile.title')}</h1>
+        <h1 className={`min-w-0 flex-1 truncate text-lg font-bold ${textPrimary}`}>{t('profile.title')}</h1>
       </div>
 
       <h1 className={`mb-3 hidden text-xl font-bold md:block lg:text-2xl ${textPrimary}`}>{t('profile.title')}</h1>
