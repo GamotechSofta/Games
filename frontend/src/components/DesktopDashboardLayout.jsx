@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import DesktopSidebar from './DesktopSidebar';
 import DashboardHeader from './DashboardHeader';
 
-export default function DesktopDashboardLayout({ children, activePanel, onPanelChange }) {
+export default function DesktopDashboardLayout({
+  children,
+  activePanel,
+  onPanelChange,
+  contentClassName = 'flex flex-1 flex-col px-5 py-5',
+}) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
@@ -14,7 +19,7 @@ export default function DesktopDashboardLayout({ children, activePanel, onPanelC
       <div className="flex h-screen min-h-0 min-w-0 flex-1 flex-col">
         <main className="custom-scrollbar-light dark:custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
           <DashboardHeader activePanel={activePanel} onPanelChange={onPanelChange} />
-          <div className="flex flex-1 flex-col px-5 py-5">{children}</div>
+          <div className={contentClassName}>{children}</div>
         </main>
       </div>
     </div>

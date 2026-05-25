@@ -6,6 +6,7 @@ import { clearUserAuth } from '../utils/auth';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
 import {
   DashboardIcon,
+  HiHome,
   HiCurrencyDollar,
   HiUser,
   HiChatAlt2,
@@ -31,7 +32,21 @@ const SOCIAL = [
   { id: 'ig', label: 'Instagram', href: 'https://instagram.com/', Icon: FaInstagram },
 ];
 
+const BETS_SECTION_PATHS = [
+  '/bids',
+  '/bet-history',
+  '/starline-bet-history',
+  '/king-bazaar-bet-history',
+  '/market-result-history',
+];
+
 const MAIN_NAV = [
+  {
+    id: 'home',
+    labelKey: 'navigation.home',
+    path: '/',
+    icon: HiHome,
+  },
   {
     id: 'casino',
     labelKey: 'sidebar.casino',
@@ -322,7 +337,12 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
 
         <nav className="mt-3 flex flex-col gap-0.5 border-t border-gray-200 pt-3 dark:border-white/[0.06]">
           {ACCOUNT_NAV.map((item) => {
-            const active = item.path ? pathMatches(location.pathname, item.path) : false;
+            const active =
+              item.id === 'myBets'
+                ? BETS_SECTION_PATHS.some((p) => pathMatches(location.pathname, p))
+                : item.path
+                  ? pathMatches(location.pathname, item.path)
+                  : false;
             const Icon = item.icon;
             const isLogout = item.action === 'logout';
 

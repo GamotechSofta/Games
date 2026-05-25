@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import DesktopDashboardLayout from '../components/DesktopDashboardLayout';
+import { getActivePanelFromLocation, useDashboardNav } from '../utils/dashboardNav';
 import AppHeader from '../components/AppHeader';
 import SubHeader from '../components/SubHeader';
 import BottomNavbar from '../components/BottomNavbar';
@@ -101,9 +103,9 @@ const PUBLIC_PATHS = ['/login'];
 const Layout = ({ children }) => {
   const location = useLocation();
   const { isDesktop } = useBreakpoint();
+  const onPanelChange = useDashboardNav();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const isLoginPage = location.pathname === '/login';
-  const isHomePage = location.pathname === '/';
   const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
 
@@ -144,15 +146,25 @@ const Layout = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Dashboard home/markets: one layout per viewport (avoid fixed AppHeader + DashboardHeader stack)
-  if (isDashboardShellPage) {
-    if (isDesktop) {
-      return (
-        <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-black">
+  // Desktop: global sidebar + dashboard header on every player screen
+  if (isDesktop) {
+    const activePanel = getActivePanelFromLocation(location.pathname, location.search);
+    const showDashboardNav = isDashboardShellPage;
+
+    return (
+      <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-black">
+        <DesktopDashboardLayout
+          activePanel={showDashboardNav ? activePanel || (location.pathname === '/markets' ? 'markets' : 'home') : undefined}
+          onPanelChange={showDashboardNav ? onPanelChange : undefined}
+        >
           {children}
-        </div>
-      );
-    }
+        </DesktopDashboardLayout>
+      </div>
+    );
+  }
+
+  // Mobile dashboard home/markets
+  if (isDashboardShellPage) {
     return (
       <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-black">
         <AppHeader />
