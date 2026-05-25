@@ -117,7 +117,7 @@ const BottomNavbar = () => {
     { id: 'home', label: t('navigation.home'), path: '/', Icon: HiOutlineHome },
     { id: 'my-bids', label: t('navigation.myBets'), path: '/bids', Icon: MdOutlineReceiptLong },
     { id: 'results', label: t('navigation.results', { defaultValue: 'Results' }), path: '/market-result-history', Icon: MdOutlineAssessment },
-    { id: 'wallet', label: t('navigation.wallet', { defaultValue: 'Wallet' }), path: '/wallet', Icon: MdOutlineAccountBalanceWallet },
+    { id: 'add-funds', label: t('funds.addFund', { defaultValue: 'Add Funds' }), path: '/funds?tab=add-fund', Icon: MdOutlineAccountBalanceWallet },
     { id: 'menu', label: t('navigation.menu', { defaultValue: 'Menu' }), path: '/profile', Icon: HiOutlineSquares2X2 },
   ];
 
@@ -126,7 +126,7 @@ const BottomNavbar = () => {
     if (item.id === 'home') {
       return location.pathname === '/' || location.pathname === '/markets';
     }
-    return location.pathname.startsWith(item.path);
+    return pathMatches(location.pathname, item.path);
   };
 
   const handleNavigate = (item) => {
