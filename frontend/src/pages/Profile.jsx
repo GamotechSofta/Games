@@ -93,12 +93,14 @@ function SettingsCard({ icon: Icon, label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[54px] w-full min-w-0 items-center gap-2.5 rounded-lg border bg-white px-3 py-3 text-left transition-colors hover:bg-gray-50 active:scale-[0.99] dark:bg-[#141416] dark:hover:bg-white/[0.04] sm:min-h-[58px] sm:gap-3 ${borderButton}`}
+      className={`flex min-h-[4.75rem] w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-lg border bg-white px-2 py-2.5 text-center transition-colors hover:bg-gray-50 active:scale-[0.99] dark:bg-[#141416] dark:hover:bg-white/[0.04] md:min-h-[58px] md:flex-row md:items-center md:gap-2.5 md:px-3 md:py-3 md:text-left lg:gap-3 ${borderButton}`}
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-700 dark:bg-white/[0.06] dark:text-gray-300">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-gray-700 dark:bg-white/[0.06] dark:text-gray-300 md:h-8 md:w-8">
         <Icon className="h-4 w-4" aria-hidden />
       </span>
-      <span className={`min-w-0 flex-1 truncate text-xs font-medium leading-tight sm:text-sm ${textPrimary}`}>
+      <span
+        className={`w-full text-[11px] font-medium leading-snug line-clamp-2 md:min-w-0 md:flex-1 md:text-xs md:leading-tight lg:text-sm md:line-clamp-none md:truncate ${textPrimary}`}
+      >
         {label}
       </span>
     </button>
@@ -315,11 +317,11 @@ const Profile = () => {
         </div>
 
         <section className={`${cardClass} w-full p-3 md:p-4`}>
-          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+          <div className="mb-3">
             <h2 className={`text-sm font-semibold ${textPrimary}`}>{t('profile.settings')}</h2>
-            <p className={`text-[11px] ${textMuted}`}>{t('profile.settingsSubtitle')}</p>
+            <p className={`mt-0.5 text-[11px] ${textMuted}`}>{t('profile.settingsSubtitle')}</p>
           </div>
-          <div className="grid w-full auto-rows-fr grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6">
+          <div className="grid w-full grid-cols-2 gap-2 md:grid-cols-4 md:gap-2.5 lg:grid-cols-6">
             {settingsItems.map((item) => (
               <SettingsCard
                 key={item.id}
