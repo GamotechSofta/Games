@@ -375,14 +375,16 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
           </>
         ) : null}
         <div className="relative z-10 flex h-full flex-col p-3.5">
-          <div className="pt-8 flex items-start justify-between gap-2">
-            <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ffdca8]/78">{market.timeRange}</div>
-            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.16em] ${popularStatusClass}`}>
+          <div className="flex justify-center pt-8">
+            <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[7px] font-bold uppercase leading-none tracking-[0.12em] min-[380px]:text-[8px] ${popularStatusClass}`}>
               {statusLabel}
             </span>
           </div>
 
           <div className="mt-auto">
+            <div className="mb-1 text-center text-[11px] font-semibold leading-[1.15] text-[#ffdca8]/78">
+              {market.timeRange}
+            </div>
             <div className="mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
               {marketLabel}
             </div>
