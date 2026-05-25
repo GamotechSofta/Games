@@ -66,6 +66,7 @@ const QUICK_LINKS = [
     label: 'Starline',
     icon: StarlineIcon,
     path: '/startline-dashboard',
+    imageSrc: '/images/home/starline-card.png',
     iconColor: '#ffd75a',
     darkCardClass:
       'border-[#8b6a1d] bg-[linear-gradient(135deg,#3a2b10_0%,#241d10_52%,#13100b_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(185,146,46,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
