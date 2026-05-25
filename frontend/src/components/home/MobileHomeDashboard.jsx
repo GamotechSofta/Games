@@ -82,6 +82,7 @@ const QUICK_LINKS = [
     label: 'King Bazaar',
     icon: CrownIcon,
     path: '/king-bazaar-market',
+    imageSrc: '/images/home/king-bazaar-card.png',
     iconColor: '#ffb149',
     darkCardClass:
       'border-[#8f5a1d] bg-[linear-gradient(135deg,#392110_0%,#24170f_52%,#120d0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(188,120,48,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
