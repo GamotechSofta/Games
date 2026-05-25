@@ -20,42 +20,77 @@ const MOBILE_HOME_BANNERS = [
   {
     src: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png',
     alt: 'Black Orange Gaming Banner',
-    title: 'Instant\nand seamless\naccess in the app',
-    subtitle: 'Play faster and jump into your favorite sections in seconds.',
-    path: '/games?category=highEarning',
   },
   {
     src: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png',
     alt: 'Black Gold Casino Night Banner',
-    title: 'Quick access\nto rewards\nand live action',
-    subtitle: 'Explore bonuses, markets and casino play from one place.',
-    path: '/markets',
   },
 ];
 
 const QUICK_LINKS = [
   {
-    id: 'free-money',
-    label: 'Free\nmoney',
-    subtitle: 'Giving away cash\nand prizes',
-    eyebrow: 'Promo Drop',
-    cta: 'Explore now',
-    icon: MarketsIcon,
-    imageSrc: '/istockphoto-826661764-640x640.jpg',
-    path: '/funds?tab=add-fund',
-    featured: true,
-    tone: 'warm',
+    id: 'casino',
+    label: 'Casino',
+    icon: CasinoChipIcon,
+    path: '/games?category=highEarning',
+    imageSrc: '/images/home/casino-card.png',
+    iconColor: '#d58cff',
+    darkCardClass:
+      'border-[#6a3d8e] bg-[linear-gradient(135deg,#2b1438_0%,#17111f_52%,#0d0c14_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(141,88,184,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#dcc6ef] bg-[linear-gradient(135deg,#ffffff_0%,#fcf7ff_52%,#f3e8ff_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(120,84,158,0.12)]',
+    darkIconClass:
+      'border-[#8d58b8]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(213,140,255,0.42),rgba(67,31,95,0.96))]',
+    lightIconClass:
+      'border-[#d8b4fe] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(233,213,255,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
   },
   {
-    id: 'bonuses',
-    label: 'Bonuses',
-    subtitle: 'Claim extra\nrewards',
-    eyebrow: 'Special Rewards',
-    cta: 'Open now',
-    icon: CasinoChipIcon,
-    imageSrc: '/boxing-day-celebration-with-gift_23-2151013747.avif',
-    path: '/games?category=highEarning',
-    tone: 'cool',
+    id: 'markets',
+    label: 'Markets',
+    icon: MarketsIcon,
+    path: '/markets',
+    active: true,
+    imageSrc: '/images/home/markets-card.png',
+    iconColor: '#ff5a52',
+    darkCardClass:
+      'border-[#8f2a2a] bg-[linear-gradient(135deg,#371015_0%,#211012_52%,#110b0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(182,60,60,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f4c1c1] bg-[linear-gradient(135deg,#ffffff_0%,#fff5f5_52%,#ffe7e7_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(219,74,74,0.12)]',
+    darkIconClass:
+      'border-[#b63c3c]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,94,94,0.46),rgba(85,19,19,0.96))]',
+    lightIconClass:
+      'border-[#fca5a5] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(254,226,226,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
+  },
+  {
+    id: 'starline',
+    label: 'Starline',
+    icon: StarlineIcon,
+    path: '/startline-dashboard',
+    imageSrc: '/images/home/starline-card.png',
+    iconColor: '#ffd75a',
+    darkCardClass:
+      'border-[#8b6a1d] bg-[linear-gradient(135deg,#3a2b10_0%,#241d10_52%,#13100b_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(185,146,46,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f2d89f] bg-[linear-gradient(135deg,#ffffff_0%,#fff9eb_52%,#fff3d6_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(199,155,53,0.12)]',
+    darkIconClass:
+      'border-[#b9922e]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,215,90,0.42),rgba(100,73,14,0.96))]',
+    lightIconClass:
+      'border-[#facc15] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(254,243,199,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
+  },
+  {
+    id: 'king-bazaar',
+    label: 'King Bazaar',
+    icon: CrownIcon,
+    path: '/king-bazaar-market',
+    iconColor: '#ffb149',
+    darkCardClass:
+      'border-[#8f5a1d] bg-[linear-gradient(135deg,#392110_0%,#24170f_52%,#120d0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(188,120,48,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
+    lightCardClass:
+      'border-[#f0c28e] bg-[linear-gradient(135deg,#ffffff_0%,#fff7ed_52%,#ffe8cc_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_18px_rgba(206,128,38,0.12)]',
+    darkIconClass:
+      'border-[#bc7830]/65 bg-[radial-gradient(circle_at_30%_30%,rgba(255,177,73,0.38),rgba(92,52,15,0.96))]',
+    lightIconClass:
+      'border-[#fdba74] bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(255,237,213,0.96))] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]',
   },
 ];
 
@@ -181,79 +216,60 @@ function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction
 
 function QuickAccessTile({ item, onClick, isLight }) {
   const Icon = item.icon;
-  const featured = Boolean(item.featured);
-  const hasImage = Boolean(item.imageSrc);
-  const warmTone = item.tone === 'warm';
-  const cardClass = warmTone
-    ? isLight
-      ? 'border-[#dbc8b5] bg-[linear-gradient(135deg,#ccb79f_0%,#b59c83_52%,#9c846d_100%)] shadow-[0_14px_28px_rgba(120,95,70,0.16)]'
-      : 'border-[#6c5949] bg-[linear-gradient(135deg,#bfa78f_0%,#a58d75_52%,#8d755f_100%)] shadow-[0_18px_32px_rgba(0,0,0,0.28)]'
-    : isLight
-      ? 'border-[#9fb4ca] bg-[linear-gradient(135deg,#6b7e95_0%,#8198b3_52%,#9eb4cb_100%)] shadow-[0_14px_28px_rgba(77,103,134,0.16)]'
-      : 'border-[#495768] bg-[linear-gradient(135deg,#4b5d74_0%,#627895_52%,#7990ab_100%)] shadow-[0_18px_32px_rgba(0,0,0,0.28)]';
-  const textClass = warmTone ? 'text-white' : 'text-white';
-  const subTextClass = warmTone ? 'text-white/90' : 'text-white/88';
-  const iconShellClass = warmTone
-    ? 'bg-white/12 ring-1 ring-white/15'
-    : 'bg-white/10 ring-1 ring-white/16';
-  const badgeClass = warmTone
-    ? 'bg-black/16 text-white/90 ring-1 ring-white/14'
-    : 'bg-black/14 text-white/90 ring-1 ring-white/14';
-  const ctaClass = warmTone
-    ? 'bg-white text-[#7a624f] shadow-[0_10px_18px_rgba(255,255,255,0.16)]'
-    : 'bg-white text-[#51647d] shadow-[0_10px_18px_rgba(255,255,255,0.16)]';
+  const cardClass = isLight ? item.lightCardClass : item.darkCardClass;
+  const iconShellClass = isLight ? item.lightIconClass : item.darkIconClass;
+  const titleStyle = isLight ? { color: '#1f2937' } : { color: '#ffffff' };
+  const iconStyle = { color: item.iconColor };
+
+  if (item.imageSrc) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="group relative block w-full min-w-0 overflow-hidden rounded-[18px] text-left transition active:scale-[0.98]"
+      >
+        <img
+          src={item.imageSrc}
+          alt={item.label}
+          className="block h-auto w-full rounded-[18px] object-contain"
+          loading="lazy"
+        />
+      </button>
+    );
+  }
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group relative min-h-[132px] w-full min-w-0 overflow-hidden rounded-[26px] border p-4 text-left transition duration-200 active:scale-[0.98] ${cardClass}`}
+      className={`group relative flex w-full min-w-0 items-center gap-2.5 overflow-hidden rounded-[18px] border px-3 py-2.5 text-left transition active:scale-[0.98] ${cardClass}`}
     >
-      {hasImage ? (
-        <img
-          src={item.imageSrc}
-          alt={item.label}
-          className="absolute inset-0 h-full w-full object-cover object-center"
-          loading="lazy"
-        />
-      ) : null}
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.04)_42%,rgba(0,0,0,0.08))]" />
-      {hasImage ? (
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,20,0.1),rgba(10,14,20,0.28)_45%,rgba(10,14,20,0.38)),linear-gradient(90deg,rgba(10,14,20,0.1),rgba(10,14,20,0.08))]" />
-      ) : null}
-      <div className="absolute inset-x-0 top-0 h-14 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),transparent)]" />
-      <div className={`absolute ${featured ? '-right-4 bottom-[-6px] h-28 w-28' : 'right-1 bottom-1 h-24 w-24'} rounded-full bg-white/14 blur-2xl`} />
-      <div className={`absolute ${featured ? 'right-14 top-6 h-10 w-10' : 'right-14 top-5 h-8 w-8'} rounded-full border border-white/12 bg-white/8`} />
-      {!hasImage ? (
-        <div
-          className={`absolute ${
-            featured ? 'right-3 bottom-2 h-[80px] w-[112px]' : 'right-3 bottom-3 h-[74px] w-[74px]'
-          } flex items-center justify-center rounded-[24px] ${iconShellClass}`}
-        >
-          <Icon className={`${featured ? 'h-11 w-11' : 'h-8 w-8'} text-white drop-shadow-[0_6px_10px_rgba(0,0,0,0.18)]`} />
-        </div>
-      ) : null}
-
-      <div className="relative z-10 flex h-full flex-col">
-        <span className={`inline-flex w-fit rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${badgeClass}`}>
-          {item.eyebrow}
-        </span>
-        <div className={`mt-3 whitespace-pre-line text-[16px] font-black leading-[1.05] tracking-tight ${textClass}`}>
-          {item.label}
-        </div>
-        <div className={`mt-2 whitespace-pre-line text-[11px] font-medium leading-[1.45] ${subTextClass}`}>
-          {item.subtitle}
-        </div>
-        <span className={`mt-auto inline-flex w-fit items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-bold ${ctaClass}`}>
-          <span>{item.cta}</span>
-          <HiMiniArrowRight className="h-3.5 w-3.5" />
-        </span>
-      </div>
+      <div
+        className={`pointer-events-none absolute inset-0 ${
+          isLight
+            ? 'bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0.18)_42%,rgba(255,255,255,0.04))]'
+            : 'bg-[linear-gradient(180deg,rgba(255,255,255,0.1),transparent_42%,rgba(0,0,0,0.22))]'
+        }`}
+      />
+      <span className={`relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border shadow-[0_4px_12px_rgba(0,0,0,0.22)] ${iconShellClass}`}>
+        <Icon className="h-5 w-5" style={iconStyle} />
+      </span>
+      <span className="relative z-10 min-w-0 flex-1 truncate text-[10.5px] font-semibold" style={titleStyle}>
+        {item.label}
+      </span>
+      <span
+        className={`relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+          isLight ? 'border-black/10 bg-white/80 shadow-[0_4px_10px_rgba(15,23,42,0.08)]' : 'bg-black/12'
+        }`}
+        style={isLight ? { color: item.iconColor } : { color: item.iconColor, borderColor: `${item.iconColor}88` }}
+      >
+        <HiMiniArrowRight className="h-2.5 w-2.5" />
+      </span>
     </button>
   );
 }
 
-function HeroBanner({ navigate, index, setIndex, isLight }) {
+function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   useEffect(() => {
     if (MOBILE_HOME_BANNERS.length <= 1) return undefined;
     const id = window.setInterval(() => {
@@ -263,63 +279,20 @@ function HeroBanner({ navigate, index, setIndex, isLight }) {
   }, [setIndex]);
 
   return (
-    <div className="space-y-4">
-      <button
-        type="button"
-        onClick={() => navigate(MOBILE_HOME_BANNERS[index]?.path || '/games?category=highEarning')}
-        className="block w-full text-left"
+    <div className="relative w-full overflow-hidden">
+      <div
+        className="flex transition-transform duration-700 ease-out"
+        style={{ transform: `translateX(-${index * 100}%)` }}
       >
-        <div className="relative overflow-hidden rounded-[30px] border border-white/10 bg-[#0e1116] shadow-[0_18px_40px_rgba(0,0,0,0.28)]">
-          <div
-            className="flex transition-transform duration-700 ease-out"
-            style={{ transform: `translateX(-${index * 100}%)` }}
-          >
-            {MOBILE_HOME_BANNERS.map((banner, bannerIndex) => (
-              <div key={banner.src} className="relative h-[244px] w-full shrink-0 basis-full overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.18),transparent_22%),linear-gradient(90deg,#0a0c10_0%,#0f1217_42%,#2b3138_100%)]" />
-                <img
-                  src={banner.src}
-                  alt={banner.alt}
-                  className="absolute right-[-16%] top-0 h-full w-[76%] object-cover object-right opacity-88"
-                  loading={bannerIndex === 0 ? 'eager' : 'lazy'}
-                />
-                <div className="absolute inset-y-0 left-0 w-[68%] bg-[linear-gradient(90deg,#090b0f_0%,rgba(9,11,15,0.97)_58%,rgba(9,11,15,0.1)_100%)]" />
-                <div className="relative z-10 flex h-full flex-col justify-between px-6 py-5">
-                  <div className="max-w-[190px] pt-1">
-                    <div className="whitespace-pre-line text-[18px] font-black leading-[1.12] tracking-tight text-white">
-                      {banner.title}
-                    </div>
-                    <p className="mt-3 max-w-[170px] text-[11px] leading-5 text-white/70">
-                      {banner.subtitle}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    {MOBILE_HOME_BANNERS.map((_, dotIndex) => (
-                      <button
-                        key={dotIndex}
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setIndex(dotIndex);
-                        }}
-                        className={`h-2.5 rounded-full transition-all ${
-                          dotIndex === index ? 'w-6 bg-white' : 'w-2.5 bg-white/35'
-                        }`}
-                        aria-label={`Go to slide ${dotIndex + 1}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+        {MOBILE_HOME_BANNERS.map((banner, bannerIndex) => (
+          <div key={banner.src} className="relative w-full shrink-0 basis-full overflow-hidden">
+            <img
+              src={banner.src}
+              alt={banner.alt}
+              className="block w-full h-auto object-contain opacity-95 dark:opacity-85"
+              loading={bannerIndex === 0 ? 'eager' : 'lazy'}
+            />
           </div>
-        </div>
-      </button>
-
-      <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)] gap-2.5">
-        {QUICK_LINKS.map((item) => (
-          <QuickAccessTile key={item.id} item={item} onClick={() => navigate(item.path)} isLight={isLight} />
         ))}
       </div>
     </div>
@@ -498,11 +471,15 @@ export default function MobileHomeDashboard() {
 
   return (
     <div className="mx-auto w-full max-w-md pb-8">
-      <div className="px-3 pt-5 sm:px-4">
-        <HeroBanner navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
-      </div>
+      <HeroBanner t={t} navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
 
-      <div className="space-y-5 px-3 pt-4 sm:px-4">
+      <div className="space-y-5 px-3 pt-3 sm:px-4">
+        <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+          {QUICK_LINKS.map((item) => (
+            <QuickAccessTile key={item.id} item={item} onClick={() => navigate(item.path)} isLight={isLight} />
+          ))}
+        </div>
+
         <div>
           <SectionHeader
             icon={MdLocalFireDepartment}
