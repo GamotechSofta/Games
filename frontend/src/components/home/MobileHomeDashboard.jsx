@@ -137,6 +137,8 @@ const TOP_GAME_TILES = [
   },
 ];
 
+const POPULAR_MARKET_CARD_IMAGE = '/images/home/popular-markets-table.png';
+
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
   const title = (game?.title || game?.name || '').toString().trim().toLowerCase();
@@ -318,6 +320,12 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
 
 function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
   const imageUrl = getMarketImageUrl(market.gameName);
+  const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
+  const statusLabel = liveVariant
+    ? t('homeMobile.live', { defaultValue: 'Live' })
+    : market.status === 'closed'
+      ? t('markets.statusClosed', { defaultValue: 'Closed' })
+      : t('markets.statusOpen', { defaultValue: 'Open' });
   const statusTone =
     market.status === 'closed'
       ? {
@@ -339,6 +347,69 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
     navigate('/bidoptions', { state: { market } });
   };
 
+  if (!liveVariant) {
+    const popularStatusClass =
+      market.status === 'closed'
+        ? 'border-red-300/30 bg-red-500/18 text-red-100'
+        : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
+
+    return (
+      <div className="relative h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 overflow-hidden rounded-[24px] border border-[#7f3829] bg-[#180707] shadow-[0_14px_30px_rgba(17,5,5,0.34)]">
+        <img
+          src={POPULAR_MARKET_CARD_IMAGE}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          aria-hidden
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,187,118,0.18),transparent)]" />
+        {imageUrl ? (
+          <>
+            <img
+              src={imageUrl}
+              alt=""
+              className="absolute -right-4 top-6 h-[74px] w-[74px] rounded-full object-cover opacity-[0.16] blur-[1px]"
+              aria-hidden
+            />
+            <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
+          </>
+        ) : null}
+        <div className="relative z-10 flex h-full flex-col p-3.5">
+          <div className="pt-8 flex items-start justify-between gap-2">
+            <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-[#ffdca8]/78">{market.timeRange}</div>
+            <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.16em] ${popularStatusClass}`}>
+              {statusLabel}
+            </span>
+          </div>
+
+          <div className="mt-auto">
+            <div className="mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+              {marketLabel}
+            </div>
+            <div className="px-0.5 text-center">
+              <div className="whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+                {market.result}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handlePrimaryAction}
+              className={`mt-3 block w-full overflow-hidden text-center text-[11px] font-bold ${
+                market.status === 'closed' ? 'text-red-300' : 'text-white/92'
+              }`}
+            >
+              <span className="block whitespace-nowrap">
+                {market.status === 'closed'
+                  ? t('markets.runningForTomorrow')
+                  : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-[#141414] dark:shadow-[0_16px_34px_rgba(0,0,0,0.42)]">
       {imageUrl ? (
@@ -354,48 +425,25 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
       ) : null}
       <div className="relative z-10 p-3">
         <span className={`inline-flex rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${statusTone.badge}`}>
-          {liveVariant
-            ? t('homeMobile.live', { defaultValue: 'Live' })
-            : market.status === 'closed'
-              ? t('markets.statusClosed', { defaultValue: 'Closed' })
-              : t('markets.statusOpen', { defaultValue: 'Open' })}
+          {statusLabel}
         </span>
 
         <div className="mt-2 text-[10px] font-medium text-gray-500 dark:text-white/55">{market.timeRange}</div>
-        <div className="mt-1 line-clamp-1 text-[14px] font-bold leading-tight text-gray-900 dark:text-white">
-          {t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName })}
-        </div>
+        <div className="mt-1 line-clamp-1 text-[14px] font-bold leading-tight text-gray-900 dark:text-white">{marketLabel}</div>
 
-        {!liveVariant ? (
-          <>
-            <div className="mt-2 text-[20px] font-black leading-none tracking-wider text-[#f5c542]">{market.result}</div>
-            <button
-              type="button"
-              onClick={handlePrimaryAction}
-              className={`mt-3 text-left text-[11px] font-bold ${statusTone.action}`}
-            >
-              {market.status === 'closed'
-                ? t('markets.runningForTomorrow')
-                : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="mt-2 flex items-end justify-between gap-2">
-              <div>
-                <div className="text-[17px] font-black leading-none tracking-tight text-[#f5c542]">{market.result}</div>
-              </div>
-              <button
-                type="button"
-                onClick={handlePrimaryAction}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${statusTone.button}`}
-                aria-label={t('homeMobile.playNow', { defaultValue: 'Play now' })}
-              >
-                <HiMiniPlay className="ml-0.5 h-4 w-4" />
-              </button>
-            </div>
-          </>
-        )}
+        <div className="mt-2 flex items-end justify-between gap-2">
+          <div>
+            <div className="text-[17px] font-black leading-none tracking-tight text-[#f5c542]">{market.result}</div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePrimaryAction}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${statusTone.button}`}
+            aria-label={t('homeMobile.playNow', { defaultValue: 'Play now' })}
+          >
+            <HiMiniPlay className="ml-0.5 h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -601,7 +649,7 @@ export default function MobileHomeDashboard() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[156px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 rounded-2xl border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
+                  className="h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
                 />
               ))}
             </div>
