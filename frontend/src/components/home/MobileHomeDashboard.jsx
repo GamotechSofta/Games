@@ -344,7 +344,7 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
     market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
 
   return (
-    <div className="relative h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 overflow-hidden rounded-[24px] border border-[#7f3829] bg-[#180707] shadow-[0_14px_30px_rgba(17,5,5,0.34)]">
+    <div className="relative h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 overflow-hidden rounded-[24px] border border-[#7f3829] bg-[#180707] shadow-[0_14px_30px_rgba(17,5,5,0.22),0_34px_28px_rgba(0,0,0,0.72)]">
       <img
         src={popularMarketCardImage}
         alt=""
