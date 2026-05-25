@@ -50,6 +50,7 @@ const QUICK_LINKS = [
     icon: MarketsIcon,
     path: '/markets',
     active: true,
+    imageSrc: '/images/home/markets-card.png',
     iconColor: '#ff5a52',
     darkCardClass:
       'border-[#8f2a2a] bg-[linear-gradient(135deg,#371015_0%,#211012_52%,#110b0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(182,60,60,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
