@@ -192,8 +192,13 @@ const Layout = ({ children }) => {
     return (
       <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-[#141415]">
         <AppHeader />
-        <SubHeader />
-        <div style={{ paddingTop: getMobileDashboardContentTop(hasPromoBanner) }}>
+        <div
+          style={{
+            paddingTop: hasPromoBanner
+              ? getMobileDashboardContentTop(true)
+              : 'calc(54px + env(safe-area-inset-top, 0px))',
+          }}
+        >
           {children}
         </div>
         <BottomNavbar />

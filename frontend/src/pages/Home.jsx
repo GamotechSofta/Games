@@ -1,10 +1,9 @@
 import React, { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import WalletSection from '../components/WalletSection';
-import Section1 from '../components/Section1';
 import DashboardHero from '../components/DashboardHero';
 import MarketSections from '../components/MarketSections';
+import MobileHomeDashboard from '../components/home/MobileHomeDashboard';
 
 const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -37,9 +36,8 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen min-h-ios-screen w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-[#141415]">
-      <WalletSection />
-      <Section1 />
+    <div className="min-h-screen min-h-ios-screen w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-[#0a0a0a]">
+      <MobileHomeDashboard />
     </div>
   );
 };
