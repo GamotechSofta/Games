@@ -192,14 +192,14 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
 
   return (
     <div
-      className="relative z-40 hidden h-screen shrink-0 overflow-visible md:flex"
+      className="relative z-40 hidden h-full min-h-0 shrink-0 overflow-visible md:flex"
       style={{ width }}
     >
       {/* Collapse — sits above main content (hero) */}
       <button
         type="button"
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-[108px] z-50 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-lg transition-all duration-[250ms] hover:border-gray-300 hover:text-gray-800 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:text-white/50 dark:hover:border-white/[0.14] dark:hover:text-white/90"
+        className="absolute -right-3 top-6 z-50 flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-lg transition-all duration-[250ms] hover:border-gray-300 hover:text-gray-800 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:text-white/50 dark:hover:border-white/[0.14] dark:hover:text-white/90"
         aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
       >
         <HiChevronLeft

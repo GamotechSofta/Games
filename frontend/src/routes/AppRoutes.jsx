@@ -112,9 +112,14 @@ const Layout = ({ children }) => {
   const onPanelChange = useDashboardNav();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
+  const activePanel = getActivePanelFromLocation(location.pathname, location.search);
   const isLoginPage = location.pathname === '/login';
   const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
+  const showDesktopDashboardNav =
+    location.pathname === '/' ||
+    location.pathname === '/markets' ||
+    (location.pathname === '/games' && (activePanel === 'casino' || activePanel === 'skills'));
 
   // Hide top nav on mobile only (CSS) for My Bets landing + Bet History list + related history screens
   const hideTopNavMobileOnly =
@@ -171,14 +176,11 @@ const Layout = ({ children }) => {
 
   // Desktop: global sidebar + dashboard header on every player screen
   if (isDesktop) {
-    const activePanel = getActivePanelFromLocation(location.pathname, location.search);
-    const showDashboardNav = isDashboardShellPage;
-
     return (
       <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-[#141415]">
         <DesktopDashboardLayout
-          activePanel={showDashboardNav ? activePanel || (location.pathname === '/markets' ? 'markets' : 'home') : undefined}
-          onPanelChange={showDashboardNav ? onPanelChange : undefined}
+          activePanel={showDesktopDashboardNav ? activePanel || (location.pathname === '/markets' ? 'markets' : 'home') : undefined}
+          onPanelChange={showDesktopDashboardNav ? onPanelChange : undefined}
         >
           {children}
         </DesktopDashboardLayout>

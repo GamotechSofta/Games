@@ -28,7 +28,7 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
 
   return (
     <nav
-      className="flex items-center gap-0.5 rounded-full border border-gray-200 bg-gray-100 px-2 py-1.5 font-sans dark:border-white/[0.06] dark:bg-[#1a1a1a]"
+      className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-100 px-2 py-1.5 font-sans dark:border-white/[0.06] dark:bg-[#1a1a1a]"
       aria-label={t('navigation.home')}
     >
       {NAV_TABS.map((tab) => {
@@ -39,7 +39,12 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
             key={tab.id}
             type="button"
             onClick={() => onPanelChange?.(tab.panel)}
-            className="flex items-center justify-center px-2 py-0.5 transition-all"
+            className={[
+              'flex items-center gap-2 rounded-full px-3 py-1.5 transition-all',
+              active
+                ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.4)] dark:bg-[#e60000] dark:shadow-[0_0_14px_rgba(230,0,0,0.45)]'
+                : 'text-gray-600 hover:bg-white hover:text-[#D32F2F] dark:text-white dark:hover:bg-white/[0.06] dark:hover:text-white',
+            ].join(' ')}
             aria-label={t(tab.labelKey)}
             aria-current={active ? 'page' : undefined}
           >
@@ -47,11 +52,19 @@ export default function DashboardNavPill({ activePanel, onPanelChange }) {
               className={[
                 'flex h-9 w-9 items-center justify-center rounded-[10px] transition-all',
                 active
-                  ? 'bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.4)] dark:bg-[#e60000] dark:shadow-[0_0_14px_rgba(230,0,0,0.45)]'
-                  : 'text-gray-500 hover:text-[#D32F2F] dark:text-[#b0b0b0] dark:hover:text-red-400',
+                  ? 'bg-white/12 text-white'
+                  : 'text-gray-500 dark:text-white',
               ].join(' ')}
             >
               <Icon className={ICON_SIZE_NAV} />
+            </span>
+            <span
+              className={[
+                'text-sm font-semibold leading-none whitespace-nowrap',
+                active ? 'text-white' : 'text-inherit',
+              ].join(' ')}
+            >
+              {t(tab.labelKey)}
             </span>
           </button>
         );
