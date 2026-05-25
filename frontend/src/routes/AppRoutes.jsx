@@ -192,6 +192,7 @@ const Layout = ({ children }) => {
     return (
       <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-[#141415]">
         <AppHeader />
+<<<<<<< Updated upstream
         <div
           style={{
             paddingTop: hasPromoBanner
@@ -199,6 +200,9 @@ const Layout = ({ children }) => {
               : 'calc(54px + env(safe-area-inset-top, 0px))',
           }}
         >
+=======
+        <div className="pt-[calc(54px+env(safe-area-inset-top,0px))] sm:pt-[calc(58px+env(safe-area-inset-top,0px))]">
+>>>>>>> Stashed changes
           {children}
         </div>
         <BottomNavbar />

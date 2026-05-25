@@ -54,7 +54,11 @@ const BottomNavbar = () => {
         paddingRight: 'max(0.5rem, env(safe-area-inset-right))',
       }}
     >
+<<<<<<< Updated upstream
       <div className="absolute inset-0 bg-[#f5f5f7] dark:bg-[#141415] pointer-events-none" />
+=======
+      <div className="absolute inset-0 bg-[#f5f5f7] dark:bg-black pointer-events-none" />
+>>>>>>> Stashed changes
       <div className="relative flex items-end justify-between rounded-[24px] border border-gray-200 bg-white px-1.5 py-2 shadow-[0_-6px_24px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-[#101010] dark:shadow-[0_-12px_28px_rgba(0,0,0,0.42)]">
         {navItems.map((item) => {
           const active = isActive(item);
