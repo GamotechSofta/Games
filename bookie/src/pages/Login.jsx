@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
+import { buildApiUrl } from '../utils/api';
 
 const PHONE_REGEX = /^[6-9]\d{9}$/;
 
@@ -37,7 +36,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/bookie/login`, {
+            const response = await fetch(buildApiUrl('/bookie/login'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,7 +55,7 @@ const Login = () => {
                 setError(data.message || 'Login failed');
             }
         } catch (err) {
-            setError('Network error. Please check if the server is running.');
+            setError(err.message || 'Network error. Please check if the server is running.');
         } finally {
             setLoading(false);
         }

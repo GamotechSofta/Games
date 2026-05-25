@@ -12,8 +12,6 @@ import {
     getSecretDeclarePasswordStatus,
     setSecretDeclarePassword,
     verifySecretDeclarePassword,
-    getAdminUpi,
-    setAdminUpi,
     createSpecificAdmin,
     getAllSpecificAdmins,
     updateSpecificAdmin,
@@ -26,10 +24,6 @@ const router = express.Router();
 
 router.post('/login', adminLogin);
 router.post('/create', createAdmin); // For initial admin setup
-
-// UPI ID (Super Admin)
-router.get('/me/upi', verifySuperAdmin, getAdminUpi);
-router.patch('/me/upi', verifySuperAdmin, setAdminUpi);
 
 // Secret declare password: status/verify for any admin (super_admin + specific_admin); set own only for super_admin
 router.get('/me/secret-declare-password-status', verifyAdmin, getSecretDeclarePasswordStatus);
