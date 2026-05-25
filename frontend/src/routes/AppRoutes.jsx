@@ -211,12 +211,16 @@ const Layout = ({ children }) => {
   const isHistoryPage =
     location.pathname === '/bet-history' || location.pathname === '/market-result-history';
 
+  const mobileBottomPad = location.pathname === '/profile'
+    ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
+    : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
+
   return (
     <div
       className={
         hideBottomNavOnMobile
           ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
-          : 'min-h-screen min-h-ios-screen pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
+          : `min-h-screen min-h-ios-screen ${mobileBottomPad} md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black`
       }
     >
       {/* My Bets, Bet History, Game Results etc.: hide top nav on mobile only via CSS */}
