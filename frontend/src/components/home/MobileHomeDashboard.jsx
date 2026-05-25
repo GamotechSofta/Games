@@ -294,7 +294,7 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
   };
 
   return (
-    <div className="relative w-[162px] shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-[#141414] dark:shadow-[0_16px_34px_rgba(0,0,0,0.42)]">
+    <div className="relative w-[calc((100%-2.25rem)/3.5)] min-w-[96px] max-w-[110px] shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-[#141414] dark:shadow-[0_16px_34px_rgba(0,0,0,0.42)]">
       {imageUrl ? (
         <>
           <img
@@ -477,7 +477,7 @@ export default function MobileHomeDashboard() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[156px] w-[162px] shrink-0 rounded-2xl border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
+                  className="h-[156px] w-[calc((100%-2.25rem)/3.5)] min-w-[96px] max-w-[110px] shrink-0 rounded-2xl border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
                 />
               ))}
             </div>
@@ -509,7 +509,7 @@ export default function MobileHomeDashboard() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[138px] w-[162px] shrink-0 rounded-2xl border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
+                  className="h-[138px] w-[calc((100%-2.25rem)/3.5)] min-w-[96px] max-w-[110px] shrink-0 rounded-2xl border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
                 />
               ))}
             </div>
