@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    environment {
+        S3_BUCKET = "aakda.in"
+        CLOUDFRONT_DISTRIBUTION_ID = "E3IBFDRZWZW825"
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main',
+                url: 'https://github.com/GamotechSofta/Games.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Build Frontend') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Deploy to S3') {
+            steps {
+                sh '''
+                aws s3 sync dist/ s3://aakda.in --delete
+                '''
+            }
+        }
+
+        stage('Invalidate CloudFront Cache') {
+            steps {
+                sh '''
+                aws cloudfront create-invalidation \
+                --distribution-id E3IBFDRZWZW825 \
+                --paths "/*"
+                '''
+            }
+        }
+    }
+}

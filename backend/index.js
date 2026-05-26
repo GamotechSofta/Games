@@ -158,7 +158,7 @@ app.get('/test-reset', async (req, res) => {
         console.log('═══════════════════════════════════════════════════════════\n');
         
         res.status(500).json({ 
-            success: false, 
+            success: false,
             message: error.message 
         });
     }

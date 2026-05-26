@@ -3,6 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { textPrimary } from '../styles/appTheme';
 
+const SINGLE_DICE_IMAGE = '/singleDice.png';
+const DOUBLE_DICE_IMAGE = '/doubleDice.png';
+const SINGLE_PATTI_IMAGE = '/singlePatti.png';
+const DOUBLE_PATTI_IMAGE = '/doublepatti.png';
+const TRIPLE_PATTI_IMAGE = '/triplePatti.png';
+const HALF_SANGAM_IMAGE = '/HalfSangam.png';
+const FULL_SANGAM_IMAGE = '/fullsangam.png';
+
 const BidOptions = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -99,7 +107,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Single Digit'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
+          src={SINGLE_DICE_IMAGE}
           alt={getGameTitle('Single Digit')}
           className="w-full h-full object-contain"
         />
@@ -111,7 +119,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Odd Even'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769756244/Untitled_90_x_160_px_1080_x_1080_px_1_yinraf.svg"
+          src={SINGLE_DICE_IMAGE}
           alt={getGameTitle('Odd Even')}
           className="w-full h-full object-contain"
         />
@@ -123,7 +131,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Jodi'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
+          src={DOUBLE_DICE_IMAGE}
           alt={getGameTitle('Jodi')}
           className="w-full h-full object-contain"
         />
@@ -135,7 +143,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Jodi Bulk'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714108/Untitled_1080_x_1080_px_1080_x_1080_px_7_rpzykt.svg"
+          src={DOUBLE_DICE_IMAGE}
           alt={getGameTitle('Jodi Bulk')}
           className="w-full h-full object-contain"
         />
@@ -147,7 +155,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Single Pana'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Single Pana')}
           className="w-full h-full object-contain"
         />
@@ -159,7 +167,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Single Pana Bulk'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Single Pana Bulk')}
           className="w-full h-full object-contain"
         />
@@ -171,7 +179,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('SP Common'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP Common')}
           className="w-full h-full object-contain"
         />
@@ -183,7 +191,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('DP Common'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('DP Common')}
           className="w-full h-full object-contain"
         />
@@ -195,7 +203,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('CP'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('CP')}
           className="w-full h-full object-contain"
         />
@@ -207,7 +215,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Double Pana'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('Double Pana')}
           className="w-full h-full object-contain"
         />
@@ -219,7 +227,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Double Pana Bulk'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('Double Pana Bulk')}
           className="w-full h-full object-contain"
         />
@@ -231,7 +239,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Triple Pana'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714392/Untitled_1080_x_1080_px_1080_x_1080_px_9_ugcdef.svg"
+          src={TRIPLE_PATTI_IMAGE}
           alt={getGameTitle('Triple Pana')}
           className="w-full h-full object-contain"
         />
@@ -243,7 +251,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Full Sangam'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033671/Untitled_design_2_kr1imj.svg"
+          src={FULL_SANGAM_IMAGE}
           alt={getGameTitle('Full Sangam')}
           className="w-full h-full object-contain"
         />
@@ -255,7 +263,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Half Sangam'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1770033165/Untitled_design_c5hag8.svg"
+          src={HALF_SANGAM_IMAGE}
           alt={getGameTitle('Half Sangam')}
           className="w-full h-full object-contain"
         />
@@ -267,7 +275,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('SP Motor'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP Motor')}
           className="w-full h-full object-contain"
         />
@@ -279,7 +287,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('DP Motor'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769713943/Untitled_1080_x_1080_px_1080_x_1080_px_6_uccv7o.svg"
+          src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('DP Motor')}
           className="w-full h-full object-contain"
         />
@@ -291,7 +299,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('SP DP Motor'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP DP Motor')}
           className="w-full h-full object-contain"
         />
@@ -303,7 +311,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('SP DP T Motor'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP DP T Motor')}
           className="w-full h-full object-contain"
         />
@@ -315,7 +323,7 @@ const BidOptions = () => {
       displayTitle: getGameTitle('Chart Game'),
       icon: (
         <img
-          src="https://res.cloudinary.com/dzd47mpdo/image/upload/v1769714254/Untitled_1080_x_1080_px_1080_x_1080_px_8_jdbxyd.svg"
+          src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Chart Game')}
           className="w-full h-full object-contain"
         />
