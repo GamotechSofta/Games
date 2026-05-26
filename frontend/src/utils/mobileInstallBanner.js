@@ -39,6 +39,6 @@ export function getMobileDashboardSubHeaderTop(hasPromoBanner) {
 
 export function getMobileDashboardContentTop(hasPromoBanner) {
   return hasPromoBanner
-    ? 'calc(9.5rem + env(safe-area-inset-top, 0px))'
-    : 'calc(5.5rem + env(safe-area-inset-top, 0px))';
+    ? 'calc(8.5rem + env(safe-area-inset-top, 0px))'
+    : 'calc(3rem + env(safe-area-inset-top, 0px))';
 }

@@ -15,12 +15,13 @@ const toMarketNameKey = (name) => {
 const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
 const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 
-export default function MarketCard({ market }) {
+export default function MarketCard({ market, imageShape = 'round' }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClickable = isOpen;
   const imageUrl = getMarketImageUrl(market.gameName);
+  const useSquareImage = imageShape === 'square';
 
   const handleClick = () => {
     if (isClickable) {
@@ -82,10 +83,18 @@ export default function MarketCard({ market }) {
           <img
             src={imageUrl}
             alt=""
-            className="absolute -right-4 top-6 h-[74px] w-[74px] rounded-full object-cover opacity-[0.16] blur-[1px]"
+            className={`absolute top-6 object-cover opacity-[0.16] blur-[1px] ${
+              useSquareImage
+                ? 'right-3 h-[74px] w-[74px] rounded-[18px]'
+                : '-right-4 h-[74px] w-[74px] rounded-full'
+            }`}
             aria-hidden
           />
-          <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
+          <div
+            className={`absolute top-4 h-[92px] w-[92px] bg-[#ffbf78]/10 blur-2xl ${
+              useSquareImage ? 'right-1 rounded-[24px]' : '-right-2 rounded-full'
+            }`}
+          />
         </>
       ) : null}
 

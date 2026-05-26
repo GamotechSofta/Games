@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { HiMenu } from 'react-icons/hi';
 import { HiBell, HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
 import { useWallet } from '../hooks/useWallet';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
 
-export default function DashboardHeader({ activePanel, onPanelChange }) {
+export default function DashboardHeader({ activePanel, onPanelChange, sidebarCollapsed, onToggleSidebar }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { formattedBalance } = useWallet();
@@ -32,18 +33,29 @@ export default function DashboardHeader({ activePanel, onPanelChange }) {
   return (
     <header className="sticky top-0 z-50 shrink-0 border-b border-gray-200 bg-white px-5 py-3 font-sans shadow-sm dark:border-white/[0.08] dark:bg-[#141415] dark:shadow-none">
       <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="shrink-0 rounded-xl p-1 transition-transform duration-200 hover:scale-[1.02]"
-          aria-label="Aakda home"
-        >
-          <img
-            src="/aakdaLogo.png"
-            alt="Aakda"
-            className="h-10 w-auto object-contain"
-          />
-        </button>
+        <div className="flex items-center gap-3 shrink-0 pl-2 lg:pl-3">
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:text-white dark:hover:bg-[#2a2b2e]"
+            aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+            title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+          >
+            <HiMenu className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="shrink-0 rounded-xl p-1 pl-3 lg:pl-4 transition-transform duration-200 hover:scale-[1.02]"
+            aria-label="Aakda home"
+          >
+            <img
+              src="/aakdaLogo.png"
+              alt="Aakda"
+              className="h-10 w-auto object-contain pl-3 lg:pl-4"
+            />
+          </button>
+        </div>
         {onPanelChange && (
           <DashboardNavPill activePanel={activePanel} onPanelChange={onPanelChange} />
         )}

@@ -481,7 +481,7 @@ const BidOptions = () => {
             className="relative rounded-2xl border p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 active:scale-[0.98] transition-all cursor-pointer group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px] bg-white border-gray-200 shadow-md hover:shadow-lg hover:border-amber-400/50 hover:bg-amber-50/40 dark:bg-gradient-to-br dark:from-[#1b1d22] dark:via-[#15171b] dark:to-[#0f1013] dark:border-white/10 dark:shadow-[0_12px_30px_rgba(0,0,0,0.38)] dark:hover:from-[#23262d] dark:hover:via-[#1a1d22] dark:hover:to-[#121418] dark:hover:border-white/20"
           >
             {/* Icon Container with subtle glow effect */}
-            <div className="flex items-center justify-center w-[72px] h-[72px] sm:w-[84px] sm:h-[84px] md:w-[96px] md:h-[96px] group-hover:scale-[1.03] transition-transform duration-300">
+            <div className="flex h-[72px] w-[72px] items-center justify-center transition-transform duration-300 group-hover:scale-[1.03] [&_img]:drop-shadow-[0_0_14px_rgba(156,28,28,0.34)] [&_img]:transition-[filter,transform] [&_img]:duration-300 group-hover:[&_img]:drop-shadow-[0_0_22px_rgba(220,68,68,0.48)] sm:h-[84px] sm:w-[84px] md:h-[96px] md:w-[96px]">
               {option.icon}
             </div>
 

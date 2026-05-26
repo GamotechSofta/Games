@@ -196,9 +196,7 @@ const Layout = ({ children }) => {
         <AppHeader />
         <div
           style={{
-            paddingTop: hasPromoBanner
-              ? getMobileDashboardContentTop(true)
-              : 'calc(54px + env(safe-area-inset-top, 0px))',
+            paddingTop: getMobileDashboardContentTop(hasPromoBanner),
           }}
         >
           {children}

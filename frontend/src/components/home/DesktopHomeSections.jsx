@@ -33,6 +33,13 @@ const getMarketStatus = (market) => {
 function MarketRow({ titleKey, fallbackTitle, icon: Icon, section, markets, scrollable = true, showAction = true, gapClass = 'gap-3' }) {
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
+  const imageShape = scrollable ? 'round' : 'square';
+  const rowClass = scrollable
+    ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2`
+    : 'grid w-full grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4 pb-2 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]';
+  const itemClass = scrollable
+    ? 'w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]'
+    : 'min-w-0';
 
   if (!markets.length) return null;
 
@@ -52,10 +59,10 @@ function MarketRow({ titleKey, fallbackTitle, icon: Icon, section, markets, scro
         ) : null}
       </div>
 
-      <div className={scrollable ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2` : `flex w-full flex-wrap ${gapClass} pb-2`}>
+      <div className={rowClass}>
         {markets.map((market, i) => (
-          <div key={market.id} className="w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]">
-            <MarketCard market={market} index={i} section={section} />
+          <div key={market.id} className={itemClass}>
+            <MarketCard market={market} index={i} section={section} imageShape={imageShape} />
           </div>
         ))}
       </div>
@@ -64,15 +71,19 @@ function MarketRow({ titleKey, fallbackTitle, icon: Icon, section, markets, scro
 }
 
 function MarketRowSkeleton({ scrollable = true, gapClass = 'gap-3' }) {
+  const rowClass = scrollable
+    ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2`
+    : 'grid w-full grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4 pb-2 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]';
+  const itemClass = scrollable
+    ? 'h-[176px] w-[170px] min-w-[170px] shrink-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616] md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]'
+    : 'h-[176px] min-w-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616]';
+
   return (
     <div>
       <div className="mb-3 h-5 w-40 rounded bg-gray-200 skeleton-shimmer dark:bg-[#1a1a1a]" />
-      <div className={scrollable ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2` : `flex w-full flex-wrap ${gapClass} pb-2`}>
+      <div className={rowClass}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="h-[176px] w-[170px] min-w-[170px] shrink-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616] md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]"
-          />
+          <div key={i} className={itemClass} />
         ))}
       </div>
     </div>

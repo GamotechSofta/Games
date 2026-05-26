@@ -12,12 +12,14 @@ export default function DesktopDashboardLayout({
 
   return (
     <div className="flex h-screen min-h-screen w-full flex-col overflow-hidden bg-[#f5f5f7] dark:bg-[#141415]">
-      <DashboardHeader activePanel={activePanel} onPanelChange={onPanelChange} />
+      <DashboardHeader
+        activePanel={activePanel}
+        onPanelChange={onPanelChange}
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
+      />
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <DesktopSidebar
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
-        />
+        <DesktopSidebar collapsed={sidebarCollapsed} />
         <main className="custom-scrollbar-light dark:custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className={contentClassName}>{children}</div>
         </main>

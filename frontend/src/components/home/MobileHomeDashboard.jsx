@@ -140,11 +140,11 @@ const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.
 const MARKET_CARD_SCROLL_CLASS =
   'relative h-[160px] w-[calc((100%-0.625rem)/2)] min-w-[136px] max-w-[166px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[375px]:w-[calc((100%-0.75rem)/2.08)] min-[480px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[148px] min-[480px]:max-w-[182px]';
 const MARKET_CARD_GRID_CLASS =
-  'relative h-[160px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[480px]:h-[176px]';
+  'relative h-[150px] w-full min-w-0 overflow-hidden rounded-[22px] bg-[#180707] min-[375px]:h-[158px] min-[430px]:h-[164px] min-[640px]:h-[170px]';
 const MARKET_CARD_SKELETON_BASE_CLASS =
   'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
 const ALL_MARKETS_GRID_CLASS =
-  'grid grid-cols-2 gap-x-[18px] gap-y-[22px] px-1 pb-1 min-[400px]:gap-x-[20px] min-[400px]:gap-y-[24px] min-[480px]:grid-cols-3 min-[640px]:grid-cols-4';
+  'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 min-[760px]:grid-cols-4 xl:grid-cols-5';
 
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
@@ -330,6 +330,7 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
 function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 'carousel' }) {
   const imageUrl = getMarketImageUrl(market.gameName);
   const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
+  const isGrid = layout === 'grid';
   const statusLabel = liveVariant
     ? t('homeMobile.live', { defaultValue: 'Live' })
     : market.status === 'closed'
@@ -351,6 +352,18 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
   const popularMarketCardImage =
     market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
   const cardShellClass = layout === 'grid' ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
+  const cardPaddingClass = isGrid ? 'p-3' : 'p-3.5';
+  const statusWrapClass = isGrid ? 'pt-[22px]' : 'pt-8';
+  const timeClass = isGrid
+    ? 'mb-1 text-center text-[10px] font-semibold leading-[1.15] text-[#ffdca8]/78'
+    : 'mb-1 text-center text-[11px] font-semibold leading-[1.15] text-[#ffdca8]/78';
+  const titleClass = isGrid
+    ? 'mb-1.5 line-clamp-2 min-h-[2.2rem] text-center text-[13px] font-black leading-[1.1] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]'
+    : 'mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]';
+  const resultClass = isGrid
+    ? 'whitespace-nowrap text-[17px] font-black leading-none tracking-[0.05em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
+    : 'whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]';
+  const actionClass = isGrid ? 'mt-2 block w-full overflow-hidden text-center text-[10px] font-bold' : 'mt-3 block w-full overflow-hidden text-center text-[11px] font-bold';
 
   return (
     <div className={cardShellClass}>
@@ -373,29 +386,29 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
           <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
         </>
       ) : null}
-      <div className="relative z-10 flex h-full flex-col p-3.5">
-        <div className="flex justify-center pt-8">
+      <div className={`relative z-10 flex h-full flex-col ${cardPaddingClass}`}>
+        <div className={`flex justify-center ${statusWrapClass}`}>
           <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[7px] font-bold uppercase leading-none tracking-[0.12em] min-[380px]:text-[8px] ${popularStatusClass}`}>
             {statusLabel}
           </span>
         </div>
 
         <div className="mt-auto">
-          <div className="mb-1 text-center text-[11px] font-semibold leading-[1.15] text-[#ffdca8]/78">
+          <div className={timeClass}>
             {market.timeRange}
           </div>
-          <div className="mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+          <div className={titleClass}>
             {marketLabel}
           </div>
           <div className="px-0.5 text-center">
-            <div className="whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+            <div className={resultClass}>
               {market.result}
             </div>
           </div>
           <button
             type="button"
             onClick={handlePrimaryAction}
-            className={`mt-3 block w-full overflow-hidden text-center text-[11px] font-bold ${
+            className={`${actionClass} ${
               market.status === 'closed' ? 'text-red-300' : 'text-white/92'
             }`}
           >

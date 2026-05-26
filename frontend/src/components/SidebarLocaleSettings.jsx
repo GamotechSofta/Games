@@ -21,7 +21,7 @@ const LANGUAGES = [
 
 function MenuPanel({ children, collapsed, className = '' }) {
   const position = collapsed
-    ? 'absolute left-full top-0 z-[120] ml-2 min-w-[180px]'
+    ? 'absolute left-full top-1/2 z-[130] ml-3 min-w-[190px] -translate-y-1/2'
     : 'absolute bottom-full left-0 right-0 z-[120] mb-1.5';
 
   return (
@@ -74,12 +74,19 @@ export default function SidebarLocaleSettings({ collapsed }) {
 
       {/* Language */}
       <div
-        className="relative"
+        className="relative z-10"
+        onMouseEnter={() => collapsed && setLangOpen(true)}
         onMouseLeave={() => collapsed && setLangOpen(false)}
       >
         <button
           type="button"
-          onClick={() => setLangOpen((v) => !v)}
+          onClick={() => {
+            if (collapsed) {
+              setLangOpen(true);
+              return;
+            }
+            setLangOpen((v) => !v);
+          }}
           onMouseEnter={() => collapsed && setLangOpen(true)}
           className={btnClass}
           aria-label={t('header.language')}
@@ -96,12 +103,14 @@ export default function SidebarLocaleSettings({ collapsed }) {
         </button>
         {langOpen && (
           <>
-            <button
-              type="button"
-              className="fixed inset-0 z-[110]"
-              aria-label="Close"
-              onClick={() => setLangOpen(false)}
-            />
+            {!collapsed && (
+              <button
+                type="button"
+                className="fixed inset-0 z-[110]"
+                aria-label="Close"
+                onClick={() => setLangOpen(false)}
+              />
+            )}
             <MenuPanel collapsed={collapsed}>
               <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
                 {t('language.selectLanguage')}
