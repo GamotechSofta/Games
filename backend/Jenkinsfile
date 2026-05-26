@@ -1,32 +1,29 @@
 pipeline {
-    agent any
+agent any
+stages {
 
-    stages {
-
-        stage('Pull Latest Code') {
-            steps {
-                dir('/var/www/Aakda/Games') {
-                    git branch: 'main',
-                    credentialsId: 'github-token',
-                    url: 'https://github.com/GamotechSofta/Games.git'
-                }
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                dir('/var/www/Aakda/Games/backend') {
-                    sh 'npm install'
-                }
-            }
-        }
-
-        stage('Restart Backend') {
-            steps {
-                dir('/var/www/Aakda/Games/backend') {
-                    sh 'pm2 restart games-backend || pm2 start index.js --name games-backend'
-                }
+    stage('Install Dependencies') {
+        steps {
+            dir('backend') {
+                sh 'npm install'
             }
         }
     }
+
+    stage('Deploy Backend') {
+        steps {
+            sh '''
+            sudo rsync -av --delete backend/ /var/www/Aakda/Games/backend/
+            '''
+        }
+    }
+
+    stage('Restart Backend') {
+        steps {
+            sh '''
+            pm2 restart games-backend || pm2 start /var/www/Aakda/Games/backend/index.js --name games-backend
+            '''
+        }
+    }
+}
 }
