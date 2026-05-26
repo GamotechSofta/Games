@@ -263,9 +263,9 @@ const KingBazaarMarket = () => {
   const title = marketLabel || 'King Bazaar';
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-xl md:max-w-6xl lg:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-3">
-        <div className="flex items-center gap-3 md:gap-4 md:rounded-3xl md:border md:border-gray-200 dark:md:border-white/10 md:bg-white md:px-6 md:py-5 md:shadow-md dark:md:bg-[#111113] dark:md:shadow-[0_18px_48px_rgba(0,0,0,0.55)]">
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-7xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-5 md:px-8">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -303,10 +303,10 @@ const KingBazaarMarket = () => {
           </div>
         )}
 
-        <div className="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-2.5 min-[375px]:gap-3 sm:gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-2.5 min-[375px]:gap-3 sm:gap-4 md:mt-6 md:grid-cols-2">
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-2.5 min-[375px]:p-3 sm:p-4 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 border border-gray-200 dark:border-white/5 skeleton-shimmer">
+              <div key={i} className="rounded-lg border border-gray-200 bg-white p-2.5 shadow-sm dark:border-white/5 dark:bg-gray-800 flex items-center gap-2 min-[375px]:gap-3 min-[375px]:p-3 sm:gap-4 sm:p-4 skeleton-shimmer">
                 <div className="w-14 min-[375px]:w-16 sm:w-20 h-10 min-[375px]:h-12 sm:h-14 rounded bg-gray-200 dark:bg-white/10" />
                 <div className="flex-1 h-10 min-[375px]:h-12 sm:h-14 rounded-full bg-gray-200 dark:bg-white/10" />
                 <div className="w-20 min-[375px]:w-24 sm:w-28 h-9 min-[375px]:h-10 sm:h-12 rounded-full bg-gray-200 dark:bg-white/10" />
@@ -335,7 +335,7 @@ const KingBazaarMarket = () => {
               return (
                 <div
                   key={m.id}
-                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg transform transition-all duration-200 flex items-center gap-2 min-[375px]:gap-3 sm:gap-4 p-2.5 min-[375px]:p-3 sm:p-4 border border-gray-200 dark:border-white/5 ${
+                  className={`rounded-lg border border-gray-200 bg-white p-2.5 shadow-sm transition-all duration-200 flex items-center gap-2 min-[375px]:gap-3 min-[375px]:p-3 sm:gap-4 sm:p-4 dark:border-white/5 dark:bg-gray-800 ${
                     isClickable ? 'cursor-pointer hover:scale-[1.02] hover:border-gray-200 dark:border-white/10' : 'cursor-default opacity-90'
                   }`}
                   onClick={() => isClickable && handleNavigate()}

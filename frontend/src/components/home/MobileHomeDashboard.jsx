@@ -5,7 +5,6 @@ import { HiMiniArrowRight } from 'react-icons/hi2';
 import {
   MdLocalFireDepartment,
 } from 'react-icons/md';
-import MarketCard from '../MarketCard';
 import { API_BASE_URL } from '../../config/api';
 import { GAMES } from '../../config/games';
 import { getMarketImageUrl } from '../../config/marketCardThemes';
@@ -139,11 +138,13 @@ const TOP_GAME_TILES = [
 const MARKET_CARD_SCROLL_CLASS =
   'relative h-[160px] w-[calc((100%-0.625rem)/2)] min-w-[136px] max-w-[166px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[375px]:w-[calc((100%-0.75rem)/2.08)] min-[480px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[148px] min-[480px]:max-w-[182px]';
 const MARKET_CARD_GRID_CLASS =
-  'relative h-[160px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[430px]:h-[176px] min-[640px]:h-[176px]';
+  'relative h-[150px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[158px] min-[430px]:h-[168px] min-[640px]:h-[176px]';
 const MARKET_CARD_SKELETON_BASE_CLASS =
   'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 min-[760px]:grid-cols-4 xl:grid-cols-5';
+const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
+const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
@@ -326,12 +327,103 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   );
 }
 
-function CompactMarketCard({ market, layout = 'carousel' }) {
-  const cardShellClass = layout === 'grid' ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
+function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 'carousel' }) {
+  const imageUrl = getMarketImageUrl(market.gameName);
+  const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, {
+    defaultValue: market.gameName,
+  });
+  const isGrid = layout === 'grid';
+  const isClosed = market.status === 'closed';
+  const isLive = liveVariant || market.status === 'running';
+  const statusLabel = isLive
+    ? t('homeMobile.live', { defaultValue: 'Live' })
+    : isClosed
+      ? t('markets.statusClosed', { defaultValue: 'Closed' })
+      : t('markets.statusOpen', { defaultValue: 'Open' });
+
+  const handlePrimaryAction = () => {
+    if (isClosed) {
+      navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
+      return;
+    }
+    navigate('/bidoptions', { state: { market } });
+  };
+
+  const popularStatusClass = isClosed
+    ? 'border-red-300/30 bg-red-500/18 text-white'
+    : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
+  const popularMarketCardImage = isClosed
+    ? POPULAR_MARKET_CARD_CLOSED_IMAGE
+    : POPULAR_MARKET_CARD_OPEN_IMAGE;
+  const cardShellClass = isGrid ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
+  const cardPaddingClass = isGrid ? 'p-3' : 'p-3.5';
+  const statusWrapClass = isGrid ? 'pt-[22px]' : 'pt-8';
+  const timeClass = isGrid
+    ? 'mb-1 text-center text-[10px] font-semibold leading-[1.15] text-[#ffdca8]/78'
+    : 'mb-1 text-center text-[11px] font-semibold leading-[1.15] text-[#ffdca8]/78';
+  const titleClass = isGrid
+    ? 'mb-1.5 line-clamp-2 min-h-[2.2rem] text-center text-[13px] font-black leading-[1.1] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]'
+    : 'mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]';
+  const resultClass = isGrid
+    ? 'whitespace-nowrap text-[17px] font-black leading-none tracking-[0.05em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
+    : 'whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]';
+  const actionClass = isGrid
+    ? 'mt-2 block w-full overflow-hidden text-center text-[10px] font-bold'
+    : 'mt-3 block w-full overflow-hidden text-center text-[11px] font-bold';
 
   return (
     <div className={cardShellClass}>
-      <MarketCard market={market} imageShape="square" />
+      <img
+        src={popularMarketCardImage}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,187,118,0.18),transparent)]" />
+      {imageUrl ? (
+        <>
+          <img
+            src={imageUrl}
+            alt=""
+            className="absolute -right-4 top-6 h-[74px] w-[74px] rounded-full object-cover opacity-[0.16] blur-[1px]"
+            aria-hidden
+          />
+          <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
+        </>
+      ) : null}
+      <div className={`relative z-10 flex h-full flex-col ${cardPaddingClass}`}>
+        <div className={`flex justify-center ${statusWrapClass}`}>
+          <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[7px] font-bold uppercase leading-none tracking-[0.12em] min-[380px]:text-[8px] ${popularStatusClass}`}>
+            {statusLabel}
+          </span>
+        </div>
+
+        <div className="mt-auto">
+          <div className={timeClass}>
+            {market.timeRange}
+          </div>
+          <div className={titleClass}>
+            {marketLabel}
+          </div>
+          <div className="px-0.5 text-center">
+            <div className={resultClass}>
+              {market.result || '***-**-***'}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handlePrimaryAction}
+            className={`${actionClass} ${isClosed ? 'text-red-300' : 'text-white/92'}`}
+          >
+            <span className="block whitespace-nowrap">
+              {isClosed
+                ? t('markets.runningForTomorrow')
+                : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

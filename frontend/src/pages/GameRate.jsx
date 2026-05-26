@@ -59,8 +59,8 @@ const GameRate = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-xl mx-auto">
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-xl px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-5 md:px-8">
         <div className="flex items-center gap-3 pt-4 pb-2">
           <button
             type="button"
@@ -87,11 +87,10 @@ const GameRate = () => {
             <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] border border-gray-200 dark:border-white/10 overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="mt-5 overflow-x-auto">
               <table className="w-full border-collapse text-sm sm:text-base">
                 <thead>
-                  <tr className="border-b border-gray-200 dark:border-white/10 bg-black/20">
+                  <tr className="border-b border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.04]">
                     <th className="text-left py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Sr No</th>
                     <th className="text-left py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game</th>
                     <th className="text-right py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Rate (1 =)</th>
@@ -107,7 +106,6 @@ const GameRate = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
           </div>
         )}
       </div>

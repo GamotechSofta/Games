@@ -19,7 +19,7 @@ import {
   iconColorClass,
 } from './dashboard/dashboardIcons';
 
-const COLLAPSED_W = 92;
+const COLLAPSED_W = 104;
 const EXPANDED_W = 240;
 
 const BETS_SECTION_PATHS = [
@@ -29,6 +29,9 @@ const BETS_SECTION_PATHS = [
   '/king-bazaar-bet-history',
   '/market-result-history',
 ];
+
+const ACTIVE_SIDEBAR_LINE_CLASS =
+  'bg-[linear-gradient(90deg,rgba(255,58,58,1)_0%,rgba(230,0,0,0.82)_24%,rgba(230,0,0,0.34)_62%,rgba(230,0,0,0)_100%)]';
 
 const MAIN_NAV = [
   {
@@ -96,13 +99,25 @@ function NavRow({
       onClick={onClick}
       title={collapsed ? label : undefined}
       className={[
-        'group flex w-full items-center rounded-[12px] transition-all duration-[250ms]',
+        'group relative flex w-full items-center overflow-visible rounded-[12px] transition-all duration-[250ms]',
         collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-3 py-2.5',
         active
-          ? 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-white'
+          ? 'text-gray-900 dark:text-white'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-white dark:hover:bg-white/[0.04] dark:hover:text-white',
       ].join(' ')}
     >
+      {active && (
+        <>
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+          />
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+          />
+        </>
+      )}
       <span className="flex h-6 w-6 shrink-0 items-center justify-center">
         {letter ? (
           <span className="text-[17px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>
@@ -111,7 +126,7 @@ function NavRow({
         )}
       </span>
       {collapsed && (
-        <span className="dashboard-nav-label-sm max-w-[64px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
+        <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
           {label}
         </span>
       )}
@@ -219,7 +234,7 @@ export default function DesktopSidebar({ collapsed }) {
             )}
           </span>
           {collapsed && (
-            <span className="dashboard-nav-label-sm max-w-[64px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
+            <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
               {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
             </span>
           )}
@@ -281,12 +296,24 @@ export default function DesktopSidebar({ collapsed }) {
                         type="button"
                         onClick={() => go(child.path)}
                         className={[
-                          'dashboard-nav-label-sm rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
+                          'dashboard-nav-label-sm relative overflow-visible rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
                           pathMatches(location.pathname, child.path)
-                            ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.06] dark:text-white'
+                            ? 'font-medium text-gray-900 dark:text-white'
                             : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-white dark:hover:text-white dark:hover:bg-white/[0.04]',
                         ].join(' ')}
                       >
+                        {pathMatches(location.pathname, child.path) && (
+                          <>
+                            <span
+                              aria-hidden
+                              className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                            />
+                            <span
+                              aria-hidden
+                              className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                            />
+                          </>
+                        )}
                         {t(child.labelKey)}
                       </button>
                     ))}
@@ -309,12 +336,24 @@ export default function DesktopSidebar({ collapsed }) {
                           role="menuitem"
                           onClick={() => go(child.path)}
                           className={[
-                            'dashboard-nav-label-sm block w-full rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
+                            'dashboard-nav-label-sm relative block w-full overflow-visible rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
                             pathMatches(location.pathname, child.path)
-                              ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
+                              ? 'font-medium text-gray-900 dark:text-white'
                               : 'text-gray-600 hover:bg-gray-50 dark:text-white dark:hover:bg-white/[0.05] dark:hover:text-white',
                           ].join(' ')}
                         >
+                          {pathMatches(location.pathname, child.path) && (
+                            <>
+                              <span
+                                aria-hidden
+                                className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                              />
+                              <span
+                                aria-hidden
+                                className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                              />
+                            </>
+                          )}
                           {t(child.labelKey)}
                         </button>
                       ))}
@@ -370,19 +409,31 @@ export default function DesktopSidebar({ collapsed }) {
             type="button"
             onClick={() => go('/support')}
             className={[
-              'flex w-full items-center rounded-[12px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
+              'relative flex w-full items-center overflow-visible rounded-[12px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
               collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-3 py-2.5',
               pathMatches(location.pathname, '/support')
-                ? 'bg-gray-100 dark:bg-white/[0.08]'
+                ? 'text-gray-900 dark:text-white'
                 : 'text-gray-600 dark:text-white',
             ].join(' ')}
           >
+            {pathMatches(location.pathname, '/support') && (
+              <>
+                <span
+                  aria-hidden
+                  className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                />
+                <span
+                  aria-hidden
+                  className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                />
+              </>
+            )}
             <DashboardIcon
               Icon={HiChatAlt2}
               active={pathMatches(location.pathname, '/support')}
             />
             {collapsed && (
-              <span className="dashboard-nav-label-sm max-w-[64px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
+              <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
                 {t('sidebar.support')}
               </span>
             )}

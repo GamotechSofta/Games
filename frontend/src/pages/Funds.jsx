@@ -195,8 +195,8 @@ const Funds = () => {
   const shouldRemoveCardBackground = isAddFundMobileView || isWithdrawFundMobileView || isBankDetailMobileView || isAddFundHistoryMobileView || isWithdrawFundHistoryMobileView;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 md:pt-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-lg md:max-w-none mx-auto md:mx-0">
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pt-5 lg:px-6 xl:px-8">
         <div className="mb-4 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
           <div className="flex items-center gap-3 pt-4 md:pt-0">
             <button

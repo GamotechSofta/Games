@@ -415,47 +415,53 @@ const BidOptions = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white flex flex-col items-center">
-      {/* Header */}
-      <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 relative">
-        <button
-          onClick={() => {
-            if (isStarline && starlineMarketKey != null) {
-              navigate('/starline-market', {
-                state: { marketKey: starlineMarketKey, marketLabel: starlineMarketLabel },
-              });
-            } else if (isStarline) {
-              navigate('/startline-dashboard');
-            } else if (isKingBazaar && kingBazaarMarketKey != null) {
-              navigate('/king-bazaar-market', {
-                state: { marketKey: kingBazaarMarketKey, marketLabel: kingBazaarMarketLabel },
-              });
-            } else {
-              navigate('/');
-            }
-          }}
-          className="absolute left-3 sm:left-4 flex items-center justify-center min-w-[44px] min-h-[44px] -ml-1 rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10 dark:hover:text-white active:scale-95 touch-manipulation"
-          aria-label={t('common.back')}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-        </button>
-        <div className="w-full text-center pr-12 pl-12 min-w-0">
-          {/* Dynamic market name from selected market */}
-          <h1 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg tracking-wider uppercase inline-block border-b-2 border-yellow-500 pb-1 px-2 py-1 truncate max-w-full">
-            {market?.gameName || t('bidOptions.selectMarket')}
-          </h1>
-          {isStarline ? (
-            <div className="mt-2 text-xs font-extrabold tracking-[0.22em] text-[#d4af37] uppercase">
-              {t('bidOptions.starlineMarket')}
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pb-6 sm:pt-5 lg:px-6 xl:px-8">
+        {/* Header */}
+        <div className="relative flex items-center pb-3 sm:pb-4">
+          <button
+            onClick={() => {
+              if (isStarline && starlineMarketKey != null) {
+                navigate('/starline-market', {
+                  state: { marketKey: starlineMarketKey, marketLabel: starlineMarketLabel },
+                });
+              } else if (isStarline) {
+                navigate('/startline-dashboard');
+              } else if (isKingBazaar && kingBazaarMarketKey != null) {
+                navigate('/king-bazaar-market', {
+                  state: { marketKey: kingBazaarMarketKey, marketLabel: kingBazaarMarketLabel },
+                });
+              } else {
+                navigate('/');
+              }
+            }}
+            className="absolute left-0 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-white/10 dark:hover:text-white active:scale-95 touch-manipulation"
+            aria-label={t('common.back')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div className="w-full min-w-0 px-12 text-center">
+            <div className="inline-flex max-w-full flex-col items-center px-2 py-1">
+              <h1 className="max-w-full truncate text-base font-bold uppercase tracking-wider text-gray-900 dark:text-white sm:text-lg">
+                {market?.gameName || t('bidOptions.selectMarket')}
+              </h1>
+              <span
+                aria-hidden="true"
+                className="mt-1 h-0.5 w-full rounded-full bg-[linear-gradient(90deg,rgba(230,0,0,0)_0%,rgba(230,0,0,0.22)_20%,rgba(255,58,58,1)_50%,rgba(230,0,0,0.22)_80%,rgba(230,0,0,0)_100%)]"
+              />
             </div>
-          ) : null}
+            {isStarline ? (
+              <div className="mt-2 text-xs font-extrabold uppercase tracking-[0.22em] text-[#d4af37]">
+                {t('bidOptions.starlineMarket')}
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {/* Grid Content */}
-      <div className="w-full max-w-md lg:max-w-none px-3 sm:px-4 pt-3 sm:pt-4 pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+        {/* Grid Content */}
+        <div className="grid grid-cols-2 gap-3 pt-1 sm:gap-4 sm:pt-2 md:grid-cols-4 lg:grid-cols-6">
         {orderedVisibleOptions.map((option) => (
           <div
             key={option.id}
@@ -478,7 +484,7 @@ const BidOptions = () => {
                 }),
               }
             })}
-            className="relative rounded-2xl border p-3.5 sm:p-4 flex flex-col items-center justify-center gap-2 sm:gap-2.5 active:scale-[0.98] transition-all cursor-pointer group touch-manipulation min-h-[104px] sm:min-h-[120px] md:min-h-[132px] bg-white border-gray-200 shadow-md hover:shadow-lg hover:border-amber-400/50 hover:bg-amber-50/40 dark:bg-gradient-to-br dark:from-[#1b1d22] dark:via-[#15171b] dark:to-[#0f1013] dark:border-white/10 dark:shadow-[0_12px_30px_rgba(0,0,0,0.38)] dark:hover:from-[#23262d] dark:hover:via-[#1a1d22] dark:hover:to-[#121418] dark:hover:border-white/20"
+            className="relative rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm transition-all active:scale-[0.98] cursor-pointer group touch-manipulation min-h-[104px] flex flex-col items-center justify-center gap-2 sm:min-h-[120px] sm:gap-2.5 sm:p-4 md:min-h-[132px] hover:border-amber-400/50 hover:bg-amber-50/30 hover:shadow-md dark:border-white/10 dark:bg-gradient-to-br dark:from-[#1b1d22] dark:via-[#15171b] dark:to-[#0f1013] dark:shadow-[0_10px_24px_rgba(0,0,0,0.24)] dark:hover:from-[#23262d] dark:hover:via-[#1a1d22] dark:hover:to-[#121418] dark:hover:border-white/20"
           >
             {/* Icon Container with subtle glow effect */}
             <div className="flex h-[72px] w-[72px] items-center justify-center transition-transform duration-300 group-hover:scale-[1.03] [&_img]:drop-shadow-[0_0_14px_rgba(156,28,28,0.34)] [&_img]:transition-[filter,transform] [&_img]:duration-300 group-hover:[&_img]:drop-shadow-[0_0_22px_rgba(220,68,68,0.48)] sm:h-[84px] sm:w-[84px] md:h-[96px] md:w-[96px]">
@@ -491,6 +497,7 @@ const BidOptions = () => {
             </span>
           </div>
         ))}
+        </div>
       </div>
     </div>
   );
