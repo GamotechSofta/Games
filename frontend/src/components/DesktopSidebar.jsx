@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaTelegram, FaWhatsapp, FaInstagram } from 'react-icons/fa';
 import { clearUserAuth } from '../utils/auth';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
 import {
@@ -17,7 +16,6 @@ import {
   HiChevronRight,
   HiChevronDown,
   HiChevronLeft,
-  HiDotsVertical,
   IconCasinoFilled,
   IconSportsFilled,
   iconColorClass,
@@ -25,12 +23,6 @@ import {
 
 const COLLAPSED_W = 72;
 const EXPANDED_W = 240;
-
-const SOCIAL = [
-  { id: 'wa', label: 'WhatsApp', href: 'https://wa.me/', Icon: FaWhatsapp },
-  { id: 'tg', label: 'Telegram', href: 'https://t.me/', Icon: FaTelegram },
-  { id: 'ig', label: 'Instagram', href: 'https://instagram.com/', Icon: FaInstagram },
-];
 
 const BETS_SECTION_PATHS = [
   '/bids',
@@ -366,53 +358,10 @@ export default function DesktopSidebar({ collapsed, onToggleCollapse }) {
         </nav>
         </div>
 
-        {/* Sticky bottom: locale, app download, social, support */}
+        {/* Sticky bottom: locale and support */}
         <div className="flex shrink-0 flex-col gap-3 bg-gray-50 px-1 py-3 dark:bg-[#1d1e20]">
           <SidebarLocaleSettings collapsed={collapsed} />
           <div className="border-t border-gray-200 pt-3 flex flex-col gap-3 dark:border-white/[0.06]">
-          {/* Social */}
-          {!collapsed ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                {SOCIAL.map(({ id, href, label, Icon }) => (
-                  <a
-                    key={id}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-gray-600 transition-all duration-[250ms] hover:bg-gray-200 hover:text-gray-900 dark:border-transparent dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]"
-                  >
-                    <Icon className="h-4 w-4" aria-hidden />
-                  </a>
-                ))}
-                <button
-                  type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:text-gray-900 dark:bg-[#2a2a2a] dark:text-white/55 dark:hover:text-white/85"
-                  aria-label="More"
-                >
-                  <HiDotsVertical className="h-4 w-4 text-current" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <div className="grid grid-cols-2 gap-1">
-                {SOCIAL.slice(0, 2).map(({ id, href, Icon }) => (
-                  <a
-                    key={id}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-gray-600 dark:border-transparent dark:bg-[#2a2a2a] dark:text-[#b0b0b0]"
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Support 24/7 */}
           <button
             type="button"
