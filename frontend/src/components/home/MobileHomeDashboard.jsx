@@ -488,6 +488,7 @@ export default function MobileHomeDashboard() {
           .map((market) => ({
             id: market._id,
             gameName: market.marketName,
+            showInPopular: Boolean(market.showInPopular),
             timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
             result: market.displayResult || '***-**-***',
             startingTime: market.startingTime,
@@ -542,7 +543,7 @@ export default function MobileHomeDashboard() {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = useMemo(() => markets, [markets]);
+  const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
   const liveMarkets = useMemo(() => markets.filter((market) => market.status !== 'closed'), [markets]);
 
   const topGames = useMemo(
@@ -587,36 +588,38 @@ export default function MobileHomeDashboard() {
           </div>
         </div>
 
-        <div>
-          <SectionHeader
-            icon={MdLocalFireDepartment}
-            iconClassName="text-[#ff5a52]"
-            title={t('dashboard.popularMarkets', { defaultValue: 'Popular Markets' })}
-            actionLabel={t('dashboard.viewAll', { defaultValue: 'View All' })}
-            onAction={() => navigate('/markets')}
-          />
-          {loading ? (
-            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-              {popularMarkets.map((market) => (
-                <CompactMarketCard
-                  key={market.id}
-                  market={market}
-                  t={t}
-                  navigate={navigate}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {(loading || popularMarkets.length > 0) && (
+          <div>
+            <SectionHeader
+              icon={MdLocalFireDepartment}
+              iconClassName="text-[#ff5a52]"
+              title={t('dashboard.popularMarkets', { defaultValue: 'Popular Markets' })}
+              actionLabel={t('dashboard.viewAll', { defaultValue: 'View All' })}
+              onAction={() => navigate('/markets')}
+            />
+            {loading ? (
+              <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+                {[1, 2, 3, 4].map((item) => (
+                  <div
+                    key={item}
+                    className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+                {popularMarkets.map((market) => (
+                  <CompactMarketCard
+                    key={market.id}
+                    market={market}
+                    t={t}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div>
           <SectionHeader

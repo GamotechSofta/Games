@@ -58,6 +58,11 @@ const marketSchema = new mongoose.Schema({
         type: Number,
         default: null,
     },
+    /** Whether this main market should appear inside the home "Popular Markets" row. */
+    showInPopular: {
+        type: Boolean,
+        default: false,
+    },
     /** Opening market number (3 digits), e.g. "123". Set when opening is announced. */
     openingNumber: {
         type: String,

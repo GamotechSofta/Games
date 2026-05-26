@@ -41,6 +41,7 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
         closingTime: '12:00',
         betClosureTime: '',
         marketType: defaultMarketType,
+        showInPopular: false,
     });
     const [start12, setStart12] = useState({ hour12: '12', minute: '00', ampm: 'AM' });
     const [close12, setClose12] = useState({ hour12: '12', minute: '00', ampm: 'PM' });
@@ -65,11 +66,12 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                 closingTime: closing24 || market.closingTime || '',
                 betClosureTime: market.betClosureTime ?? '',
                 marketType: isStartline ? 'startline' : isKing ? 'king' : 'main',
+                showInPopular: Boolean(market.showInPopular),
             }));
             setStart12(from24Hour(market.startingTime));
             setClose12(close12Initial);
         } else {
-            setFormData((prev) => ({ ...prev, marketType: defaultMarketType }));
+            setFormData((prev) => ({ ...prev, marketType: defaultMarketType, showInPopular: false }));
         }
     }, [market, defaultMarketType]);
 
@@ -118,6 +120,7 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                     ...formData,
                     betClosureTime: formData.betClosureTime ? Number(formData.betClosureTime) : null,
                     marketType: formData.marketType === 'startline' ? 'startline' : formData.marketType === 'king' ? 'king' : 'main',
+                    showInPopular: formData.marketType === 'main' ? Boolean(formData.showInPopular) : false,
                 };
 
             const response = await authFetch(url, {
@@ -221,6 +224,23 @@ const MarketForm = ({ market, defaultMarketType = 'main', onClose, onSuccess, ap
                                         required
                                     />
                                 </div>
+
+                                {formData.marketType === 'main' && (
+                                    <label className="flex items-center gap-3 rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-3">
+                                        <input
+                                            type="checkbox"
+                                            name="showInPopular"
+                                            checked={Boolean(formData.showInPopular)}
+                                            onChange={(e) =>
+                                                setFormData((prev) => ({ ...prev, showInPopular: e.target.checked }))
+                                            }
+                                            className="h-4 w-4 rounded border-gray-500 bg-gray-700 text-yellow-500 focus:ring-yellow-500"
+                                        />
+                                        <span className="text-sm font-medium text-white">
+                                            Show this market in Popular Markets
+                                        </span>
+                                    </label>
+                                )}
                             </>
                         )}
 

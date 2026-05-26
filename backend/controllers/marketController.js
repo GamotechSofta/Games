@@ -105,13 +105,13 @@ const upsertMarketResultSnapshot = async (marketDoc, dateKey) => {
 
 /**
  * Create a new market.
- * Body: { marketName, startingTime, closingTime, betClosureTime?, marketType?, starlineGroup?, kingBazaarGroup? }
+ * Body: { marketName, startingTime, closingTime, betClosureTime?, marketType?, starlineGroup?, kingBazaarGroup?, showInPopular? }
  * starlineGroup: for marketType 'startline', e.g. 'kalyan', 'milan', 'radha'.
  * kingBazaarGroup: for marketType 'king', e.g. 'king-morning', 'king-evening', 'king-night'.
  */
 export const createMarket = async (req, res) => {
     try {
-        const { marketName, startingTime, closingTime, betClosureTime, marketType, starlineGroup, kingBazaarGroup } = req.body;
+        const { marketName, startingTime, closingTime, betClosureTime, marketType, starlineGroup, kingBazaarGroup, showInPopular } = req.body;
         if (!marketName || !startingTime || !closingTime) {
             return res.status(400).json({
                 success: false,
@@ -120,7 +120,14 @@ export const createMarket = async (req, res) => {
         }
         const betClosureSec = betClosureTime != null && betClosureTime !== '' ? Number(betClosureTime) : null;
         const type = marketType === 'startline' ? 'startline' : marketType === 'king' ? 'king' : 'main';
-        const payload = { marketName, startingTime, closingTime, betClosureTime: betClosureSec, marketType: type };
+        const payload = {
+            marketName,
+            startingTime,
+            closingTime,
+            betClosureTime: betClosureSec,
+            marketType: type,
+            showInPopular: type === 'main' ? Boolean(showInPopular) : false,
+        };
         if (type === 'startline' && starlineGroup != null && String(starlineGroup).trim() !== '') {
             payload.starlineGroup = String(starlineGroup).trim().toLowerCase();
         }
@@ -279,7 +286,7 @@ export const getMarketById = async (req, res) => {
 
 /**
  * Update market (name, times). Does not set opening/closing numbers; use setOpeningNumber / setClosingNumber.
- * Body: { marketName?, startingTime?, closingTime?, betClosureTime? }
+ * Body: { marketName?, startingTime?, closingTime?, betClosureTime?, showInPopular? }
  */
 export const updateMarket = async (req, res) => {
     try {
@@ -288,7 +295,7 @@ export const updateMarket = async (req, res) => {
         if (!existing) {
             return res.status(404).json({ success: false, message: 'Market not found' });
         }
-        const { marketName, startingTime, closingTime, betClosureTime, marketType } = req.body;
+        const { marketName, startingTime, closingTime, betClosureTime, marketType, showInPopular } = req.body;
         const updates = {};
         if (existing.marketType === 'startline') {
             if (marketName !== undefined) updates.marketName = marketName;
@@ -303,6 +310,8 @@ export const updateMarket = async (req, res) => {
             if (closingTime !== undefined) updates.closingTime = closingTime;
             if (betClosureTime !== undefined) updates.betClosureTime = betClosureTime != null && betClosureTime !== '' ? Number(betClosureTime) : null;
             if (marketType !== undefined) updates.marketType = marketType === 'startline' ? 'startline' : 'main';
+            if (showInPopular !== undefined) updates.showInPopular = Boolean(showInPopular);
+            if (updates.marketType === 'startline') updates.showInPopular = false;
         }
 
         const market = await Market.findByIdAndUpdate(

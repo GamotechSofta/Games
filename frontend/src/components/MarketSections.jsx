@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
-import { MdLocalFireDepartment, MdOutlineLiveTv, MdOutlineNightlight } from 'react-icons/md';
+import { MdLocalFireDepartment, MdOutlineLiveTv } from 'react-icons/md';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -25,16 +25,6 @@ const getMarketStatus = (market) => {
   if (hasOpening && hasClosing) return { status: 'closed', timer: null };
   if (hasOpening && !hasClosing) return { status: 'running', timer: null };
   return { status: 'open', timer: null };
-};
-
-const isNightMarket = (name, closingTime) => {
-  const lower = (name || '').toLowerCase();
-  if (lower.includes('night')) return true;
-  if (closingTime) {
-    const hour = parseInt(closingTime.split(':')[0], 10);
-    return hour >= 18 || hour < 6;
-  }
-  return false;
 };
 
 function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
@@ -104,6 +94,7 @@ export default function MarketSections({ searchQuery = '' }) {
           return {
             id: market._id,
             gameName: market.marketName,
+            showInPopular: Boolean(market.showInPopular),
             timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
             result: market.displayResult || '***-**-***',
             status: st.status,
@@ -136,18 +127,14 @@ export default function MarketSections({ searchQuery = '' }) {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = filteredMarkets.slice(0, 12);
+  const popularMarkets = filteredMarkets.filter((m) => m.showInPopular).slice(0, 12);
   const liveMarkets = filteredMarkets
     .filter((m) => m.status === 'open' || m.status === 'running')
     .slice(0, 12);
-  const nightMarkets = filteredMarkets
-    .filter((m) => isNightMarket(m.gameName, m.closingTime))
-    .slice(0, 12);
-
   if (loading) {
     return (
       <div id="market-sections" className="space-y-6">
-        {[1, 2, 3].map((s) => (
+        {[1, 2].map((s) => (
           <div key={s}>
             <div className="h-5 w-40 bg-gray-200 dark:bg-[#1a1a1a] rounded skeleton-shimmer mb-3" />
             <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
@@ -206,19 +193,13 @@ export default function MarketSections({ searchQuery = '' }) {
         titleKey="dashboard.popularMarkets"
         icon={MdLocalFireDepartment}
         section="popular"
-        markets={popularMarkets.length ? popularMarkets : filteredMarkets.slice(0, 12)}
+        markets={popularMarkets}
       />
       <MarketRow
         titleKey="dashboard.liveMarkets"
         icon={MdOutlineLiveTv}
         section="live"
         markets={liveMarkets.length ? liveMarkets : filteredMarkets.slice(0, 12)}
-      />
-      <MarketRow
-        titleKey="dashboard.nightMarkets"
-        icon={MdOutlineNightlight}
-        section="night"
-        markets={nightMarkets.length ? nightMarkets : filteredMarkets.slice(-12)}
       />
     </div>
   );
