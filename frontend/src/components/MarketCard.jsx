@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiChevronRight, HiOutlineClock, HiOutlinePlay } from 'react-icons/hi';
-import { MARKET_SECTION_THEME } from '../config/dashboardTheme';
+import { getMarketImageUrl } from '../config/marketCardThemes';
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -13,28 +12,15 @@ const toMarketNameKey = (name) => {
     .replace(/^\w/, (c) => c.toLowerCase());
 };
 
-const BADGE_STYLES = {
-  popular: {
-    open: 'bg-green-50 text-green-700 border-green-200 dark:bg-[#143524] dark:text-[#86efac] dark:border-[#1f7a45]',
-    closed: 'bg-red-50 text-[#D32F2F] border-red-200 dark:bg-[#3a1216] dark:text-[#fca5a5] dark:border-[#b91c1c]',
-  },
-  live: {
-    open: 'bg-green-50 text-green-700 border-green-200 dark:bg-[#143524] dark:text-[#86efac] dark:border-[#1f7a45]',
-    closed: 'bg-green-50/80 text-green-700 border-green-200 dark:bg-[#1e2f25] dark:text-[#bbf7d0] dark:border-[#2f6d49]',
-  },
-  night: {
-    open: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-[#12283f] dark:text-[#93c5fd] dark:border-[#2563eb]',
-    closed: 'bg-blue-50/80 text-blue-700 border-blue-200 dark:bg-[#1b2738] dark:text-[#bfdbfe] dark:border-[#315b8a]',
-  },
-};
+const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
+const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 
-export default function MarketCard({ market, section = 'popular' }) {
+export default function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
-
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClickable = isOpen;
+  const imageUrl = getMarketImageUrl(market.gameName);
 
   const handleClick = () => {
     if (isClickable) {
@@ -52,13 +38,24 @@ export default function MarketCard({ market, section = 'popular' }) {
   });
 
   const resultValue = market.result || '***-**-***';
-  const badgeStyle = BADGE_STYLES[section]?.[isOpen ? 'open' : 'closed'] || BADGE_STYLES.popular.closed;
   const statusLabel =
     market.status === 'open'
-      ? t('markets.marketIsOpen')
+      ? t('markets.statusOpen', { defaultValue: 'Open' })
       : market.status === 'running'
-        ? t('markets.closingIsRunning')
-        : t('markets.marketClosed');
+        ? t('homeMobile.live', { defaultValue: 'Live' })
+        : t('markets.statusClosed', { defaultValue: 'Closed' });
+  const badgeStyle = isOpen
+    ? 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50'
+    : 'border-red-300/30 bg-red-500/18 text-white';
+  const cardImage = isOpen ? POPULAR_MARKET_CARD_OPEN_IMAGE : POPULAR_MARKET_CARD_CLOSED_IMAGE;
+  const handleActionClick = (e) => {
+    e.stopPropagation();
+    if (isOpen) {
+      handleClick();
+      return;
+    }
+    handleTomorrow(e);
+  };
 
   return (
     <div
@@ -66,69 +63,65 @@ export default function MarketCard({ market, section = 'popular' }) {
       tabIndex={isClickable ? 0 : undefined}
       onClick={handleClick}
       onKeyDown={(e) => isClickable && (e.key === 'Enter' || e.key === ' ') && handleClick()}
-      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 dark:border-white/[0.14] dark:bg-[#1f2023] dark:shadow-[0_14px_28px_rgba(0,0,0,0.24)] ${
+      className={`relative flex h-full min-h-[168px] w-full flex-col overflow-hidden rounded-[24px] bg-[#180707] transition-all duration-200 sm:min-h-[176px] ${
         isClickable
-          ? 'cursor-pointer hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:hover:border-white/[0.2] dark:hover:shadow-[0_18px_36px_rgba(0,0,0,0.34)]'
+          ? 'cursor-pointer hover:-translate-y-0.5'
           : ''
       }`}
     >
-      <div className="flex flex-col items-start justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-white/[0.08] sm:flex-row sm:items-center">
-        <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] sm:text-[10px] sm:tracking-[0.14em] ${badgeStyle}`}>
-          {statusLabel}
-        </span>
-        <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-white/72">
-          <HiOutlineClock className="h-3.5 w-3.5 shrink-0" />
-          <span className="break-words">{market.timeRange}</span>
+      <img
+        src={cardImage}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover object-center"
+        aria-hidden
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,187,118,0.18),transparent)]" />
+      {imageUrl ? (
+        <>
+          <img
+            src={imageUrl}
+            alt=""
+            className="absolute -right-4 top-6 h-[74px] w-[74px] rounded-full object-cover opacity-[0.16] blur-[1px]"
+            aria-hidden
+          />
+          <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
+        </>
+      ) : null}
+
+      <div className="relative z-10 flex h-full flex-col p-3.5">
+        <div className="flex justify-center pt-8">
+          <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[7px] font-bold uppercase leading-none tracking-[0.12em] min-[380px]:text-[8px] ${badgeStyle}`}>
+            {statusLabel}
+          </span>
         </div>
-      </div>
 
-      <div className="flex flex-1 flex-col px-4 py-4">
-        <div className="flex-1">
-          <h3 className="break-words text-[15px] font-semibold leading-snug text-gray-900 dark:text-white">
+        <div className="mt-auto">
+          <div className="mb-1 text-center text-[11px] font-semibold leading-[1.15] text-[#ffdca8]/78">
+            {market.timeRange}
+          </div>
+          <div className="mb-2 whitespace-nowrap text-center text-[14px] font-black leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
             {displayName}
-          </h3>
-
-          <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5 dark:border-white/[0.08] dark:bg-[#18191c]">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-white/50">
-              Result
-            </div>
-            <div className="mt-1 break-all font-mono text-sm font-bold tracking-[0.12em] text-gray-900 dark:text-white sm:tracking-[0.22em]">
+          </div>
+          <div className="px-0.5 text-center">
+            <div className="whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
               {resultValue}
             </div>
           </div>
-        </div>
-
-        <div className="mt-4 flex items-start justify-between gap-3">
-          {market.status === 'closed' ? (
+          <div className="relative mt-3">
             <button
               type="button"
-              onClick={handleTomorrow}
-              className={`max-w-[calc(100%-3.5rem)] text-left text-[11px] font-semibold leading-snug hover:underline ${
-                section === 'popular'
-                  ? 'text-[#D32F2F] dark:text-[#e60000]'
-                  : `text-[#D32F2F] ${theme.action}`
+              onClick={handleActionClick}
+              className={`relative z-10 block w-full overflow-hidden text-center text-[11px] font-bold ${
+                market.status === 'closed' ? 'text-red-300' : 'text-white/92'
               }`}
             >
-              {t('markets.runningForTomorrow')}
+              <span className="block whitespace-nowrap">
+                {market.status === 'closed'
+                  ? t('markets.runningForTomorrow')
+                  : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
+              </span>
             </button>
-          ) : (
-            <p className={`max-w-[calc(100%-3.5rem)] text-[11px] font-semibold leading-snug ${theme.action}`}>
-              {t('markets.tapToPlay')}
-            </p>
-          )}
-
-          <div
-            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
-              isOpen
-                ? 'border-[#e60000]/20 bg-[#e60000] text-white shadow-[0_10px_24px_rgba(230,0,0,0.22)]'
-                : 'border-gray-200 bg-white text-gray-400 dark:border-white/[0.1] dark:bg-[#18191c] dark:text-white/58'
-            }`}
-          >
-            {isOpen ? (
-              <HiOutlinePlay className="ml-0.5 h-5 w-5" />
-            ) : (
-              <HiChevronRight className="h-5 w-5" />
-            )}
           </div>
         </div>
       </div>

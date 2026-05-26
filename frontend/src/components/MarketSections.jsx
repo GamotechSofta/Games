@@ -55,9 +55,9 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3 w-full">
+      <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
         {markets.map((market, i) => (
-          <div key={market.id} className="min-w-0">
+          <div key={market.id} className="w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]">
             <MarketCard market={market} index={i} section={section} />
           </div>
         ))}
@@ -136,13 +136,13 @@ export default function MarketSections({ searchQuery = '' }) {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = filteredMarkets.slice(0, 5);
+  const popularMarkets = filteredMarkets.slice(0, 12);
   const liveMarkets = filteredMarkets
     .filter((m) => m.status === 'open' || m.status === 'running')
-    .slice(0, 5);
+    .slice(0, 12);
   const nightMarkets = filteredMarkets
     .filter((m) => isNightMarket(m.gameName, m.closingTime))
-    .slice(0, 5);
+    .slice(0, 12);
 
   if (loading) {
     return (
@@ -150,9 +150,9 @@ export default function MarketSections({ searchQuery = '' }) {
         {[1, 2, 3].map((s) => (
           <div key={s}>
             <div className="h-5 w-40 bg-gray-200 dark:bg-[#1a1a1a] rounded skeleton-shimmer mb-3" />
-            <div className="grid grid-cols-1 min-[560px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-3 w-full">
+            <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="min-w-0 h-[160px] bg-gray-100 dark:bg-[#161616] rounded-xl skeleton-shimmer" />
+                <div key={i} className="h-[176px] w-[170px] min-w-[170px] shrink-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616] md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]" />
               ))}
             </div>
           </div>
@@ -206,19 +206,19 @@ export default function MarketSections({ searchQuery = '' }) {
         titleKey="dashboard.popularMarkets"
         icon={MdLocalFireDepartment}
         section="popular"
-        markets={popularMarkets.length ? popularMarkets : filteredMarkets.slice(0, 5)}
+        markets={popularMarkets.length ? popularMarkets : filteredMarkets.slice(0, 12)}
       />
       <MarketRow
         titleKey="dashboard.liveMarkets"
         icon={MdOutlineLiveTv}
         section="live"
-        markets={liveMarkets.length ? liveMarkets : filteredMarkets.slice(0, 5)}
+        markets={liveMarkets.length ? liveMarkets : filteredMarkets.slice(0, 12)}
       />
       <MarketRow
         titleKey="dashboard.nightMarkets"
         icon={MdOutlineNightlight}
         section="night"
-        markets={nightMarkets.length ? nightMarkets : filteredMarkets.slice(-5)}
+        markets={nightMarkets.length ? nightMarkets : filteredMarkets.slice(-12)}
       />
     </div>
   );

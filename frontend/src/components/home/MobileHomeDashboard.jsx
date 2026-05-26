@@ -13,8 +13,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import { isPastClosingTime } from '../../utils/marketTiming';
 
-const SUITS = ['♠', '♥', '♦', '♣'];
-
 const MOBILE_HOME_BANNERS = [
   {
     src: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png',
@@ -319,7 +317,7 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   );
 }
 
-function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
+function CompactMarketCard({ market, t, navigate, liveVariant = false }) {
   const imageUrl = getMarketImageUrl(market.gameName);
   const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
   const statusLabel = liveVariant
@@ -344,7 +342,7 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, suit }) {
     market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
 
   return (
-    <div className="relative h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 overflow-hidden rounded-[24px] border border-[#7f3829] bg-[#180707] shadow-[0_14px_30px_rgba(17,5,5,0.22),0_34px_28px_rgba(0,0,0,0.72)]">
+    <div className="relative h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]">
       <img
         src={popularMarketCardImage}
         alt=""
@@ -544,8 +542,8 @@ export default function MobileHomeDashboard() {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = useMemo(() => markets.slice(0, 6), [markets]);
-  const liveMarkets = useMemo(() => markets.filter((market) => market.status !== 'closed').slice(0, 6), [markets]);
+  const popularMarkets = useMemo(() => markets, [markets]);
+  const liveMarkets = useMemo(() => markets.filter((market) => market.status !== 'closed'), [markets]);
 
   const topGames = useMemo(
     () =>
@@ -561,7 +559,7 @@ export default function MobileHomeDashboard() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-md pb-8">
+    <div className="w-full pb-8">
       <HeroBanner t={t} navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
 
       <div className="space-y-5 px-3 pt-3 sm:px-4">
@@ -598,23 +596,22 @@ export default function MobileHomeDashboard() {
             onAction={() => navigate('/markets')}
           />
           {loading ? (
-            <div className="scrollbar-hidden flex gap-3 overflow-x-auto pb-1">
+            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
+                  className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
                 />
               ))}
             </div>
           ) : (
-            <div className="scrollbar-hidden flex gap-3 overflow-x-auto pb-1">
-              {popularMarkets.map((market, index) => (
+            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+              {popularMarkets.map((market) => (
                 <CompactMarketCard
                   key={market.id}
                   market={market}
                   t={t}
                   navigate={navigate}
-                  suit={SUITS[index % SUITS.length]}
                 />
               ))}
             </div>
@@ -630,17 +627,17 @@ export default function MobileHomeDashboard() {
             onAction={() => navigate('/markets')}
           />
           {loading ? (
-            <div className="scrollbar-hidden flex gap-3 overflow-x-auto pb-1">
+            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[176px] w-[calc((100%-1.5rem)/2.5)] min-w-[132px] max-w-[152px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]"
+                  className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
                 />
               ))}
             </div>
           ) : (
-            <div className="scrollbar-hidden flex gap-3 overflow-x-auto pb-1">
-              {liveMarkets.map((market, index) => (
+            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+              {liveMarkets.map((market) => (
                 <CompactMarketCard
                   key={market.id}
                   market={market}

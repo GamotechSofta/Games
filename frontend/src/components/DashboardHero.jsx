@@ -1,16 +1,15 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { categoryPathActive } from '../utils/dashboardNav';
 import { useTranslation } from 'react-i18next';
-import { HiOutlineMagnifyingGlass, HiOutlineAdjustmentsHorizontal, HiOutlineChevronRight, HiOutlineXMark } from 'react-icons/hi2';
+import { HiOutlineMagnifyingGlass, HiOutlineAdjustmentsHorizontal, HiOutlineXMark } from 'react-icons/hi2';
 import { HOME_BANNERS } from '../config/banners';
 
 const CATEGORIES = [
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
-  { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
-  { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
-  { id: 'skills', labelKey: 'dashboard.catSkillGames', path: '/games?category=skills' },
-  { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
+  { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning', imageSrc: '/images/home/casino-card.png' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets', imageSrc: '/images/home/markets-card.png' },
+  { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard', imageSrc: '/images/home/starline-card.png' },
+  { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market', imageSrc: '/images/home/king-bazaar-card.png' },
 ];
 
 const panelClass =
@@ -19,24 +18,16 @@ const panelClass =
 const controlPanelClass =
   'min-h-[44px] rounded-[18px] border border-gray-200 bg-white shadow-sm dark:border-white/[0.04] dark:bg-[#282828] dark:shadow-none';
 
-const categoryControlClass =
-  'shrink-0 min-h-[44px] rounded-[18px] border px-5 py-2.5 text-sm font-medium transition-all duration-200';
-
 export default function DashboardHero({ searchQuery = '', onSearchChange }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const categoriesRef = useRef(null);
 
   const primaryBanner = HOME_BANNERS[0];
   const secondaryBanner = HOME_BANNERS[1] || HOME_BANNERS[0];
 
   const handleCategory = (cat) => {
     if (cat.path) navigate(cat.path);
-  };
-
-  const scrollCategories = () => {
-    categoriesRef.current?.scrollBy({ left: 120, behavior: 'smooth' });
   };
 
   const handleSearchSubmit = (e) => {
@@ -52,17 +43,17 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
 
   return (
     <section className="mb-6 space-y-4">
-      <div className="flex min-h-[220px] gap-3">
+      <div className="grid gap-3 lg:min-h-[220px] lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
         <button
           type="button"
           onClick={() => navigate('/funds?tab=add-fund')}
-          className={`relative min-w-0 flex-[7] text-left ${panelClass} group transition hover:border-gray-300 dark:hover:border-white/[0.1]`}
+          className={`relative min-w-0 min-h-[180px] text-left ${panelClass} group transition sm:min-h-[220px] lg:min-h-0 lg:h-full hover:border-gray-300 dark:hover:border-white/[0.1]`}
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-90 transition group-hover:opacity-100"
             style={{ backgroundImage: `url(${primaryBanner.src})` }}
           />
-          <div className="relative z-[1] flex h-full min-h-[220px] flex-col justify-end p-6 md:p-8">
+          <div className="relative z-[1] flex h-full min-h-[180px] flex-col justify-end p-5 sm:min-h-[220px] sm:p-6 md:p-8 lg:min-h-0">
             <span className="inline-flex w-fit items-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition group-hover:bg-white/90">
               {t('dashboard.participate')}
             </span>
@@ -72,13 +63,13 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
         <button
           type="button"
           onClick={() => navigate('/games?category=highEarning')}
-          className={`relative min-w-0 flex-[3] text-left ${panelClass} group transition hover:border-gray-300 dark:hover:border-white/[0.1]`}
+          className={`relative min-w-0 min-h-[160px] text-left ${panelClass} group transition sm:min-h-[220px] lg:min-h-0 lg:h-full hover:border-gray-300 dark:hover:border-white/[0.1]`}
         >
           <div
             className="absolute inset-0 bg-cover bg-center opacity-90"
             style={{ backgroundImage: `url(${secondaryBanner.src})` }}
           />
-          <div className="relative z-[1] flex h-full min-h-[220px] flex-col justify-between p-4 md:p-5">
+          <div className="relative z-[1] flex h-full min-h-[160px] flex-col justify-between p-4 sm:min-h-[220px] md:p-5 lg:min-h-0">
             <p className="text-sm font-semibold leading-snug text-gray-900 dark:text-white md:text-base">
               {t('dashboard.bestGameWeek')}
             </p>
@@ -127,40 +118,30 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
         </button>
       </div>
 
-      <div className="relative">
-        <div ref={categoriesRef} className="flex gap-2 overflow-x-auto scrollbar-hidden pr-10">
-          {CATEGORIES.map((cat) => {
-            const isHome = location.pathname === '/';
-            const active = isHome
-              ? cat.id === 'markets'
-              : categoryPathActive(cat, location.pathname, location.search);
+      <div className="mx-auto grid w-full max-w-[980px] grid-cols-4 gap-2.5 xl:max-w-[1040px] xl:gap-3">
+        {CATEGORIES.map((cat) => {
+          const isHome = location.pathname === '/';
+          const active = isHome
+            ? cat.id === 'markets'
+            : categoryPathActive(cat, location.pathname, location.search);
 
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleCategory(cat)}
-                className={[
-                  categoryControlClass,
-                  active
-                    ? 'border-[#D32F2F] bg-[#D32F2F] text-white shadow-[0_0_12px_rgba(211,47,47,0.35)] dark:border-[#e60000] dark:bg-[#e60000] dark:text-white dark:shadow-[0_0_20px_rgba(230,0,0,0.35)]'
-                    : 'border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-gray-900 dark:border-white/[0.04] dark:bg-[#282828] dark:text-white dark:shadow-none dark:hover:bg-[#303030] dark:hover:text-white',
-                ].join(' ')}
-              >
-                {t(cat.labelKey)}
-              </button>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={scrollCategories}
-          className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:text-white/60 dark:hover:text-white"
-          aria-label={t('common.next')}
-        >
-          <HiOutlineChevronRight className="h-4 w-4" strokeWidth={2} />
-        </button>
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => handleCategory(cat)}
+              className="group relative mx-auto block w-full max-w-[235px] min-w-0 overflow-hidden rounded-[18px] text-left transition hover:-translate-y-0.5"
+              aria-current={active ? 'page' : undefined}
+            >
+              <img
+                src={cat.imageSrc}
+                alt={t(cat.labelKey)}
+                className="block h-auto w-full rounded-[18px] object-contain"
+                loading="lazy"
+              />
+            </button>
+          );
+        })}
       </div>
     </section>
   );
