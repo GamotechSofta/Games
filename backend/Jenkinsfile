@@ -15,6 +15,7 @@ pipeline {
             steps {
                 sh '''
                 sudo rsync -av --delete \
+                --chown=ubuntu:devops \
                 --exclude='.env' \
                 backend/ /var/www/Aakda/Games/backend/
                 '''
