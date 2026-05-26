@@ -251,7 +251,7 @@ const BidLayout = ({
 
             <div
                 ref={contentRef}
-                className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch ${
+                className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
                     contentPaddingClass ?? (hideFooter ? 'pb-6' : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
                 }`}
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}

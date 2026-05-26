@@ -209,6 +209,11 @@ html.theme-light #root {
   color: #92400e;
 }
 
+/* Game bid: in dark mode, use white instead of red text accents */
+.theme-dark .game-bid-page :is([class*="text-red-"], [class*="dark:text-red-"]) {
+  color: #ffffff !important;
+}
+
 /* Desktop dashboard: Inter + filled icon typography */
 .dashboard-shell {
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
