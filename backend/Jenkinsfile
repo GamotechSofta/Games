@@ -1,29 +1,32 @@
 pipeline {
-agent any
-stages {
+    agent any
 
-    stage('Install Dependencies') {
-        steps {
-            dir('backend') {
-                sh 'npm install'
+    stages {
+
+        stage('Install Dependencies') {
+            steps {
+                dir('backend') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                sh '''
+                sudo rsync -av --delete \
+                --exclude='.env' \
+                backend/ /var/www/Aakda/Games/backend/
+                '''
+            }
+        }
+
+        stage('Restart Backend') {
+            steps {
+                sh '''
+                pm2 restart games-backend || pm2 start /var/www/Aakda/Games/backend/index.js --name games-backend
+                '''
             }
         }
     }
-
-    stage('Deploy Backend') {
-        steps {
-            sh '''
-            sudo rsync -av --delete backend/ /var/www/Aakda/Games/backend/
-            '''
-        }
-    }
-
-    stage('Restart Backend') {
-        steps {
-            sh '''
-            pm2 restart games-backend || pm2 start /var/www/Aakda/Games/backend/index.js --name games-backend
-            '''
-        }
-    }
-}
 }
