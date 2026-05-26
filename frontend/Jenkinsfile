@@ -1,7 +1,5 @@
 pipeline {
 agent any
-
-```
 environment {
     S3_BUCKET = "aakda.in"
     CLOUDFRONT_DISTRIBUTION_ID = "E3IBFDRZWZW825"
@@ -46,6 +44,4 @@ stages {
         }
     }
 }
-```
-
 }
