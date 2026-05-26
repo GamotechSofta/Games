@@ -30,7 +30,17 @@ const getMarketStatus = (market) => {
   return { status: 'open', timer: null };
 };
 
-function MarketRow({ titleKey, fallbackTitle, icon: Icon, section, markets, scrollable = true, showAction = true, gapClass = 'gap-3' }) {
+function MarketRow({
+  titleKey,
+  fallbackTitle,
+  icon: Icon,
+  section,
+  markets,
+  scrollable = true,
+  showAction = true,
+  gapClass = 'gap-3',
+  onAction,
+}) {
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
   const imageShape = scrollable ? 'round' : 'square';
@@ -53,7 +63,11 @@ function MarketRow({ titleKey, fallbackTitle, icon: Icon, section, markets, scro
           </h2>
         </div>
         {showAction ? (
-          <button type="button" className={`shrink-0 text-sm font-medium hover:underline ${theme.viewAll}`}>
+          <button
+            type="button"
+            onClick={onAction}
+            className={`shrink-0 text-sm font-medium hover:underline ${theme.viewAll}`}
+          >
             {t('dashboard.viewAll', { defaultValue: 'View All' })}
           </button>
         ) : null}
@@ -206,6 +220,7 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
           icon={MdLocalFireDepartment}
           section="popular"
           markets={popularMarkets}
+          onAction={() => navigate('/markets?view=all')}
         />
       )}
 

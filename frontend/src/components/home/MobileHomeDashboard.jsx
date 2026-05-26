@@ -596,7 +596,7 @@ export default function MobileHomeDashboard() {
               iconClassName="text-[#ff5a52]"
               title={t('dashboard.popularMarkets', { defaultValue: 'Popular Markets' })}
               actionLabel={t('dashboard.viewAll', { defaultValue: 'View All' })}
-              onAction={() => navigate('/markets')}
+              onAction={() => navigate('/markets?view=all')}
             />
             {loading ? (
               <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">

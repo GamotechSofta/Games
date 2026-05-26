@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
+import { FaThLarge } from 'react-icons/fa';
 import { MdLocalFireDepartment, MdOutlineLiveTv } from 'react-icons/md';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
@@ -27,7 +28,7 @@ const getMarketStatus = (market) => {
   return { status: 'open', timer: null };
 };
 
-function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
+function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction = true }) {
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
 
@@ -40,9 +41,11 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
           <Icon className={`w-5 h-5 ${theme.iconColor}`} />
           <h2 className="text-base font-bold text-gray-900 dark:text-white">{t(titleKey)}</h2>
         </div>
-        <button type="button" className={`text-sm font-medium hover:underline shrink-0 ${theme.viewAll}`}>
-          {t('dashboard.viewAll')}
-        </button>
+        {showAction ? (
+          <button type="button" className={`text-sm font-medium hover:underline shrink-0 ${theme.viewAll}`}>
+            {t('dashboard.viewAll')}
+          </button>
+        ) : null}
       </div>
 
       <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
@@ -56,7 +59,7 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey }) {
   );
 }
 
-export default function MarketSections({ searchQuery = '' }) {
+export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [markets, setMarkets] = useState([]);
@@ -131,6 +134,7 @@ export default function MarketSections({ searchQuery = '' }) {
   const liveMarkets = filteredMarkets
     .filter((m) => m.status === 'open' || m.status === 'running')
     .slice(0, 12);
+  const allMarkets = filteredMarkets;
   if (loading) {
     return (
       <div id="market-sections" className="space-y-6">
@@ -183,6 +187,20 @@ export default function MarketSections({ searchQuery = '' }) {
             </button>
           </div>
         )}
+      </div>
+    );
+  }
+
+  if (viewMode === 'all') {
+    return (
+      <div id="market-sections">
+        <MarketRow
+          titleKey="dashboard.allMarkets"
+          icon={FaThLarge}
+          section="popular"
+          markets={allMarkets}
+          showAction={false}
+        />
       </div>
     );
   }

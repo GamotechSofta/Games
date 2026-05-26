@@ -6,15 +6,16 @@ import MarketSections from '../components/MarketSections';
 export default function MarketsPage() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
+  const viewMode = searchParams.get('view') ?? '';
   const { isDesktop } = useBreakpoint();
 
   if (isDesktop) {
-    return <MarketSections searchQuery={searchQuery} />;
+    return <MarketSections searchQuery={searchQuery} viewMode={viewMode} />;
   }
 
   return (
     <div className="px-3 pb-8">
-      <MarketSections />
+      <MarketSections searchQuery={searchQuery} viewMode={viewMode} />
     </div>
   );
 }
