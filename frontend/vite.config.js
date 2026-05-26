@@ -16,7 +16,11 @@ function spaFallback() {
         const hasExtension = /\.[a-zA-Z0-9]+$/.test(pathPart)
         const isViteInternal = pathPart.startsWith('/@') || pathPart.startsWith('/node_modules') || pathPart.startsWith('/__vite')
         if (req.method === 'GET' && !hasExtension && !isViteInternal) {
+          
           req.url = query ? `/index.html?${query}` : '/index.html'
+
+
+
         }
         next()
       })

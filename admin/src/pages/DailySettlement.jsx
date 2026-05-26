@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaMoneyBillWave, FaSyncAlt, FaSearch, FaTimes, FaClock } from 'react-icons/fa';
@@ -47,10 +47,19 @@ const formatDate = (d) => {
     return new Date(d + 'T12:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const calculateTotals = (settlementRows = []) => ({
+    commission: settlementRows.reduce((sum, row) => sum + (Number(row.commission) || 0), 0),
+    paidCommission: settlementRows
+        .filter((row) => row.paymentStatus === 'paid')
+        .reduce((sum, row) => sum + (Number(row.commission) || 0), 0),
+    unpaidCommission: settlementRows
+        .filter((row) => row.paymentStatus !== 'paid')
+        .reduce((sum, row) => sum + (Number(row.commission) || 0), 0),
+});
+
 const DailySettlement = () => {
     const navigate = useNavigate();
     const [rows, setRows] = useState([]);
-    const [totals, setTotals] = useState({ commission: 0, paidCommission: 0, unpaidCommission: 0 });
     const [bookies, setBookies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [updatingKey, setUpdatingKey] = useState('');
@@ -64,6 +73,7 @@ const DailySettlement = () => {
     const [bookieSearch, setBookieSearch] = useState('');
     const [dayEndModal, setDayEndModal] = useState({ show: false, dateLabel: '', bookieName: '' });
     const [errorModal, setErrorModal] = useState({ show: false, message: '' });
+    const totals = useMemo(() => calculateTotals(rows), [rows]);
 
     const openDayEndModal = (row) => {
         setDayEndModal({
@@ -94,7 +104,6 @@ const DailySettlement = () => {
             const json = await res.json();
             if (json.success) {
                 setRows(json.data?.rows || []);
-                setTotals(json.data?.totals || { commission: 0, paidCommission: 0, unpaidCommission: 0 });
             }
         } catch (err) {
             console.error(err);
@@ -141,7 +150,24 @@ const DailySettlement = () => {
                 }),
             });
             const json = await res.json();
-            if (json.success) fetchDaily();
+            if (json.success) {
+                const updatedRow = json.data || {};
+                setRows((prevRows) => prevRows.map((currentRow) => {
+                    const isTargetRow =
+                        String(currentRow.bookieId) === String(updatedRow.bookieId) &&
+                        currentRow.date === updatedRow.date;
+
+                    if (!isTargetRow) return currentRow;
+
+                    return {
+                        ...currentRow,
+                        settlementId: updatedRow.settlementId || currentRow.settlementId,
+                        commission: updatedRow.commission ?? currentRow.commission,
+                        paymentStatus: updatedRow.paymentStatus || currentRow.paymentStatus,
+                        paidAt: updatedRow.paidAt ?? null,
+                    };
+                }));
+            }
             else if (json.message?.toLowerCase().includes('day ends') || json.message?.toLowerCase().includes('today')) {
                 openDayEndModal(row);
             } else {
@@ -273,7 +299,7 @@ const DailySettlement = () => {
                                                             type="button"
                                                             disabled={updatingKey === key}
                                                             onClick={() => handleTogglePaid(row)}
-                                                            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors disabled:opacity-50 ${
+                                                            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                                                                 isPaid
                                                                     ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/30'
                                                                     : 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500/30'
