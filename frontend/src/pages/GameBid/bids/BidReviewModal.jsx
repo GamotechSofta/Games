@@ -133,7 +133,7 @@ const BidReviewModal = ({
       {/* Modal - centered, above mobile navbar */}
       <div className="relative w-full max-w-md sm:max-w-lg mx-auto flex-shrink-0">
         {stage === 'success' ? (
-          <div className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-red-900/60">
+          <div className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-white/20">
             <style>{`
               @keyframes successPop {
                 0% { transform: scale(0.6); opacity: 0; }
@@ -179,11 +179,11 @@ const BidReviewModal = ({
           </div>
         ) : (
           <div
-            className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-red-900/60 max-h-[min(90svh,720px)] sm:max-h-[calc(100vh-48px)] flex flex-col"
+            className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-white/20 max-h-[min(90svh,720px)] sm:max-h-[calc(100vh-48px)] flex flex-col"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0px)' }}
           >
             {/* Title bar */}
-            <div className="bg-red-50 dark:bg-[#24171b] text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 text-center text-sm sm:text-lg font-semibold shrink-0 border-b border-red-200 dark:border-red-900/60">
+            <div className="bg-red-50 dark:bg-[#24171b] text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 text-center text-sm sm:text-lg font-semibold shrink-0 border-b border-red-200 dark:border-white/20">
               {formatDateTitle(marketTitle, dateText, t('gameBid.reviewBet'))}
             </div>
 
@@ -198,7 +198,7 @@ const BidReviewModal = ({
                 </div>
                 <div className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-3">
                   {rows.map((r) => (
-                    <div key={r.id} className="bg-red-50/80 dark:bg-[#24171b] rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-red-200 dark:border-red-900/60">
+                    <div key={r.id} className="bg-red-50/80 dark:bg-[#24171b] rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-red-200 dark:border-white/20">
                       <div className="grid grid-cols-3 text-center text-gray-900 dark:text-white font-semibold text-[12px] sm:text-base">
                         <div className="truncate">{renderBetNumber(r.number)}</div>
                         <div className="truncate text-red-700 dark:text-red-300">{r.points}</div>
@@ -211,17 +211,17 @@ const BidReviewModal = ({
 
               {/* Summary 2x2 */}
               <div className="px-3 sm:px-4 pt-3 sm:pt-4 shrink-0">
-                <div className="rounded-2xl overflow-hidden border border-red-200 dark:border-red-900/60">
+                <div className="rounded-2xl overflow-hidden border border-red-200 dark:border-white/20">
                   <div className="grid grid-cols-2">
-                    <div className="p-3 sm:p-4 text-center border-r border-b border-red-200 dark:border-red-900/60">
+                    <div className="p-3 sm:p-4 text-center border-r border-b border-red-200 dark:border-white/20">
                       <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBets')}</div>
                       <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{totalBids}</div>
                     </div>
-                    <div className="p-3 sm:p-4 text-center border-b border-red-200 dark:border-red-900/60">
+                    <div className="p-3 sm:p-4 text-center border-b border-red-200 dark:border-white/20">
                       <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBetAmount')}</div>
                       <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg text-red-700 dark:text-red-300 leading-tight">{amount}</div>
                     </div>
-                    <div className="p-3 sm:p-4 text-center border-r border-red-200 dark:border-red-900/60">
+                    <div className="p-3 sm:p-4 text-center border-r border-red-200 dark:border-white/20">
                       <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceBeforeDeduction')}</div>
                       <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{formatMoney(before)}</div>
                     </div>
@@ -261,12 +261,12 @@ const BidReviewModal = ({
             </div>
 
             {/* Buttons (sticky bottom inside modal) */}
-            <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-2 gap-3 sm:gap-4 bg-white dark:bg-[#2a1d21] shrink-0 border-t border-red-200 dark:border-red-900/60">
+            <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-2 gap-3 sm:gap-4 bg-white dark:bg-[#2a1d21] shrink-0 border-t border-red-200 dark:border-white/20">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={submitting}
-                className="bg-red-50 dark:bg-[#24171b] border border-red-200 dark:border-red-900/60 text-red-800 dark:text-red-200 font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:border-red-400 dark:hover:border-red-500 disabled:opacity-50"
+                className="bg-red-50 dark:bg-[#24171b] border border-red-200 dark:border-white/20 text-red-800 dark:text-red-200 font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:border-red-400 dark:hover:border-white/35 disabled:opacity-50"
               >
                 {t('gameBid.cancel')}
               </button>
