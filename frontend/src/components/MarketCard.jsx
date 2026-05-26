@@ -73,7 +73,7 @@ export default function MarketCard({ market, imageShape = 'round' }) {
       <img
         src={cardImage}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-center"
+        className="absolute inset-0 h-full w-full object-contain object-center"
         aria-hidden
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
@@ -83,10 +83,10 @@ export default function MarketCard({ market, imageShape = 'round' }) {
           <img
             src={imageUrl}
             alt=""
-            className={`absolute top-6 object-cover opacity-[0.16] blur-[1px] ${
+            className={`absolute top-6 h-auto w-auto max-h-[74px] max-w-[74px] object-contain opacity-[0.16] blur-[1px] ${
               useSquareImage
-                ? 'right-3 h-[74px] w-[74px] rounded-[18px]'
-                : '-right-4 h-[74px] w-[74px] rounded-full'
+                ? 'right-3 rounded-[18px]'
+                : '-right-4 rounded-full'
             }`}
             aria-hidden
           />

@@ -30,6 +30,9 @@ const BETS_SECTION_PATHS = [
   '/market-result-history',
 ];
 
+const ACTIVE_SIDEBAR_LINE_CLASS =
+  'bg-[linear-gradient(90deg,rgba(127,29,29,0),#dc2626_20%,#ef4444_50%,#dc2626_80%,rgba(127,29,29,0))]';
+
 const MAIN_NAV = [
   {
     id: 'home',
@@ -96,13 +99,25 @@ function NavRow({
       onClick={onClick}
       title={collapsed ? label : undefined}
       className={[
-        'group flex w-full items-center rounded-[12px] transition-all duration-[250ms]',
+        'group relative flex w-full items-center overflow-hidden rounded-[12px] transition-all duration-[250ms]',
         collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-3 py-2.5',
         active
-          ? 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-white'
+          ? 'text-gray-900 dark:text-white'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-white dark:hover:bg-white/[0.04] dark:hover:text-white',
       ].join(' ')}
     >
+      {active && (
+        <>
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute inset-x-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+          />
+          <span
+            aria-hidden
+            className={`pointer-events-none absolute inset-x-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+          />
+        </>
+      )}
       <span className="flex h-6 w-6 shrink-0 items-center justify-center">
         {letter ? (
           <span className="text-[17px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>
@@ -281,12 +296,24 @@ export default function DesktopSidebar({ collapsed }) {
                         type="button"
                         onClick={() => go(child.path)}
                         className={[
-                          'dashboard-nav-label-sm rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
+                          'dashboard-nav-label-sm relative overflow-hidden rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
                           pathMatches(location.pathname, child.path)
-                            ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.06] dark:text-white'
+                            ? 'font-medium text-gray-900 dark:text-white'
                             : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-white dark:hover:text-white dark:hover:bg-white/[0.04]',
                         ].join(' ')}
                       >
+                        {pathMatches(location.pathname, child.path) && (
+                          <>
+                            <span
+                              aria-hidden
+                              className={`pointer-events-none absolute inset-x-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                            />
+                            <span
+                              aria-hidden
+                              className={`pointer-events-none absolute inset-x-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                            />
+                          </>
+                        )}
                         {t(child.labelKey)}
                       </button>
                     ))}
@@ -309,12 +336,24 @@ export default function DesktopSidebar({ collapsed }) {
                           role="menuitem"
                           onClick={() => go(child.path)}
                           className={[
-                            'dashboard-nav-label-sm block w-full rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
+                            'dashboard-nav-label-sm relative block w-full overflow-hidden rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
                             pathMatches(location.pathname, child.path)
-                              ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
+                              ? 'font-medium text-gray-900 dark:text-white'
                               : 'text-gray-600 hover:bg-gray-50 dark:text-white dark:hover:bg-white/[0.05] dark:hover:text-white',
                           ].join(' ')}
                         >
+                          {pathMatches(location.pathname, child.path) && (
+                            <>
+                              <span
+                                aria-hidden
+                                className={`pointer-events-none absolute inset-x-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                              />
+                              <span
+                                aria-hidden
+                                className={`pointer-events-none absolute inset-x-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
+                              />
+                            </>
+                          )}
                           {t(child.labelKey)}
                         </button>
                       ))}
