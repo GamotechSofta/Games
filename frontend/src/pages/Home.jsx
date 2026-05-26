@@ -2,8 +2,7 @@ import React, { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import DashboardHero from '../components/DashboardHero';
-import HomeGamesPanel from '../components/home/HomeGamesPanel';
-import MarketSections from '../components/MarketSections';
+import DesktopHomeSections from '../components/home/DesktopHomeSections';
 import MobileHomeDashboard from '../components/home/MobileHomeDashboard';
 
 const Home = () => {
@@ -31,8 +30,7 @@ const Home = () => {
     return (
       <>
         <DashboardHero searchQuery={searchQuery} onSearchChange={handleSearchChange} />
-        <HomeGamesPanel category="all" />
-        <MarketSections searchQuery={searchQuery} />
+        <DesktopHomeSections searchQuery={searchQuery} />
       </>
     );
   }

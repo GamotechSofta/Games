@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight } from 'react-icons/hi2';
 import {
   MdLocalFireDepartment,
-  MdOutlineLiveTv,
 } from 'react-icons/md';
 import { API_BASE_URL } from '../../config/api';
 import { GAMES } from '../../config/games';
 import { getMarketImageUrl } from '../../config/marketCardThemes';
+import PopularCasinoSection from './PopularCasinoSection';
 import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import { isPastClosingTime } from '../../utils/marketTiming';
@@ -137,6 +137,14 @@ const TOP_GAME_TILES = [
 
 const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
 const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
+const MARKET_CARD_SCROLL_CLASS =
+  'relative h-[160px] w-[calc((100%-0.625rem)/2)] min-w-[136px] max-w-[166px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[375px]:w-[calc((100%-0.75rem)/2.08)] min-[480px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[148px] min-[480px]:max-w-[182px]';
+const MARKET_CARD_GRID_CLASS =
+  'relative h-[160px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[480px]:h-[176px]';
+const MARKET_CARD_SKELETON_BASE_CLASS =
+  'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
+const ALL_MARKETS_GRID_CLASS =
+  'grid grid-cols-2 gap-x-[18px] gap-y-[22px] px-1 pb-1 min-[400px]:gap-x-[20px] min-[400px]:gap-y-[24px] min-[480px]:grid-cols-3 min-[640px]:grid-cols-4';
 
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
@@ -220,14 +228,16 @@ function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction
         <Icon className={`h-5 w-5 ${iconClassName}`} />
         <h2 className="text-[15px] font-extrabold tracking-tight text-gray-900 dark:text-white">{title}</h2>
       </div>
-      <button
-        type="button"
-        onClick={onAction}
-        className="inline-flex items-center gap-1 text-xs font-semibold text-[#e53935] dark:text-[#ff726b]"
-      >
-        {actionLabel}
-        <HiMiniArrowRight className="h-3.5 w-3.5" />
-      </button>
+      {actionLabel ? (
+        <button
+          type="button"
+          onClick={onAction}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#e53935] dark:text-[#ff726b]"
+        >
+          {actionLabel}
+          <HiMiniArrowRight className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -317,7 +327,7 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   );
 }
 
-function CompactMarketCard({ market, t, navigate, liveVariant = false }) {
+function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 'carousel' }) {
   const imageUrl = getMarketImageUrl(market.gameName);
   const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
   const statusLabel = liveVariant
@@ -340,9 +350,10 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false }) {
       : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
   const popularMarketCardImage =
     market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
+  const cardShellClass = layout === 'grid' ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
 
   return (
-    <div className="relative h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]">
+    <div className={cardShellClass}>
       <img
         src={popularMarketCardImage}
         alt=""
@@ -437,9 +448,9 @@ function TopGameCard({ game, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative w-[130px] shrink-0 overflow-hidden rounded-[16px] bg-[#18191d] shadow-[0_12px_28px_rgba(0,0,0,0.28)] transition active:scale-[0.98]"
+      className="group relative w-[112px] shrink-0 overflow-hidden rounded-[16px] bg-[#18191d] shadow-[0_12px_28px_rgba(0,0,0,0.28)] transition active:scale-[0.98] min-[375px]:w-[122px] min-[480px]:w-[132px] min-[640px]:w-[144px]"
     >
-      <div className={`relative h-[174px] overflow-hidden bg-gradient-to-br ${game.bg}`}>
+      <div className={`relative h-[156px] overflow-hidden bg-gradient-to-br ${game.bg} min-[375px]:h-[166px] min-[480px]:h-[174px] min-[640px]:h-[186px]`}>
         {game.image ? (
           <img
             src={game.image}
@@ -544,8 +555,6 @@ export default function MobileHomeDashboard() {
   useRefreshOnMarketReset(fetchMarkets);
 
   const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
-  const liveMarkets = useMemo(() => markets.filter((market) => market.status !== 'closed'), [markets]);
-
   const topGames = useMemo(
     () =>
       featuredGames.length
@@ -563,30 +572,14 @@ export default function MobileHomeDashboard() {
     <div className="w-full pb-8">
       <HeroBanner t={t} navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
 
-      <div className="space-y-5 px-3 pt-3 sm:px-4">
-        <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+      <div className="mx-auto w-full max-w-[1440px] space-y-5 px-2.5 pt-3 min-[375px]:px-3 sm:px-4 lg:px-6 xl:px-8">
+        <div className="grid grid-cols-2 gap-2 pt-0.5 min-[375px]:gap-2.5 min-[480px]:gap-3">
           {QUICK_LINKS.map((item) => (
             <QuickAccessTile key={item.id} item={item} onClick={() => navigate(item.path)} isLight={isLight} />
           ))}
         </div>
 
-        <div>
-          <GamesSectionHeader
-            title={t('games.allGames', { defaultValue: 'All games' })}
-            actionLabel={t('games.allGames', { defaultValue: 'All games' })}
-            onAction={() => navigate('/games')}
-            isLight={isLight}
-          />
-          <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-            {topGames.map((game) => (
-              <TopGameCard
-                key={game.id}
-                game={game}
-                onClick={() => navigate('/games')}
-              />
-            ))}
-          </div>
-        </div>
+        <PopularCasinoSection onSelect={(path) => navigate(path)} />
 
         {(loading || popularMarkets.length > 0) && (
           <div>
@@ -602,7 +595,7 @@ export default function MobileHomeDashboard() {
                 {[1, 2, 3, 4].map((item) => (
                   <div
                     key={item}
-                    className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
+                    className={`${MARKET_CARD_SCROLL_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
                   />
                 ))}
               </div>
@@ -622,31 +615,47 @@ export default function MobileHomeDashboard() {
         )}
 
         <div>
+          <GamesSectionHeader
+            title={t('games.allCasinoGames', { defaultValue: 'All Casino Games' })}
+            actionLabel={t('games.allCasinoGames', { defaultValue: 'All Casino Games' })}
+            onAction={() => navigate('/games')}
+            isLight={isLight}
+          />
+          <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+            {topGames.map((game) => (
+              <TopGameCard
+                key={game.id}
+                game={game}
+                onClick={() => navigate('/games')}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div>
           <SectionHeader
-            icon={MdOutlineLiveTv}
-            iconClassName="text-emerald-500"
-            title={t('dashboard.liveMarkets', { defaultValue: 'Live Markets' })}
-            actionLabel={t('dashboard.viewAll', { defaultValue: 'View All' })}
-            onAction={() => navigate('/markets')}
+            icon={MarketsIcon}
+            iconClassName="text-[#f59e0b]"
+            title={t('dashboard.allMarkets', { defaultValue: 'All Markets' })}
           />
           {loading ? (
-            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+            <div className={ALL_MARKETS_GRID_CLASS}>
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-[168px] w-[calc((100%-0.75rem)/2.15)] min-w-[142px] max-w-[172px] shrink-0 rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515] min-[375px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[150px] min-[480px]:max-w-[182px]"
+                  className={`${MARKET_CARD_GRID_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
                 />
               ))}
             </div>
           ) : (
-            <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-              {liveMarkets.map((market) => (
+            <div className={ALL_MARKETS_GRID_CLASS}>
+              {markets.map((market) => (
                 <CompactMarketCard
                   key={market.id}
                   market={market}
                   t={t}
                   navigate={navigate}
-                  liveVariant
+                  layout="grid"
                 />
               ))}
             </div>
