@@ -216,6 +216,19 @@ const JodiBulkBid = ({ market, title }) => {
 
     const totalPoints = useMemo(() => rows.reduce((sum, b) => sum + Number(b.points || 0), 0), [rows]);
     const canSubmit = rows.length > 0;
+    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center';
+    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
+    const clearBtnClass = 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 bg-white dark:bg-[#2a1d21] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0';
+    const panelClass = 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#2a1d21] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
+    const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-1';
+    const desktopGridClass = 'hidden md:block rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-2';
+    const blockLabelClass = 'h-6 sm:h-7 flex items-center justify-center text-red-700 dark:text-red-200 font-extrabold text-[11px] sm:text-sm tracking-wide';
+    const blockLabelDesktopClass = 'h-8 flex items-center justify-center text-red-700 dark:text-red-200 font-extrabold text-xs tracking-wide';
+    const blockInputMobileClass = 'no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
+    const blockInputDesktopClass = 'no-spinner h-8 w-full min-w-0 rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
+    const cellInputMobileClass = (hasBet) => `no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-red-50 dark:bg-[#24171b]' : 'border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114]'}`;
+    const cellInputDesktopClass = (hasBet) => `no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-red-50 dark:bg-[#24171b]' : 'border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114]'}`;
+    const cellBadgeClass = (hasBet) => `h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide ${hasBet ? 'bg-red-600 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
 
     const applyRow = (r, pts) => {
         const p = Number(pts);
@@ -394,8 +407,8 @@ const JodiBulkBid = ({ market, title }) => {
                     disabled={!canSubmit}
                     className={`hidden md:inline-flex items-center justify-center font-bold text-base min-h-[52px] min-w-[280px] px-7 rounded-full shadow-lg transition-all whitespace-nowrap ${
                         canSubmit
-                            ? 'bg-gradient-to-r bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
-                            : 'bg-gradient-to-r bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
+                            ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
+                            : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
                     }`}
                 >
                     Submit Bet
@@ -412,13 +425,13 @@ const JodiBulkBid = ({ market, title }) => {
                     </div>
                 )}
                 <div className="grid grid-cols-2 gap-1.5 md:hidden px-1 mb-3">
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{rows.length}</div>
+                        <div className={statValueClass}>{rows.length}</div>
                     </div>
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
+                        <div className={statValueClass}>{totalPoints}</div>
                     </div>
                 </div>
 
@@ -434,22 +447,22 @@ const JodiBulkBid = ({ market, title }) => {
                         <button
                             type="button"
                             onClick={clearAll}
-                            className="ml-1 px-3 py-1.5 rounded-md text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
+                            className={clearBtnClass.replace('text-xs sm:text-sm', 'text-sm')}
                         >
                             Clear
                         </button>
                     </div>
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center min-w-[110px]">
+                    <div className={`${statCardClass} min-w-[110px]`}>
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{rows.length}</div>
+                        <div className={statValueClass}>{rows.length}</div>
                     </div>
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center min-w-[130px]">
+                    <div className={`${statCardClass} min-w-[130px]`}>
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
+                        <div className={statValueClass}>{totalPoints}</div>
                     </div>
                 </div>
 
-                <div className="bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202124] md:border md:border-gray-200 dark:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5">
+                <div className={panelClass}>
                     <div className="mb-2 md:hidden">
                         <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap">
                             <QuickPointsInline
@@ -462,18 +475,18 @@ const JodiBulkBid = ({ market, title }) => {
                             <button
                                 type="button"
                                 onClick={clearAll}
-                                className="ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0"
+                                className={clearBtnClass}
                             >
                                 Clear
                             </button>
                         </div>
                     </div>
-                    <div className="md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-1">
+                    <div className={mobileGridClass}>
                         <div
                             className="grid w-full gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"
                             style={{ gridTemplateColumns: `56px repeat(${visibleDigits.length}, minmax(0, 1fr))` }}
                         >
-                            <div className="h-6 sm:h-7 flex items-center justify-center text-amber-800 dark:text-[#f2c14e] font-extrabold text-[11px] sm:text-sm tracking-wide">
+                            <div className={blockLabelClass}>
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -499,7 +512,7 @@ const JodiBulkBid = ({ market, title }) => {
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                     }}
-                                    className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-gray-200 dark:border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                    className={blockInputMobileClass}
                                 />
                             ))}
 
@@ -528,7 +541,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                             }}
-                                            className="no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-gray-200 dark:border-white/10 bg-black px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                            className={blockInputMobileClass}
                                         />
                                     </div>
 
@@ -539,7 +552,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             <div key={key} className="grid grid-rows-[10px_minmax(24px,1fr)] sm:grid-rows-[12px_minmax(28px,1fr)]">
                                                 <div
                                                     className={`pointer-events-none text-[9px] sm:text-[11px] font-bold leading-none text-center ${
-                                                        hasBet ? 'text-[#d4af37]' : 'text-gray-400'
+                                                        hasBet ? 'text-red-700 dark:text-red-300' : 'text-gray-400'
                                                     }`}
                                                 >
                                                     {key}
@@ -563,11 +576,7 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-amber-800 dark:text-[#f2c14e] focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
-                                                        hasBet
-                                                            ? 'border border-[#d4af37] bg-[#d4af37]/10'
-                                                            : 'border border-gray-200 dark:border-white/10 bg-black'
-                                                    }`}
+                                                    className={cellInputMobileClass(hasBet)}
                                                 />
                                             </div>
                                         );
@@ -577,9 +586,9 @@ const JodiBulkBid = ({ market, title }) => {
                         </div>
                     </div>
 
-                    <div className="hidden md:block rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-2">
+                    <div className={desktopGridClass}>
                         <div className="mb-3 grid grid-cols-[84px_repeat(10,minmax(0,1fr))] gap-2">
-                            <div className="h-8 flex items-center justify-center text-amber-800 dark:text-[#f2c14e] font-extrabold text-xs tracking-wide">
+                            <div className={blockLabelDesktopClass}>
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
@@ -606,7 +615,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && colBulk[c]) applyCol(c, colBulk[c]);
                                         }}
-                                        className="no-spinner h-8 w-full min-w-0 rounded-md border border-gray-200 dark:border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                        className={blockInputDesktopClass}
                                     />
                                 </div>
                             ))}
@@ -637,7 +646,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && rowBulk[r]) applyRow(r, rowBulk[r]);
                                         }}
-                                        className="no-spinner h-8 w-full rounded-md border border-gray-200 dark:border-white/10 bg-black px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37]"
+                                        className={blockInputDesktopClass}
                                     />
                                 ))}
                             </div>
@@ -652,9 +661,7 @@ const JodiBulkBid = ({ market, title }) => {
                                                 <button
                                                     type="button"
                                                     onClick={() => applyQuickPointToCell(key)}
-                                                    className={`h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide ${
-                                                        hasBet ? 'bg-[#f2c14e] text-[#4b3608]' : 'bg-[#d4af37] text-[#4b3608]'
-                                                    }`}
+                                                    className={cellBadgeClass(hasBet)}
                                                 >
                                                     {key}
                                                 </button>
@@ -678,9 +685,7 @@ const JodiBulkBid = ({ market, title }) => {
                                                         applyQuickPointToCell(key);
                                                     }}
                                                     onKeyDown={(e) => handleCellKeyDown(e, r, c)}
-                                                    className={`no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-amber-800 dark:text-[#f2c14e] placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-[#d4af37] ${
-                                                        hasBet ? 'border border-[#d4af37] bg-[#d4af37]/10' : 'border border-gray-200 dark:border-white/10 bg-black'
-                                                    }`}
+                                                    className={cellInputDesktopClass(hasBet)}
                                                 />
                                             </div>
                                         );
@@ -701,8 +706,8 @@ const JodiBulkBid = ({ market, title }) => {
                         disabled={!canSubmit}
                         className={`w-full font-bold text-base py-4 min-h-[56px] rounded-xl shadow-lg transition-all ${
                             canSubmit
-                                ? 'bg-gradient-to-r bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
-                                : 'bg-gradient-to-r bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
+                                ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
+                                : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
                         }`}
                     >
                         Submit Bet

@@ -71,8 +71,8 @@ const HalfSangamBid = ({ market, title }) => {
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
-            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+            ? 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98]'
+            : 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
     const mergeBidRow = (prev, numberKey, pts) => {
         const next = [...prev];
@@ -171,35 +171,35 @@ const HalfSangamBid = ({ market, title }) => {
     // Count / Bet Amount cards only (EASY MODE / SPECIAL MODE removed as requested)
     const modeTabs = (
         <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bids.length}</div>
+                <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bids.length}</div>
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
+                <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
             </div>
         </div>
     );
 
     const easyBidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-[#d4af37] w-full mb-2" />
+            <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
+                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm"
                     >
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
-                        <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{bid.points}</div>
-                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className="font-bold text-red-700 dark:text-red-300">{bid.points}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
@@ -387,7 +387,7 @@ function HalfSangamEasyForm({
     const panaInputInvalid = flipped ? second.length === 3 && panaInvalid : first.length === 3 && panaInvalid;
 
     const inputBase =
-        'flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
+        'flex-1 min-w-0 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
 
     return (
         <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
@@ -396,10 +396,10 @@ function HalfSangamEasyForm({
                     type="button"
                     onClick={handleFlip}
                     aria-label="Flip between Open Pana plus Close Ank and Open Ank plus Close Pana"
-                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white/10 hover:bg-black text-gray-800 dark:text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-gray-200 dark:border-white/10 transition-all active:scale-[0.98]"
+                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white dark:bg-[#2a1d21] hover:bg-red-50 dark:hover:bg-[#24171b] text-gray-900 dark:text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-red-200 dark:border-white/20 transition-all active:scale-[0.98]"
                 >
                     <span>Flip (O) ↔ (C)</span>
-                    <span className="shrink-0 text-amber-800 dark:text-[#f2c14e]" aria-hidden>
+                    <span className="shrink-0 text-red-700 dark:text-red-300" aria-hidden>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path
                                 strokeLinecap="round"
@@ -411,7 +411,7 @@ function HalfSangamEasyForm({
                 </button>
             </div>
             <div className="flex flex-row items-center gap-2">
-                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{firstLabel}</label>
+                <label className="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28">{firstLabel}</label>
                 <input
                     type="text"
                     inputMode="numeric"
@@ -422,12 +422,12 @@ function HalfSangamEasyForm({
                     className={`${inputBase} ${
                         !flipped && panaInputInvalid
                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                            : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                            : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
                     }`}
                 />
             </div>
             <div className="flex flex-row items-center gap-2">
-                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{secondLabel}</label>
+                <label className="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28">{secondLabel}</label>
                 <input
                     type="text"
                     inputMode="numeric"
@@ -438,12 +438,12 @@ function HalfSangamEasyForm({
                     className={`${inputBase} ${
                         flipped && panaInputInvalid
                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                            : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                            : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
                     }`}
                 />
             </div>
             <div className="flex flex-row items-center gap-2">
-                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                <label className="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28">Enter Points</label>
                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                     <input
                         ref={pointsInputRef}
@@ -452,12 +452,12 @@ function HalfSangamEasyForm({
                         value={points}
                         onChange={(e) => setPoints(sanitizePoints(e.target.value))}
                         placeholder="Points"
-                        className={`no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none`}
+                        className="no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
                     />
                     <button
                         type="button"
                         onClick={onClearAll}
-                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                        className="px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95"
                     >
                         Clear
                     </button>
@@ -466,7 +466,7 @@ function HalfSangamEasyForm({
             <QuickPointsRow
                 value={points}
                 onSelect={handleQuickPointClick}
-                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                    labelClassName="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
             />
             <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6">
                 <button type="button" disabled={!bidsLength} onClick={onSubmitClick} className={submitBtnClass(!!bidsLength)}>

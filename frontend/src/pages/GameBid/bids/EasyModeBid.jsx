@@ -24,6 +24,11 @@ const EasyModeBid = ({
     const [activeTab, setActiveTab] = useState('easy'); // easy | special
     const [jodiSpecialQuickSelected, setJodiSpecialQuickSelected] = useState(null);
     const lockSessionToOpen = specialModeType === 'jodi';
+    const isJodiMode = specialModeType === 'jodi';
+    const isSinglePanaMode = specialModeType === 'singlePana';
+    const isDoublePanaMode = specialModeType === 'doublePana';
+    const isRedBidTheme = isJodiMode || isSinglePanaMode || isDoublePanaMode;
+    const isPanaSumRedTheme = isSinglePanaMode || isDoublePanaMode;
     const [session, setSession] = useState(() => (lockSessionToOpen ? 'OPEN' : (market?.status === 'running' ? 'CLOSE' : 'OPEN')));
     const [bids, setBids] = useState([]);
     const [reviewRows, setReviewRows] = useState([]);
@@ -431,9 +436,77 @@ const EasyModeBid = ({
     }, [bids, isPanaSumMode, validPanasForSumMode]);
 
     const submitBtnClass = (enabled) =>
-        enabled
-            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
-            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+        isRedBidTheme
+            ? (
+                enabled
+                    ? 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98]'
+                    : 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed'
+            )
+            : (
+                enabled
+                    ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
+                    : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed'
+            );
+
+    const fieldLabelClass = isRedBidTheme ? 'text-gray-900 dark:text-gray-200' : 'text-gray-300';
+    const valueInputClass = isRedBidTheme
+        ? 'no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none'
+        : 'no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none';
+    const compactInputClass = isRedBidTheme
+        ? 'w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-center font-bold text-gray-900 dark:text-red-200 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35'
+        : 'w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]';
+    const clearBtnClass = isRedBidTheme
+        ? 'px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95'
+        : 'px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95';
+    const smallClearBtnClass = isRedBidTheme
+        ? 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 bg-white dark:bg-[#2a1d21] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0'
+        : 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0';
+    const statCardClass = isRedBidTheme
+        ? 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center'
+        : 'rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center';
+    const statValueClass = isRedBidTheme
+        ? 'text-base font-bold text-red-700 dark:text-red-300 leading-tight'
+        : 'text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight';
+    const tabActiveClass = isRedBidTheme
+        ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-700 dark:border-white/20'
+        : 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]';
+    const tabInactiveClass = isRedBidTheme
+        ? 'bg-white dark:bg-[#2a1d21] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'
+        : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400';
+    const bidsHeaderClass = isRedBidTheme
+        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1'
+        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1';
+    const bidsDividerClass = isRedBidTheme ? 'h-px bg-red-200 dark:bg-white/20 w-full mb-2' : 'h-px bg-[#d4af37] w-full mb-2';
+    const bidRowClass = isRedBidTheme
+        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm'
+        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm';
+    const bidPointTextClass = isRedBidTheme ? 'text-red-700 dark:text-red-300' : 'text-amber-800 dark:text-[#f2c14e]';
+    const bidTypeClass = isRedBidTheme ? 'text-sm text-gray-600 dark:text-gray-300' : 'text-sm text-gray-400';
+    const inlineSurfaceClass = isRedBidTheme
+        ? 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#2a1d21] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5'
+        : 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202124] md:border md:border-gray-200 dark:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
+    const gridPanelClass = isRedBidTheme
+        ? 'md:hidden overflow-x-hidden rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-1'
+        : 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-1';
+    const desktopPanelClass = isRedBidTheme
+        ? 'hidden md:block rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-2'
+        : 'hidden md:block rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-2';
+    const jodiSpecialWrapClass = (hasBet) =>
+        `flex items-center gap-1.5 rounded-lg p-0.5 border transition-all duration-200 ${
+            hasBet
+                ? 'border-red-200 dark:border-white/20 shadow-md bg-red-50 dark:bg-[#24171b]'
+                : 'border-red-200/70 dark:border-white/10 bg-white/70 dark:bg-[#2a1d21]'
+        }`;
+    const jodiSpecialBadgeClass = (hasBet) =>
+        `w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
+            hasBet
+                ? 'bg-red-700 text-white shadow-inner'
+                : 'bg-gradient-to-br from-red-700 to-red-600 text-white'
+        }`;
+    const jodiSpecialInputClass = (hasBet) =>
+        `w-full h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs font-semibold transition-colors ${
+            hasBet ? 'bg-red-50 dark:bg-[#1a1114]' : 'bg-white dark:bg-[#2a1d21]'
+        }`;
 
     const handleQuickPointClick = (pts) => {
         setInputPoints(String(pts));
@@ -460,8 +533,8 @@ const EasyModeBid = ({
                     onClick={() => setActiveTab('easy')}
                     className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
                         activeTab === 'easy'
-                            ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                            : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400'
+                            ? tabActiveClass
+                            : tabInactiveClass
                     }`}
                 >
                     EASY MODE
@@ -471,21 +544,21 @@ const EasyModeBid = ({
                     onClick={() => setActiveTab('special')}
                     className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
                         activeTab === 'special'
-                            ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                            : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400'
+                            ? tabActiveClass
+                            : tabInactiveClass
                     }`}
                 >
                     SPECIAL MODE
                 </button>
             </div>
             <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center">
+                <div className={statCardClass}>
                     <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{specialLiveStats.count}</div>
+                    <div className={statValueClass}>{specialLiveStats.count}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center">
+                <div className={statCardClass}>
                     <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{specialLiveStats.total}</div>
+                    <div className={statValueClass}>{specialLiveStats.total}</div>
                 </div>
             </div>
             {specialModeType === 'jodi' && activeTab === 'special' && (
@@ -498,7 +571,7 @@ const EasyModeBid = ({
                             setJodiSpecialQuickSelected((prev) => (prev === val ? null : val));
                         }}
                         isSelected={(pts) => jodiSpecialQuickSelected === String(pts)}
-                        labelClassName="text-gray-300 text-xs sm:text-sm font-medium shrink-0 w-24 sm:w-28"
+                        labelClassName={`${fieldLabelClass} text-xs sm:text-sm font-medium shrink-0 w-24 sm:w-28`}
                     />
                     <button
                         type="button"
@@ -506,7 +579,7 @@ const EasyModeBid = ({
                             setSpecialInputs(Object.fromEntries(jodiNumbers.map((n) => [n, ''])));
                             setJodiSpecialQuickSelected(null);
                         }}
-                        className="px-3 sm:px-4 py-2 min-h-[36px] rounded-lg border-2 border-gray-200 dark:border-white/10 bg-white text-xs sm:text-sm font-medium text-amber-800 dark:text-[#f2c14e] hover:border-[#d4af37] active:scale-95"
+                        className={clearBtnClass.replace('px-4 min-h-[40px] rounded-xl', 'px-3 sm:px-4 py-2 min-h-[36px] rounded-lg').replace('text-sm', 'text-xs sm:text-sm')}
                     >
                         Clear
                     </button>
@@ -517,18 +590,18 @@ const EasyModeBid = ({
 
     const bidsList = showBidsList ? (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className={bidsHeaderClass}>
                 <div>{labelKey}</div>
                 <div>Point</div>
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-[#d4af37] w-full mb-2"></div>
+            <div className={bidsDividerClass}></div>
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
+                        className={bidRowClass}
                     >
                         <div className="font-bold text-gray-900 dark:text-white">
                             {maxLength === 2 && typeof bid.number === 'string' && bid.number.length === 2 ? (
@@ -546,10 +619,10 @@ const EasyModeBid = ({
                                 inputMode="numeric"
                                 value={bid.points}
                                 onChange={(e) => handleUpdateBidPoint(bid.id, e.target.value)}
-                                className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
+                                className={compactInputClass}
                             />
                         </div>
-                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className={bidTypeClass}>{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
@@ -669,7 +742,7 @@ const EasyModeBid = ({
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:py-2 md:max-w-7xl md:mx-auto">
                 {showModeTabs && !desktopSplit && <div className="mb-2 md:mb-4">{modeHeader}</div>}
                 {warning && (
-                    <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md">
+                    <div className={`fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e]'}`}>
                         {warning}
                     </div>
                 )}
@@ -687,19 +760,11 @@ const EasyModeBid = ({
                                         <div
                                             key={num}
                                             role="presentation"
-                                            className={`flex items-center gap-1.5 rounded-lg p-0.5 transition-all duration-200 ${
-                                                jodiSpecialQuickSelected ? 'cursor-pointer' : ''
-                                            } ${
-                                                hasBet
-                                                    ? 'shadow-md bg-sky-50/80'
-                                                    : 'focus-within:bg-sky-50/40'
-                                            }`}
+                                            className={`${jodiSpecialWrapClass(hasBet)} ${jodiSpecialQuickSelected ? 'cursor-pointer' : ''}`}
                                             onClick={() => applyJodiQuickToCell(num)}
                                         >
                                             <div
-                                                className={`w-10 h-9 border-0 text-gray-900 dark:text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
-                                                    hasBet ? 'bg-[#0f4d8a] shadow-inner' : 'bg-[#d4af37]'
-                                                }`}
+                                                className={jodiSpecialBadgeClass(hasBet)}
                                             >
                                                 <span className="inline-flex items-center gap-1">
                                                     <span>{num[0]}</span>
@@ -719,9 +784,7 @@ const EasyModeBid = ({
                                                     const nextVal = e.target.value.replace(/\D/g, '').slice(0, 6);
                                                     setSpecialInputs((p) => ({ ...p, [num]: nextVal }));
                                                 }}
-                                                className={`w-full h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs font-semibold transition-colors ${
-                                                    hasBet ? 'bg-white/10 shadow-inner' : 'bg-white dark:bg-[#202124]'
-                                                }`}
+                                                className={jodiSpecialInputClass(hasBet)}
                                             />
                                         </div>
                                         );
@@ -758,7 +821,7 @@ const EasyModeBid = ({
 
                                         <div className="flex flex-col gap-3 mb-4">
                                             <div className="flex flex-row items-center gap-2">
-                                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                                <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                                     <input
                                                         ref={pointsInputRef}
@@ -767,12 +830,12 @@ const EasyModeBid = ({
                                                         value={inputPoints}
                                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                                         placeholder="Points"
-                                                        className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                                        className={valueInputClass}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={handleFormClear}
-                                                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                                        className={clearBtnClass}
                                                     >
                                                         Clear
                                                     </button>
@@ -781,13 +844,13 @@ const EasyModeBid = ({
                                             <QuickPointsRow
                                                 value={inputPoints}
                                                 onSelect={handleQuickPointClick}
-                                                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                                labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                                             />
                                         </div>
 
                                         {/* Select Sum Keypad (Single Pana styled like Single Digit Bulk) */}
                                         <div className="flex gap-4 mb-4">
-                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 p-2'}`}>
+                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : `${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10'} p-2`}`}>
                                                 {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
                                                     <h3 className="text-sm font-bold text-amber-800 dark:text-[#f2c14e] mb-3 text-center">Select Sum</h3>
                                                 )}
@@ -808,7 +871,7 @@ const EasyModeBid = ({
                                                                 }}
                                                                 className={`relative aspect-square min-h-[40px] sm:min-h-[44px] md:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none ${
                                                                     (specialModeType === 'singlePana' || specialModeType === 'doublePana')
-                                                                        ? `text-white bg-[#d4af37] border border-gray-200 dark:border-white/10 ${hasPoints ? 'cursor-pointer hover:border-[#d4af37]/50' : 'cursor-not-allowed opacity-50'}`
+                                                                        ? `${isPanaSumRedTheme ? 'text-white bg-gradient-to-br from-red-700 to-red-600 border border-red-300 dark:border-white/20' : 'text-white bg-[#d4af37] border border-gray-200 dark:border-white/10'} ${hasPoints ? (isPanaSumRedTheme ? 'cursor-pointer hover:border-red-400 dark:hover:border-white/35' : 'cursor-pointer hover:border-[#d4af37]/50') : 'cursor-not-allowed opacity-50'}`
                                                                         : `text-gray-900 dark:text-white bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 ${hasPoints ? 'cursor-pointer hover:border-gray-400 hover:bg-white/10 active:bg-black' : 'cursor-not-allowed opacity-50'}`
                                                                 }`}
                                                                 style={{ 
@@ -820,7 +883,7 @@ const EasyModeBid = ({
                                                             >
                                                                 {num}
                                                                 {totalPointsForSum > 0 && (
-                                                                    <span className="absolute top-0.5 right-0.5 sm:top-0.5 sm:right-0.5 bg-[#d4af37] text-[#4b3608] text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 sm:px-1 flex items-center justify-center shadow-md">
+                                                                    <span className={`absolute top-0.5 right-0.5 sm:top-0.5 sm:right-0.5 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 sm:px-1 flex items-center justify-center shadow-md ${isPanaSumRedTheme ? 'bg-white dark:bg-[#1a1114] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-300' : 'bg-[#d4af37] text-[#4b3608]'}`}>
                                                                         {totalPointsForSum > 999 ? '999+' : totalPointsForSum}
                                                                     </span>
                                                                 )}
@@ -839,7 +902,7 @@ const EasyModeBid = ({
                                                                 : !bids.length
                                                         }
                                                         onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                                        className={`py-3 px-6 bg-[#d4af37] text-[#4b3608] font-bold rounded-xl shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98] ${
+                                                        className={`py-3 px-6 ${isPanaSumRedTheme ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400' : 'bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a]'} font-bold rounded-xl shadow-md transition-all active:scale-[0.98] ${
                                                             (specialModeType === 'jodi' || specialModeType === 'doublePana')
                                                                 ? (bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0))
                                                                     ? 'opacity-50 cursor-not-allowed'
@@ -928,10 +991,10 @@ const EasyModeBid = ({
                             <QuickPointsRow
                                 value={inputPoints}
                                 onSelect={handleQuickPointClick}
-                                labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                             />
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                     <input
                                         ref={pointsInputRef}
@@ -940,19 +1003,19 @@ const EasyModeBid = ({
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         placeholder="Points"
-                                        className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                        className={valueInputClass}
                                     />
                                     <button
                                         type="button"
                                         onClick={handleFormClear}
-                                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                        className={clearBtnClass}
                                     >
                                         Clear
                                     </button>
                                 </div>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{label}:</label>
+                                <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>{label}:</label>
                                 <input
                                                     type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
                                     inputMode="numeric"
@@ -960,8 +1023,8 @@ const EasyModeBid = ({
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
                                     maxLength={maxLength}
-                                    className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
-                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : (isRedBidTheme ? 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]')
                                     }`}
                                 />
                             </div>
@@ -969,7 +1032,7 @@ const EasyModeBid = ({
                     ) : (
                         <>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">{label}:</label>
+                                <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>{label}:</label>
                                 <input
                                                     type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
                                     inputMode="numeric"
@@ -977,13 +1040,13 @@ const EasyModeBid = ({
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
                                     maxLength={maxLength}
-                                    className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
-                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                        isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : (isRedBidTheme ? 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]')
                                     }`}
                                 />
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                     <input
                                         ref={pointsInputRef}
@@ -992,12 +1055,12 @@ const EasyModeBid = ({
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         placeholder="Points"
-                                        className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                        className={valueInputClass}
                                     />
                                     <button
                                         type="button"
                                         onClick={handleFormClear}
-                                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                        className={clearBtnClass}
                                     >
                                         Clear
                                     </button>

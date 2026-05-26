@@ -48,6 +48,7 @@ const BidLayout = ({
     footerRightOnDesktop = false,
     hideFooter = false,
     walletBalance,
+    showWalletBalance = true,
     onSubmit = () => {},
     showFooterStats = true,
     submitLabel = 'Submit Bets',
@@ -162,16 +163,20 @@ const BidLayout = ({
                 <h1 className="text-xs sm:text-base md:text-lg font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 text-gray-900 dark:text-white min-w-0">
                     {market?.gameName ? `${market.gameName} - ${title}` : title}
                 </h1>
-                <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
-                    <img
-                        src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
-                        alt="Wallet"
-                        className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
-                    />
-                    <span className="font-bold text-gray-900 dark:text-white text-[11px] sm:text-sm">
-                        {wallet.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 })}
-                    </span>
-                </div>
+                {showWalletBalance ? (
+                    <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
+                        <img
+                            src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
+                            alt="Wallet"
+                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                        />
+                        <span className="font-bold text-gray-900 dark:text-white text-[11px] sm:text-sm">
+                            {wallet.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 })}
+                        </span>
+                    </div>
+                ) : (
+                    <div className="shrink-0 w-[44px]" aria-hidden="true" />
+                )}
             </div>
 
             {!bettingAllowed && bettingMessage && (
@@ -204,7 +209,7 @@ const BidLayout = ({
                             />
                         </div>
                         {displayDate && displayDate !== todayDate && (
-                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-400/40">
+                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/35 dark:text-red-200 dark:border-red-900/60">
                                 {t('gameBid.scheduled')}
                             </span>
                         )}
@@ -268,7 +273,7 @@ const BidLayout = ({
                     <div
                         className={`w-full max-w-sm md:max-w-md rounded-2xl flex flex-col sm:flex-row items-center gap-4 sm:gap-6 ${
                             showFooterStats
-                                ? 'bg-white/95 dark:bg-[#202124]/95 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-xl shadow-gray-200/50 dark:shadow-black/30 px-4 py-4'
+                                ? 'bg-white/95 dark:bg-[#24171b]/95 backdrop-blur-sm border border-red-200 dark:border-red-900/60 shadow-xl shadow-red-100/60 dark:shadow-black/30 px-4 py-4'
                                 : 'bg-transparent border-0 shadow-none p-0'
                         }`}
                     >
@@ -276,11 +281,11 @@ const BidLayout = ({
                             <div className="flex items-center gap-6 sm:gap-8 shrink-0">
                                 <div className="text-center">
                                     <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.bets')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-amber-800 dark:text-[#f2c14e]">{bidsCount}</div>
+                                    <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{bidsCount}</div>
                                 </div>
                                 <div className="text-center">
                                     <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.points')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-amber-800 dark:text-[#f2c14e]">{totalPoints}</div>
+                                    <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{totalPoints}</div>
                                 </div>
                             </div>
                         )}
@@ -290,8 +295,8 @@ const BidLayout = ({
                             disabled={!bidsCount || !bettingAllowed}
                             className={`flex-1 w-full sm:w-auto sm:min-w-[140px] font-bold py-3 px-6 rounded-xl shadow-lg transition-all text-sm sm:text-base ${
                                 bidsCount && bettingAllowed
-                                    ? 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] hover:from-[#e5c04a] hover:to-[#d4af37] active:scale-[0.98]'
-                                    : 'bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] opacity-50 cursor-not-allowed'
+                                    ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
+                                    : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
                             }`}
                         >
                             {submitLabel === 'Submit Bets' ? t('gameBid.submitBets') : submitLabel === 'Submit Bet' ? t('gameBid.submitBet') : submitLabel}

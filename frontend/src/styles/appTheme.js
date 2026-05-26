@@ -61,26 +61,26 @@ export const iconBtn =
 
 /** Game bid flow */
 export const bidPageShell =
-  'game-bid-page min-h-screen min-h-ios-screen bg-[#f5f5f7] text-gray-900 font-sans w-full max-w-full overflow-x-hidden dark:bg-black dark:text-white';
+  'game-bid-page min-h-screen min-h-ios-screen bg-[#fff6f7] text-gray-900 font-sans w-full max-w-full overflow-x-hidden dark:bg-[#1a1114] dark:text-white';
 
 export const bidHeader =
-  'bg-white border-b border-gray-900/20 dark:bg-[#202124] dark:border-white/25';
+  'bg-white/95 border-b border-red-200 dark:bg-[#24171b] dark:border-white/20';
 
 export const bidSurface =
-  'bg-white border border-gray-900/20 dark:bg-[#202124] dark:border-white/25';
+  'bg-white border border-red-200 dark:bg-[#2a1d21] dark:border-red-900/60';
 
 export const bidInput =
-  'bg-gray-50 border border-gray-900/20 text-gray-900 dark:bg-[#202124] dark:border-white/25 dark:text-white';
+  'bg-white border border-red-200 text-gray-900 placeholder:text-gray-400 dark:bg-[#2a1d21] dark:border-white/20 dark:text-white dark:placeholder:text-gray-500';
 
 export const bidBtnGhost =
-  'bg-gray-100 hover:bg-gray-200 text-gray-900 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white';
+  'bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 dark:bg-red-950/30 dark:hover:bg-red-950/50 dark:text-red-200 dark:border-white/20 dark:hover:border-white/35';
 
 /** Gold accent text — readable on white (light) and dark panels */
-export const bidAccent = 'text-amber-800 dark:text-[#f2c14e]';
-export const bidAccentBold = 'font-bold text-amber-800 dark:text-[#f2c14e]';
+export const bidAccent = 'text-red-700 dark:text-red-300';
+export const bidAccentBold = 'font-bold text-red-700 dark:text-red-300';
 export const bidLabel = 'text-gray-600 dark:text-gray-400';
-export const bidLabelStrong = 'text-gray-700 dark:text-gray-300';
+export const bidLabelStrong = 'text-gray-700 dark:text-gray-200';
 export const bidTableHeader =
-  'bg-amber-50 text-amber-900 dark:bg-white/10 dark:text-[#f2c14e]';
-export const bidStatValue = 'font-bold text-amber-800 dark:text-[#f2c14e]';
-export const bidRowBg = 'bg-gray-50 dark:bg-white/5';
+  'bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-200';
+export const bidStatValue = 'font-bold text-red-700 dark:text-red-300';
+export const bidRowBg = 'bg-white dark:bg-[#2a1d21]';

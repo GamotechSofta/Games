@@ -138,11 +138,19 @@ const TriplePanaBid = ({ market, title }) => {
     };
 
     const handleDeleteBid = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
+    const fieldLabelClass = 'text-gray-900 dark:text-gray-200';
+    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center';
+    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
+    const valueInputClass = 'no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none';
+    const listHeaderClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1';
+    const listRowClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm';
+    const tripleBadgeClass = 'w-12 h-10 bg-gradient-to-br from-red-700 to-red-600 border-2 border-red-200 dark:border-white/20 text-white flex items-center justify-center rounded-l-md font-bold text-sm shrink-0';
+    const tripleInputClass = 'w-full h-10 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-red-500 dark:focus:border-white/35 px-3 text-sm font-semibold';
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:bg-[#e5c04a] transition-all active:scale-[0.98]'
-            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+            ? 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98]'
+            : 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
     const todayDate = new Date()
         .toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -268,13 +276,13 @@ const TriplePanaBid = ({ market, title }) => {
     const modeTabs = (
         <div className="space-y-2 md:space-y-3">
             <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                <div className={statCardClass}>
                     <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayCount}</div>
+                    <div className={statValueClass}>{displayCount}</div>
                 </div>
-                <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                <div className={statCardClass}>
                     <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                    <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayBetAmount}</div>
+                    <div className={statValueClass}>{displayBetAmount}</div>
                 </div>
             </div>
         </div>
@@ -282,22 +290,22 @@ const TriplePanaBid = ({ market, title }) => {
 
     const easyBidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className={listHeaderClass}>
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-[#d4af37] w-full mb-2" />
+            <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm"
+                        className={listRowClass}
                     >
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
-                        <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{bid.points}</div>
-                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className="font-bold text-red-700 dark:text-red-300">{bid.points}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
@@ -321,7 +329,7 @@ const TriplePanaBid = ({ market, title }) => {
     );
 
     const dateSessionRow = (
-        <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
             <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -332,7 +340,7 @@ const TriplePanaBid = ({ market, title }) => {
                     type="text"
                     value={todayDate}
                     readOnly
-                    className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white rounded-full text-sm font-bold text-center focus:outline-none"
+                    className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white rounded-full text-sm font-bold text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35"
                 />
             </div>
             <div className="relative">
@@ -340,7 +348,7 @@ const TriplePanaBid = ({ market, title }) => {
                     value={session}
                     onChange={(e) => setSession(e.target.value)}
                     disabled={isRunning}
-                    className={`w-full appearance-none bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-60 cursor-not-allowed bg-white/10' : ''}`}
+                    className={`w-full appearance-none bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35 ${isRunning ? 'opacity-60 cursor-not-allowed bg-white/10' : ''}`}
                 >
                     {isRunning ? (
                         <option value="CLOSE">CLOSE</option>
@@ -390,7 +398,7 @@ const TriplePanaBid = ({ market, title }) => {
                                     {modeTabs}
                                     <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
                                         <div className="flex flex-row items-center gap-2">
-                                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Pana:</label>
+                                            <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Pana:</label>
                                             <input
                                                 type="text"
                                                 inputMode="numeric"
@@ -398,13 +406,13 @@ const TriplePanaBid = ({ market, title }) => {
                                                 onChange={handleNumberInputChange}
                                                 placeholder="Pana"
                                                 maxLength={3}
-                                                className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
-                                                    isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                                className={`flex-1 min-w-0 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                                    isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
                                                 }`}
                                             />
                                         </div>
                                         <div className="flex flex-row items-center gap-2">
-                                            <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                            <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                                             <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                                 <input
                                                     ref={pointsInputRef}
@@ -413,12 +421,12 @@ const TriplePanaBid = ({ market, title }) => {
                                                     value={inputPoints}
                                                     onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                                     placeholder="Points"
-                                                    className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                                    className={valueInputClass}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleFormClearEasy}
-                                                    className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95"
+                                                    className="px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95"
                                                 >
                                                     Clear
                                                 </button>
@@ -427,7 +435,7 @@ const TriplePanaBid = ({ market, title }) => {
                                         <QuickPointsRow
                                             value={inputPoints}
                                             onSelect={handleQuickPointClick}
-                                            labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                            labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                                         />
                                     </div>
                                     <div className="mb-5 sm:mb-6">
@@ -458,7 +466,7 @@ const TriplePanaBid = ({ market, title }) => {
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
                                 {tripleNumbers.map((num) => (
                                     <div key={num} className="flex items-center gap-2">
-                                        <div className="w-12 h-10 bg-[#d4af37] border-2 border-gray-200 dark:border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-sm shrink-0">
+                                        <div className={tripleBadgeClass}>
                                             {num}
                                         </div>
                                         <input
@@ -472,7 +480,7 @@ const TriplePanaBid = ({ market, title }) => {
                                                     [num]: e.target.value.replace(/\D/g, '').slice(0, 6),
                                                 }))
                                             }
-                                            className="w-full h-10 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-[#d4af37] px-3 text-sm font-semibold"
+                                            className={tripleInputClass}
                                         />
                                     </div>
                                 ))}

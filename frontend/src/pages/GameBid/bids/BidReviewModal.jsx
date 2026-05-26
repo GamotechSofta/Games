@@ -133,7 +133,7 @@ const BidReviewModal = ({
       {/* Modal - centered, above mobile navbar */}
       <div className="relative w-full max-w-md sm:max-w-lg mx-auto flex-shrink-0">
         {stage === 'success' ? (
-          <div className="bg-white dark:bg-[#202124] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-gray-200 dark:border-white/10">
+          <div className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-red-900/60">
             <style>{`
               @keyframes successPop {
                 0% { transform: scale(0.6); opacity: 0; }
@@ -171,7 +171,7 @@ const BidReviewModal = ({
                   setStage('review');
                   handleClose();
                 }}
-                className="w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 rounded-lg shadow-md active:scale-[0.99] transition-transform hover:from-[#e5c04a] hover:to-[#d4af37]"
+                className="w-full bg-gradient-to-r from-red-700 to-red-600 text-white font-bold py-3.5 rounded-lg shadow-md active:scale-[0.99] transition-transform hover:from-red-600 hover:to-red-500"
               >
                 {t('gameBid.ok')}
               </button>
@@ -179,11 +179,11 @@ const BidReviewModal = ({
           </div>
         ) : (
           <div
-            className="bg-white dark:bg-[#202124] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-gray-200 dark:border-white/10 max-h-[min(90svh,720px)] sm:max-h-[calc(100vh-48px)] flex flex-col"
+            className="bg-white dark:bg-[#2a1d21] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-red-200 dark:border-red-900/60 max-h-[min(90svh,720px)] sm:max-h-[calc(100vh-48px)] flex flex-col"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0px)' }}
           >
             {/* Title bar */}
-            <div className="bg-black text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 text-center text-sm sm:text-lg font-semibold shrink-0 border-b border-gray-200 dark:border-white/10">
+            <div className="bg-red-50 dark:bg-[#24171b] text-gray-900 dark:text-white px-3 sm:px-4 py-2.5 text-center text-sm sm:text-lg font-semibold shrink-0 border-b border-red-200 dark:border-red-900/60">
               {formatDateTitle(marketTitle, dateText, t('gameBid.reviewBet'))}
             </div>
 
@@ -191,18 +191,18 @@ const BidReviewModal = ({
             <div className="flex-1 flex flex-col min-h-0">
               {/* History (scroll only this section) */}
               <div className="flex-1 overflow-y-auto overscroll-contain ios-scroll-touch px-3 sm:px-4 pt-3 sm:pt-4 min-h-0">
-                <div className="grid grid-cols-3 text-center font-semibold text-[#d4af37] text-[11px] sm:text-base">
+                <div className="grid grid-cols-3 text-center font-semibold text-red-700 dark:text-red-200 text-[11px] sm:text-base">
                   <div className="truncate">{getTranslatedLabel(labelKey)}</div>
                   <div className="truncate">{t('gameBid.points')}</div>
                   <div className="truncate">{t('gameBid.type')}</div>
                 </div>
                 <div className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-3">
                   {rows.map((r) => (
-                    <div key={r.id} className="bg-black/40 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 dark:border-white/10">
+                    <div key={r.id} className="bg-red-50/80 dark:bg-[#24171b] rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 border border-red-200 dark:border-red-900/60">
                       <div className="grid grid-cols-3 text-center text-gray-900 dark:text-white font-semibold text-[12px] sm:text-base">
                         <div className="truncate">{renderBetNumber(r.number)}</div>
-                        <div className="truncate text-amber-800 dark:text-[#f2c14e]">{r.points}</div>
-                        <div className="truncate font-medium text-gray-300 uppercase">{r.type === 'OPEN' ? t('gameBid.open') : r.type === 'CLOSE' ? t('gameBid.close') : r.type}</div>
+                        <div className="truncate text-red-700 dark:text-red-300">{r.points}</div>
+                        <div className="truncate font-medium text-gray-600 dark:text-gray-300 uppercase">{r.type === 'OPEN' ? t('gameBid.open') : r.type === 'CLOSE' ? t('gameBid.close') : r.type}</div>
                       </div>
                     </div>
                   ))}
@@ -211,23 +211,23 @@ const BidReviewModal = ({
 
               {/* Summary 2x2 */}
               <div className="px-3 sm:px-4 pt-3 sm:pt-4 shrink-0">
-                <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10">
+                <div className="rounded-2xl overflow-hidden border border-red-200 dark:border-red-900/60">
                   <div className="grid grid-cols-2">
-                    <div className="p-3 sm:p-4 text-center border-r border-b border-gray-200 dark:border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBets')}</div>
+                    <div className="p-3 sm:p-4 text-center border-r border-b border-red-200 dark:border-red-900/60">
+                      <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBets')}</div>
                       <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{totalBids}</div>
                     </div>
-                    <div className="p-3 sm:p-4 text-center border-b border-gray-200 dark:border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBetAmount')}</div>
-                      <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg text-amber-800 dark:text-[#f2c14e] leading-tight">{amount}</div>
+                    <div className="p-3 sm:p-4 text-center border-b border-red-200 dark:border-red-900/60">
+                      <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.totalBetAmount')}</div>
+                      <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg text-red-700 dark:text-red-300 leading-tight">{amount}</div>
                     </div>
-                    <div className="p-3 sm:p-4 text-center border-r border-gray-200 dark:border-white/10">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceBeforeDeduction')}</div>
+                    <div className="p-3 sm:p-4 text-center border-r border-red-200 dark:border-red-900/60">
+                      <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceBeforeDeduction')}</div>
                       <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{formatMoney(before)}</div>
                     </div>
                     <div className="p-3 sm:p-4 text-center">
-                      <div className="text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceAfterDeduction')}</div>
-                      <div className={`font-bold text-base sm:text-lg leading-tight ${after < 0 ? 'text-red-400' : 'text-gray-900 dark:text-white'}`}>{formatMoney(after)}</div>
+                      <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceAfterDeduction')}</div>
+                      <div className={`font-bold text-base sm:text-lg leading-tight ${after < 0 ? 'text-red-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>{formatMoney(after)}</div>
                     </div>
                   </div>
                 </div>
@@ -235,38 +235,38 @@ const BidReviewModal = ({
 
               {/* Betting closed / outside window */}
               {!bettingAllowed && bettingMessage && (
-                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-red-500/20 border border-red-500/50 text-red-200 text-sm shrink-0">
+                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-500/50 text-red-700 dark:text-red-200 text-sm shrink-0">
                   {bettingMessage}
                 </div>
               )}
 
               {/* Insufficient balance warning */}
               {insufficientBalance && (
-                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-200 text-sm shrink-0">
+                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 text-sm shrink-0">
                   {t('gameBid.insufficientBalanceFull', { amount: amount.toLocaleString('en-IN'), before: before.toLocaleString('en-IN') })}
                 </div>
               )}
 
               {/* Submit error */}
               {submitError && (
-                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-red-500/20 border border-red-500/50 text-red-300 text-sm shrink-0">
+                <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/20 border border-red-200 dark:border-red-500/50 text-red-700 dark:text-red-300 text-sm shrink-0">
                   {submitError}
                 </div>
               )}
 
               {/* Note */}
-              <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-4 text-center text-red-400 font-semibold text-[12px] sm:text-base shrink-0">
+              <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-4 text-center text-red-700 dark:text-red-300 font-semibold text-[12px] sm:text-base shrink-0">
                 {t('gameBid.betNoteCannotCancel')}
               </div>
             </div>
 
             {/* Buttons (sticky bottom inside modal) */}
-            <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-2 gap-3 sm:gap-4 bg-white dark:bg-[#202124] shrink-0 border-t border-gray-200 dark:border-white/10">
+            <div className="px-3 sm:px-4 py-3 sm:py-4 grid grid-cols-2 gap-3 sm:gap-4 bg-white dark:bg-[#2a1d21] shrink-0 border-t border-red-200 dark:border-red-900/60">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={submitting}
-                className="bg-black border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:border-[#d4af37]/40 disabled:opacity-50"
+                className="bg-red-50 dark:bg-[#24171b] border border-red-200 dark:border-red-900/60 text-red-800 dark:text-red-200 font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:border-red-400 dark:hover:border-red-500 disabled:opacity-50"
               >
                 {t('gameBid.cancel')}
               </button>
@@ -274,11 +274,11 @@ const BidReviewModal = ({
                 type="button"
                 onClick={handleSubmitClick}
                 disabled={submitting || cannotSubmit}
-                className="bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:from-[#e5c04a] hover:to-[#d4af37] disabled:opacity-50 flex items-center justify-center gap-2"
+                className="bg-gradient-to-r from-emerald-600 to-green-500 text-[#083b22] dark:text-white font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:from-emerald-500 hover:to-green-400 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-[#4b3608]/30 border-t-[#4b3608] rounded-full animate-spin" />
+                    <span className="w-4 h-4 border-2 border-[#083b22]/30 border-t-[#083b22] dark:border-white/30 dark:border-t-white rounded-full animate-spin" />
                     {t('gameBid.placing')}
                   </>
                 ) : (

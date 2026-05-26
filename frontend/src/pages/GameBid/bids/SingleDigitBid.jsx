@@ -172,16 +172,17 @@ const SingleDigitBid = ({ market, title }) => {
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-[#e5c04a] hover:to-[#d4af37] transition-all active:scale-[0.98]'
+            ? 'w-full bg-gradient-to-r from-red-700 to-red-600 text-white font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-red-600 hover:to-red-500 transition-all active:scale-[0.98]'
             : 'w-full bg-gray-100 text-gray-400 dark:bg-white/10 dark:text-gray-500 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
+    const fieldLabelClass = 'text-gray-900 dark:text-gray-200';
 
     const mobileModeHeader = (
         <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Count</div>
                 <div className={`text-base leading-tight ${bidStatValue}`}>{bulkBidsCount}</div>
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Bet Amount</div>
                 <div className={`text-base leading-tight ${bidStatValue}`}>{bulkTotalPoints}</div>
             </div>
@@ -190,18 +191,18 @@ const SingleDigitBid = ({ market, title }) => {
 
     const mobileBidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-900 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-amber-400 dark:bg-[#d4af37] w-full mb-2" />
+            <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
             <div className="space-y-2">
                 {rows.map((bid) => (
                     <div
                         key={bid.id}
-                        className={`grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 rounded-lg border border-gray-200 dark:border-white/10 text-sm ${bidRowBg}`}
+                        className={`grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 rounded-lg border border-red-200 dark:border-white/20 text-sm ${bidRowBg}`}
                     >
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
                         <div className="px-0.5 min-w-0">
@@ -210,10 +211,10 @@ const SingleDigitBid = ({ market, title }) => {
                                 inputMode="numeric"
                                 value={bid.points}
                                 onChange={(e) => updateRowPoints(bid.id, e.target.value)}
-                                className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-center font-bold text-gray-900 dark:text-[#f2c14e] focus:border-amber-500 dark:focus:border-[#d4af37] text-sm focus:outline-none"
+                                className="w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-center font-bold text-gray-900 dark:text-red-200 focus:border-red-500 dark:focus:border-white/35 text-sm focus:outline-none"
                             />
                         </div>
-                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
@@ -254,6 +255,7 @@ const SingleDigitBid = ({ market, title }) => {
             submitLabel="Submit Bet"
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32"
             walletBalance={walletBefore}
+            showWalletBalance={false}
         >
             <div className="px-3 sm:px-4 py-2 w-full max-w-full overflow-x-hidden">
                 {warning && (
@@ -267,7 +269,7 @@ const SingleDigitBid = ({ market, title }) => {
                     {mobileModeHeader}
                     <div className="flex flex-col gap-3 px-1">
                         <div className="flex flex-row items-center gap-2">
-                            <label className={`${bidLabelStrong} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
+                            <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                             <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                 <input
                                     type="text"
@@ -275,12 +277,12 @@ const SingleDigitBid = ({ market, title }) => {
                                     value={inputPoints}
                                     onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                     placeholder="Points"
-                                    className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] focus:outline-none"
+                                    className="no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
                                 />
                                 <button
                                     type="button"
                                     onClick={handleClearPoints}
-                                    className="px-4 min-h-[40px] rounded-xl border-2 border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-semibold hover:border-amber-400 dark:hover:border-[#d4af37] active:scale-95"
+                                    className="px-4 min-h-[40px] rounded-xl border-2 border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-semibold hover:border-red-400 dark:hover:border-white/35 active:scale-95"
                                 >
                                     Clear
                                 </button>
@@ -289,7 +291,7 @@ const SingleDigitBid = ({ market, title }) => {
                         <QuickPointsRow
                             value={inputPoints}
                             onSelect={handleQuickPointClick}
-                            labelClassName={`${bidLabelStrong} text-sm font-medium shrink-0 w-28`}
+                            labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                         />
                     </div>
                     <div className="grid grid-cols-5 gap-2 w-full px-1">
@@ -299,16 +301,16 @@ const SingleDigitBid = ({ market, title }) => {
                                 type="button"
                                 disabled={!hasInputPoints}
                                 onClick={() => hasInputPoints && handleDigitClick(num)}
-                                className={`relative aspect-square min-h-[44px] sm:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none border border-gray-200 dark:border-white/10 ${
+                                className={`relative aspect-square min-h-[44px] sm:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none border border-red-300 dark:border-white/20 ${
                                     hasInputPoints
-                                        ? 'text-[#4b3608] bg-[#d4af37] cursor-pointer hover:border-white/30'
-                                        : 'text-[#4b3608] bg-[#d4af37] opacity-50 cursor-not-allowed'
+                                        ? 'text-white bg-gradient-to-br from-red-700 to-red-600 cursor-pointer hover:border-red-400 dark:hover:border-white/35'
+                                        : 'text-white bg-gradient-to-br from-red-700 to-red-600 opacity-50 cursor-not-allowed'
                                 }`}
                                 style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                             >
                                 {num}
                                 {pointsByDigit[num] > 0 && (
-                                    <span className="absolute top-0.5 right-0.5 bg-[#4b3608] text-amber-800 dark:text-[#f2c14e] text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 flex items-center justify-center shadow-md">
+                                    <span className="absolute top-0.5 right-0.5 bg-white dark:bg-[#1a1114] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-300 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 flex items-center justify-center shadow-md">
                                         {pointsByDigit[num] > 999 ? '999+' : pointsByDigit[num]}
                                     </span>
                                 )}
@@ -322,21 +324,21 @@ const SingleDigitBid = ({ market, title }) => {
                     <div className="w-full min-w-0 md:flex md:justify-start md:items-center">
                         <div className="flex flex-col gap-2 mb-1 md:mb-0 w-full md:max-w-sm">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-20">Date:</label>
+                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Date:</label>
                                 <div className="relative flex-1 min-w-0">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     </div>
-                                    <input type="text" value={todayDate} readOnly className="w-full pl-9 py-2 min-h-[36px] bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-full text-xs font-bold text-center text-gray-900 dark:text-white focus:outline-none focus:border-[#d4af37]" />
+                                    <input type="text" value={todayDate} readOnly className="w-full pl-9 py-2 min-h-[36px] bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 rounded-full text-xs font-bold text-center text-gray-900 dark:text-white focus:outline-none focus:border-red-500 dark:focus:border-white/35" />
                                 </div>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-20">Type:</label>
+                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Type:</label>
                                 <select
                                     value={session}
                                     onChange={(e) => setSession(e.target.value)}
                                     disabled={isRunning}
-                                    className={`flex-1 min-w-0 appearance-none bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold text-xs py-2 min-h-[36px] px-4 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
+                                    className={`flex-1 min-w-0 appearance-none bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white font-bold text-xs py-2 min-h-[36px] px-4 rounded-full text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35 ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
                                 >
                                     {isRunning ? (
                                         <option value="CLOSE">CLOSE</option>
@@ -349,7 +351,7 @@ const SingleDigitBid = ({ market, title }) => {
                                 </select>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-400 text-xs font-medium shrink-0 w-20">Enter Points:</label>
+                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Enter Points:</label>
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                     <input
                                         type="text"
@@ -357,12 +359,12 @@ const SingleDigitBid = ({ market, title }) => {
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         placeholder="Point"
-                                        className="no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2 min-h-[36px] px-4 text-center text-xs focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none"
+                                        className="no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2 min-h-[36px] px-4 text-center text-xs focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
                                     />
                                     <button
                                         type="button"
                                         onClick={handleClearPoints}
-                                        className="px-3 min-h-[36px] rounded-full border-2 border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-xs font-semibold hover:border-amber-400 dark:hover:border-[#d4af37] active:scale-95"
+                                        className="px-3 min-h-[36px] rounded-full border-2 border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-xs font-semibold hover:border-red-400 dark:hover:border-white/35 active:scale-95"
                                     >
                                         Clear
                                     </button>
@@ -372,7 +374,7 @@ const SingleDigitBid = ({ market, title }) => {
                                 value={inputPoints}
                                 onSelect={handleQuickPointClick}
                                 label="Quick Points:"
-                                labelClassName="text-gray-400 text-xs font-medium shrink-0 w-20"
+                                labelClassName="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20"
                             />
 
                     {/* Desktop: 2 rows (5 columns) */}
@@ -383,13 +385,13 @@ const SingleDigitBid = ({ market, title }) => {
                                 type="button"
                                 disabled={!hasInputPoints}
                                 onClick={() => hasInputPoints && handleDigitClick(num)}
-                                className={`relative aspect-square min-h-[40px] bg-[#d4af37] border border-amber-400 dark:border-white/10 text-[#4b3608] rounded-lg font-bold text-sm flex items-center justify-center transition-all active:scale-90 shadow-md select-none ${
-                                    hasInputPoints ? 'hover:border-[#d4af37]/50 cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                                className={`relative aspect-square min-h-[40px] bg-gradient-to-br from-red-700 to-red-600 border border-red-300 dark:border-white/20 text-white rounded-lg font-bold text-sm flex items-center justify-center transition-all active:scale-90 shadow-md select-none ${
+                                    hasInputPoints ? 'hover:border-red-400 dark:hover:border-white/35 cursor-pointer' : 'opacity-50 cursor-not-allowed'
                                 }`}
                             >
                                 {num}
                                 {pointsByDigit[num] > 0 && (
-                                    <span className="absolute top-0.5 right-1 text-[10px] font-bold text-[#4b3608]">
+                                    <span className="absolute top-0.5 right-1 text-[10px] font-bold text-red-100">
                                         {pointsByDigit[num] > 999 ? '999+' : pointsByDigit[num]}
                                     </span>
                                 )}
@@ -397,11 +399,11 @@ const SingleDigitBid = ({ market, title }) => {
                         ))}
                     </div>
                     <div className="hidden md:grid mt-3 grid-cols-2 gap-2 w-full max-w-[320px] mx-auto">
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center">
+                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center">
                             <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Count</div>
                             <div className={`text-base leading-tight ${bidStatValue}`}>{bulkBidsCount}</div>
                         </div>
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center">
+                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center">
                             <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Bet Amount</div>
                             <div className={`text-base leading-tight ${bidStatValue}`}>{bulkTotalPoints}</div>
                         </div>
@@ -409,15 +411,15 @@ const SingleDigitBid = ({ market, title }) => {
                         </div>
                     </div>
                     <div className="w-full min-w-0 md:flex md:justify-start md:items-start">
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] overflow-hidden w-full">
-                            <div className="grid grid-cols-4 bg-amber-50 dark:bg-white/10 text-[11px] font-semibold text-amber-900 dark:text-[#f2c14e]">
+                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] overflow-hidden w-full">
+                            <div className="grid grid-cols-4 bg-red-50 dark:bg-red-950/35 text-[11px] font-semibold text-red-700 dark:text-red-200">
                                 <div className="px-2 py-1.5">Pana</div>
                                 <div className="px-2 py-1.5 text-center">Point</div>
                                 <div className="px-2 py-1.5 text-center">Type</div>
                                 <div className="px-2 py-1.5 text-center">Delete</div>
                             </div>
                             {rows.map((row) => (
-                                <div key={row.id} className="grid grid-cols-4 border-t border-gray-200 dark:border-white/10 text-xs items-center">
+                                <div key={row.id} className="grid grid-cols-4 border-t border-red-200 dark:border-white/20 text-xs items-center">
                                     <div className="px-2 py-1.5 font-semibold text-gray-900 dark:text-white">{row.number}</div>
                                     <div className="px-1 py-1">
                                         <input
@@ -425,7 +427,7 @@ const SingleDigitBid = ({ market, title }) => {
                                             inputMode="numeric"
                                             value={row.points}
                                             onChange={(e) => updateRowPoints(row.id, e.target.value)}
-                                            className="w-full h-7 rounded border border-gray-200 dark:border-white/10 text-center font-semibold text-gray-900 dark:text-white focus:border-[#d4af37] focus:outline-none"
+                                            className="w-full h-7 rounded border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-center font-semibold text-gray-900 dark:text-white focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
                                         />
                                     </div>
                                     <div className="px-2 py-1.5 text-center text-gray-600 dark:text-gray-300">{row.type}</div>

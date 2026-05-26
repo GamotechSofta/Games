@@ -233,13 +233,13 @@ const DpCommonBid = ({ market, title }) => {
             extraHeader={
                 <div className="py-1 flex justify-end px-3 md:pr-12 md:pl-1 md:px-0">
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2 w-full md:max-w-[320px]">
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{bidsCount}</div>
+                            <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bidsCount}</div>
                         </div>
-                        <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
                             <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                            <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{totalPoints}</div>
+                            <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
                         </div>
                     </div>
                 </div>
@@ -247,7 +247,7 @@ const DpCommonBid = ({ market, title }) => {
         >
             <div className="px-3 sm:px-4 pt-0 pb-2 min-h-0">
                 {warning && (
-                    <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-900/40 border border-green-500/60 text-green-200 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md backdrop-blur-sm">
+                    <div className="fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md">
                         {warning}
                     </div>
                 )}
@@ -257,7 +257,7 @@ const DpCommonBid = ({ market, title }) => {
                 <div className="flex flex-col md:flex-row gap-4 sm:gap-5 items-stretch md:items-start">
                     <div className="flex flex-col gap-3 w-full md:w-1/2 shrink-0 min-w-0">
                         <div>
-                            <div className="block text-[11px] sm:text-xs font-semibold text-gray-500 mb-2">Select Digits</div>
+                            <div className="block text-[11px] sm:text-xs font-semibold text-gray-900 dark:text-gray-200 mb-2">Select Digits</div>
                             <div className="grid grid-cols-5 gap-2">
                                 {Array.from({ length: 10 }, (_, i) => i).map((d) => {
                                     const selected = selectedDigits.includes(String(d));
@@ -269,8 +269,8 @@ const DpCommonBid = ({ market, title }) => {
                                             aria-pressed={selected}
                                             className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base transition-all active:scale-[0.98] border ${
                                                 selected
-                                                    ? 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]'
-                                                    : 'bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] border-gray-200 dark:border-white/10 hover:bg-[#d4af37]/5'
+                                                    ? 'bg-gradient-to-br from-red-700 to-red-600 text-white border-red-300 dark:border-white/20'
+                                                    : 'bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 border-red-200 dark:border-white/20 hover:bg-red-50 dark:hover:bg-[#24171b]'
                                             }`}
                                         >
                                             {d}
@@ -279,30 +279,30 @@ const DpCommonBid = ({ market, title }) => {
                                 })}
                             </div>
                             <div className="flex items-center gap-2 mt-3">
-                                <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-400">Enter Digit</label>
+                                <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-200">Enter Digit</label>
                                 <input
                                     type="text"
                                     value={selectedDigits.join(',')}
                                     readOnly
                                     placeholder="e.g. 2"
-                                    className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
+                                    className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                                 />
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-400">Enter Points</label>
+                            <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-200">Enter Points</label>
                             <input
                                 type="text"
                                 inputMode="numeric"
                                 value={pointsInput}
                                 onChange={(e) => setPointsInput((e.target.value ?? '').replace(/\D/g, '').slice(0, 6))}
                                 placeholder="Points"
-                                className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
+                                className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
                             />
                             <button
                                 type="button"
                                 onClick={clearLocal}
-                                className="min-h-[40px] h-10 px-4 rounded-md text-xs sm:text-sm font-bold border border-[#d4af37]/40 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-[#d4af37]/5 active:scale-[0.98] transition-all shrink-0"
+                                className="min-h-[40px] h-10 px-4 rounded-md text-xs sm:text-sm font-bold border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 bg-white dark:bg-[#2a1d21] hover:bg-red-50 dark:hover:bg-[#24171b] active:scale-[0.98] transition-all shrink-0"
                             >
                                 Clear
                             </button>
@@ -313,7 +313,7 @@ const DpCommonBid = ({ market, title }) => {
                                 type="button"
                                 onClick={openReview}
                                 disabled={!bidsCount || !bettingAllowed}
-                                className={`flex-1 bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[48px] rounded-lg shadow-lg hover:bg-[#e5c04a] transition-all active:scale-[0.98] ${
+                                className={`flex-1 bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-lg hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98] ${
                                     !bidsCount || !bettingAllowed ? 'opacity-50 cursor-not-allowed' : ''
                                 }`}
                             >
@@ -323,13 +323,13 @@ const DpCommonBid = ({ market, title }) => {
                     </div>
 
                     <div className="w-full md:w-1/2 flex-1 min-w-0">
-                        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1">
+                        <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                             <div>Pana</div>
                             <div>Point</div>
                             <div>Type</div>
                             <div>Delete</div>
                         </div>
-                        <div className="h-px bg-[#d4af37] w-full mb-2" />
+                        <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
                         <div className="max-h-[520px] sm:max-h-[560px] overflow-y-auto space-y-2 pr-0.5">
                             {generatedRows.length === 0 ? (
                                 <div className="py-6 text-center text-gray-400 text-sm">
@@ -337,7 +337,7 @@ const DpCommonBid = ({ market, title }) => {
                                 </div>
                             ) : (
                                 generatedRows.map((row) => (
-                                    <div key={row.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm">
+                                    <div key={row.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm">
                                         <div className="font-bold text-gray-900 dark:text-white">{row.pana}</div>
                                         <div className="px-0.5 min-w-0">
                                             <input
@@ -345,10 +345,10 @@ const DpCommonBid = ({ market, title }) => {
                                                 inputMode="numeric"
                                                 value={row.points}
                                                 onChange={(e) => updatePoint(row.id, e.target.value)}
-                                                className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]"
+                                                className="w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] text-center font-bold text-red-700 dark:text-red-300 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35"
                                             />
                                         </div>
-                                        <div className="text-sm font-semibold text-amber-800 dark:text-[#f2c14e]">{session}</div>
+                                        <div className="text-sm font-semibold text-red-700 dark:text-red-300">{session}</div>
                                         <div className="flex justify-center">
                                             <button
                                                 type="button"

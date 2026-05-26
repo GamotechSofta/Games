@@ -178,11 +178,27 @@ const SinglePanaBulkBid = ({ market, title }) => {
         () => reviewRows.reduce((sum, b) => sum + Number(b.points || 0), 0),
         [reviewRows]
     );
+    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center';
+    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
+    const greenSubmitClass = (enabled) =>
+        enabled
+            ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
+            : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed';
+    const groupBadgeClass = (hasBet = false) =>
+        `w-10 h-9 border-2 border-red-200 dark:border-white/20 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 ${
+            hasBet ? 'bg-red-700 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'
+        }`;
+    const groupInputClass = 'no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded focus:outline-none focus:border-red-500 dark:focus:border-white/35 px-2 text-xs md:text-[11px] font-semibold text-center';
+    const actionBtnClass = 'h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 hover:border-red-400 dark:hover:border-white/35';
+    const groupQuickLabelClass = 'text-[11px] font-semibold text-gray-900 dark:text-gray-200 shrink-0';
+    const cellWrapClass = (hasBet) => `flex items-center gap-1.5 rounded-lg p-0.5 border transition-all duration-200 ${hasBet ? 'border-red-200 dark:border-white/20 shadow-md bg-red-50 dark:bg-[#24171b]' : 'border-red-200/70 dark:border-white/10 bg-white/70 dark:bg-[#2a1d21]'}`;
+    const cellBadgeClass = (hasBet) => `w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${hasBet ? 'bg-red-700 text-white shadow-inner' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
+    const cellInputClass = (hasBet) => `no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${hasBet ? 'bg-red-50 dark:bg-[#1a1114] border border-red-300 dark:border-white/25 text-red-700 dark:text-red-300 shadow-inner' : 'bg-white dark:bg-[#2a1d21]'}`;
 
     const submitBtnClass = (enabled) =>
         enabled
-            ? 'w-full bg-[#d4af37] text-[#4b3608] font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg transition-all active:scale-[0.98]'
-            : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg opacity-50 cursor-not-allowed';
+            ? 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg transition-all hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
+            : 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[52px] rounded-lg shadow-lg opacity-50 cursor-not-allowed';
 
     const applyQuickToPanaCell = (groupKey, num) => {
         const sel = groupQuickSelected[groupKey];
@@ -215,8 +231,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
                     disabled={!canSubmit}
                     className={`hidden md:inline-flex items-center justify-center font-bold min-h-[44px] min-w-[220px] px-6 rounded-full shadow-lg transition-all whitespace-nowrap ${
                         canSubmit
-                            ? 'bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a] active:scale-[0.98]'
-                            : 'bg-white/20 text-gray-400 opacity-50 cursor-not-allowed'
+                            ? greenSubmitClass(true)
+                            : greenSubmitClass(false)
                     }`}
                 >
                     Submit Bet
@@ -235,13 +251,13 @@ const SinglePanaBulkBid = ({ market, title }) => {
                 )}
 
                 <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1 mb-3">
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className={statCardClass}>
                         <div className="text-[11px] text-gray-400 font-medium">Count</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{specialCount}</div>
+                        <div className={statValueClass}>{specialCount}</div>
                     </div>
-                    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
+                    <div className={statCardClass}>
                         <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{selectedTotalPoints}</div>
+                        <div className={statValueClass}>{selectedTotalPoints}</div>
                     </div>
                 </div>
 
@@ -281,7 +297,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                             <div key={groupKey} className="space-y-3 pb-1">
                                 {/* Group header: same "box + input" style */}
                                 <div className="flex items-center gap-2">
-                                    <div className="w-10 h-9 bg-[#d4af37] border-2 border-gray-200 dark:border-white/10 text-white flex items-center justify-center rounded-l-md font-bold text-xs shrink-0">
+                                    <div className={groupBadgeClass(Number(groupBulk[groupKey]) > 0)}>
                                         {groupKey}
                                     </div>
                                     <input
@@ -307,7 +323,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         }}
                                         placeholder="All pts"
                                         title="Type points, then tap here, Apply, Enter, or leave the field — fills this column; you can still edit each Pts box."
-                                        className="no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded focus:outline-none focus:border-[#d4af37] px-2 text-xs md:text-[11px] font-semibold text-center"
+                                        className={groupInputClass}
                                     />
                                     <button
                                         type="button"
@@ -318,8 +334,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         disabled={!groupBulk[groupKey]}
                                         className={`h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors ${
                                             groupBulk[groupKey]
-                                                ? 'bg-white border-gray-400 text-amber-800 dark:text-[#f2c14e] hover:border-gray-500 hover:bg-white/10'
-                                                : 'bg-white/10 border-gray-200 dark:border-white/10 text-gray-400 cursor-not-allowed'
+                                                ? 'bg-white dark:bg-[#2a1d21] border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 hover:border-red-400 dark:hover:border-white/35'
+                                                : 'bg-white/10 border-red-200 dark:border-white/20 text-gray-400 cursor-not-allowed'
                                         }`}
                                         title="Apply points to all numbers in this group"
                                     >
@@ -328,7 +344,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                     <button
                                         type="button"
                                         onClick={clearGroup}
-                                        className="h-9 px-3 rounded-md font-bold text-xs border-2 border-gray-200 dark:border-white/10 text-gray-400 bg-white dark:bg-[#202124] hover:bg-white/10 transition-colors"
+                                        className={actionBtnClass}
                                         title="Clear this group"
                                     >
                                         Clear
@@ -346,7 +362,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                                 p[groupKey] === String(pts) ? null : String(pts),
                                         }))
                                     }
-                                    labelClassName="text-[11px] font-semibold text-gray-300 shrink-0"
+                                    labelClassName={groupQuickLabelClass}
                                 />
 
                                 {/* Two-column layout: tighten + left align only on desktop */}
@@ -357,17 +373,11 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         <div
                                             key={num}
                                             role="presentation"
-                                            className={`flex items-center gap-1.5 rounded-lg p-0.5 transition-all duration-200 ${
-                                                groupQuickSelected[groupKey] ? 'cursor-pointer' : ''
-                                            } ${
-                                                hasBet ? 'shadow-md ring-1 ring-[#d4af37]/40 bg-[#d4af37]/10' : 'focus-within:bg-white/5'
-                                            }`}
+                                            className={`${cellWrapClass(hasBet)} ${groupQuickSelected[groupKey] ? 'cursor-pointer' : ''}`}
                                             onClick={() => applyQuickToPanaCell(groupKey, num)}
                                         >
                                             <div
-                                                className={`w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
-                                                    hasBet ? 'bg-[#f2c14e] text-[#4b3608] shadow-inner' : 'bg-[#d4af37] text-white'
-                                                }`}
+                                                className={cellBadgeClass(hasBet)}
                                             >
                                                 {num}
                                             </div>
@@ -386,9 +396,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                                         [num]: sanitizePoints(e.target.value),
                                                     }))
                                                 }
-                                                className={`no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${
-                                                    hasBet ? 'bg-[#d4af37]/15 text-amber-800 dark:text-[#f2c14e] shadow-inner border border-[#d4af37]/30' : 'bg-white dark:bg-[#202124]'
-                                                }`}
+                                                className={cellInputClass(hasBet)}
                                             />
                                         </div>
                                         );
