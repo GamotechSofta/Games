@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
+import { MarketGameResultCard } from '../bids/MyBetsGameResultsPanel';
 
 const getWalletFromStorage = () => {
     try {
@@ -188,6 +189,18 @@ const BidLayout = ({
 
             {extraHeader}
 
+            {market && (market.displayResult != null || market.startingTime || market.closingTime) ? (
+                <div
+                    className="pb-2"
+                    style={{
+                        paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
+                        paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
+                    }}
+                >
+                    <MarketGameResultCard market={market} compact />
+                </div>
+            ) : null}
+
             {showDateSession && (
                 <div
                     className={`pb-4 pt-2 flex flex-row ${slotBetweenDateSession ? 'flex-nowrap overflow-x-auto' : 'flex-wrap overflow-hidden'} gap-2 sm:gap-3 ${dateSessionGridClassName}`}
@@ -197,7 +210,7 @@ const BidLayout = ({
                     <div className="flex flex-row items-center gap-2 flex-1 min-w-0 shrink overflow-hidden">
                         <div className="relative flex-1 min-w-0">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
@@ -237,7 +250,7 @@ const BidLayout = ({
                             ))}
                         </select>
                         {!hideSessionSelectCaret && (
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
@@ -280,11 +293,11 @@ const BidLayout = ({
                         {showFooterStats && (
                             <div className="flex items-center gap-6 sm:gap-8 shrink-0">
                                 <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.bets')}</div>
+                                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('gameBid.bets')}</div>
                                     <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{bidsCount}</div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider">{t('gameBid.points')}</div>
+                                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('gameBid.points')}</div>
                                     <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{totalPoints}</div>
                                 </div>
                             </div>

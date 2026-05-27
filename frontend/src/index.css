@@ -209,9 +209,35 @@ html.theme-light #root {
   color: #92400e;
 }
 
-/* Game bid: in dark mode, use white instead of red text accents */
-.theme-dark .game-bid-page :is([class*="text-red-"], [class*="dark:text-red-"]) {
-  color: #ffffff !important;
+/* Game bid — light theme: muted grays must stay readable on #fff6f7 */
+.theme-light .game-bid-page :is(.text-gray-300, .text-gray-400) {
+  color: #4b5563;
+}
+
+.theme-light .game-bid-page .text-gray-500 {
+  color: #374151;
+}
+
+/* Game bid — dark theme: primary and muted text on #1a1114 */
+.theme-dark .game-bid-page .text-gray-900 {
+  color: #ffffff;
+}
+
+.theme-dark .game-bid-page :is(.text-gray-300, .text-gray-400, .text-gray-500) {
+  color: #d1d5db;
+}
+
+.theme-dark .game-bid-page .text-gray-600 {
+  color: #e5e7eb;
+}
+
+.theme-dark .game-bid-page .text-gray-700 {
+  color: #f3f4f6;
+}
+
+/* Red accent labels/values: white in dark, keep red tones in light */
+.theme-dark .game-bid-page :is([class*="text-red-"]) {
+  color: #f9fafb;
 }
 
 /* Desktop dashboard: Inter + filled icon typography */

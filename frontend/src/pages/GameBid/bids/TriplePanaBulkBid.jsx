@@ -204,7 +204,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
                     <div key={bid.id} className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm">
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
                         <div className="font-bold text-amber-800 dark:text-[#f2c14e]">{bid.points}</div>
-                        <div className="text-sm text-gray-400">{bid.type}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button type="button" onClick={() => handleDeleteBid(bid.id)} className="p-2 text-red-500 hover:text-red-600 active:scale-95" aria-label="Delete">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -243,11 +243,11 @@ const TriplePanaBulkBid = ({ market, title }) => {
 
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
                         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                            <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                            <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                             <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayCount}</div>
                         </div>
                         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                            <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                            <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                             <div className="text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight">{displayBetAmount}</div>
                         </div>
                     </div>
@@ -256,7 +256,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
                         <div>
                             <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
                                 <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Pana:</label>
+                                    <label className="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-28">Enter Pana:</label>
                                     <input
                                         type="text"
                                         inputMode="numeric"
@@ -268,7 +268,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                     />
                                 </div>
                                 <div className="flex flex-row items-center gap-2">
-                                    <label className="text-gray-300 text-sm font-medium shrink-0 w-28">Enter Points</label>
+                                    <label className="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-28">Enter Points</label>
                                     <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                         <input
                                             ref={pointsInputRef}
@@ -291,7 +291,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                 <QuickPointsRow
                                     value={inputPoints}
                                     onSelect={handleQuickPointClick}
-                                    labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                                    labelClassName="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
                                 />
                             </div>
                             <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">

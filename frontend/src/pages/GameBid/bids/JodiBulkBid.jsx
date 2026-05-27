@@ -426,11 +426,11 @@ const JodiBulkBid = ({ market, title }) => {
                 )}
                 <div className="grid grid-cols-2 gap-1.5 md:hidden px-1 mb-3">
                     <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
-                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                         <div className={statValueClass}>{rows.length}</div>
                     </div>
                     <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
-                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                         <div className={statValueClass}>{totalPoints}</div>
                     </div>
                 </div>
@@ -453,11 +453,11 @@ const JodiBulkBid = ({ market, title }) => {
                         </button>
                     </div>
                     <div className={`${statCardClass} min-w-[110px]`}>
-                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                         <div className={statValueClass}>{rows.length}</div>
                     </div>
                     <div className={`${statCardClass} min-w-[130px]`}>
-                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                         <div className={statValueClass}>{totalPoints}</div>
                     </div>
                 </div>

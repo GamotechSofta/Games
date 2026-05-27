@@ -277,11 +277,11 @@ const TriplePanaBid = ({ market, title }) => {
         <div className="space-y-2 md:space-y-3">
             <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
                 <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                     <div className={statValueClass}>{displayCount}</div>
                 </div>
                 <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                     <div className={statValueClass}>{displayBetAmount}</div>
                 </div>
             </div>

@@ -33,7 +33,7 @@ export default function QuickPointsRow({
     isSelected,
     values = QUICK_POINT_VALUES,
     label = 'Quick Points',
-    labelClassName = 'shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-400',
+    labelClassName = 'shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200',
     stackedLabel = false,
     stackedLabelSecondLine = 'Points',
     className = '',
@@ -79,12 +79,12 @@ export function QuickPointsInline({
     return (
         <div className={`flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap ${className}`.trim()}>
             {stackedLabel ? (
-                <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-400 shrink-0 leading-tight flex flex-col">
+                <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shrink-0 leading-tight flex flex-col">
                     <span>Quick</span>
                     <span>Points</span>
                 </span>
             ) : (
-                <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-400 shrink-0">Quick Points</span>
+                <span className="mr-1 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200 shrink-0">Quick Points</span>
             )}
             {values.map((pts) => (
                 <QuickPointButton

@@ -448,7 +448,7 @@ const EasyModeBid = ({
                     : 'w-full bg-white/20 text-gray-400 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed'
             );
 
-    const fieldLabelClass = isRedBidTheme ? 'text-gray-900 dark:text-gray-200' : 'text-gray-300';
+    const fieldLabelClass = isRedBidTheme ? 'text-gray-900 dark:text-gray-200' : 'text-gray-800 dark:text-gray-200';
     const valueInputClass = isRedBidTheme
         ? 'no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none'
         : 'no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none';
@@ -472,16 +472,16 @@ const EasyModeBid = ({
         : 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]';
     const tabInactiveClass = isRedBidTheme
         ? 'bg-white dark:bg-[#2a1d21] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'
-        : 'bg-white dark:bg-[#202124] text-gray-400 border-gray-200 dark:border-white/10 hover:border-gray-400';
+        : 'bg-white dark:bg-[#202124] text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:border-gray-400';
     const bidsHeaderClass = isRedBidTheme
         ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1'
         : 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1';
     const bidsDividerClass = isRedBidTheme ? 'h-px bg-red-200 dark:bg-white/20 w-full mb-2' : 'h-px bg-[#d4af37] w-full mb-2';
     const bidRowClass = isRedBidTheme
         ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm'
-        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white/5 rounded-lg border border-gray-200 dark:border-white/10 text-sm';
+        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-white';
     const bidPointTextClass = isRedBidTheme ? 'text-red-700 dark:text-red-300' : 'text-amber-800 dark:text-[#f2c14e]';
-    const bidTypeClass = isRedBidTheme ? 'text-sm text-gray-600 dark:text-gray-300' : 'text-sm text-gray-400';
+    const bidTypeClass = isRedBidTheme ? 'text-sm text-gray-600 dark:text-gray-300' : 'text-sm text-gray-600 dark:text-gray-300';
     const inlineSurfaceClass = isRedBidTheme
         ? 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#2a1d21] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5'
         : 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202124] md:border md:border-gray-200 dark:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
@@ -553,11 +553,11 @@ const EasyModeBid = ({
             </div>
             <div className="grid grid-cols-2 gap-2">
                 <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                     <div className={statValueClass}>{specialLiveStats.count}</div>
                 </div>
                 <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                     <div className={statValueClass}>{specialLiveStats.total}</div>
                 </div>
             </div>
@@ -945,9 +945,9 @@ const EasyModeBid = ({
                                 </div>
                             </>
                         ) : (
-                            <div className="bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-center text-gray-400">
+                            <div className="bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-center text-gray-600 dark:text-gray-300">
                                 <div className="text-gray-900 dark:text-white font-semibold mb-1">Special Mode</div>
-                                <div className="text-sm text-gray-400">This bet type uses Easy Mode only.</div>
+                                <div className="text-sm text-gray-600 dark:text-gray-300">This bet type uses Easy Mode only.</div>
                             </div>
                         )}
 
@@ -1072,7 +1072,7 @@ const EasyModeBid = ({
                         <QuickPointsRow
                             value={inputPoints}
                             onSelect={handleQuickPointClick}
-                            labelClassName="text-gray-300 text-sm font-medium shrink-0 w-28"
+                            labelClassName="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
                         />
                     )}
                 </div>

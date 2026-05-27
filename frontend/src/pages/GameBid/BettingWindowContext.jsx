@@ -72,7 +72,7 @@ function MarketClosedModal({ market, allowed }) {
                     <h2 id="market-closed-title" className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                         Market is closed
                     </h2>
-                    <p className="text-sm text-gray-400 mb-6">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
                         Betting for this market has ended. You will be taken to the home page.
                     </p>
                     <button

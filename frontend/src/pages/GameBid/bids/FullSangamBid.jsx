@@ -203,11 +203,11 @@ const FullSangamBid = ({ market, title }) => {
                         <div>
                             <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
                                 <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                    <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                                     <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bids.length}</div>
                                 </div>
                                 <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                    <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                                     <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
                                 </div>
                             </div>

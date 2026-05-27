@@ -19,16 +19,16 @@ function ResultSegment({ label, value, highlight }) {
   const pending = !value || /^[\*]+$/.test(value);
   return (
     <div className="flex flex-col items-center gap-0.5 min-w-0 flex-1 px-1">
-      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 w-full text-center truncate">
+      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-200 w-full text-center truncate">
         {label}
       </span>
       <span
         className={`font-extrabold tabular-nums tracking-wider text-sm sm:text-base leading-snug ${
           pending
-            ? 'text-gray-400 dark:text-gray-500'
+            ? 'text-gray-900 dark:text-white'
             : highlight
               ? 'text-emerald-700 dark:text-emerald-300'
-              : 'text-amber-700 dark:text-amber-300'
+              : 'text-gray-900 dark:text-white'
         }`}
       >
         {value || '—'}
@@ -44,7 +44,7 @@ function StatusBadge({ status, t }) {
     partial:
       'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
     pending:
-      'bg-gray-100 text-gray-500 border-gray-200 dark:bg-white/8 dark:text-gray-500 dark:border-white/10',
+      'bg-gray-100 text-gray-800 border-gray-200 dark:bg-white/10 dark:text-gray-100 dark:border-white/20',
   };
   const labels = {
     declared: t('bids.resultStatusDeclared'),
@@ -61,7 +61,7 @@ function StatusBadge({ status, t }) {
   );
 }
 
-function GameResultCard({ row, t }) {
+function GameResultCard({ row, t, compact = false }) {
   const parsed = parseDisplayResult(row.result);
   const timeRange = formatMarketTimeRange(row.startingTime, row.closingTime);
 
@@ -76,14 +76,18 @@ function GameResultCard({ row, t }) {
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0 flex-1">
-          <h3
-            className={`font-bold text-sm leading-tight truncate ${textPrimary}`}
-            title={row.name}
-          >
-            {row.name}
-          </h3>
+          {!compact ? (
+            <h3
+              className={`font-bold text-sm leading-tight truncate ${textPrimary}`}
+              title={row.name}
+            >
+              {row.name}
+            </h3>
+          ) : null}
           {timeRange ? (
-            <p className="mt-0.5 text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+            <p
+              className={`${compact ? '' : 'mt-0.5 '}text-[10px] text-gray-600 dark:text-gray-300 flex items-center gap-1`}
+            >
               <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -109,6 +113,30 @@ function GameResultCard({ row, t }) {
       </div>
     </article>
   );
+}
+
+/** Compact result strip for game-bid / bid-options when market has times or displayResult */
+export function MarketGameResultCard({ market, compact = true }) {
+  const { t } = useTranslation();
+  if (!market) return null;
+
+  const name = (market.gameName || market.marketName || '').toString().trim();
+  const hasResultMeta =
+    market.displayResult != null ||
+    market.result != null ||
+    market.startingTime ||
+    market.closingTime;
+  if (!name && !hasResultMeta) return null;
+
+  const row = {
+    id: market._id || market.id || name || 'market',
+    name: name.toUpperCase(),
+    result: (market.displayResult || market.result || '***-**-***').toString().trim(),
+    startingTime: market.startingTime,
+    closingTime: market.closingTime,
+  };
+
+  return <GameResultCard row={row} t={t} compact={compact} />;
 }
 
 export function GameResultsLoadingSkeleton({ count = 8 }) {

@@ -158,6 +158,74 @@ const evaluateBet = ({ market, betNumberRaw, amount, session, ratesMap }) => {
   return { state: 'won', kind, payout };
 };
 
+const HISTORY_SCOPE_TABS = [
+  {
+    scope: 'main',
+    path: '/bet-history',
+    labelKey: 'markets.markets',
+    ariaLabelKey: 'bids.betHistory',
+    activeClass:
+      'border-[#d4af37] bg-[#d4af37]/15 text-gray-900 dark:bg-[#d4af37]/20 dark:text-[#f2c14e] shadow-[0_0_0_1px_rgba(212,175,55,0.35)]',
+    idleClass:
+      'border-gray-200 bg-white text-gray-700 hover:border-[#d4af37]/50 dark:border-white/15 dark:bg-[#202124] dark:text-gray-300 dark:hover:border-[#d4af37]/40',
+  },
+  {
+    scope: 'starline',
+    path: '/starline-bet-history',
+    labelKey: 'markets.starline',
+    ariaLabelKey: 'bids.starlineBetHistory',
+    activeClass:
+      'border-red-500 bg-red-500/12 text-red-800 dark:bg-red-500/18 dark:text-red-200 shadow-[0_0_0_1px_rgba(239,68,68,0.35)]',
+    idleClass:
+      'border-gray-200 bg-white text-gray-700 hover:border-red-400/50 dark:border-white/15 dark:bg-[#202124] dark:text-gray-300 dark:hover:border-red-400/40',
+  },
+  {
+    scope: 'king',
+    path: '/king-bazaar-bet-history',
+    labelKey: 'markets.kingBazaar',
+    ariaLabelKey: 'bids.kingBazaarBetHistory',
+    activeClass:
+      'border-blue-500 bg-blue-500/12 text-blue-800 dark:bg-blue-500/18 dark:text-blue-200 shadow-[0_0_0_1px_rgba(59,130,246,0.35)]',
+    idleClass:
+      'border-gray-200 bg-white text-gray-700 hover:border-blue-400/50 dark:border-white/15 dark:bg-[#202124] dark:text-gray-300 dark:hover:border-blue-400/40',
+  },
+];
+
+function BetHistoryScopeTabs({ activeScope, onNavigate }) {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      className="mb-4 flex gap-2 overflow-x-auto scrollbar-hidden pb-0.5"
+      role="tablist"
+      aria-label={t('bids.betHistory')}
+    >
+      {HISTORY_SCOPE_TABS.map((tab) => {
+        const isActive =
+          tab.scope === activeScope ||
+          (tab.scope === 'starline' && activeScope === 'startline');
+        return (
+          <button
+            key={tab.scope}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => {
+              if (!isActive) onNavigate(tab.path);
+            }}
+            title={t(tab.ariaLabelKey || tab.labelKey)}
+            className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition-colors touch-manipulation sm:px-4 sm:text-sm ${
+              isActive ? tab.activeClass : tab.idleClass
+            }`}
+          >
+            {t(tab.labelKey)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -650,6 +718,11 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
             </svg>
           </button>
         </div>
+
+        <BetHistoryScopeTabs
+          activeScope={scope}
+          onNavigate={(path) => navigate(path)}
+        />
 
         {/* Cancel message */}
         {cancelMessage.text && (

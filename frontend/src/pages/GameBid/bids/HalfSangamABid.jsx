@@ -214,7 +214,7 @@ const HalfSangamABid = ({ market, title }) => {
 
                         <div className="flex flex-col gap-3">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Open Pana:</label>
+                                <label className="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-40">Enter Open Pana:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
@@ -242,7 +242,7 @@ const HalfSangamABid = ({ market, title }) => {
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Close Ank:</label>
+                                <label className="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-40">Enter Close Ank:</label>
                                 <input
                                     type="text"
                                     inputMode="numeric"
@@ -254,7 +254,7 @@ const HalfSangamABid = ({ market, title }) => {
                             </div>
 
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-300 text-sm font-medium shrink-0 w-40">Enter Points:</label>
+                                <label className="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-40">Enter Points:</label>
                                 <input
                                     ref={pointsInputRef}
                                     type="text"

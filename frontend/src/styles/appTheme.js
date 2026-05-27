@@ -81,8 +81,14 @@ export const bidBtnGhost =
 /** Gold accent text — readable on white (light) and dark panels */
 export const bidAccent = 'text-red-700 dark:text-red-300';
 export const bidAccentBold = 'font-bold text-red-700 dark:text-red-300';
-export const bidLabel = 'text-gray-600 dark:text-gray-400';
-export const bidLabelStrong = 'text-gray-700 dark:text-gray-200';
+export const bidLabel = 'text-gray-600 dark:text-gray-300';
+export const bidLabelStrong = 'text-gray-800 dark:text-gray-100';
+export const bidFieldLabel = 'text-gray-800 dark:text-gray-200';
+export const bidCountLabel = 'text-[11px] text-gray-600 dark:text-gray-300 font-medium';
+export const bidStatLabel =
+  'text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider';
+export const bidEmptyHint = 'text-gray-500 dark:text-gray-400';
+export const bidTypeText = 'text-sm text-gray-600 dark:text-gray-300';
 export const bidTableHeader =
   'bg-red-50 text-red-700 dark:bg-red-950/35 dark:text-red-200';
 export const bidStatValue = 'font-bold text-red-700 dark:text-red-300';

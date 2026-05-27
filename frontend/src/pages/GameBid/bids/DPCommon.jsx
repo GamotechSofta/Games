@@ -254,7 +254,7 @@ const DPCommon = ({ market, title }) => {
                         </div>
                         <div className="max-h-[240px] sm:max-h-[280px] overflow-y-auto flex-1 bg-white">
                             {generatedRows.length === 0 ? (
-                                <div className="py-6 text-center text-gray-400 text-sm">Enter digit and points to generate</div>
+                                <div className="py-6 text-center text-gray-500 dark:text-gray-400 text-sm">Enter digit and points to generate</div>
                             ) : (
                                 generatedRows.map((row) => (
                                     <div

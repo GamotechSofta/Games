@@ -233,11 +233,11 @@ const SpCommonBid = ({ market, title }) => {
                     <div className="md:hidden w-full px-3 py-1">
                         <div className="grid grid-cols-2 gap-1.5 md:gap-2">
                             <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                                 <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bidsCount}</div>
                             </div>
                             <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                                 <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
                             </div>
                         </div>
@@ -245,12 +245,12 @@ const SpCommonBid = ({ market, title }) => {
                     <div className="hidden md:flex pr-12 pl-1 pb-0 justify-end w-full">
                         <div className="inline-flex items-center gap-2 md:gap-4">
                             <div className="text-center">
-                                <div className="text-[10px] md:text-xs text-gray-500">Count</div>
+                                <div className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400">Count</div>
                                 <div className="text-xs md:text-base font-bold text-red-700 dark:text-red-300">{bidsCount}</div>
                             </div>
                             <div className="w-px h-6 md:h-8 bg-red-200 dark:bg-white/20" />
                             <div className="text-center">
-                                <div className="text-[10px] md:text-xs text-gray-500">Bet Amount</div>
+                                <div className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400">Bet Amount</div>
                                 <div className="text-xs md:text-base font-bold text-red-700 dark:text-red-300">{totalPoints}</div>
                             </div>
                         </div>
@@ -345,7 +345,7 @@ const SpCommonBid = ({ market, title }) => {
                         <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
                         <div className="max-h-[520px] sm:max-h-[560px] overflow-y-auto space-y-2 pr-0.5">
                             {generatedRows.length === 0 ? (
-                                <div className="py-6 text-center text-gray-400 text-sm">
+                                <div className="py-6 text-center text-gray-500 dark:text-gray-400 text-sm">
                                     Select digit(s) and enter points to generate
                                 </div>
                             ) : (

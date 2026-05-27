@@ -137,11 +137,11 @@ const OddEvenBid = ({ market, title }) => {
             <div className="w-full basis-full min-w-0 shrink-0 md:hidden px-3 py-1">
                 <div className="grid grid-cols-2 gap-1.5">
                     <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 text-center">
-                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                         <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bids.length}</div>
                     </div>
                     <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 text-center">
-                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                         <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
                     </div>
                 </div>
@@ -274,7 +274,7 @@ const OddEvenBid = ({ market, title }) => {
                             </div>
                         ))
                     ) : (
-                        <div className="px-3 py-4 text-center text-sm text-gray-400">No bids added yet.</div>
+                        <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">No bids added yet.</div>
                     )}
                 </div>
             </div>

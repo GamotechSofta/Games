@@ -252,11 +252,11 @@ const SinglePanaBulkBid = ({ market, title }) => {
 
                 <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1 mb-3">
                     <div className={statCardClass}>
-                        <div className="text-[11px] text-gray-400 font-medium">Count</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
                         <div className={statValueClass}>{specialCount}</div>
                     </div>
                     <div className={statCardClass}>
-                        <div className="text-[11px] text-gray-400 font-medium">Bet Amount</div>
+                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
                         <div className={statValueClass}>{selectedTotalPoints}</div>
                     </div>
                 </div>

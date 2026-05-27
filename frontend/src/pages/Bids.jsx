@@ -192,18 +192,6 @@ const Bids = () => {
       ),
     },
     {
-      key: 'game-results',
-      title: t('bids.gameResults'),
-      subtitle: t('bids.gameResultsSubtitle'),
-      theme: 'green',
-      color: '#22c55e',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-    {
       key: 'starline-bet-history',
       title: t('bids.starlineBetHistory'),
       subtitle: t('bids.starlineBetHistorySubtitle'),
@@ -224,6 +212,18 @@ const Bids = () => {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 3l3.5 7L12 3l3.5 7L19 3v18l-3.5-7L12 21l-3.5-7L5 21V3z" />
+        </svg>
+      ),
+    },
+    {
+      key: 'game-results',
+      title: t('bids.gameResults'),
+      subtitle: t('bids.gameResultsSubtitle'),
+      theme: 'green',
+      color: '#22c55e',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
       ),
     },
