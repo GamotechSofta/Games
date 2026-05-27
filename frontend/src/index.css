@@ -223,16 +223,28 @@ html.theme-light #root {
 }
 
 .dashboard-shell .dashboard-nav-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .dashboard-shell .dashboard-nav-label-sm {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.005em;
+}
+
+/* Sidebar width animation — single property, no child layout transitions */
+.sidebar-width-shell {
+  contain: layout style;
+  transition: width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-width-shell {
+    transition: none;
+  }
 }
 
 /* Mobile-first responsive base */

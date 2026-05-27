@@ -1,18 +1,45 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiMenu } from 'react-icons/hi';
+import { HiMenu, HiUser } from 'react-icons/hi';
 import { HiBell, HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
 import { useWallet } from '../hooks/useWallet';
 import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
+import { SIDEBAR_COLLAPSED_W } from './DesktopSidebar';
 
 export default function DashboardHeader({ activePanel, onPanelChange, sidebarCollapsed, onToggleSidebar }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { formattedBalance } = useWallet();
   const [notificationCount, setNotificationCount] = useState(0);
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null');
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const syncUser = () => {
+      try {
+        setUser(JSON.parse(localStorage.getItem('user') || 'null'));
+      } catch {
+        setUser(null);
+      }
+    };
+    syncUser();
+    window.addEventListener('userLogin', syncUser);
+    window.addEventListener('userLogout', syncUser);
+    window.addEventListener('storage', syncUser);
+    return () => {
+      window.removeEventListener('userLogin', syncUser);
+      window.removeEventListener('userLogout', syncUser);
+      window.removeEventListener('storage', syncUser);
+    };
+  }, []);
 
   const refreshNotificationCount = useCallback(() => {
     getNotificationUnreadCount().then(setNotificationCount);
@@ -31,35 +58,48 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
   }, [refreshNotificationCount]);
 
   return (
-    <header className="sticky top-0 z-50 shrink-0 border-b border-gray-200 bg-white px-5 py-3 font-sans shadow-sm dark:border-white/[0.08] dark:bg-[#141415] dark:shadow-none">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3 shrink-0 pl-2 lg:pl-3">
+    <header className="sticky top-0 z-50 shrink-0 border-b border-gray-200 bg-white font-sans shadow-sm dark:border-white/[0.08] dark:bg-[#141415] dark:shadow-none">
+      <div className="flex items-center py-3">
+        <div
+          className="flex shrink-0 items-center justify-center border-r border-gray-200 dark:border-white/[0.06]"
+          style={{ width: SIDEBAR_COLLAPSED_W }}
+        >
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:text-white dark:hover:bg-[#2a2b2e]"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:text-white dark:hover:bg-[#2a2b2e]"
             aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
             title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
           >
             <HiMenu className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
           </button>
+        </div>
+
+        <div className="flex min-w-0 flex-1 items-center gap-3 px-4">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="shrink-0 rounded-xl p-1 pl-3 lg:pl-4 transition-transform duration-200 hover:scale-[1.02]"
+            className="shrink-0 rounded-lg p-0.5 transition-transform duration-200 hover:scale-[1.02]"
             aria-label="Aakda home"
           >
-            <img
-              src="/aakdaLogo.png"
-              alt="Aakda"
-              className="h-10 w-auto object-contain pl-3 lg:pl-4"
-            />
+            <img src="/aakdaLogo.png" alt="Aakda" className="h-9 w-auto object-contain" />
           </button>
-        </div>
-        {onPanelChange && (
-          <DashboardNavPill activePanel={activePanel} onPanelChange={onPanelChange} />
-        )}
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {onPanelChange && (
+            <DashboardNavPill activePanel={activePanel} onPanelChange={onPanelChange} />
+          )}
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/funds?tab=add-fund')}
+            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
+            aria-label={t('navigation.funds')}
+          >
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formattedBalance}</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
+              <HiPlus className="h-4 w-4 text-white" />
+            </span>
+          </button>
+
           <button
             type="button"
             onClick={triggerApkDownload}
@@ -77,24 +117,28 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
           >
             <HiBell className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#e60000] text-white text-[10px] font-bold">
+              <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#e60000] px-1 text-[10px] font-bold text-white">
                 {notificationCount > 99 ? '99+' : notificationCount}
               </span>
             )}
           </button>
 
-          {/* Wallet button */}
           <button
             type="button"
-            onClick={() => navigate('/funds?tab=add-fund')}
-            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
+            onClick={() => navigate(user ? '/profile' : '/login')}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
+            title={user ? `${user.username} — ${t('common.view', { defaultValue: 'View' })} Profile` : t('sidebar.logIn')}
+            aria-label={user ? t('sidebar.account', { defaultValue: 'Account' }) : t('sidebar.logIn')}
           >
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formattedBalance}</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
-              <HiPlus className="h-4 w-4 text-white" />
-            </span>
+            {user ? (
+              <span className={`text-sm font-semibold ${iconColorClass(false)}`}>
+                {(user.username || 'U').charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <HiUser className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
+            )}
           </button>
-
+          </div>
         </div>
       </div>
     </header>

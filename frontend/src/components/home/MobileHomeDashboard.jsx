@@ -135,16 +135,16 @@ const TOP_GAME_TILES = [
   },
 ];
 
+const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
+const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 const MARKET_CARD_SCROLL_CLASS =
   'relative h-[160px] w-[calc((100%-0.625rem)/2)] min-w-[136px] max-w-[166px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[375px]:w-[calc((100%-0.75rem)/2.08)] min-[480px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[148px] min-[480px]:max-w-[182px]';
 const MARKET_CARD_GRID_CLASS =
-  'relative h-[150px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[158px] min-[430px]:h-[168px] min-[640px]:h-[176px]';
+  'relative h-[150px] w-full min-w-0 overflow-hidden rounded-[22px] bg-[#180707] min-[375px]:h-[158px] min-[430px]:h-[164px] min-[640px]:h-[170px]';
 const MARKET_CARD_SKELETON_BASE_CLASS =
   'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 min-[760px]:grid-cols-4 xl:grid-cols-5';
-const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
-const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
@@ -329,33 +329,29 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
 
 function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 'carousel' }) {
   const imageUrl = getMarketImageUrl(market.gameName);
-  const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, {
-    defaultValue: market.gameName,
-  });
+  const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
   const isGrid = layout === 'grid';
-  const isClosed = market.status === 'closed';
-  const isLive = liveVariant || market.status === 'running';
-  const statusLabel = isLive
+  const statusLabel = liveVariant
     ? t('homeMobile.live', { defaultValue: 'Live' })
-    : isClosed
+    : market.status === 'closed'
       ? t('markets.statusClosed', { defaultValue: 'Closed' })
       : t('markets.statusOpen', { defaultValue: 'Open' });
 
   const handlePrimaryAction = () => {
-    if (isClosed) {
+    if (market.status === 'closed') {
       navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
       return;
     }
     navigate('/bidoptions', { state: { market } });
   };
 
-  const popularStatusClass = isClosed
-    ? 'border-red-300/30 bg-red-500/18 text-white'
-    : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
-  const popularMarketCardImage = isClosed
-    ? POPULAR_MARKET_CARD_CLOSED_IMAGE
-    : POPULAR_MARKET_CARD_OPEN_IMAGE;
-  const cardShellClass = isGrid ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
+  const popularStatusClass =
+    market.status === 'closed'
+      ? 'border-red-300/30 bg-red-500/18 text-white'
+      : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
+  const popularMarketCardImage =
+    market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
+  const cardShellClass = layout === 'grid' ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
   const cardPaddingClass = isGrid ? 'p-3' : 'p-3.5';
   const statusWrapClass = isGrid ? 'pt-[22px]' : 'pt-8';
   const timeClass = isGrid
@@ -367,9 +363,7 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
   const resultClass = isGrid
     ? 'whitespace-nowrap text-[17px] font-black leading-none tracking-[0.05em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]'
     : 'whitespace-nowrap text-[18px] font-black leading-none tracking-[0.06em] text-[#ffc84d] drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]';
-  const actionClass = isGrid
-    ? 'mt-2 block w-full overflow-hidden text-center text-[10px] font-bold'
-    : 'mt-3 block w-full overflow-hidden text-center text-[11px] font-bold';
+  const actionClass = isGrid ? 'mt-2 block w-full overflow-hidden text-center text-[10px] font-bold' : 'mt-3 block w-full overflow-hidden text-center text-[11px] font-bold';
 
   return (
     <div className={cardShellClass}>
@@ -408,16 +402,18 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
           </div>
           <div className="px-0.5 text-center">
             <div className={resultClass}>
-              {market.result || '***-**-***'}
+              {market.result}
             </div>
           </div>
           <button
             type="button"
             onClick={handlePrimaryAction}
-            className={`${actionClass} ${isClosed ? 'text-red-300' : 'text-white/92'}`}
+            className={`${actionClass} ${
+              market.status === 'closed' ? 'text-red-300' : 'text-white/92'
+            }`}
           >
             <span className="block whitespace-nowrap">
-              {isClosed
+              {market.status === 'closed'
                 ? t('markets.runningForTomorrow')
                 : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
             </span>
@@ -605,7 +601,7 @@ export default function MobileHomeDashboard() {
               iconClassName="text-[#ff5a52]"
               title={t('dashboard.popularMarkets', { defaultValue: 'Popular Markets' })}
               actionLabel={t('dashboard.viewAll', { defaultValue: 'View All' })}
-              onAction={() => navigate('/markets?view=all')}
+              onAction={() => navigate('/markets')}
             />
             {loading ? (
               <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">

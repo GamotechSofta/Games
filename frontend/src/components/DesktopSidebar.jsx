@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
@@ -7,20 +7,23 @@ import {
   DashboardIcon,
   HiHome,
   HiCurrencyDollar,
-  HiUser,
   HiChatAlt2,
   HiClipboardList,
   HiCash,
   HiChartBar,
   HiLogout,
-  HiChevronRight,
   HiChevronDown,
   IconCasinoFilled,
+  IconStarlineFilled,
+  IconKingBazaarFilled,
   iconColorClass,
 } from './dashboard/dashboardIcons';
 
-const COLLAPSED_W = 104;
-const EXPANDED_W = 240;
+export const SIDEBAR_COLLAPSED_W = 72;
+export const SIDEBAR_EXPANDED_W = 200;
+
+const COLLAPSED_W = SIDEBAR_COLLAPSED_W;
+const EXPANDED_W = SIDEBAR_EXPANDED_W;
 
 const BETS_SECTION_PATHS = [
   '/bids',
@@ -29,9 +32,6 @@ const BETS_SECTION_PATHS = [
   '/king-bazaar-bet-history',
   '/market-result-history',
 ];
-
-const ACTIVE_SIDEBAR_LINE_CLASS =
-  'bg-[linear-gradient(90deg,rgba(127,29,29,0),#dc2626_20%,#ef4444_50%,#dc2626_80%,rgba(127,29,29,0))]';
 
 const MAIN_NAV = [
   {
@@ -53,13 +53,13 @@ const MAIN_NAV = [
     id: 'starline',
     labelKey: 'markets.starline',
     path: '/startline-dashboard',
-    letter: 'S',
+    icon: IconStarlineFilled,
   },
   {
     id: 'king-bazaar',
     labelKey: 'markets.kingBazaar',
     path: '/king-bazaar-market',
-    letter: 'K',
+    icon: IconKingBazaarFilled,
   },
   {
     id: 'markets',
@@ -99,34 +99,22 @@ function NavRow({
       onClick={onClick}
       title={collapsed ? label : undefined}
       className={[
-        'group relative flex w-full items-center overflow-hidden rounded-[12px] transition-all duration-[250ms]',
-        collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-3 py-2.5',
+        'group flex w-full items-center rounded-[10px] transition-colors duration-150',
+        collapsed ? 'flex-col justify-center gap-1 px-1 py-2 text-center' : 'gap-2.5 px-2.5 py-2',
         active
-          ? 'text-gray-900 dark:text-white'
+          ? 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-white'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-white dark:hover:bg-white/[0.04] dark:hover:text-white',
       ].join(' ')}
     >
-      {active && (
-        <>
-          <span
-            aria-hidden
-            className={`pointer-events-none absolute inset-x-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-          />
-          <span
-            aria-hidden
-            className={`pointer-events-none absolute inset-x-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-          />
-        </>
-      )}
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {letter ? (
-          <span className="text-[17px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>
+          <span className="text-[15px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>
         ) : (
-          <DashboardIcon Icon={Icon} active={active} />
+          <DashboardIcon Icon={Icon} active={active} size="sm" />
         )}
       </span>
       {collapsed && (
-        <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
+        <span className="dashboard-nav-label-sm max-w-[60px] whitespace-normal break-words text-center text-[9px] leading-[1.1] text-gray-700 dark:text-white/88">
           {label}
         </span>
       )}
@@ -153,41 +141,30 @@ function NavRow({
   );
 }
 
-export default function DesktopSidebar({ collapsed }) {
+function DesktopSidebar({ collapsed }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const [openMenus, setOpenMenus] = useState({ casino: true });
   const [hoveredFlyoutId, setHoveredFlyoutId] = useState(null);
-
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null');
-    } catch {
-      return null;
-    }
-  });
-
-  useEffect(() => {
-    const sync = () => {
-      try {
-        setUser(JSON.parse(localStorage.getItem('user') || 'null'));
-      } catch {
-        setUser(null);
-      }
-    };
-    sync();
-    window.addEventListener('userLogin', sync);
-    window.addEventListener('userLogout', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener('userLogin', sync);
-      window.removeEventListener('userLogout', sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
+  const [flyoutAnchor, setFlyoutAnchor] = useState(null);
 
   const width = collapsed ? COLLAPSED_W : EXPANDED_W;
+
+  const showFlyoutFor = useCallback(
+    (id, el) => {
+      if (!collapsed || !el) return;
+      const rect = el.getBoundingClientRect();
+      setFlyoutAnchor({ id, top: rect.top, left: rect.right + 4 });
+      setHoveredFlyoutId(id);
+    },
+    [collapsed],
+  );
+
+  const hideFlyout = useCallback(() => {
+    setHoveredFlyoutId(null);
+    setFlyoutAnchor(null);
+  }, []);
 
   const toggleMenu = (id) => {
     setOpenMenus((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -205,50 +182,16 @@ export default function DesktopSidebar({ collapsed }) {
 
   return (
     <div
-      className="relative z-40 hidden h-full min-h-0 shrink-0 overflow-visible transition-[width] duration-300 ease-in-out md:flex"
+      className="sidebar-width-shell relative z-40 hidden h-full min-h-0 shrink-0 overflow-hidden md:flex"
       style={{ width }}
     >
       <aside
-        className="relative flex h-full w-full flex-col overflow-visible border-r border-gray-200 bg-white font-sans transition-[width] duration-300 ease-in-out dark:border-white/[0.06] dark:bg-[#1d1e20]"
+        className="relative flex h-full flex-col border-r border-gray-200 bg-white font-sans dark:border-white/[0.06] dark:bg-[#1d1e20]"
+        style={{ width: EXPANDED_W }}
         aria-label={t('sidebar.expand')}
       >
-        <div className="flex min-h-0 flex-1 flex-col px-2">
-          {/* Scrollable: profile, promo, main nav */}
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden py-3">
-        {/* Log in */}
-        <button
-          type="button"
-          onClick={() => go(user ? '/profile' : '/login')}
-          className={[
-            'mb-3 flex w-full items-center rounded-[14px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
-            collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-2 py-2',
-          ].join(' ')}
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 dark:bg-[#2a2a2a] dark:text-white/60">
-            {user ? (
-              <span className="text-sm font-semibold text-gray-900 dark:text-white/90">
-                {(user.username || 'U').charAt(0).toUpperCase()}
-              </span>
-            ) : (
-              <HiUser className="h-5 w-5 text-[#b0b0b0]" />
-            )}
-          </span>
-          {collapsed && (
-            <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
-              {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
-            </span>
-          )}
-          {!collapsed && (
-            <>
-              <span className="dashboard-nav-label flex-1 truncate text-left text-[15px] text-gray-900 dark:text-white">
-                {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
-              </span>
-              <HiChevronRight className={`h-4 w-4 shrink-0 ${iconColorClass(false)}`} />
-            </>
-          )}
-        </button>
-
-        {/* Main nav */}
+        <div className="flex min-h-0 flex-1 flex-col px-1.5">
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden py-2">
         <nav className="flex flex-col gap-0.5">
           {MAIN_NAV.map((item) => {
             const active = isItemActive(item);
@@ -263,11 +206,11 @@ export default function DesktopSidebar({ collapsed }) {
               <div
                 key={item.id}
                 className="relative"
-                onMouseEnter={() => {
-                  if (collapsed && hasChildren) setHoveredFlyoutId(item.id);
+                onMouseEnter={(e) => {
+                  if (collapsed && hasChildren) showFlyoutFor(item.id, e.currentTarget);
                 }}
                 onMouseLeave={() => {
-                  if (collapsed) setHoveredFlyoutId(null);
+                  if (collapsed) hideFlyout();
                 }}
               >
                 <NavRow
@@ -289,41 +232,32 @@ export default function DesktopSidebar({ collapsed }) {
                   }}
                 />
                 {hasChildren && open && !collapsed && (
-                  <div className="mb-1 ml-9 flex flex-col gap-0.5 border-l border-gray-200 pl-2 dark:border-white/[0.06]">
+                  <div className="mb-1 ml-7 flex flex-col gap-0.5 border-l border-gray-200 pl-1.5 dark:border-white/[0.06]">
                     {item.children.map((child) => (
                       <button
                         key={child.path}
                         type="button"
                         onClick={() => go(child.path)}
                         className={[
-                          'dashboard-nav-label-sm relative overflow-hidden rounded-[10px] px-2 py-1.5 text-left transition-all duration-[250ms]',
+                          'dashboard-nav-label-sm rounded-[10px] px-2 py-1.5 text-left transition-colors duration-150',
                           pathMatches(location.pathname, child.path)
-                            ? 'font-medium text-gray-900 dark:text-white'
+                            ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.06] dark:text-white'
                             : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 dark:text-white dark:hover:text-white dark:hover:bg-white/[0.04]',
                         ].join(' ')}
                       >
-                        {pathMatches(location.pathname, child.path) && (
-                          <>
-                            <span
-                              aria-hidden
-                              className={`pointer-events-none absolute inset-x-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                            />
-                            <span
-                              aria-hidden
-                              className={`pointer-events-none absolute inset-x-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                            />
-                          </>
-                        )}
                         {t(child.labelKey)}
                       </button>
                     ))}
                   </div>
                 )}
-                {showCollapsedFlyout && (
+                {showCollapsedFlyout && flyoutAnchor?.id === item.id && (
                   <div
-                    className="absolute left-full top-0 z-[120] ml-1 min-w-[200px] pl-1"
+                    className="fixed z-[120] min-w-[200px]"
+                    style={{ top: flyoutAnchor.top, left: flyoutAnchor.left }}
                     role="menu"
                     aria-label={t(item.labelKey)}
+                    onMouseEnter={() => setHoveredFlyoutId(item.id)}
+                    onMouseLeave={hideFlyout}
                   >
                     <div className="rounded-xl border border-gray-200 bg-white py-1.5 shadow-lg dark:border-white/[0.08] dark:bg-[#1d1e20] dark:shadow-[0_12px_40px_rgba(0,0,0,0.55)]">
                       <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white">
@@ -336,24 +270,12 @@ export default function DesktopSidebar({ collapsed }) {
                           role="menuitem"
                           onClick={() => go(child.path)}
                           className={[
-                            'dashboard-nav-label-sm relative block w-full overflow-visible rounded-lg px-3 py-2 text-left transition-all duration-[200ms]',
+                            'dashboard-nav-label-sm block w-full rounded-lg px-3 py-2 text-left transition-colors duration-150',
                             pathMatches(location.pathname, child.path)
-                              ? 'font-medium text-gray-900 dark:text-white'
+                              ? 'bg-gray-100 font-medium text-gray-900 dark:bg-white/[0.08] dark:text-white'
                               : 'text-gray-600 hover:bg-gray-50 dark:text-white dark:hover:bg-white/[0.05] dark:hover:text-white',
                           ].join(' ')}
                         >
-                          {pathMatches(location.pathname, child.path) && (
-                            <>
-                              <span
-                                aria-hidden
-                                className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                              />
-                              <span
-                                aria-hidden
-                                className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                              />
-                            </>
-                          )}
                           {t(child.labelKey)}
                         </button>
                       ))}
@@ -365,7 +287,7 @@ export default function DesktopSidebar({ collapsed }) {
           })}
         </nav>
 
-        <nav className="mt-3 flex flex-col gap-0.5 border-t border-gray-200 pt-3 dark:border-white/[0.06]">
+        <nav className="mt-2 flex flex-col gap-0.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]">
           {ACCOUNT_NAV.map((item) => {
             const active =
               item.id === 'myBets'
@@ -397,43 +319,32 @@ export default function DesktopSidebar({ collapsed }) {
         </div>
 
         {/* Sticky bottom: locale and support */}
-        <div className="relative flex shrink-0 flex-col gap-3 bg-gray-50 px-1 py-3 dark:bg-[#1d1e20]">
+        <div className="relative flex shrink-0 flex-col gap-2 bg-gray-50 px-0.5 py-2 dark:bg-[#1d1e20]">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 -top-10 h-10 bg-[linear-gradient(180deg,rgba(249,250,251,0),rgba(243,244,246,0.92)_52%,#f9fafb_100%)] dark:bg-[linear-gradient(180deg,rgba(29,30,32,0),rgba(26,27,29,0.88)_52%,#1d1e20_100%)]"
           />
           <SidebarLocaleSettings collapsed={collapsed} />
-          <div className="border-t border-gray-200 pt-3 flex flex-col gap-3 dark:border-white/[0.06]">
+          <div className="flex flex-col gap-2 border-t border-gray-200 pt-2 dark:border-white/[0.06]">
           {/* Support 24/7 */}
           <button
             type="button"
             onClick={() => go('/support')}
             className={[
-              'relative flex w-full items-center overflow-visible rounded-[12px] transition-all duration-[250ms] hover:bg-gray-50 dark:hover:bg-white/[0.04]',
-              collapsed ? 'flex-col justify-center gap-1.5 px-1.5 py-2.5 text-center' : 'gap-3 px-3 py-2.5',
+              'flex w-full items-center rounded-[12px] transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-white/[0.04]',
+              collapsed ? 'flex-col justify-center gap-1 px-1 py-2 text-center' : 'gap-2.5 px-2.5 py-2',
               pathMatches(location.pathname, '/support')
-                ? 'text-gray-900 dark:text-white'
+                ? 'bg-gray-100 dark:bg-white/[0.08]'
                 : 'text-gray-600 dark:text-white',
             ].join(' ')}
           >
-            {pathMatches(location.pathname, '/support') && (
-              <>
-                <span
-                  aria-hidden
-                  className={`pointer-events-none absolute -left-2 -right-2 top-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                />
-                <span
-                  aria-hidden
-                  className={`pointer-events-none absolute -left-2 -right-2 bottom-0 h-px ${ACTIVE_SIDEBAR_LINE_CLASS}`}
-                />
-              </>
-            )}
             <DashboardIcon
               Icon={HiChatAlt2}
               active={pathMatches(location.pathname, '/support')}
+              size="sm"
             />
             {collapsed && (
-              <span className="dashboard-nav-label-sm max-w-[76px] whitespace-normal break-words text-center text-[10px] leading-[1.15] text-gray-700 dark:text-white/88">
+              <span className="dashboard-nav-label-sm max-w-[60px] whitespace-normal break-words text-center text-[9px] leading-[1.1] text-gray-700 dark:text-white/88">
                 {t('sidebar.support')}
               </span>
             )}
@@ -455,3 +366,5 @@ export default function DesktopSidebar({ collapsed }) {
     </div>
   );
 }
+
+export default memo(DesktopSidebar);

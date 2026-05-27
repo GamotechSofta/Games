@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
-import { FaThLarge } from 'react-icons/fa';
-import { MdLocalFireDepartment, MdOutlineLiveTv } from 'react-icons/md';
+import { MdLocalFireDepartment } from 'react-icons/md';
 import { API_BASE_URL } from '../config/api';
 import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
@@ -28,7 +27,13 @@ const getMarketStatus = (market) => {
   return { status: 'open', timer: null };
 };
 
-function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction = true }) {
+const ALL_MARKETS_GRID_CLASS =
+  'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 min-[760px]:grid-cols-4 xl:grid-cols-5';
+
+const MARKET_CARD_SKELETON_CLASS =
+  'relative h-[168px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] sm:h-[176px]';
+
+function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction = true, layout = 'grid' }) {
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
 
@@ -36,25 +41,33 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction =
 
   return (
     <section className="mb-6 w-full">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Icon className={`w-5 h-5 ${theme.iconColor}`} />
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon className={`h-5 w-5 shrink-0 ${theme.iconColor}`} />
           <h2 className="text-base font-bold text-gray-900 dark:text-white">{t(titleKey)}</h2>
         </div>
         {showAction ? (
-          <button type="button" className={`text-sm font-medium hover:underline shrink-0 ${theme.viewAll}`}>
+          <button type="button" className={`shrink-0 text-sm font-medium hover:underline ${theme.viewAll}`}>
             {t('dashboard.viewAll')}
           </button>
         ) : null}
       </div>
 
-      <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
-        {markets.map((market, i) => (
-          <div key={market.id} className="w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]">
-            <MarketCard market={market} index={i} section={section} />
-          </div>
-        ))}
-      </div>
+      {layout === 'grid' ? (
+        <div className={ALL_MARKETS_GRID_CLASS}>
+          {markets.map((market, i) => (
+            <MarketCard key={market.id} market={market} index={i} section={section} />
+          ))}
+        </div>
+      ) : (
+        <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
+          {markets.map((market, i) => (
+            <div key={market.id} className="w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]">
+              <MarketCard market={market} index={i} section={section} />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -130,24 +143,21 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
 
   useRefreshOnMarketReset(fetchMarkets);
 
-  const popularMarkets = filteredMarkets.filter((m) => m.showInPopular).slice(0, 12);
-  const liveMarkets = filteredMarkets
-    .filter((m) => m.status === 'open' || m.status === 'running')
-    .slice(0, 12);
   const allMarkets = filteredMarkets;
+
+  const gridSkeleton = (
+    <div className={ALL_MARKETS_GRID_CLASS}>
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div key={i} className={`${MARKET_CARD_SKELETON_CLASS} skeleton-shimmer`} />
+      ))}
+    </div>
+  );
+
   if (loading) {
     return (
-      <div id="market-sections" className="space-y-6">
-        {[1, 2].map((s) => (
-          <div key={s}>
-            <div className="h-5 w-40 bg-gray-200 dark:bg-[#1a1a1a] rounded skeleton-shimmer mb-3" />
-            <div className="scrollbar-hidden flex w-full gap-3 overflow-x-auto pb-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-[176px] w-[170px] min-w-[170px] shrink-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616] md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]" />
-              ))}
-            </div>
-          </div>
-        ))}
+      <div id="market-sections">
+        <div className="mb-3 h-5 w-48 rounded bg-gray-200 skeleton-shimmer dark:bg-[#1a1a1a]" />
+        {gridSkeleton}
       </div>
     );
   }
@@ -172,6 +182,8 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
             icon={MdLocalFireDepartment}
             section="popular"
             markets={filteredMarkets}
+            showAction={false}
+            layout="grid"
           />
         ) : (
           <div className="text-center py-12 bg-white dark:bg-[#161616] rounded-xl border border-gray-200 dark:border-white/[0.08]">
@@ -191,33 +203,15 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
     );
   }
 
-  if (viewMode === 'all') {
-    return (
-      <div id="market-sections">
-        <MarketRow
-          titleKey="dashboard.allMarkets"
-          icon={FaThLarge}
-          section="popular"
-          markets={allMarkets}
-          showAction={false}
-        />
-      </div>
-    );
-  }
-
   return (
     <div id="market-sections">
       <MarketRow
-        titleKey="dashboard.popularMarkets"
+        titleKey="dashboard.allMarkets"
         icon={MdLocalFireDepartment}
         section="popular"
-        markets={popularMarkets}
-      />
-      <MarketRow
-        titleKey="dashboard.liveMarkets"
-        icon={MdOutlineLiveTv}
-        section="live"
-        markets={liveMarkets.length ? liveMarkets : filteredMarkets.slice(0, 12)}
+        markets={allMarkets}
+        showAction={false}
+        layout="grid"
       />
     </div>
   );

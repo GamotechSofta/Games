@@ -51,6 +51,24 @@ export function IconCasinoFilled({ className = '' }) {
   );
 }
 
+/** Filled star — Starline */
+export function IconStarlineFilled({ className = '' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2.7l2.58 5.23 5.77.84-4.18 4.08.98 5.75L12 15.86 6.85 18.6l.98-5.75L3.65 8.77l5.77-.84L12 2.7z" />
+    </svg>
+  );
+}
+
+/** Filled crown — King Bazaar */
+export function IconKingBazaarFilled({ className = '' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M4 18.5h16l-1.15-8.26-4.23 3.2L12 5.5l-2.62 7.94-4.23-3.2L4 18.5zm3.5-2h9a1 1 0 100-2h-9a1 1 0 100 2z" />
+    </svg>
+  );
+}
+
 /** Filled soccer ball */
 export function IconSportsFilled({ className = '' }) {
   return (

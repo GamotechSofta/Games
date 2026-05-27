@@ -125,7 +125,7 @@
     "catCasino": "Casino",
     "catSkillGames": "Skill games",
     "catMarkets": "Markets",
-    "catKingBazaar": "King bazaar",
+    "catKingBazaar": "King Bazaar",
     "jackpot": "JACKPOT",
     "bigWinner": "BIG WINNER"
   },
@@ -539,7 +539,7 @@
   },
   "bidOptions": {
     "selectMarket": "SELECT MARKET",
-    "starlineMarket": "STARLINE MARKET",
+    "starlineMarket": "Starline Market",
     "firstDigit": "First Digit",
     "secondDigit": "Second Digit"
   },
@@ -640,7 +640,7 @@
     "tapToPlay": "Tap to Play"
   },
   "startlineDashboard": {
-    "title": "STARLINE DASHBOARD",
+    "title": "Starline Dashboard",
     "chooseMarket": "Choose a market to view hourly slots and play.",
     "noMarkets": "No starline markets. Admin can add them in Starline tab.",
     "wallet": "Wallet"
@@ -682,8 +682,8 @@
     "skillsGames": "Skills Games",
     "skillsGamesLine1": "Skills",
     "skillsGamesLine2": "Games",
-    "starline": "STARLINE",
-    "kingBazaar": "KING BAZAAR",
+    "starline": "Starline",
+    "kingBazaar": "King Bazaar",
     "tapToPlay": "Tap to Play",
     "noMarketsAvailable": "No markets available",
     "marketIsOpen": "MARKET IS OPEN",

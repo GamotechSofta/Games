@@ -43,15 +43,15 @@ export default function SidebarLocaleSettings({ collapsed }) {
   const ThemeIcon = theme === 'light' ? HiSun : HiMoon;
 
   const btnClass = collapsed
-    ? 'flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]'
-    : 'flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2.5 text-left text-gray-800 transition-colors hover:bg-gray-200 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-white/80 dark:hover:bg-[#333]';
+    ? 'flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]'
+    : 'flex w-full items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 text-left text-gray-800 transition-colors hover:bg-gray-200 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-white/80 dark:hover:bg-[#333]';
 
   return (
     <div
       className={
         collapsed
-          ? 'flex flex-col items-center gap-2 border-t border-gray-200 pt-3 dark:border-white/[0.06]'
-          : 'flex flex-col gap-2 border-t border-gray-200 pt-3 dark:border-white/[0.06]'
+          ? 'flex flex-col items-center gap-1.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]'
+          : 'flex flex-col gap-1.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]'
       }
     >
       {/* Theme — click toggles light/dark (no dropdown) */}
@@ -64,7 +64,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
         aria-label={t('theme.label')}
         title={t(theme === 'light' ? 'theme.dark' : 'theme.light')}
       >
-        <ThemeIcon className="h-5 w-5 shrink-0" />
+        <ThemeIcon className="h-4 w-4 shrink-0" />
         {!collapsed && (
           <span className="dashboard-nav-label flex-1">
             {t(theme === 'light' ? 'theme.light' : 'theme.dark')}
@@ -91,7 +91,7 @@ export default function SidebarLocaleSettings({ collapsed }) {
           className={btnClass}
           aria-label={t('header.language')}
         >
-          <LanguageIcon code={currentLang.code} className="h-5 w-5 shrink-0" />
+          <LanguageIcon code={currentLang.code} className="h-4 w-4 shrink-0" />
           {!collapsed && (
             <>
               <span className="dashboard-nav-label flex-1 truncate">{currentLang.label}</span>
