@@ -491,7 +491,6 @@ const BidOptions = () => {
             </span>
           </div>
         ))}
-        </div>
       </div>
     </div>
   );
