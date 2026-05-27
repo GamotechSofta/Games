@@ -118,7 +118,7 @@ const AppHeader = () => {
               : 'py-1.5 sm:py-2 md:py-2 pt-[max(0.5rem,calc(0.25rem+env(safe-area-inset-top,0px)))] sm:pt-[max(0.5rem,calc(0.375rem+env(safe-area-inset-top,0px)))] md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]'
           }`}
       >
-        <div className={`flex flex-col ${isDashboardRoute ? 'gap-1.5' : 'gap-2'}`}>
+        <div className="flex flex-col gap-1.5">
           {isDashboardRoute && <MobileInstallBanner />}
 
           {isDashboardRoute ? (
@@ -126,13 +126,13 @@ const AppHeader = () => {
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="min-w-0 shrink-0 rounded-lg p-0.5 transition-transform duration-200 active:scale-[0.98]"
+                className="min-w-0 shrink-0 rounded-xl p-0.5 transition-transform duration-200 active:scale-[0.98]"
                 aria-label="Aakda home"
               >
                 <img
                   src={aakdaLogo}
                   alt="Aakda"
-                  className="h-8 w-auto max-w-[128px] object-contain sm:h-9 sm:max-w-[140px]"
+                  className="h-8 w-auto max-w-[126px] object-contain"
                 />
               </button>
 
@@ -140,11 +140,11 @@ const AppHeader = () => {
                 <button
                   type="button"
                   onClick={triggerApkDownload}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] sm:h-9 sm:w-9"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
                   aria-label={t('header.downloadApp')}
                   title={t('header.downloadApp')}
                 >
-                  <svg className="h-4 w-4 text-gray-700 dark:text-white sm:h-[18px] sm:w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <svg className="h-4 w-4 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </button>
@@ -152,15 +152,15 @@ const AppHeader = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/notifications')}
-                  className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] sm:h-9 sm:w-9"
+                  className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
                   aria-label="Notifications"
                   title="Notifications"
                 >
-                  <svg className="h-4 w-4 text-gray-700 dark:text-white sm:h-[18px] sm:w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <svg className="h-4 w-4 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e60000] px-1 text-[9px] font-bold text-white sm:h-[18px] sm:min-w-[18px] sm:text-[10px]">
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e60000] px-1 text-[9px] font-bold text-white">
                       {notificationCount > 99 ? '99+' : notificationCount}
                     </span>
                   )}
@@ -169,13 +169,13 @@ const AppHeader = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/funds?tab=add-fund')}
-                  className="flex min-w-0 shrink items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none sm:gap-2 sm:rounded-xl sm:py-1.5 sm:pl-3 sm:pr-1.5"
+                  className="flex min-w-0 max-w-[148px] items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
                 >
-                  <span className="max-w-[84px] truncate text-[13px] font-bold text-gray-900 dark:text-white sm:max-w-[96px] sm:text-sm sm:font-semibold">
+                  <span className="truncate text-[13px] font-semibold leading-none text-gray-900 dark:text-white">
                     {formattedBalance}
                   </span>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#e60000] sm:h-7 sm:w-7 sm:rounded-lg">
-                    <svg className="h-3.5 w-3.5 text-white sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#e60000]">
+                    <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z" />
                     </svg>
                   </span>

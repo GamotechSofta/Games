@@ -724,7 +724,7 @@ const Bids = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pl-3 pr-3 sm:pl-4 sm:pr-4 pt-0 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
       <style>{`
         .hide-scrollbar {
           scrollbar-width: none; /* Firefox */
@@ -736,7 +736,7 @@ const Bids = () => {
           height: 0;
         }
       `}</style>
-      <div className="w-full max-w-lg md:max-w-none mx-auto md:mx-0">
+      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pt-5 lg:px-6 xl:px-8">
         <div className="mb-6 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
           <div className="flex items-center gap-3">
             <button
@@ -790,7 +790,7 @@ const Bids = () => {
             className={
               (isAnyHistoryPanel || isGameResultsPanel)
                 ? 'bg-transparent border-0 shadow-none p-0'
-                : 'rounded-2xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 shadow-[0_12px_24px_rgba(0,0,0,0.35)] p-6'
+                : 'p-6'
             }
           >
             {(isAnyHistoryPanel || isGameResultsPanel) ? null : (

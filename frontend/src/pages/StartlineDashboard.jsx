@@ -105,10 +105,10 @@ const StartlineDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-3">
+    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-5 md:px-8">
         {/* Header row (as per screenshot, in our theme) */}
-        <div className="flex items-center justify-between gap-3 md:rounded-3xl md:border md:border-gray-200 dark:md:border-white/10 md:bg-white md:px-6 md:py-5 md:shadow-md dark:md:bg-[#111113] dark:md:shadow-[0_18px_48px_rgba(0,0,0,0.55)]">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
