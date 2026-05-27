@@ -43,7 +43,7 @@ export default function MyBetsBetHistoryPanel({
     if (!verdict) return { text: '—', className: 'text-gray-500' };
     if (verdict.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
     if (verdict.state === 'lost') return { text: t('bids.status.lost'), className: 'text-red-400 font-semibold' };
-    if (verdict.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-400 font-semibold' };
+    if (verdict.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-600 dark:text-orange-400 font-semibold' };
     return { text: t('bids.status.pending'), className: 'text-amber-400/90 font-medium' };
   };
 
@@ -86,21 +86,22 @@ export default function MyBetsBetHistoryPanel({
               return (
                 <div
                   key={betId}
-                  className={`relative rounded-lg border-2 bg-white dark:bg-[#202124] p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
+                  className={`relative rounded-lg border-2 p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
+                    verdict?.state === 'cancelled'
+                      ? 'bg-orange-50 dark:bg-[#202124] border-orange-400'
+                      : 'bg-white dark:bg-[#202124] ' + (
                     verdict?.state === 'won'
                       ? 'border-[#43b36a]'
                       : verdict?.state === 'lost'
                         ? 'border-red-500'
                         : verdict?.state === 'pending'
                           ? 'border-amber-500'
-                          : verdict?.state === 'cancelled'
-                            ? 'border-orange-400'
-                            : 'border-gray-200 dark:border-white/10'
-                  }`}
+                          : 'border-gray-200 dark:border-white/10'
+                  )}`}
                 >
                   {verdict?.state === 'cancelled' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 pointer-events-none">
-                      <svg className="w-12 h-12 text-orange-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="absolute inset-0 flex items-center justify-center bg-orange-100/60 dark:bg-black/50 z-10 pointer-events-none">
+                      <svg className="w-12 h-12 text-orange-600 dark:text-orange-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
                     </div>
@@ -110,10 +111,10 @@ export default function MyBetsBetHistoryPanel({
                     {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
                   </div>
                   <div className="flex justify-between items-center gap-1 text-[10px]">
-                    <span className="text-gray-400 shrink-0">{t('bids.betIdLabel')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.betIdLabel')}</span>
                     <span className="flex items-center gap-1 min-w-0">
-                      <span className="font-mono text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
+                      <span className="font-mono text-gray-700 dark:text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-500 dark:text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                       </button>
                     </span>
@@ -123,26 +124,26 @@ export default function MyBetsBetHistoryPanel({
                       {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                     </div>
                   )}
-                  <p className="text-[10px] text-gray-400 truncate" title={marketTitle}>{String(marketTitle).toUpperCase() || 'MARKET'}</p>
+                  <p className="text-[10px] text-gray-600 dark:text-gray-400 truncate" title={marketTitle}>{String(marketTitle).toUpperCase() || 'MARKET'}</p>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">{t('bids.gameLabel')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.gameLabel')}</span>
                     <span className="text-gray-900 dark:text-white font-medium truncate">{gameType}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">{t('bids.betLabel')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.betLabel')}</span>
                     <span className="text-gray-900 dark:text-white font-bold truncate">{betValue}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs">
-                    <span className="text-gray-400 shrink-0">{t('bids.pointsLabel')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.pointsLabel')}</span>
                     <span className="text-gray-900 dark:text-white font-semibold">{points}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-xs items-center min-w-0">
-                    <span className="text-gray-400 shrink-0">{t('bids.statusLabel')}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.statusLabel')}</span>
                     <span className={`${status.className} truncate text-[10px]`}>{status.text}{verdict?.state === 'won' && verdict?.payout > 0 ? ` ₹${Number(verdict.payout).toLocaleString('en-IN')}` : ''}</span>
                   </div>
                   <div className="flex justify-between gap-1 text-[10px]">
-                    <span className="text-gray-400 shrink-0">{t('bids.timeLabel')}</span>
-                    <span className="text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
+                    <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.timeLabel')}</span>
+                    <span className="text-gray-600 dark:text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                   </div>
                   {verdict?.state === 'pending' && canCancel?.canCancel && (
                     <div className="pt-1.5 border-t border-gray-200 dark:border-white/10">
