@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config/api';
-import ResultDatePicker from '../components/ResultDatePicker';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
-import MyBetsGameResultsPanel from './bids/MyBetsGameResultsPanel';
-import { iconBtn, textPrimary } from '../styles/appTheme';
+import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBetsGameResultsPanel';
+import { backBtn, pageShell, textPrimary } from '../styles/appTheme';
 
 const toDateKeyIST = (d) => {
   try {
@@ -62,52 +61,44 @@ const MarketResultHistory = () => {
       id: x?._id || `${x?.marketId || ''}-${x?.dateKey || ''}`,
       name: (x?.marketName || '').toString().trim().toUpperCase(),
       result: (x?.displayResult || '***-**-***').toString().trim(),
+      startingTime: x?.startingTime || null,
+      closingTime: x?.closingTime || null,
     }));
     mapped.sort((a, b) => a.name.localeCompare(b.name));
     return mapped.filter((x) => x.name);
   }, [results]);
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-3 sm:px-4 pt-3 pb-28">
-      <div className="w-full max-w-3xl md:max-w-5xl mx-auto">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() => navigate('/bids', { replace: true })}
-              className={`w-10 h-10 shrink-0 ${iconBtn}`}
-              aria-label={t('common.back')}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className={`text-lg sm:text-xl font-extrabold tracking-wide truncate ${textPrimary}`}>
-              {t('bids.marketResultHistory')}
-            </h1>
-          </div>
-          <div className="shrink-0 hidden sm:block">
-            <ResultDatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
-              maxDate={new Date()}
-              label={t('bids.selectDate')}
-              buttonClassName="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-900 font-bold text-sm shadow-sm hover:border-amber-400 dark:bg-[#202124] dark:border-white/10 dark:text-white dark:hover:border-[#d4af37]/40 transition-colors"
-            />
-          </div>
+    <div className={`${pageShell} px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 pt-3 pb-[calc(5rem+env(safe-area-inset-bottom,0px))]`}>
+      <div className="w-full max-w-3xl md:max-w-6xl mx-auto flex flex-col gap-3">
+        {/* Header */}
+        <div className="flex items-center gap-3 overflow-visible">
+          <button
+            type="button"
+            onClick={() => navigate('/bids', { replace: true })}
+            className={backBtn}
+            aria-label={t('common.back')}
+          >
+            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className={`text-base sm:text-lg font-extrabold tracking-wide ${textPrimary}`}>
+            {t('bids.marketResultHistory')}
+          </h1>
         </div>
 
+        {/* Content */}
         {resultsLoading ? (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-[#202124] h-14 skeleton-shimmer" />
-            <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-[#202124] h-64 skeleton-shimmer" />
-          </div>
+          <GameResultsLoadingSkeleton count={8} />
         ) : (
           <MyBetsGameResultsPanel
             resultsDate={selectedDate}
             onResultsDateChange={setSelectedDate}
             resultsRows={rows}
+            showDateControls
             showMobileDatePicker
+            showDesktopDatePicker
           />
         )}
       </div>

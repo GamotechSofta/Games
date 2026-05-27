@@ -59,6 +59,9 @@ export const borderDividerDark = borderDivider;
 export const iconBtn =
   'rounded-full bg-gray-100 border border-gray-900/20 text-gray-800 hover:border-gray-900/30 hover:bg-gray-200 dark:bg-white/10 dark:border-white/25 dark:text-white dark:hover:border-white/35 dark:hover:bg-white/15';
 
+/** Circular back control — border included in size so it is not clipped in flex rows */
+export const backBtn = `min-w-[44px] min-h-[44px] w-11 h-11 box-border flex shrink-0 items-center justify-center touch-manipulation transition-transform active:scale-95 select-none ${iconBtn}`;
+
 /** Game bid flow */
 export const bidPageShell =
   'game-bid-page min-h-screen min-h-ios-screen bg-[#fff6f7] text-gray-900 font-sans w-full max-w-full overflow-x-hidden dark:bg-[#1a1114] dark:text-white';

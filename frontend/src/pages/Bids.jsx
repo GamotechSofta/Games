@@ -9,8 +9,9 @@ import { useBreakpoint } from '../hooks/useBreakpoint';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import MyBetsSidebar from './bids/MyBetsSidebar';
 import MyBetsBetHistoryPanel from './bids/MyBetsBetHistoryPanel';
-import MyBetsGameResultsPanel from './bids/MyBetsGameResultsPanel';
+import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBetsGameResultsPanel';
 import { getBidOptionLabel } from '../utils/betTypeLabels';
+import { backBtn } from '../styles/appTheme';
 
 const safeParse = (raw, fallback) => {
   try {
@@ -179,27 +180,53 @@ const Bids = () => {
 
   const items = useMemo(() => ([
     {
+      key: 'bet-history',
       title: t('bids.betHistory'),
       subtitle: t('bids.betHistorySubtitle'),
-      color: '#f3b61b'
+      theme: 'gold',
+      color: '#d4af37',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      ),
     },
     {
+      key: 'game-results',
       title: t('bids.gameResults'),
       subtitle: t('bids.gameResultsSubtitle'),
-      color: '#25d366',
-      iconUrl: 'https://res.cloudinary.com/dzd47mpdo/image/upload/v1769799295/result_ekwn16.png'
+      theme: 'green',
+      color: '#22c55e',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      ),
     },
     {
+      key: 'starline-bet-history',
       title: t('bids.starlineBetHistory'),
       subtitle: t('bids.starlineBetHistorySubtitle'),
-      color: '#ef4444'
+      theme: 'red',
+      color: '#ef4444',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
     },
     {
+      key: 'king-bazaar-bet-history',
       title: t('bids.kingBazaarBetHistory'),
       subtitle: t('bids.kingBazaarBetHistorySubtitle'),
-      color: '#3b82f6'
+      theme: 'blue',
+      color: '#3b82f6',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 3l3.5 7L12 3l3.5 7L19 3v18l-3.5-7L12 21l-3.5-7L5 21V3z" />
+        </svg>
+      ),
     },
-    
   ]), [t]);
 
   const TAB_TO_TITLE = useMemo(() => ({
@@ -332,8 +359,10 @@ const Bids = () => {
       if (data?.success && Array.isArray(data?.data)) {
         const mapped = data.data.map((x) => ({
           id: x?._id || `${x?.marketId || ''}-${x?.dateKey || ''}`,
-          name: (x?.marketName || '').toString().trim(),
+          name: (x?.marketName || '').toString().trim().toUpperCase(),
           result: (x?.displayResult || '***-**-***').toString().trim(),
+          startingTime: x?.startingTime || null,
+          closingTime: x?.closingTime || null,
         })).filter((x) => x.name);
         mapped.sort((a, b) => a.name.localeCompare(b.name));
         setResultsRows(mapped);
@@ -723,51 +752,77 @@ const Bids = () => {
     setArr((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
   };
 
+  const activeTheme = activeItem?.theme || 'gold';
+
   return (
-    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+    <div
+      className="bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pt-3 md:pt-4 max-md:pb-0 max-md:overflow-x-visible max-md:overflow-y-hidden max-md:overscroll-none md:min-h-screen md:pb-6 px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 md:px-4"
+    >
       <style>{`
         .hide-scrollbar {
-          scrollbar-width: none; /* Firefox */
-          -ms-overflow-style: none; /* IE/Edge */
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         }
         .hide-scrollbar::-webkit-scrollbar {
-          display: none; /* Chrome/Safari */
+          display: none;
           width: 0;
           height: 0;
         }
       `}</style>
-      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pt-5 lg:px-6 xl:px-8">
-        <div className="mb-6 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
-          <div className="flex items-center gap-3">
+      <div className="w-full max-w-full md:max-w-none md:mx-0 max-md:flex max-md:flex-col max-md:min-h-0">
+        <div className="mb-2 md:mb-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:gap-5 md:items-stretch shrink-0">
+          {/* Page header */}
+          <div className="flex items-center gap-3 overflow-visible rounded-xl border border-amber-200/60 dark:border-amber-500/25 bg-gradient-to-r from-amber-50/90 via-white to-red-50/20 dark:from-[#2a2010] dark:via-[#141414] dark:to-[#1a1010] pl-3.5 pr-3 py-2.5 shadow-sm md:mb-0">
             <button
+              type="button"
               onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 dark:bg-white/10 dark:border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-white/15 active:scale-95 transition"
+              className={backBtn}
               aria-label={t('common.back')}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold">{t('bids.myBets')}</h1>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                <span className="text-[#d4af37] dark:text-amber-400">{t('bids.myBets')}</span>
+              </h1>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">{t('bids.myBetsSubtitle')}</p>
+            </div>
           </div>
 
-          <div className="hidden md:flex items-center justify-between gap-4 px-1">
-            <div className="text-2xl font-extrabold text-gray-900 dark:text-white">{rightPanelTitle}</div>
+          {/* Desktop panel toolbar */}
+          <div className="hidden md:flex items-center justify-between gap-3 rounded-xl border border-gray-200/80 dark:border-white/10 bg-white dark:bg-[#1a1a1c] px-4 py-2.5 shadow-sm">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className={`w-1 h-8 rounded-full shrink-0 ${
+                  activeTheme === 'green'
+                    ? 'bg-emerald-500'
+                    : activeTheme === 'red'
+                      ? 'bg-red-500'
+                      : activeTheme === 'blue'
+                        ? 'bg-blue-500'
+                        : 'bg-[#d4af37]'
+                }`}
+                aria-hidden
+              />
+              <span className="text-lg font-extrabold text-gray-900 dark:text-white truncate">{rightPanelTitle}</span>
+            </div>
             {isGameResultsPanel ? (
-              <div className="w-[320px]">
+              <div className="shrink-0">
                 <ResultDatePicker
                   value={resultsDate}
                   onChange={setResultsDate}
                   maxDate={new Date()}
                   label={t('bids.selectDate')}
-                  buttonClassName="px-4 py-2 rounded-full bg-white border border-gray-200 text-gray-900 font-bold text-sm shadow-sm hover:border-amber-400 dark:bg-[#202124] dark:border-white/10 dark:text-white dark:hover:border-[#d4af37]/40 transition-colors"
+                  buttonClassName="px-4 py-2 rounded-xl bg-amber-50 border border-amber-300/60 text-amber-900 font-bold text-sm hover:border-[#d4af37] dark:bg-amber-950/40 dark:border-amber-500/40 dark:text-amber-200 dark:hover:border-amber-400 transition-colors"
                 />
               </div>
             ) : isAnyHistoryPanel ? (
               <button
                 type="button"
                 onClick={() => setIsDesktopFilterOpen(true)}
-                className="px-4 py-2 rounded-full bg-white border border-gray-200 text-amber-800 font-bold text-sm shadow-sm hover:border-amber-400 dark:bg-[#202124] dark:border-white/10 dark:text-[#d4af37] dark:hover:border-[#d4af37]/40 transition-colors"
+                className="shrink-0 px-4 py-2 rounded-xl bg-[#d4af37] border border-[#c9a227] text-black font-bold text-sm shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:brightness-105 transition"
                 aria-label={t('bids.filterBy')}
                 title={t('bids.filterBy')}
               >
@@ -778,6 +833,7 @@ const Bids = () => {
         </div>
 
         <ResponsiveSidebarLayout
+          className="max-md:min-h-0 max-md:flex-1"
           sidebar={
             <MyBetsSidebar
               items={items}
@@ -846,23 +902,13 @@ const Bids = () => {
               )
             ) : activeTitle === t('bids.gameResults') ? (
               resultsLoading ? (
-                <div className="mt-3 max-h-[calc(100vh-300px)] overflow-hidden space-y-3">
-                  <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 skeleton-shimmer">
-                    <div className="h-4 w-24 rounded bg-white/10" />
-                    <div className="h-8 w-28 rounded-lg bg-white/10" />
-                  </div>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                    <div key={i} className="rounded-2xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 px-4 py-3 flex items-center justify-between gap-3 skeleton-shimmer">
-                      <div className="h-4 flex-1 max-w-[60%] rounded bg-white/10" />
-                      <div className="h-5 w-16 rounded bg-white/10 shrink-0" />
-                    </div>
-                  ))}
-                </div>
+                <GameResultsLoadingSkeleton count={10} />
               ) : (
                 <MyBetsGameResultsPanel
                   resultsDate={resultsDate}
                   onResultsDateChange={setResultsDate}
                   resultsRows={resultsRows}
+                  showDateControls={false}
                 />
               )
             ) : (
@@ -878,9 +924,9 @@ const Bids = () => {
       {/* Cancel bet confirmation (mobile + desktop) */}
       {confirmCancelBetId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] shadow-2xl p-5 space-y-4">
+          <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1c] shadow-2xl p-5 space-y-4">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cancel bet?</h3>
-            <p className="text-gray-300 text-sm">
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
               Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
             </p>
             <div className="flex gap-3 pt-2">
@@ -913,12 +959,12 @@ const Bids = () => {
             onClick={() => setIsDesktopFilterOpen(false)}
           />
 
-          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124]">
-            <div className="bg-black text-gray-900 dark:text-white text-center py-4 text-2xl font-extrabold border-b border-gray-200 dark:border-white/10">
-              Filter Type
+          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-amber-200/50 dark:border-amber-500/20 bg-white dark:bg-[#1a1a1c]">
+            <div className="bg-gradient-to-r from-[#d4af37] to-amber-600 text-black text-center py-4 text-xl font-extrabold border-b border-amber-700/20">
+              {t('bids.filterBy')}
             </div>
 
-            <div className="bg-white dark:bg-[#202124] text-gray-900 dark:text-white">
+            <div className="bg-white dark:bg-[#1a1a1c] text-gray-900 dark:text-white">
               <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">
                 <div className="text-lg font-bold text-[#d4af37] mb-3">By Game Type</div>
                 <div className="flex items-center justify-around gap-6 pb-4">

@@ -44,6 +44,8 @@ export default function ResultDatePicker({
   maxDate,
   label,
   buttonClassName = '',
+  /** 'default' = label + date button row; 'chip' = single compact trigger (no side label) */
+  layout = 'default',
 }) {
   const { t } = useTranslation();
   const displayLabelProp = label ?? t('common.selectDate');
@@ -122,22 +124,42 @@ export default function ResultDatePicker({
     }
   }, [safeValue]);
 
+  const chipTriggerClass =
+    buttonClassName ||
+    'w-full min-w-0 min-h-[34px] box-border flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-lg text-[10px] font-bold border border-gray-200/90 bg-white text-gray-700 dark:bg-[#1a1a1c] dark:border-white/20 dark:text-gray-200 transition-colors';
+
+  const trigger = layout === 'chip' ? (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className={chipTriggerClass}
+      aria-label={t('datePicker.openCalendar')}
+    >
+      <svg className="w-3.5 h-3.5 shrink-0 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <span className="truncate">{displayLabelProp}</span>
+    </button>
+  ) : (
+    <div className="flex items-center justify-between gap-4">
+      <div className="text-gray-600 dark:text-white/80 text-base sm:text-lg">{displayLabelProp}</div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={
+          buttonClassName ||
+          'px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-900 font-bold shadow-sm hover:border-[#d4af37]/40 transition-colors dark:bg-black/40 dark:border-white/10 dark:text-white'
+        }
+        aria-label={t('datePicker.openCalendar')}
+      >
+        {displayLabel}
+      </button>
+    </div>
+  );
+
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-gray-600 dark:text-white/80 text-base sm:text-lg">{displayLabelProp}</div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className={
-            buttonClassName ||
-            'px-5 py-2.5 rounded-full bg-white border border-gray-200 text-gray-900 font-bold shadow-sm hover:border-[#d4af37]/40 transition-colors dark:bg-black/40 dark:border-white/10 dark:text-white'
-          }
-          aria-label={t('datePicker.openCalendar')}
-        >
-          {displayLabel}
-        </button>
-      </div>
+      {trigger}
 
       {open ? (
         <div className="fixed inset-0 z-[999] flex items-center justify-center px-3 sm:px-4">
@@ -166,25 +188,25 @@ export default function ResultDatePicker({
             </div>
 
             {/* Calendar */}
-            <div className="bg-white text-black px-5 py-4">
+            <div className="bg-white dark:bg-[#1a1a1c] text-gray-900 dark:text-white px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center text-gray-700 dark:text-gray-200"
                   aria-label={t('datePicker.previousMonth')}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <div className="text-lg font-semibold text-gray-700">{monthLabel(viewYear, viewMonth)}</div>
+                <div className="text-lg font-semibold text-gray-700 dark:text-gray-100">{monthLabel(viewYear, viewMonth)}</div>
                 <button
                   type="button"
                   onClick={handleNext}
                   disabled={!canGoNext}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    canGoNext ? 'hover:bg-black/5' : 'opacity-30 cursor-not-allowed'
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-gray-700 dark:text-gray-200 ${
+                    canGoNext ? 'hover:bg-black/5 dark:hover:bg-white/10' : 'opacity-30 cursor-not-allowed'
                   }`}
                   aria-label={t('datePicker.nextMonth')}
                 >
@@ -194,7 +216,7 @@ export default function ResultDatePicker({
                 </button>
               </div>
 
-              <div className="grid grid-cols-7 text-center text-xs text-gray-500 font-semibold mb-2">
+              <div className="grid grid-cols-7 text-center text-xs text-gray-500 dark:text-gray-400 font-semibold mb-2">
                 {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d) => (
                   <div key={d} className="py-1">
                     {d}
@@ -215,10 +237,10 @@ export default function ResultDatePicker({
                       onClick={() => setDraft(d)}
                       className={`h-10 w-10 mx-auto rounded-full flex items-center justify-center text-sm transition-colors ${
                         selected
-                          ? 'bg-[#0b2b55] text-gray-900 dark:text-white'
+                          ? 'bg-[#0b2b55] text-white dark:bg-amber-500 dark:text-black'
                           : disabled
-                            ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-gray-700 hover:bg-black/5'
+                            ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                            : 'text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10'
                       }`}
                       aria-label={`Day ${d.getDate()}`}
                     >
@@ -230,11 +252,11 @@ export default function ResultDatePicker({
             </div>
 
             {/* Actions */}
-            <div className="bg-white px-5 py-4 flex items-center justify-end gap-6">
+            <div className="bg-white dark:bg-[#1a1a1c] px-5 py-4 flex items-center justify-end gap-6 border-t border-gray-100 dark:border-white/10">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="text-[#0b2b55] font-semibold tracking-wide"
+                className="text-[#0b2b55] dark:text-amber-300 font-semibold tracking-wide"
               >
                 {t('datePicker.cancel')}
               </button>
@@ -245,7 +267,7 @@ export default function ResultDatePicker({
                   onChange?.(next);
                   setOpen(false);
                 }}
-                className="text-[#0b2b55] font-semibold tracking-wide"
+                className="text-[#0b2b55] dark:text-amber-300 font-semibold tracking-wide"
               >
                 {t('common.ok')}
               </button>
