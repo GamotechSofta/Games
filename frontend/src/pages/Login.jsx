@@ -273,9 +273,11 @@ const Login = () => {
               </>
             )}
 
-            <label className="flex items-start gap-2 text-[11px] text-[#8fa0b7]">
+            <label className="flex items-start gap-2 text-[11px] leading-4 text-[#8fa0b7]">
               <input type="checkbox" checked={isAbove18} onChange={(e) => setIsAbove18(e.target.checked)} className="mt-[2px]" />
-              I confirm that I am above 18 years of age and agree to the <span className="text-red-500 underline">Terms of Use</span> and <span className="text-red-500 underline">Privacy Policy</span>
+              <span>
+                I confirm that I am above 18 years of age and agree to the <span className="text-red-500 underline">Terms of Use</span> and <span className="text-red-500 underline">Privacy Policy</span>
+              </span>
             </label>
 
             <button type="submit" disabled={loading || !isAbove18} className="w-full rounded-[10px] bg-gradient-to-r from-[#d7001f] to-[#ff1744] py-3 text-sm font-bold tracking-wide text-white hover:brightness-110 disabled:opacity-60">
