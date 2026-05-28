@@ -171,6 +171,8 @@ marketSchema.pre('save', function () {
 
 marketSchema.index({ marketType: 1, startingTime: 1 });
 marketSchema.index({ showInPopular: 1, marketType: 1, startingTime: 1 });
+// Helps sort-heavy market list reads even for legacy mixed marketType filters.
+marketSchema.index({ startingTime: 1 });
 
 const Market = mongoose.model('Market', marketSchema);
 export default Market;

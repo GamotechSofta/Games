@@ -44,6 +44,9 @@ const gameSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Supports home bootstrap query: status=active sorted by newest.
+gameSchema.index({ status: 1, createdAt: -1 });
+
 // Keep status and isActive aligned for compatibility.
 gameSchema.pre('save', function (next) {
     if (this.isModified('status')) {
