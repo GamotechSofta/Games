@@ -136,24 +136,24 @@ const OddEvenBid = ({ market, title }) => {
         <>
             <div className="w-full basis-full min-w-0 shrink-0 md:hidden px-3 py-1">
                 <div className="grid grid-cols-2 gap-1.5">
-                    <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 text-center">
                         <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                        <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bids.length}</div>
+                        <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{bids.length}</div>
                     </div>
-                    <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 text-center">
+                    <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 text-center">
                         <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
+                        <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{totalPoints}</div>
                     </div>
                 </div>
             </div>
             <div className="hidden md:flex items-center gap-2 shrink-0">
-                <div className="rounded-full border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] h-[44px] px-3 flex items-center gap-1.5">
+                <div className="rounded-full border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] h-[44px] px-3 flex items-center gap-1.5">
                     <span className="text-[10px] text-gray-500 uppercase leading-none">Bets</span>
-                    <span className="text-sm font-bold text-red-700 dark:text-red-300">{bids.length}</span>
+                    <span className="text-sm font-bold text-gray-700 dark:text-red-300">{bids.length}</span>
                 </div>
-                <div className="rounded-full border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] h-[44px] px-3 flex items-center gap-1.5">
+                <div className="rounded-full border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] h-[44px] px-3 flex items-center gap-1.5">
                     <span className="text-[10px] text-gray-500 uppercase leading-none">Points</span>
-                    <span className="text-sm font-bold text-red-700 dark:text-red-300">{totalPoints}</span>
+                    <span className="text-sm font-bold text-gray-700 dark:text-red-300">{totalPoints}</span>
                 </div>
             </div>
         </>
@@ -162,7 +162,7 @@ const OddEvenBid = ({ market, title }) => {
     const leftColumn = (
         <div className="space-y-4">
             {warning && (
-                <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                <div className="bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                     {warning}
                 </div>
             )}
@@ -170,14 +170,14 @@ const OddEvenBid = ({ market, title }) => {
                 <button
                     type="button"
                     onClick={() => setChoice('odd')}
-                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'odd' ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-300 dark:border-white/20' : 'bg-white dark:bg-[#2a1d21] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'}`}
+                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'odd' ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-300 dark:border-white/20' : 'bg-white dark:bg-[#202329] text-gray-900 dark:text-white border-gray-200 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/35'}`}
                 >
                     Odd
                 </button>
                 <button
                     type="button"
                     onClick={() => setChoice('even')}
-                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'even' ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-300 dark:border-white/20' : 'bg-white dark:bg-[#2a1d21] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'}`}
+                    className={`h-10 rounded-lg font-bold text-xs border-2 transition-colors ${choice === 'even' ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-300 dark:border-white/20' : 'bg-white dark:bg-[#202329] text-gray-900 dark:text-white border-gray-200 dark:border-white/20 hover:border-gray-400 dark:hover:border-white/35'}`}
                 >
                     Even
                 </button>
@@ -191,12 +191,12 @@ const OddEvenBid = ({ market, title }) => {
                         placeholder="Point"
                         value={inputPoints}
                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full h-10 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-full focus:outline-none focus:border-red-500 dark:focus:border-white/35 px-4 text-sm font-semibold text-center min-w-0"
+                        className="w-full h-10 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-full focus:outline-none focus:border-gray-500 dark:focus:border-white/35 px-4 text-sm font-semibold text-center min-w-0"
                     />
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="h-10 px-4 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-semibold hover:border-red-400 dark:hover:border-white/35 active:scale-95 shrink-0"
+                        className="h-10 px-4 rounded-lg border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-semibold hover:border-gray-400 dark:hover:border-white/35 active:scale-95 shrink-0"
                     >
                         Clear
                     </button>
@@ -228,19 +228,19 @@ const OddEvenBid = ({ market, title }) => {
                 </button>
             </div>
             <div>
-                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
+                <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                     <div>Ank</div>
                     <div>Point</div>
                     <div>Type</div>
                     <div>Delete</div>
                 </div>
-                <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
+                <div className="h-px bg-gray-200 dark:bg-white/20 w-full mb-2" />
                 <div className="space-y-2">
                     {bids.length ? (
                         bids.map((b) => (
                             <div
                                 key={b.id}
-                                className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm"
+                                className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-gray-200 dark:border-white/20 text-sm"
                             >
                                 <div className="font-bold text-gray-900 dark:text-white">{b.number}</div>
                                 <div className="px-0.5 min-w-0">
@@ -255,7 +255,7 @@ const OddEvenBid = ({ market, title }) => {
                                                 )
                                             )
                                         }
-                                        className="w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] text-center font-bold text-red-700 dark:text-red-300 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35"
+                                        className="w-full h-8 rounded-lg border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d] text-center font-bold text-gray-700 dark:text-red-300 text-sm focus:outline-none focus:border-gray-500 dark:focus:border-white/35"
                                     />
                                 </div>
                                 <div className="text-sm text-gray-600 dark:text-gray-300">{b.type}</div>
@@ -263,7 +263,7 @@ const OddEvenBid = ({ market, title }) => {
                                     <button
                                         type="button"
                                         onClick={() => handleDeleteBid(b.id)}
-                                        className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                        className="p-2 text-gray-500 hover:text-gray-600 active:scale-95"
                                         aria-label="Delete"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

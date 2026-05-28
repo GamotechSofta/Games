@@ -67,7 +67,7 @@ function MarketClosedModal({ market, allowed }) {
                 </button>
                 <div className="pt-10 pb-6 px-6 text-center">
                     <div className="flex justify-center mb-4">
-                        <FaTimesCircle className="w-20 h-20 text-red-500" aria-hidden />
+                        <FaTimesCircle className="w-20 h-20 text-gray-500" aria-hidden />
                     </div>
                     <h2 id="market-closed-title" className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                         Market is closed

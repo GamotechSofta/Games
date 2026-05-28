@@ -171,40 +171,40 @@ const HalfSangamBid = ({ market, title }) => {
     // Count / Bet Amount cards only (EASY MODE / SPECIAL MODE removed as requested)
     const modeTabs = (
         <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{bids.length}</div>
+                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{bids.length}</div>
             </div>
-            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center">
+            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
                 <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                <div className="text-base font-bold text-red-700 dark:text-red-300 leading-tight">{totalPoints}</div>
+                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{totalPoints}</div>
             </div>
         </div>
     );
 
     const easyBidsList = (
         <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                 <div>Pana</div>
                 <div>Point</div>
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
+            <div className="h-px bg-gray-200 dark:bg-white/20 w-full mb-2" />
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
                         key={bid.id}
-                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm"
+                        className="grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-gray-200 dark:border-white/20 text-sm"
                     >
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
-                        <div className="font-bold text-red-700 dark:text-red-300">{bid.points}</div>
+                        <div className="font-bold text-gray-700 dark:text-red-300">{bid.points}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
                                 onClick={() => handleDelete(bid.id)}
-                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                className="p-2 text-gray-500 hover:text-gray-600 active:scale-95"
                                 aria-label="Delete"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -241,7 +241,7 @@ const HalfSangamBid = ({ market, title }) => {
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:max-w-7xl md:mx-auto md:items-start">
                 <div className="space-y-4">
                     {warning && (
-                        <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                        <div className="bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                             {warning}
                         </div>
                     )}
@@ -387,7 +387,7 @@ function HalfSangamEasyForm({
     const panaInputInvalid = flipped ? second.length === 3 && panaInvalid : first.length === 3 && panaInvalid;
 
     const inputBase =
-        'flex-1 min-w-0 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
+        'flex-1 min-w-0 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none';
 
     return (
         <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
@@ -396,10 +396,10 @@ function HalfSangamEasyForm({
                     type="button"
                     onClick={handleFlip}
                     aria-label="Flip between Open Pana plus Close Ank and Open Ank plus Close Pana"
-                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white dark:bg-[#2a1d21] hover:bg-red-50 dark:hover:bg-[#24171b] text-gray-900 dark:text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-red-200 dark:border-white/20 transition-all active:scale-[0.98]"
+                    className="w-full min-w-0 flex flex-row items-center justify-between gap-3 px-4 bg-white dark:bg-[#202329] hover:bg-gray-50 dark:hover:bg-[#1b1d22] text-gray-900 dark:text-white font-bold py-2.5 min-h-[40px] rounded-xl border-2 border-gray-200 dark:border-white/20 transition-all active:scale-[0.98]"
                 >
                     <span>Flip (O) ↔ (C)</span>
-                    <span className="shrink-0 text-red-700 dark:text-red-300" aria-hidden>
+                    <span className="shrink-0 text-gray-700 dark:text-red-300" aria-hidden>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path
                                 strokeLinecap="round"
@@ -421,8 +421,8 @@ function HalfSangamEasyForm({
                     maxLength={flipped ? 1 : 3}
                     className={`${inputBase} ${
                         !flipped && panaInputInvalid
-                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                            : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
+                            ? 'border-red-500 focus:border-gray-500 focus:ring-red-500/20'
+                            : 'focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35'
                     }`}
                 />
             </div>
@@ -437,8 +437,8 @@ function HalfSangamEasyForm({
                     maxLength={flipped ? 3 : 1}
                     className={`${inputBase} ${
                         flipped && panaInputInvalid
-                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                            : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
+                            ? 'border-red-500 focus:border-gray-500 focus:ring-red-500/20'
+                            : 'focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35'
                     }`}
                 />
             </div>
@@ -452,12 +452,12 @@ function HalfSangamEasyForm({
                         value={points}
                         onChange={(e) => setPoints(sanitizePoints(e.target.value))}
                         placeholder="Points"
-                        className="no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
+                        className="no-spinner w-full bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35 focus:outline-none"
                     />
                     <button
                         type="button"
                         onClick={onClearAll}
-                        className="px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95"
+                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-medium hover:border-gray-400 dark:hover:border-white/35 active:scale-95"
                     >
                         Clear
                     </button>

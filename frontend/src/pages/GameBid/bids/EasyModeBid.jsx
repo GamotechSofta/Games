@@ -450,52 +450,52 @@ const EasyModeBid = ({
 
     const fieldLabelClass = isRedBidTheme ? 'text-gray-900 dark:text-gray-200' : 'text-gray-800 dark:text-gray-200';
     const valueInputClass = isRedBidTheme
-        ? 'no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none'
+        ? 'no-spinner w-full bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none'
         : 'no-spinner w-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] focus:outline-none';
     const compactInputClass = isRedBidTheme
-        ? 'w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-center font-bold text-gray-900 dark:text-red-200 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35'
+        ? 'w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-center font-bold text-gray-900 dark:text-gray-200 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35'
         : 'w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]';
     const clearBtnClass = isRedBidTheme
-        ? 'px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95'
+        ? 'px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-red-700 dark:text-gray-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95'
         : 'px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95';
     const smallClearBtnClass = isRedBidTheme
-        ? 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 bg-white dark:bg-[#2a1d21] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0'
+        ? 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200 bg-white dark:bg-[#202329] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0'
         : 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0';
     const statCardClass = isRedBidTheme
-        ? 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center'
+        ? 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center'
         : 'rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center';
     const statValueClass = isRedBidTheme
-        ? 'text-base font-bold text-red-700 dark:text-red-300 leading-tight'
+        ? 'text-base font-bold text-red-700 dark:text-gray-200 leading-tight'
         : 'text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight';
     const tabActiveClass = isRedBidTheme
         ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-700 dark:border-white/20'
         : 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]';
     const tabInactiveClass = isRedBidTheme
-        ? 'bg-white dark:bg-[#2a1d21] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'
+        ? 'bg-white dark:bg-[#202329] text-gray-900 dark:text-white border-red-200 dark:border-white/20 hover:border-red-400 dark:hover:border-white/35'
         : 'bg-white dark:bg-[#202124] text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:border-gray-400';
     const bidsHeaderClass = isRedBidTheme
-        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1'
+        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-gray-200 font-bold text-xs sm:text-sm mb-2 px-1'
         : 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-amber-800 dark:text-[#f2c14e] font-bold text-xs sm:text-sm mb-2 px-1';
-    const bidsDividerClass = isRedBidTheme ? 'h-px bg-red-200 dark:bg-white/20 w-full mb-2' : 'h-px bg-[#d4af37] w-full mb-2';
+    const bidsDividerClass = isRedBidTheme ? 'h-px bg-gray-200 dark:bg-white/20 w-full mb-2' : 'h-px bg-[#d4af37] w-full mb-2';
     const bidRowClass = isRedBidTheme
-        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm'
-        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-white';
+        ? 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-red-200 dark:border-white/20 text-sm'
+        : 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-white';
     const bidPointTextClass = isRedBidTheme ? 'text-red-700 dark:text-red-300' : 'text-amber-800 dark:text-[#f2c14e]';
     const bidTypeClass = isRedBidTheme ? 'text-sm text-gray-600 dark:text-gray-300' : 'text-sm text-gray-600 dark:text-gray-300';
     const inlineSurfaceClass = isRedBidTheme
-        ? 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#2a1d21] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5'
+        ? 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202329] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5'
         : 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202124] md:border md:border-gray-200 dark:border-white/10 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
     const gridPanelClass = isRedBidTheme
-        ? 'md:hidden overflow-x-hidden rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-1'
+        ? 'md:hidden overflow-x-hidden rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] p-1'
         : 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-1';
     const desktopPanelClass = isRedBidTheme
-        ? 'hidden md:block rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-2'
+        ? 'hidden md:block rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] p-2'
         : 'hidden md:block rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-2';
     const jodiSpecialWrapClass = (hasBet) =>
         `flex items-center gap-1.5 rounded-lg p-0.5 border transition-all duration-200 ${
             hasBet
-                ? 'border-red-200 dark:border-white/20 shadow-md bg-red-50 dark:bg-[#24171b]'
-                : 'border-red-200/70 dark:border-white/10 bg-white/70 dark:bg-[#2a1d21]'
+                ? 'border-red-200 dark:border-white/20 shadow-md bg-gray-50 dark:bg-[#1b1d22]'
+                : 'border-red-200/70 dark:border-white/10 bg-white/70 dark:bg-[#202329]'
         }`;
     const jodiSpecialBadgeClass = (hasBet) =>
         `w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${
@@ -505,7 +505,7 @@ const EasyModeBid = ({
         }`;
     const jodiSpecialInputClass = (hasBet) =>
         `w-full h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs font-semibold transition-colors ${
-            hasBet ? 'bg-red-50 dark:bg-[#1a1114]' : 'bg-white dark:bg-[#2a1d21]'
+            hasBet ? 'bg-gray-50 dark:bg-[#17191d]' : 'bg-white dark:bg-[#202329]'
         }`;
 
     const handleQuickPointClick = (pts) => {
@@ -742,7 +742,7 @@ const EasyModeBid = ({
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:py-2 md:max-w-7xl md:mx-auto">
                 {showModeTabs && !desktopSplit && <div className="mb-2 md:mb-4">{modeHeader}</div>}
                 {warning && (
-                    <div className={`fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e]'}`}>
+                    <div className={`fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md ${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e]'}`}>
                         {warning}
                     </div>
                 )}
@@ -850,7 +850,7 @@ const EasyModeBid = ({
 
                                         {/* Select Sum Keypad (Single Pana styled like Single Digit Bulk) */}
                                         <div className="flex gap-4 mb-4">
-                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : `${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10'} p-2`}`}>
+                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : `${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10'} p-2`}`}>
                                                 {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
                                                     <h3 className="text-sm font-bold text-amber-800 dark:text-[#f2c14e] mb-3 text-center">Select Sum</h3>
                                                 )}
@@ -883,7 +883,7 @@ const EasyModeBid = ({
                                                             >
                                                                 {num}
                                                                 {totalPointsForSum > 0 && (
-                                                                    <span className={`absolute top-0.5 right-0.5 sm:top-0.5 sm:right-0.5 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 sm:px-1 flex items-center justify-center shadow-md ${isPanaSumRedTheme ? 'bg-white dark:bg-[#1a1114] border border-red-200 dark:border-white/20 text-red-700 dark:text-red-300' : 'bg-[#d4af37] text-[#4b3608]'}`}>
+                                                                    <span className={`absolute top-0.5 right-0.5 sm:top-0.5 sm:right-0.5 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 sm:px-1 flex items-center justify-center shadow-md ${isPanaSumRedTheme ? 'bg-white dark:bg-[#17191d] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200' : 'bg-[#d4af37] text-[#4b3608]'}`}>
                                                                         {totalPointsForSum > 999 ? '999+' : totalPointsForSum}
                                                                     </span>
                                                                 )}
@@ -1023,7 +1023,7 @@ const EasyModeBid = ({
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
                                     maxLength={maxLength}
-                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
                                         isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : (isRedBidTheme ? 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]')
                                     }`}
                                 />
@@ -1040,7 +1040,7 @@ const EasyModeBid = ({
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
                                     maxLength={maxLength}
-                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                    className={`flex-1 min-w-0 ${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500'} rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
                                         isNumberInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : (isRedBidTheme ? 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]')
                                     }`}
                                 />

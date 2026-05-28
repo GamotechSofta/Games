@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
-import { MarketGameResultCard } from '../bids/MyBetsGameResultsPanel';
 
 const getWalletFromStorage = () => {
     try {
@@ -59,7 +58,7 @@ const BidLayout = ({
     const location = useLocation();
     const { t } = useTranslation();
     const contentRef = useRef(null);
-    const { allowed: bettingAllowed, closeOnly: bettingCloseOnly, message: bettingMessage } = useBettingWindow();
+    const { allowed: bettingAllowed, closeOnly: bettingCloseOnly } = useBettingWindow();
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
     const [wallet, setWallet] = useState(() =>
         Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getWalletFromStorage()
@@ -180,26 +179,7 @@ const BidLayout = ({
                 )}
             </div>
 
-            {!bettingAllowed && bettingMessage && (
-                <div className="mx-3 sm:mx-6 mt-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/40 dark:border-red-500/60 dark:text-red-200 text-sm font-medium flex items-center gap-2">
-                    <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    {bettingMessage}
-                </div>
-            )}
-
             {extraHeader}
-
-            {market && (market.displayResult != null || market.startingTime || market.closingTime) ? (
-                <div
-                    className="pb-2"
-                    style={{
-                        paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
-                        paddingRight: 'max(0.75rem, env(safe-area-inset-right))',
-                    }}
-                >
-                    <MarketGameResultCard market={market} compact />
-                </div>
-            ) : null}
 
             {showDateSession && (
                 <div
@@ -222,7 +202,7 @@ const BidLayout = ({
                             />
                         </div>
                         {displayDate && displayDate !== todayDate && (
-                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/35 dark:text-red-200 dark:border-red-900/60">
+                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-gray-50 text-red-700 border border-red-200 dark:bg-gray-950/35 dark:text-red-200 dark:border-red-900/60">
                                 {t('gameBid.scheduled')}
                             </span>
                         )}
