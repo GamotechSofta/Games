@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production';
 const ADMIN_TOKEN_EXPIRY = process.env.ADMIN_TOKEN_EXPIRY || '24h';  // 1 day
 const BOOKIE_TOKEN_EXPIRY = process.env.BOOKIE_TOKEN_EXPIRY || '24h';
+const USER_TOKEN_EXPIRY = process.env.USER_TOKEN_EXPIRY || '7d';
 
 /**
  * Generate JWT for admin (super_admin, specific_admin, or bookie when logging into admin panel)
@@ -23,6 +24,17 @@ export function generateBookieToken(payload) {
         { id: payload.id, username: payload.username, role: 'bookie', type: 'bookie' },
         JWT_SECRET,
         { expiresIn: BOOKIE_TOKEN_EXPIRY }
+    );
+}
+
+/**
+ * Generate JWT for user (OTP/password login from frontend)
+ */
+export function generateUserToken(payload) {
+    return jwt.sign(
+        { id: payload.id, phone: payload.phone, role: 'user', type: 'user' },
+        JWT_SECRET,
+        { expiresIn: USER_TOKEN_EXPIRY }
     );
 }
 

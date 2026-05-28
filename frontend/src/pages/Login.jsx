@@ -24,6 +24,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loginMode, setLoginMode] = useState('password');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -56,9 +60,19 @@ const Login = () => {
         setError(t('login.phoneRequired'));
         return;
       }
-      if (!formData.password) {
+      if (loginMode === 'password' && !formData.password) {
         setError(t('login.passwordRequired'));
         return;
+      }
+      if (loginMode === 'otp') {
+        if (!otpSent) {
+          setError('Please send OTP first');
+          return;
+        }
+        if (!/^\d{4,6}$/.test(otp)) {
+          setError('Please enter valid OTP');
+          return;
+        }
       }
     } else {
       // Signup validation
@@ -99,8 +113,13 @@ const Login = () => {
       }
 
       if (isLogin) {
-        endpoint = '/users/login';
-        body = { phone: formData.phone, password: formData.password, deviceId: deviceId || undefined };
+        if (loginMode === 'otp') {
+          endpoint = '/users/otp/verify';
+          body = { phone: formData.phone, otp };
+        } else {
+          endpoint = '/users/login';
+          body = { phone: formData.phone, password: formData.password, deviceId: deviceId || undefined };
+        }
       } else {
         endpoint = '/users/signup';
         body = {
@@ -148,6 +167,9 @@ const Login = () => {
         };
 
         localStorage.setItem('user', JSON.stringify(userPayload));
+        if (data.token) {
+          localStorage.setItem('userToken', data.token);
+        }
         // Dispatch custom event to update navbar
         window.dispatchEvent(new Event('userLogin'));
         // Redirect to home after login/signup
@@ -162,6 +184,32 @@ const Login = () => {
     }
   };
 
+  const handleSendOtp = async () => {
+    setError('');
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      setError('Please enter valid 10-digit phone number');
+      return;
+    }
+    setOtpLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone }),
+      });
+      const data = await response.json();
+      if (!data.success) {
+        setError(data.message || 'Failed to send OTP');
+        return;
+      }
+      setOtpSent(true);
+    } catch (err) {
+      setError(t('login.networkError'));
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       username: '',
@@ -173,6 +221,9 @@ const Login = () => {
       confirmPassword: '',
     });
     setError('');
+    setLoginMode('password');
+    setOtp('');
+    setOtpSent(false);
   };
 
   return (
@@ -274,6 +325,39 @@ const Login = () => {
                       </div>
                     </div>
 
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginMode('password');
+                          setOtp('');
+                          setOtpSent(false);
+                        }}
+                        className={`rounded-lg py-2 text-xs font-semibold transition ${
+                          loginMode === 'password'
+                            ? 'bg-yellow-500 text-black'
+                            : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                        }`}
+                      >
+                        Password
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLoginMode('otp');
+                          setFormData((prev) => ({ ...prev, password: '' }));
+                        }}
+                        className={`rounded-lg py-2 text-xs font-semibold transition ${
+                          loginMode === 'otp'
+                            ? 'bg-yellow-500 text-black'
+                            : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                        }`}
+                      >
+                        OTP
+                      </button>
+                    </div>
+
+                    {loginMode === 'password' && (
                     <div>
                       <label className="block text-gray-300 text-xs font-medium mb-1.5">
                         {t('login.password')} <span className="text-yellow-500">*</span>
@@ -312,6 +396,34 @@ const Login = () => {
                         </button>
                       </div>
                     </div>
+                    )}
+
+                    {loginMode === 'otp' && (
+                      <div>
+                        <label className="block text-gray-300 text-xs font-medium mb-1.5">
+                          OTP <span className="text-yellow-500">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                            placeholder="Enter OTP"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={otpLoading}
+                            className="rounded-lg px-3 py-2.5 text-xs font-semibold bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-60"
+                          >
+                            {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -527,9 +639,24 @@ const Login = () => {
                       {t('common.pleaseWait')}
                     </span>
                   ) : (
-                    isLogin ? t('login.signIn') : t('login.createAccount')
+                    isLogin
+                      ? (loginMode === 'otp' ? 'Verify OTP' : t('login.signIn'))
+                      : t('login.createAccount')
                   )}
                 </button>
+
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginMode((prev) => (prev === 'otp' ? 'password' : 'otp'));
+                      setError('');
+                    }}
+                    className="w-full py-2 text-xs font-semibold text-yellow-500 hover:text-yellow-400 transition-colors"
+                  >
+                    {loginMode === 'otp' ? 'Login with Password' : 'Login with OTP'}
+                  </button>
+                )}
               </form>
             </div>
 
@@ -641,6 +768,39 @@ const Login = () => {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginMode('password');
+                        setOtp('');
+                        setOtpSent(false);
+                      }}
+                      className={`rounded-xl py-2.5 text-sm font-semibold transition ${
+                        loginMode === 'password'
+                          ? 'bg-yellow-500 text-black'
+                          : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                      }`}
+                    >
+                      Password
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginMode('otp');
+                        setFormData((prev) => ({ ...prev, password: '' }));
+                      }}
+                      className={`rounded-xl py-2.5 text-sm font-semibold transition ${
+                        loginMode === 'otp'
+                          ? 'bg-yellow-500 text-black'
+                          : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-200'
+                      }`}
+                    >
+                      OTP
+                    </button>
+                  </div>
+
+                  {loginMode === 'password' && (
                   <div>
                     <label className="block text-gray-300 text-sm font-medium mb-2.5">
                       {t('login.password')} <span className="text-yellow-500">*</span>
@@ -679,6 +839,34 @@ const Login = () => {
                       </button>
                     </div>
                   </div>
+                  )}
+
+                  {loginMode === 'otp' && (
+                    <div>
+                      <label className="block text-gray-300 text-sm font-medium mb-2.5">
+                        OTP <span className="text-yellow-500">*</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                          placeholder="Enter OTP"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          disabled={otpLoading}
+                          className="rounded-xl px-3 py-3.5 text-sm font-semibold bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-60"
+                        >
+                          {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -896,9 +1084,24 @@ const Login = () => {
                     {t('common.pleaseWait')}
                   </span>
                 ) : (
-                  isLogin ? t('login.signIn') : t('login.createAccount')
+                  isLogin
+                    ? (loginMode === 'otp' ? 'Verify OTP' : t('login.signIn'))
+                    : t('login.createAccount')
                 )}
               </button>
+
+              {isLogin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMode((prev) => (prev === 'otp' ? 'password' : 'otp'));
+                    setError('');
+                  }}
+                  className="w-full py-2 text-sm font-semibold text-yellow-500 hover:text-yellow-400 transition-colors"
+                >
+                  {loginMode === 'otp' ? 'Login with Password' : 'Login with OTP'}
+                </button>
+              )}
             </form>
 
             {/* Bottom Legal Text */}

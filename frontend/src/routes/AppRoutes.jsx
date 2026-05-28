@@ -21,6 +21,8 @@ const AppRoutes = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/login/password" element={<Login />} />
+          <Route path="/login/otp" element={<Login />} />
           <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />
           <Route path="*" element={<ProtectedApp />} />
         </Routes>

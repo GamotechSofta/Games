@@ -10,6 +10,8 @@ import {
   shouldShowMobileInstallBanner,
   getMobileDashboardContentTop,
 } from '../utils/mobileInstallBanner';
+import ProtectedRoute from './ProtectedRoute';
+import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 
 const AppHeader = lazy(() => import('../components/AppHeader'));
 const BottomNavbar = lazy(() => import('../components/BottomNavbar'));
@@ -41,6 +43,7 @@ const Wallet = lazy(() => import('../pages/Wallet'));
 const AdminDashboard = lazy(() => import('../admin/AdminDashboard'));
 const GameManager = lazy(() => import('../admin/GameManager'));
 const Transactions = lazy(() => import('../admin/Transactions'));
+const ProtectedDemo = lazy(() => import('../pages/ProtectedDemo'));
 
 function RouteFallback() {
   return (
@@ -145,6 +148,18 @@ const Layout = ({ children }) => {
       window.removeEventListener('userLogin', check);
       window.removeEventListener('userLogout', check);
     };
+  }, []);
+
+  useEffect(() => {
+    const validateToken = () => {
+      const token = getUserToken();
+      if (token && isTokenExpired(token)) {
+        clearUserAuth();
+      }
+    };
+    validateToken();
+    const timer = setInterval(validateToken, 30 * 1000);
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -289,6 +304,7 @@ export default function ProtectedApp() {
             <Route path="/game-rate" element={<GameRate />} />
             <Route path="/games" element={<Games />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/protected-example" element={<ProtectedRoute><ProtectedDemo /></ProtectedRoute>} />
             <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />
             <Route path="/admin-panel/dashboard" element={<AdminDashboard />} />
             <Route path="/admin-panel/games" element={<GameManager />} />
