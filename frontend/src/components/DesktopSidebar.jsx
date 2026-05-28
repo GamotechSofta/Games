@@ -99,13 +99,19 @@ function NavRow({
       onClick={onClick}
       title={collapsed ? label : undefined}
       className={[
-        'group flex w-full items-center rounded-[10px] transition-colors duration-150',
+        'group relative flex w-full items-center overflow-visible rounded-[10px] transition-colors duration-150',
         collapsed ? 'flex-col justify-center gap-1 px-1 py-2 text-center' : 'gap-2.5 px-2.5 py-2',
         active
-          ? 'bg-gray-100 text-gray-900 dark:bg-white/[0.08] dark:text-white'
+          ? 'text-gray-900 dark:text-white'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-white dark:hover:bg-white/[0.04] dark:hover:text-white',
       ].join(' ')}
     >
+      {active ? (
+        <>
+          <span className="pointer-events-none absolute left-0 right-0 top-0 h-px bg-[linear-gradient(90deg,rgba(230,0,0,1)_0%,rgba(230,0,0,0.45)_45%,rgba(230,0,0,0)_100%)]" />
+          <span className="pointer-events-none absolute left-0 right-0 bottom-0 h-px bg-[linear-gradient(90deg,rgba(230,0,0,1)_0%,rgba(230,0,0,0.45)_45%,rgba(230,0,0,0)_100%)]" />
+        </>
+      ) : null}
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {letter ? (
           <span className="text-[15px] font-semibold italic leading-none text-gray-500 dark:text-[#b0b0b0]">{letter}</span>

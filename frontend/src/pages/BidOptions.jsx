@@ -436,9 +436,10 @@ const BidOptions = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white flex flex-col items-center">
+    <div className="w-full text-gray-900 dark:text-white">
+      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pt-5 lg:px-6 xl:px-8">
       {/* Header */}
-      <div className="w-full flex items-center px-3 sm:px-4 pt-4 sm:pt-5 pb-3 sm:pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 relative">
+      <div className="relative flex w-full items-center pb-3 sm:pb-4">
         <button
           onClick={() => {
             if (isStarline && starlineMarketKey != null) {
@@ -462,11 +463,12 @@ const BidOptions = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </button>
-        <div className="w-full text-center pr-12 pl-12 min-w-0">
+        <div className="w-full min-w-0 px-12 text-center">
           {/* Dynamic market name from selected market */}
-          <h1 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg tracking-wider uppercase inline-block border-b-2 border-yellow-500 pb-1 px-2 py-1 truncate max-w-full">
+          <h1 className="inline-block max-w-full truncate px-2 py-1 text-base font-bold tracking-wider uppercase text-gray-900 dark:text-white sm:text-lg">
             {market?.gameName || t('bidOptions.selectMarket')}
           </h1>
+          <div className="mx-auto mt-1 h-[2px] w-[min(280px,72vw)] bg-[linear-gradient(90deg,rgba(230,0,0,0)_0%,rgba(230,0,0,0.65)_30%,rgba(230,0,0,1)_50%,rgba(230,0,0,0.65)_70%,rgba(230,0,0,0)_100%)]" />
           {isStarline ? (
             <div className="mt-2 text-xs font-extrabold tracking-[0.22em] text-[#d4af37] uppercase">
               {t('bidOptions.starlineMarket')}
@@ -475,8 +477,8 @@ const BidOptions = () => {
         </div>
       </div>
 
-        {/* Grid Content */}
-        <div className="grid grid-cols-2 gap-3 pt-1 sm:gap-4 sm:pt-2 md:grid-cols-4 lg:grid-cols-6">
+      {/* Grid Content */}
+      <div className="grid grid-cols-2 gap-3 pt-1 sm:gap-4 sm:pt-2 md:grid-cols-4 lg:grid-cols-6">
         {orderedVisibleOptions.map((option) => (
           <div
             key={option.id}
@@ -512,6 +514,7 @@ const BidOptions = () => {
             </span>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

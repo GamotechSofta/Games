@@ -756,7 +756,7 @@ const Bids = () => {
 
   return (
     <div
-      className="bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white pt-3 md:pt-4 max-md:pb-0 max-md:overflow-x-visible max-md:overflow-y-hidden max-md:overscroll-none md:min-h-screen md:pb-6 px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 md:px-4"
+      className="w-full text-gray-900 pt-3 max-md:overflow-x-visible max-md:overflow-y-hidden max-md:overscroll-none max-md:pb-0 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] dark:text-white md:pt-4 md:pb-6 px-4 sm:px-4 md:px-4"
     >
       <style>{`
         .hide-scrollbar {
@@ -770,9 +770,9 @@ const Bids = () => {
         }
       `}</style>
       <div className="w-full max-w-full md:max-w-none md:mx-0 max-md:flex max-md:flex-col max-md:min-h-0">
-        <div className="mb-2 md:mb-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:gap-5 md:items-stretch shrink-0">
+        <div className="mb-2 shrink-0 md:mb-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:items-stretch md:gap-5">
           {/* Page header */}
-          <div className="flex items-center gap-3 overflow-visible rounded-xl border border-amber-200/60 dark:border-amber-500/25 bg-gradient-to-r from-amber-50/90 via-white to-red-50/20 dark:from-[#2a2010] dark:via-[#141414] dark:to-[#1a1010] pl-3.5 pr-3 py-2.5 shadow-sm md:mb-0">
+          <div className="flex items-center gap-3 px-1 py-2 md:mb-0">
             <button
               type="button"
               onClick={handleBack}

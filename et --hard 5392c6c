@@ -1,0 +1,411 @@
+* [33m8dfe3b3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m jjfj
+[31m|[m * [33mfdb04e2[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m cancel bets
+[31m|[m * [33md120c21[m game history
+[31m|[m[31m/[m  
+* [33m3e259bd[m sidebar
+* [33m5392c6c[m funds
+* [33mdb65387[m Apply stashed My Bets UI improvements
+*   [33m36376c1[m Merge remote-tracking branch and resolve DesktopSidebar conflicts
+[33m|[m[34m\[m  
+[33m|[m * [33m7191e26[m done
+[33m|[m * [33m1d5b4cc[m sidebar
+[33m|[m * [33md6704ed[m Addbg2
+* [34m|[m [33m3cb04a5[m hfhfh
+[34m|[m[34m/[m  
+* [33m465bbf9[m Addbg2
+* [33m244f842[m Bet ui update1
+* [33m0a1f484[m Addbg2
+* [33m7c48591[m Bet ui update
+* [33m24c18a2[m Addbg2
+* [33mde0c044[m Addbg2
+* [33mbabbb93[m design change
+* [33m7ae56a6[m done by this
+* [33m4d4faa6[m Addbg
+* [33mb5c39fb[m done
+* [33mb07211e[m sidebar
+[34m|[m * [33m17a7940[m[33m ([m[1;35mrefs/stash[m[33m)[m WIP on main: ef235a7 Add markets cards22
+[34m|[m[34m/[m[36m|[m 
+[34m|[m * [33m181ce74[m index on main: ef235a7 Add markets cards22
+[34m|[m[34m/[m  
+* [33mef235a7[m Add markets cards22
+* [33m95ae0d1[m jenkin
+* [33m0523892[m done1
+* [33m8e1d180[m jfjfj
+* [33m6ef3379[m Add markets cards22
+* [33maec3c5d[m done
+* [33m5ecadfe[m pipeline
+* [33m1ed64b9[m chnage1
+* [33m606b80f[m Add markets cards
+* [33m5bcc5ba[m Add markets cards
+* [33m85a6fae[m casino games
+* [33m7934303[m market cards
+* [33ma03d588[m casino games
+* [33mfb26dfd[m market cards
+* [33m34bf3ad[m casino games
+* [33mb2aa109[m King bazaar
+* [33mc6ceef4[m home page
+* [33m220252e[m fhfhf
+* [33mbd4690b[m hfhfh
+* [33m96cb305[m hfhfhffh
+* [33mc8693f8[m home page
+* [33mcaefd3e[m jjfjj
+* [33m8effcef[m home page
+* [33mde72b61[m home page
+* [33m6ffbac0[m home page
+* [33m7dbef7c[m home page
+* [33m1eac788[m home page
+* [33md1b6e50[m back button
+* [33m31355c1[m hhdhd
+* [33m844c375[m refine profile
+* [33m8e6cbc6[m home page
+* [33m07e50b3[m profile screen redesign
+* [33mccca904[m home page
+* [33m6f6d9a1[m home page
+* [33m7b328d4[m Home Mobile
+*   [33mb165bc9[m Merge branch 'main' of https://github.com/GamotechSofta/Games
+[1;31m|[m[1;32m\[m  
+[1;31m|[m * [33m0954fac[m bookie
+* [1;32m|[m [33m7a2be93[m Filter by catagory
+[1;32m|[m[1;32m/[m  
+* [33m914649d[m hfhfhf
+* [33m0416b80[m add sidebar in all screens
+* [33mff91b2f[m test
+* [33mc14aae6[m test
+* [33md87b2be[m test
+* [33m5b27866[m test pipeline
+* [33m15744c3[m adding cors
+* [33m5aff38e[m admin dashboard updated
+* [33m983841b[m add theme
+* [33m08a46c3[m add theme
+*   [33ma0ff930[m t Merge branch 'main' of https://github.com/GamotechSofta/Games
+[1;33m|[m[1;34m\[m  
+[1;33m|[m * [33m1562660[m admin sideber devide section wise
+[1;33m|[m * [33mbebb0f7[m Payment Flow Updated
+[1;33m|[m * [33mcfb4fc6[m done
+* [1;34m|[m [33m488954e[m check working
+[1;34m|[m[1;34m/[m  
+* [33m47db663[m light mode
+* [33m3d2418b[m solve mode problem
+* [33mbb5af3c[m delete some files
+* [33mae8544a[m CI CD Demo
+* [33m4e42d0f[m update jenkin file
+* [33m55a3f9d[m add CI/CD Pipline time 2
+* [33m6a763a7[m add CI/CD Pipline
+* [33m7b954c5[m done
+* [33mdf48ee1[m uuuu
+* [33m52506ef[m home page changes
+* [33m591420c[m change market card design
+* [33mdab401c[m change market card design
+* [33m4624e05[m change market card design
+* [33mf6a2fdc[m change market card design
+* [33md8e72c8[m Add result4
+* [33mf031968[m Add result4
+* [33m968bbe9[m Add result4
+* [33m5c157a9[m Add result4
+* [33md3966eb[m Add result3
+* [33m3b4dcc3[m Add result2
+* [33m6e80091[m Add result
+* [33mc4c5cfb[m Submit bet correct
+* [33m3bb8984[m bulk
+* [33mf7c6927[m Jodi Bulk
+* [33mbfa8fe1[m Update frontend
+* [33me239377[m Add
+* [33m51ace76[m new security about games
+* [33mc622d4b[m new security about games
+* [33m57604df[m games setup
+* [33mea46a65[m added PayU Payment Gateway redesign add fund screen
+* [33mb97b622[m added PayU Payment Gateway redesign add fund screen
+* [33m40c9c3f[m added PayU Payment Gateway
+* [33maf3286a[m Added APK for production download
+* [33m7d48c17[m mobile app devlopment in progress 2
+* [33m2646fe8[m Edit password feature added
+* [33m71bba46[m mobile app devlopment in progress
+* [33mf91f78a[m mobile app devlopment
+* [33m0e45b2d[m removed rate limiting
+* [33m1a06355[m mobile app1
+* [33mae52c9b[m mobile app
+* [33m3aa487a[m Delete the top winners
+* [33m8ac79b0[m Language
+* [33m52a81a0[m Edit in Fund Section
+* [33m7a6d097[m user side market language
+* [33ma15d351[m Ui update 9
+* [33mfe8702f[m Add the third Banner
+* [33mbc5b0eb[m Add the third Banner
+* [33m9fa2501[m Add the third Banner
+* [33m200c734[m Set the Back navigation in support section
+* [33mba41169[m Update in the Support Section
+* [33mbac376e[m Create the Bet id for search
+* [33md7d8323[m Bet History
+* [33m5fd5efd[m Add the Bet id in Bet History
+* [33m819bac4[m Edit in king bazaar
+* [33m1e24a70[m Solve the Problem of the King Bazar
+* [33meaef7f3[m Edit in admin Bet History
+* [33m0e873a5[m Fix the Half Sangam
+* [33m7a9bf81[m Add the Show Passward Field
+* [33mf7bf278[m Add the Flip option in Half Sangam
+* [33m4d02df3[m Correct the logit of the Half Sangam
+* [33mf78afe7[m update ui games in Casino1
+* [33m3144d40[m update ui games in Casino1
+* [33me4a613e[m update ui games in Casino
+* [33ma6d05be[m update ui games in Casino
+* [33m53bdf63[m Add games in Casino
+* [33m42b5ee5[m Update the ui of casino and skills game card2
+* [33m7003aff[m Update the ui of casino and skills game card
+* [33m16abb27[m Update the ui of market section
+* [33m9885fb5[m Add the Casino and skills games
+* [33mc5aeae1[m Add the Casino and skills games
+* [33ma6b04ba[m rate limiting added
+* [33m121905c[m Edit jodi bulk
+* [33m23b8c16[m change
+* [33m880f993[m Edit jodi bulk
+* [33mb65d226[m code for mobile app changes 2
+* [33mad24a86[m code for mobile app
+* [33m87de8b8[m Remove Latest News
+* [33m350ab37[m UI change
+* [33mc60fcad[m Update Header
+* [33m6875fa4[m Update logo
+* [33m850923f[m multiple upi ids added andd sorting according filter
+* [33mef009ef[m multiple ui ids added
+* [33m145163f[m language home page change1
+* [33m53b671e[m language home page change
+*   [33m6f34646[m Merge branch 'main' of https://github.com/GamotechSofta/Games
+[1;35m|[m[1;36m\[m  
+[1;35m|[m * [33m642b04c[m delete specific admin
+[1;35m|[m * [33ma6e64c3[m git ignore
+[1;35m|[m * [33m84d2dd7[m Edit in menu
+[1;35m|[m * [33m22e3255[m Edit in Wallet Section
+* [1;36m|[m [33m2678fb7[m language almost done
+[1;36m|[m[1;36m/[m  
+* [33m1d688d9[m starline languages change
+* [33m5c98026[m Edit in menu
+* [33me5c9f7f[m Update Kingbazar market
+* [33m3c82fdd[m Update Kingbazar market
+* [33m3bc458a[m Update banners
+* [33mb70da4f[m Update Kingbazar market
+* [33m81b49a4[m Update the ui of Othergames5
+* [33mf17cd09[m home section 55
+* [33m87a0d17[m Update the ui of Othergames3
+* [33mb7d1cec[m Update the ui of Othergames3
+* [33m97c6329[m Update the ui of Othergames3
+* [33m66ded14[m Update the ui of Othergames3
+* [33m32290d5[m Update the ui of Othergames2
+* [33mf6d792e[m Update the ui of Othergames
+* [33m5136639[m multiple languages added change 2
+* [33mc83eb66[m Edit3
+* [33mc86824b[m Edit2
+* [33m5ad77e0[m Change the ui of the Starline and King bazaar
+* [33m6afe781[m multiple languages added
+* [33md6378a3[m Redesign the ui of starline market
+* [33m7cf482e[m net profit logic correct bookie1
+* [33m1d276fb[m home section 4
+* [33m59934f5[m home section 3
+* [33m887bf07[m net profit logic correct bookie
+* [33m17fb179[m home section 2
+* [33m8f3b2c3[m home section 1
+* [33m46a244b[m Hide the Subheader from desktop view
+* [33mf77a6f1[m Update ui 4
+* [33m1fc4b4a[m bet cancel done 51
+* [33m2887829[m Revert "bet cancel done 50"
+* [33m5fb45ff[m Reapply "Update ui2"
+* [33m1eea89a[m Reapply "bet cancel done 47"
+* [33m608886f[m Reapply "bet cancel done 46"
+* [33m1f79ccc[m Reapply "bet cancel done 45"
+* [33ma819fc6[m Revert "bet cancel done 45"
+* [33md0b82f2[m Revert "bet cancel done 46"
+* [33m889f6d1[m Revert "bet cancel done 47"
+* [33m794eb25[m Revert "Update ui2"
+*   [33m83d3107[m Merge branch 'main' of https://github.com/GamotechSofta/Games
+[31m|[m[32m\[m  
+[31m|[m * [33m38bf8a0[m bet cancel done 50
+* [32m|[m [33ma94fe1a[m bet cancel done 49
+* [32m|[m [33m3eedd0e[m bet cancel done 48
+* [32m|[m [33mcc96e31[m Update ui 3
+[32m|[m[32m/[m  
+* [33me017ab8[m Update ui2
+* [33ma16fe89[m bet cancel done 47
+* [33m62f3244[m bet cancel done 46
+* [33mc4e1e9a[m bet cancel done 45
+* [33m6d04278[m Update ui
+* [33ma389e6b[m bet cancel done 44
+* [33m52f1d33[m bet cancel done 43
+* [33m2d6af68[m bet cancel done 42
+* [33m0e8eef1[m Add passward for each section
+* [33mc4045e0[m bet cancel done 41
+* [33m0b6cd5a[m change in Market management2
+* [33m6482186[m bet cancel done 40
+* [33m26d184e[m change in Market management
+* [33m7a107ff[m changes 17/feb 1
+* [33mcc80f26[m bet cancel done 39
+* [33mfd9bcfa[m admin and bookie payment settlement3
+* [33mf34e93d[m admin and bookie payment settlement2
+* [33m1b0c881[m admin and bookie payment settlement1
+* [33m576bb58[m Update ui
+* [33me9ca0fe[m bet cancel done 38
+* [33mabaf3fa[m admin and bookie payment settlement started
+* [33m9ed0a0a[m bet cancel done 37
+* [33m317c7c0[m Update the BidReviewModal
+* [33m184ec36[m bet cancel done 36
+* [33me4fbd96[m bet cancel done 35
+* [33md1e6e17[m bet cancel done 34
+* [33m4f46339[m bet cancel done 33
+* [33md2aa9d9[m bet cancel done 32
+* [33m3e73973[m bet cancel done 31
+* [33m82f6583[m Update the BidReviewModal
+* [33mc34afed[m bet cancel done 30
+* [33mceff02f[m bet cancel done 28
+* [33m5a01077[m Update the back naavigation properally for Starline and kingbazaar
+* [33m52fea40[m bet cancel done 27
+* [33m7aa2373[m bet cancel done 26
+* [33m221fca1[m bet cancel done 25
+* [33m2e5a5ea[m upi logic change
+* [33mc34bc75[m bet cancel done 24
+* [33mfadd0a7[m Update the back naavigation properally for Starline and kingbazaar
+* [33mca32865[m bet cancel done 23
+* [33m0560450[m bet cancel done 22
+* [33medca9db[m bet cancel done 21
+* [33ma3702d8[m bet cancel done 20
+* [33me373296[m Update the back naavigation properally for Starline and kingbazaar
+* [33mb2591b6[m bet cancel done 19
+* [33m36eb211[m Update the back naavigation properally for Starline and kingbazaar
+* [33mca98c57[m Update the ui of bet history section in Desktop view
+* [33m2a8a5cd[m Update the ui of Support Section
+* [33ma50af0f[m bet cancel done 18
+* [33m161cd82[m bet cancel done 17
+* [33m5970947[m bet cancel done 16
+* [33m0d5b90c[m bet cancel done 15
+* [33me49fc77[m bet cancel done 14
+* [33m9d77287[m Update the ui of Fund section
+* [33mf2cd9fc[m bet cancel done 13
+* [33ma60506e[m Add the text Tap to play
+* [33md931bec[m bet cancel done 12
+* [33m02abe14[m Update the ui of Fund section
+* [33mb75e81f[m bet cancel done 11
+* [33m2c9a31b[m bet cancel done 10
+* [33m7b03da4[m Update the ui of profile page
+* [33m7c663a8[m bet cancel done 9
+* [33m4910e84[m bet cancel done 8
+* [33mc5f1e50[m bet cancel done 7
+* [33mbffdd6d[m Update the ui of Fund section
+* [33m322de05[m Update the ui of Fund section
+* [33m8c4a22b[m Update the ui of Fund section
+* [33m77f53ed[m bet cancel done 6
+* [33m9edca5d[m bet cancel done 5
+* [33mf6b4028[m bet cancel done 4
+* [33m2f2be20[m bet cancel done 3
+* [33m7a72333[m 13/feb/26 change
+* [33me8a4c6d[m bet cancel done 2
+* [33mee8a656[m bet cancel done 1
+* [33mab7e361[m bet cancel done
+* [33m7ade7b2[m redesign bet history
+* [33m3fb5fc3[m bet cancel done
+* [33m32b41d9[m 13/feb change1
+* [33ma0d6533[m 13/feb change
+* [33md88f8dd[m market reset logic change
+* [33m6915811[m market reset logic change
+* [33m6ff5d5b[m market reset logic change
+* [33m8f848fa[m changes inn user 1
+* [33mff747cc[m changes inn user
+* [33m0d329f2[m changes inn user 1
+* [33m034714c[m 12/feb change ui4
+* [33m4047118[m changes inn user
+* [33m879729a[m changes done by roshan in king bazaar 1
+* [33m43a8e0a[m 12/feb change ui3
+* [33mba0538b[m 12/feb change ui2
+* [33m0c45013[m changes done by roshan in king bazaar
+* [33m3185c9f[m 12/feb change ui
+* [33mbd25ad5[m Create the ui of king bazaar
+* [33mfae0de0[m changes done by roshan
+* [33mbaa1b9c[m Create the ui of king bazaar
+* [33mf33fb96[m changes
+* [33m2bb9857[m Update
+* [33mbd0308e[m Wallet changes
+* [33m5083686[m Update
+* [33m71ea3fb[m revenue changes
+* [33me653bae[m payment process bookie and admin collect saperate change1
+* [33m7745c5d[m Update in Bet history
+* [33m7273750[m Update in Bet history
+* [33ma35982f[m Update in Bet history
+* [33m6fdfe1f[m Update in Bet history
+* [33m15172cb[m Update in Bet history
+* [33m1e89618[m Update in Bet history
+* [33ma52f5a7[m Update in Bet history
+* [33m7e85d24[m changes for user id
+* [33maca999e[m Update in Bet history
+* [33mfc294f1[m changes 2"
+* [33made457c[m changes
+* [33mf269bed[m mobile view log out button issue
+* [33m0c0311f[m Update in Bet history
+* [33med0508f[m Update in Bet history
+* [33ma444db4[m Revert "11/2/26 change1"
+* [33mad60702[m Revert "11/2/26 change2"
+* [33mb447483[m Revert "11/2/26 change3"
+* [33mdaa4b5d[m 11/2/26 change3
+* [33m88d3348[m 11/2/26 change2
+* [33m25f0036[m 11/2/26 change1
+* [33m2b399c6[m Correct the logic of the result
+* [33m56ed601[m resolve confict at night
+* [33m013b6c3[m 10/02/2026 8
+* [33m4002904[m Update the ui of the starline market
+* [33ma7e7ca0[m 10/02/2026 7
+* [33m7feb161[m 10/02/2026 6
+* [33me19ca2d[m 10/02/2026 5
+* [33mbede3f9[m 10/02/2026 4
+* [33mf7e25c0[m Update the ui of the starline market
+* [33mf87295b[m 10/02/2026 3
+* [33mbf2aa22[m Update the ui of the starline market
+* [33m6513026[m 10/02/2026 2
+* [33m30e035c[m 10/02/2026 1
+* [33m78ce718[m Revenue model added 4
+* [33mf9244b4[m Revenue model added 3
+* [33m5be3fdd[m Revenue model added 2
+* [33m7854644[m Update the ui of the starline market
+* [33mb9eb985[m 10/02/2026
+* [33m89f241f[m Revenue model added 1
+* [33mcccaf5a[m Small change in home page ui
+* [33m16d5e17[m 09/02/2026 user
+* [33meb05348[m Create the starline market
+* [33mff5f286[m 09/02/2026 user side guest login remove
+* [33m33e7202[m Changes bookie panel
+* [33ma8a09b6[m Changes bookie panel
+* [33m28ba1d4[m hero section
+* [33me2104b1[m Add the Top Winners
+* [33m288d2a3[m Small change in home page ui
+* [33m3d3a3bb[m 09/02/2026 admin side
+* [33ma1264bc[m banners
+* [33m131b681[m Changes done
+* [33m99cc209[m All changes are Done
+* [33me8fb0ee[m All changes are Done
+* [33m858e5d9[m Cloudinary Setup Added
+* [33m68e5f12[m Changes Almost done
+* [33m5db803e[m profile
+* [33mc81faaf[m 07/02/2026  5
+* [33m43c7e5e[m 07/02/2026  4
+* [33m9b4fa61[m 07/02/2026  3
+* [33mbff9dcc[m 07/02/2026  2
+* [33m713f50e[m 07/02/2026  1
+* [33m490a2eb[m 07/02/2026
+* [33m94fedf8[m solve the big problem for market reset result reset all market reletd reset after midnigh2
+* [33m616b51b[m solve the big problem for market reset result reset all market reletd reset after midnight
+* [33mad7ce9e[m Update the ui of Addnfund section
+* [33m21313a5[m remove top winners
+* [33me506dbd[m Problem Solve
+* [33m72fbbb0[m hero section changes
+* [33maa2030b[m Solve the Bet logic Problem
+*   [33m05551d3[m resolve merge conflict in AddResult.jsx
+[33m|[m[34m\[m  
+[33m|[m * [33mb01bebd[m 05/02/2026 47
+[33m|[m * [33me272d48[m 05/02/2026 46
+* [34m|[m [33m1194a03[m 05/02/2026 reset
+[34m|[m[34m/[m  
+* [33m4459e99[m 05/02/2026 45
+* [33m2f14faa[m 05/02/2026 44
+* [33mfac312a[m Create the starline market
+* [33m90bd8bd[m Create the starline market
+* [33m7dc19a3[m Create the starline market
+* [33m0f1f30f[m changes
+* [33md3c3e57[m full payment gateway added1
+* [33me2a2334[m full payment gateway added
+* [33m73e93a4[m 05/02/2026 4
+* [33mb1390a4[m 05/02/2026 3
+* [33m404556d[m Update the logic of the full Sangam
+* [33me875a94[m Update the logic of the full Sangam

@@ -94,7 +94,7 @@ const Games = () => {
         : t('games.allGames');
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-3 py-4">
+    <div className="w-full text-gray-900 dark:text-white px-3 py-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button

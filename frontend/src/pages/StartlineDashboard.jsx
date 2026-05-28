@@ -105,7 +105,7 @@ const StartlineDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen w-full text-gray-900 dark:text-white">
+    <div className="w-full text-gray-900 dark:text-white">
       <div className="mx-auto w-full max-w-5xl px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-5 md:px-8">
         {/* Header row (as per screenshot, in our theme) */}
         <div className="flex items-center justify-between gap-3">
