@@ -136,6 +136,9 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-[#05070e] px-4 pt-14 pb-8">
       <Toast toast={toast} onClose={hideToast} />
+      <div className="mb-5 flex justify-center lg:hidden">
+        <img src={aakdaLogo} alt="Aakda" className="h-12 w-auto object-contain opacity-95" />
+      </div>
       <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-10">
         <div className="hidden lg:block lg:w-1/2">
           <img src={aakdaLogo} alt="Aakda" className="h-44 w-auto object-contain opacity-95" />
