@@ -11,9 +11,13 @@ const getBaseApi = () => API_BASE_URL.replace(/\/api\/v1\/?$/, '');
 export default function useGameList({ staleMs = DEFAULT_STALE_MS, limit = DEFAULT_LIMIT } = {}) {
   const useBootstrap = limit === DEFAULT_LIMIT;
   const bootstrap = useHomeBootstrap({ marketLimit: 24, gameLimit: limit });
+  const bootstrapUnavailable =
+    bootstrap.error?.code === 'HOME_BOOTSTRAP_UNAVAILABLE' ||
+    bootstrap.error?.message === 'HOME_BOOTSTRAP_UNAVAILABLE';
+
   const gamesQuery = useQuery({
     queryKey: ['gameList', limit],
-    enabled: !useBootstrap,
+    enabled: !useBootstrap || bootstrapUnavailable,
     queryFn: async () => {
       const params = new URLSearchParams({
         fields: 'home',
@@ -30,14 +34,16 @@ export default function useGameList({ staleMs = DEFAULT_STALE_MS, limit = DEFAUL
   });
 
   const games = useMemo(() => {
-    if (useBootstrap) return bootstrap.data?.games || [];
+    if (useBootstrap && !bootstrapUnavailable) return bootstrap.data?.games || [];
     return gamesQuery.data || [];
-  }, [useBootstrap, bootstrap.data, gamesQuery.data]);
+  }, [useBootstrap, bootstrapUnavailable, bootstrap.data, gamesQuery.data]);
 
   return {
     games,
-    loading: useBootstrap ? bootstrap.isLoading : gamesQuery.isLoading,
-    error: (useBootstrap ? bootstrap.error : gamesQuery.error)?.message || '',
-    refetch: () => (useBootstrap ? bootstrap.refetch() : gamesQuery.refetch()),
+    loading: useBootstrap && !bootstrapUnavailable ? bootstrap.isLoading : gamesQuery.isLoading,
+    error:
+      (useBootstrap && !bootstrapUnavailable ? bootstrap.error : gamesQuery.error)?.message || '',
+    refetch: () =>
+      (useBootstrap && !bootstrapUnavailable ? bootstrap.refetch() : gamesQuery.refetch()),
   };
 }

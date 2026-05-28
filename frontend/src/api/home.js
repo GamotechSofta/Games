@@ -1,7 +1,15 @@
 import { API_BASE_URL } from '../config/api';
 import { getNotificationsLastSeenAt } from '../utils/notificationCount';
 
+let homeBootstrapUnavailable = false;
+
 export async function fetchHomeBootstrap({ marketLimit = 24, gameLimit = 12 } = {}) {
+  if (homeBootstrapUnavailable) {
+    const err = new Error('HOME_BOOTSTRAP_UNAVAILABLE');
+    err.code = 'HOME_BOOTSTRAP_UNAVAILABLE';
+    throw err;
+  }
+
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   const params = new URLSearchParams({
@@ -14,7 +22,13 @@ export async function fetchHomeBootstrap({ marketLimit = 24, gameLimit = 12 } = 
   }
 
   const res = await fetch(`${API_BASE_URL}/home/bootstrap?${params.toString()}`);
-  const data = await res.json();
+  const data = await res.json().catch(() => null);
+  if (res.status === 404) {
+    homeBootstrapUnavailable = true;
+    const err = new Error('HOME_BOOTSTRAP_UNAVAILABLE');
+    err.code = 'HOME_BOOTSTRAP_UNAVAILABLE';
+    throw err;
+  }
   if (!res.ok || !data?.success) {
     throw new Error(data?.message || 'Failed to load home bootstrap');
   }

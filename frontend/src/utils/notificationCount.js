@@ -6,6 +6,7 @@ export const NOTIFICATIONS_CLEARED_AT_KEY = 'notificationsClearedAt';
 const NOTIFICATION_COUNT_CACHE_KEY = 'header.notificationCount.v1';
 const NOTIFICATION_COUNT_TTL_MS = 2 * 60 * 1000;
 const runSharedRequest = createSharedFetcher();
+let unreadCountEndpointUnavailable = false;
 
 export function getNotificationsLastSeenAt() {
   try {
@@ -67,11 +68,18 @@ const toDateKeyIST = (d) => {
 
 /** Single lightweight endpoint (preferred). */
 async function fetchUnreadCountFromApi(userId, lastSeenAt) {
+  if (unreadCountEndpointUnavailable) {
+    throw new Error('NOTIFICATION_UNREAD_ENDPOINT_UNAVAILABLE');
+  }
   const params = new URLSearchParams({
     userId: String(userId),
     lastSeenAt: String(lastSeenAt || 0),
   });
   const res = await fetch(`${API_BASE_URL}/notifications/unread-count?${params.toString()}`);
+  if (res.status === 404) {
+    unreadCountEndpointUnavailable = true;
+    throw new Error('NOTIFICATION_UNREAD_ENDPOINT_UNAVAILABLE');
+  }
   const data = await res.json();
   if (!res.ok || !data?.success) {
     throw new Error(data?.message || 'Failed to fetch notification count');
