@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import aakdaLogo from '../config/logo';
 import { loginWithPassword, sendOtp, signupUser, verifyOtp } from '../services/otpAuthApi';
 import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
+import aakdaLogo from '../config/logo';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -134,7 +134,10 @@ const Login = () => {
     'w-full rounded-[10px] border border-[#1e2b41] bg-[#0d1625] px-3 py-3 text-sm text-white placeholder:text-[#4c5b72] outline-none transition focus:border-red-500';
 
   return (
-    <div className="min-h-screen bg-[#05070e] px-4 pt-14 pb-8">
+    <div
+      className="min-h-screen px-4 pt-14 pb-8 bg-[#05070e] bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "linear-gradient(rgba(5,7,14,0.72), rgba(5,7,14,0.78)), url('/login-bg.jpg')" }}
+    >
       <Toast toast={toast} onClose={hideToast} />
       <div className="mb-5 flex justify-center lg:hidden">
         <img src={aakdaLogo} alt="Aakda" className="h-12 w-auto object-contain opacity-95" />
@@ -143,7 +146,6 @@ const Login = () => {
         <div className="hidden lg:block lg:w-1/2">
           <img src={aakdaLogo} alt="Aakda" className="h-44 w-auto object-contain opacity-95" />
         </div>
-
         <div className="w-full max-w-[360px] rounded-2xl border border-[#1b2a43] bg-gradient-to-b from-[#0a1220] to-[#060c17] p-5 shadow-[0_0_50px_rgba(220,38,38,0.12)]">
           <div className="mb-4 flex border-b border-[#1d2a3e]">
             <button
