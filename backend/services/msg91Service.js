@@ -6,18 +6,19 @@ const MSG91_VERIFY_OTP_URL = 'https://control.msg91.com/api/v5/otp/verify';
 const getMsg91Config = () => {
     const authKey = process.env.MSG91_AUTH_KEY;
     const templateId = process.env.MSG91_TEMPLATE_ID;
+    const senderId = process.env.MSG91_SENDER_ID;
 
-    if (!authKey || !templateId) {
-        throw new Error('MSG91 credentials are not configured in environment variables');
+    if (!authKey || !templateId || !senderId) {
+        throw new Error('MSG91 credentials are not fully configured (MSG91_AUTH_KEY, MSG91_TEMPLATE_ID, MSG91_SENDER_ID)');
     }
 
-    return { authKey, templateId };
+    return { authKey, templateId, senderId };
 };
 
 const buildMobileWithCountryCode = (phone) => `91${phone}`;
 
 export const sendOtpViaMsg91 = async (phone) => {
-    const { authKey, templateId } = getMsg91Config();
+    const { authKey, templateId, senderId } = getMsg91Config();
     const mobile = buildMobileWithCountryCode(phone);
 
     const response = await axios.post(
@@ -25,6 +26,7 @@ export const sendOtpViaMsg91 = async (phone) => {
         {
             mobile,
             template_id: templateId,
+            sender: senderId,
         },
         {
             headers: {
