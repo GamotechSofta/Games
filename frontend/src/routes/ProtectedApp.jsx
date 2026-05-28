@@ -118,7 +118,7 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const { isDesktop } = useBreakpoint();
   const onPanelChange = useDashboardNav();
-  const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user') && !!localStorage.getItem('userToken'));
+  const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
   const activePanel = getActivePanelFromLocation(location.pathname, location.search);
   const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
@@ -141,7 +141,7 @@ const Layout = ({ children }) => {
   const hideBottomNavOnMobile = false;
 
   useEffect(() => {
-    const check = () => setHasUser(!!localStorage.getItem('user') && !!localStorage.getItem('userToken'));
+    const check = () => setHasUser(!!localStorage.getItem('user'));
     window.addEventListener('userLogin', check);
     window.addEventListener('userLogout', check);
     return () => {
