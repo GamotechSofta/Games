@@ -121,9 +121,9 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(data.data || {}));
       if (data.token) localStorage.setItem('userToken', data.token);
       void prefetchHomeBootstrap();
-      window.dispatchEvent(new Event('userLogin'));
+        window.dispatchEvent(new Event('userLogin'));
       showToast(data.message || 'Authentication successful', 'success');
-      navigate('/');
+        navigate('/');
     } catch {
       setError('Network error');
       showToast('Authentication failed', 'error');
@@ -150,28 +150,28 @@ const Login = () => {
         </div>
         <div className="w-full max-w-[360px] rounded-2xl border border-[#1b2a43] bg-gradient-to-b from-[#0a1220] to-[#060c17] p-5 shadow-[0_0_50px_rgba(220,38,38,0.12)]">
           <div className="mb-4 flex border-b border-[#1d2a3e]">
-            <button
-              type="button"
+                <button
+                  type="button"
               onClick={() => setIsLogin(true)}
               className={`flex-1 border-b-2 py-2 text-sm font-semibold ${isLogin ? 'border-red-500 text-red-500' : 'border-transparent text-[#9ba8bc]'}`}
             >
               Login
-            </button>
-            <button
-              type="button"
+                </button>
+                <button
+                  type="button"
               onClick={() => setIsLogin(false)}
               className={`flex-1 border-b-2 py-2 text-sm font-semibold ${!isLogin ? 'border-red-500 text-red-500' : 'border-transparent text-[#9ba8bc]'}`}
             >
               Sign Up
-            </button>
-          </div>
+                </button>
+              </div>
 
           {error && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-3">
 
-            {isLogin && (
-              <>
+                {isLogin && (
+                  <>
                 <div className="grid grid-cols-2 gap-1 rounded-[10px] border border-[#1e2b41] bg-[#0b1322] p-1">
                   <button type="button" onClick={() => setLoginMode('password')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'password' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>Password</button>
                   <button type="button" onClick={() => setLoginMode('otp')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'otp' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>OTP</button>
@@ -201,7 +201,7 @@ const Login = () => {
                       </button>
                     </div>
                   )}
-                </div>
+                  </div>
 
                 {loginMode === 'password' ? (
                   <div>
@@ -224,9 +224,9 @@ const Login = () => {
                   </div>
                 )}
               </>
-            )}
+              )}
 
-            {!isLogin && (
+              {!isLogin && (
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={inputClass} />
@@ -255,7 +255,7 @@ const Login = () => {
                   </div>
                 </div>
 
-                <input
+                    <input
                   value={signupOtp}
                   onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="Signup OTP"
@@ -266,7 +266,7 @@ const Login = () => {
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="Create Password" className={`${inputClass} pr-12`} />
                   <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8fa0b7]">{showPassword ? 'Hide' : 'Show'}</button>
-                </div>
+                  </div>
 
                 <div className="relative">
                   <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm Password" className={`${inputClass} pr-12`} />
@@ -279,8 +279,8 @@ const Login = () => {
               <input type="checkbox" checked={isAbove18} onChange={(e) => setIsAbove18(e.target.checked)} className="mt-[2px]" />
               <span>
                 I confirm that I am above 18 years of age and agree to the <span className="text-red-500 underline">Terms of Use</span> and <span className="text-red-500 underline">Privacy Policy</span>
-              </span>
-            </label>
+                  </span>
+                </label>
 
             <button type="submit" disabled={loading || !isAbove18} className="w-full rounded-[10px] bg-gradient-to-r from-[#d7001f] to-[#ff1744] py-3 text-sm font-bold tracking-wide text-white hover:brightness-110 disabled:opacity-60">
               {loading ? 'Please wait...' : isLogin ? (loginMode === 'otp' ? 'VERIFY OTP' : 'SIGN IN') : 'SIGN UP'}
@@ -290,8 +290,8 @@ const Login = () => {
               <>
                 <div className="relative py-1 text-center text-xs text-[#5d6b80] before:absolute before:left-0 before:top-1/2 before:h-px before:w-[45%] before:bg-[#22324a] after:absolute after:right-0 after:top-1/2 after:h-px after:w-[45%] after:bg-[#22324a]">
                   or
-                </div>
-                <button
+              </div>
+              <button
                   type="button"
                   onClick={() => setLoginMode((prev) => (prev === 'otp' ? 'password' : 'otp'))}
                   className="w-full rounded-[10px] border border-[#2a3a52] bg-transparent py-3 text-sm font-semibold text-white hover:border-red-500"
@@ -300,7 +300,7 @@ const Login = () => {
                 </button>
               </>
             )}
-          </form>
+            </form>
 
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,7 @@ const toMarketNameKey = (name) => {
     .replace(/^\w/, (c) => c.toLowerCase());
 };
 
-function ClockIcon() {
+function ClockIcon({ color = 'rgba(255,255,255,0.8)', size = 18 }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -21,7 +21,7 @@ function ClockIcon() {
       strokeWidth="1.9"
       strokeLinecap="round"
       strokeLinejoin="round"
-      style={{ width: 22, height: 22, color: 'rgba(255,255,255,0.8)' }}
+      style={{ width: size, height: size, color }}
     >
       <circle cx="12" cy="13" r="7.5" />
       <path d="M12 8.8v4.2l2.8 1.7" />
@@ -35,6 +35,20 @@ function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showClosedModal, setShowClosedModal] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof document === 'undefined') return true;
+    return document.documentElement.classList.contains('dark');
+  });
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const root = document.documentElement;
+    const syncTheme = () => setIsDarkMode(root.classList.contains('dark'));
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const isOpen = market.status === 'open' || market.status === 'running';
   const isLive = market.status === 'running';
@@ -59,6 +73,39 @@ function MarketCard({ market }) {
 
   const resultValue = market.result || '***-**-***';
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
+  const theme = isDarkMode
+    ? {
+        cardBg: '#0f111a',
+        cardBorder: 'rgba(255,255,255,0.08)',
+        cardBorderHover: 'rgba(255,255,255,0.08)',
+        nameColor: '#ffffff',
+        resultColor: '#ef4444',
+        timeBarBg: '#1e2230',
+        timeText: '#ffffff',
+        timeLabel: 'rgba(255,255,255,0.7)',
+        iconColor: 'rgba(255,255,255,0.8)',
+        overlayGradient: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,22,0.65) 100%)',
+        modalBg: '#14161d',
+        modalBorder: '1px solid rgba(255,255,255,0.1)',
+        modalText: '#fff',
+        modalSubText: 'rgba(255,255,255,0.75)',
+      }
+    : {
+        cardBg: '#ffffff',
+        cardBorder: 'rgba(15,23,42,0.12)',
+        cardBorderHover: 'rgba(15,23,42,0.12)',
+        nameColor: '#0f172a',
+        resultColor: '#ef4444',
+        timeBarBg: '#f1f5f9',
+        timeText: '#0f172a',
+        timeLabel: '#475569',
+        iconColor: '#334155',
+        overlayGradient: 'none',
+        modalBg: '#ffffff',
+        modalBorder: '1px solid rgba(15,23,42,0.12)',
+        modalText: '#0f172a',
+        modalSubText: '#475569',
+      };
 
   const closedModal = showClosedModal ? (
     <div
@@ -80,7 +127,9 @@ function MarketCard({ market }) {
           maxWidth: 340,
           borderRadius: 16,
           border: '1px solid rgba(255,255,255,0.1)',
-          background: '#14161d',
+          background: theme.modalBg,
+          color: theme.modalText,
+          border: theme.modalBorder,
           padding: 16,
           textAlign: 'center',
           boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
@@ -96,7 +145,7 @@ function MarketCard({ market }) {
             top: 10,
             background: 'none',
             border: 'none',
-            color: 'rgba(255,255,255,0.7)',
+            color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(15,23,42,0.6)',
             cursor: 'pointer',
             padding: 4,
           }}
@@ -105,10 +154,10 @@ function MarketCard({ market }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: theme.modalText, lineHeight: 1.4 }}>
           {t('markets.closedForToday', { defaultValue: 'Market is closed for today.' })}
         </p>
-        <p style={{ marginTop: 4, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
+        <p style={{ marginTop: 4, fontSize: 12, color: theme.modalSubText }}>
           {t('markets.betTomorrowHint', { defaultValue: 'You can place your bet for tomorrow.' })}
         </p>
         <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
@@ -123,7 +172,7 @@ function MarketCard({ market }) {
               padding: '8px 12px',
               fontSize: 12,
               fontWeight: 700,
-              color: '#fff',
+              color: theme.modalText,
               cursor: 'pointer',
             }}
           >
@@ -136,11 +185,11 @@ function MarketCard({ market }) {
               flex: 1,
               borderRadius: 10,
               background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.15)',
+              border: isDarkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(15,23,42,0.18)',
               padding: '8px 12px',
               fontSize: 12,
               fontWeight: 700,
-              color: '#fff',
+              color: theme.modalText,
               cursor: 'pointer',
             }}
           >
@@ -170,17 +219,14 @@ function MarketCard({ market }) {
           width: '100%',
           borderRadius: 16,
           overflow: 'hidden',
-          background: '#0f111a',
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: theme.cardBg,
+          border: `1px solid ${theme.cardBorder}`,
           cursor: 'pointer',
           fontFamily: "'Barlow', sans-serif",
           transition: 'border-color 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+          boxShadow: 'none',
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
         }}
       >
         {/* Banner */}
@@ -197,7 +243,7 @@ function MarketCard({ market }) {
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,22,0.65) 100%)',
+              background: theme.overlayGradient,
             }}
           />
           {/* Live badge */}
@@ -250,7 +296,7 @@ function MarketCard({ market }) {
               fontSize: 13,
               fontWeight: 800,
               letterSpacing: '0.04em',
-              color: '#ffffff',
+              color: theme.nameColor,
               textTransform: 'uppercase',
               marginBottom: 3,
             }}
@@ -264,10 +310,10 @@ function MarketCard({ market }) {
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 24,
               fontWeight: 900,
-              color: '#d4a020',
+              color: theme.resultColor,
               letterSpacing: '0.04em',
               lineHeight: 1,
-              marginBottom: 1,
+              marginBottom: 8,
             }}
           >
             {resultValue}
@@ -276,38 +322,41 @@ function MarketCard({ market }) {
           {/* Time bar */}
           <div
             style={{
-              background: '#1e2230',
+              background: theme.timeBarBg,
               borderRadius: 14,
-              padding: '7px 8px',
+              padding: '11px 12px',
             }}
           >
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 24px 1fr',
+                gridTemplateColumns: 'minmax(0,1fr) 20px minmax(0,1fr)',
                 alignItems: 'center',
                 gap: 4,
-                marginBottom: 5,
+                marginBottom: 0,
+                whiteSpace: 'nowrap',
               }}
             >
               {/* Open */}
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', minWidth: 0 }}>
                 <div
                   style={{
                     fontSize: 11,
                     fontWeight: 800,
-                    color: '#fff',
+                    color: theme.timeText,
                     fontFamily: "'Barlow Condensed', sans-serif",
                     letterSpacing: '0.02em',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.1,
                   }}
                 >
                   {market.startingTime ? openTime : '--'}
                 </div>
                 <div
                   style={{
-                    fontSize: 8,
+                    fontSize: 9,
                     fontWeight: 700,
-                    color: 'rgba(255,255,255,0.7)',
+                    color: theme.timeLabel,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     marginTop: 1,
@@ -319,27 +368,29 @@ function MarketCard({ market }) {
 
               {/* Clock icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <ClockIcon />
+                <ClockIcon color={theme.iconColor} size={18} />
               </div>
 
               {/* Close */}
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: 'center', minWidth: 0 }}>
                 <div
                   style={{
                     fontSize: 11,
                     fontWeight: 800,
-                    color: '#fff',
+                    color: theme.timeText,
                     fontFamily: "'Barlow Condensed', sans-serif",
                     letterSpacing: '0.02em',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.1,
                   }}
                 >
                   {market.closingTime ? closeTime : '--'}
                 </div>
                 <div
                   style={{
-                    fontSize: 8,
+                    fontSize: 9,
                     fontWeight: 700,
-                    color: 'rgba(255,255,255,0.7)',
+                    color: theme.timeLabel,
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     marginTop: 1,
@@ -368,9 +419,13 @@ function MarketCard({ market }) {
                 cursor: 'pointer',
                 fontSize: 10,
                 fontWeight: 700,
-                color: isClosed ? 'rgba(248, 113, 113, 0.72)' : '#6ee7b7',
+                color: isClosed ? '#ef4444' : '#22c55e',
                 letterSpacing: '0.03em',
-                animation: isClosed ? 'marketTomorrowBlink 1.15s ease-in-out infinite' : 'none',
+                animation: isClosed ? 'marketTomorrowBlink 1.1s ease-in-out infinite' : 'none',
+                textShadow: 'none',
+                filter: 'none',
+                outline: 'none',
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               {isClosed
