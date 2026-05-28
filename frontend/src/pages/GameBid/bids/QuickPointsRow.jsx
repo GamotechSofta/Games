@@ -2,11 +2,11 @@ import React from 'react';
 
 export const QUICK_POINT_VALUES = [10, 20, 30, 40, 50];
 
+const getQuickPointIconSrc = (pts) => `/images/icons/${pts}_rs_icon-removebg-preview.png`;
+
 export const getQuickPointButtonClass = (selected) =>
-    `min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base border transition-all active:scale-[0.98] ${
-        selected
-            ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-700 dark:border-white/25 shadow-[0_10px_20px_rgba(185,28,28,0.18)] dark:shadow-[0_12px_24px_rgba(0,0,0,0.35)]'
-            : 'bg-white dark:bg-[#202329] text-red-700 dark:text-gray-200 border-red-200 dark:border-white/20 hover:bg-gray-50 hover:border-red-300 dark:hover:bg-white/15 dark:hover:border-white/30'
+    `h-10 sm:h-11 min-w-[2.5rem] sm:min-w-[2.75rem] flex items-center justify-center transition-transform active:scale-[0.98] ${
+        selected ? 'scale-105' : 'hover:scale-105'
     }`;
 
 export function QuickPointButton({ pts, selected, onClick, className = '' }) {
@@ -14,9 +14,24 @@ export function QuickPointButton({ pts, selected, onClick, className = '' }) {
         <button
             type="button"
             onClick={onClick}
-            className={`${getQuickPointButtonClass(selected)} ${className}`.trim()}
+            className={`${getQuickPointButtonClass(selected)} relative ${className}`.trim()}
+            aria-label={`Quick points ${pts}`}
         >
-            {pts}
+            <img
+                src={getQuickPointIconSrc(pts)}
+                alt={`${pts} points`}
+                className={`h-full w-auto object-contain transition-all ${
+                    selected
+                        ? 'drop-shadow-[0_0_10px_rgba(220,38,38,0.45)] brightness-110'
+                        : 'opacity-70 hover:opacity-100'
+                }`}
+            />
+            {selected && (
+                <>
+                    <span className="absolute -inset-1 rounded-lg border-2 border-red-500/90 pointer-events-none" />
+                    <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-red-600 border border-white shadow-sm pointer-events-none" />
+                </>
+            )}
         </button>
     );
 }

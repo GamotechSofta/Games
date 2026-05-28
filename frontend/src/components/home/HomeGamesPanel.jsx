@@ -7,7 +7,7 @@ import { GAMES } from '../../config/games';
 import { HOME_QUICK_LINKS } from '../../config/homeAssets';
 import { useTheme } from '../../context/ThemeContext';
 import useGameList from '../../hooks/useGameList';
-
+  
 const filterByCategory = (games, category) => {
   if (category === 'highEarning') return games.filter((g) => g.highEarning);
   if (category === 'skills' || category === 'upcoming') return games.filter((g) => g.upcoming);
