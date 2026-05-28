@@ -28,6 +28,9 @@ const Login = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
+  const [signupOtp, setSignupOtp] = useState('');
+  const [signupOtpSent, setSignupOtpSent] = useState(false);
+  const [signupOtpLoading, setSignupOtpLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -88,6 +91,10 @@ const Login = () => {
         setError(t('login.passwordsDoNotMatch'));
         return;
       }
+      if (!/^\d{4,6}$/.test(signupOtp)) {
+        setError('Please enter valid signup OTP');
+        return;
+      }
     }
 
     setLoading(true);
@@ -121,7 +128,7 @@ const Login = () => {
           body = { phone: formData.phone, password: formData.password, deviceId: deviceId || undefined };
         }
       } else {
-        endpoint = '/users/signup';
+        endpoint = '/users/signup-otp';
         body = {
           username: `${formData.firstName} ${formData.lastName}`.trim(),
           firstName: formData.firstName,
@@ -129,6 +136,7 @@ const Login = () => {
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
+          otp: signupOtp,
           referredBy: refParam || undefined,
           deviceId: deviceId || undefined,
         };
@@ -224,6 +232,34 @@ const Login = () => {
     setLoginMode('password');
     setOtp('');
     setOtpSent(false);
+    setSignupOtp('');
+    setSignupOtpSent(false);
+  };
+
+  const handleSendSignupOtp = async () => {
+    setError('');
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      setError('Please enter valid 10-digit phone number');
+      return;
+    }
+    setSignupOtpLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone }),
+      });
+      const data = await response.json();
+      if (!data.success) {
+        setError(data.message || 'Failed to send OTP');
+        return;
+      }
+      setSignupOtpSent(true);
+    } catch (err) {
+      setError(t('login.networkError'));
+    } finally {
+      setSignupOtpLoading(false);
+    }
   };
 
   return (
@@ -508,6 +544,33 @@ const Login = () => {
                         placeholder={t('login.phonePlaceholder')}
                         required
                       />
+                    </div>
+                  </div>
+                )}
+
+                {!isLogin && (
+                  <div>
+                    <label className="block text-gray-300 text-xs font-medium mb-1">
+                      Signup OTP <span className="text-yellow-500">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={signupOtp}
+                        onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
+                        placeholder="Enter OTP"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendSignupOtp}
+                        disabled={signupOtpLoading}
+                        className="rounded-lg px-3 py-2 text-xs font-semibold bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-60"
+                      >
+                        {signupOtpLoading ? '...' : (signupOtpSent ? 'Resend' : 'Send')}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -951,6 +1014,33 @@ const Login = () => {
                       placeholder={t('login.phonePlaceholder')}
                       required
                     />
+                  </div>
+                </div>
+              )}
+
+              {!isLogin && (
+                <div>
+                  <label className="block text-gray-300 text-sm font-medium mb-2.5">
+                    Signup OTP <span className="text-yellow-500">*</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={signupOtp}
+                      onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
+                      placeholder="Enter OTP"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSendSignupOtp}
+                      disabled={signupOtpLoading}
+                      className="rounded-xl px-3 py-3.5 text-sm font-semibold bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-60"
+                    >
+                      {signupOtpLoading ? '...' : (signupOtpSent ? 'Resend' : 'Send')}
+                    </button>
                   </div>
                 </div>
               )}
