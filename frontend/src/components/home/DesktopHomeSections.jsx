@@ -1,34 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment } from 'react-icons/md';
 import { FaThLarge } from 'react-icons/fa';
 import { filterMarketsByQuery, toMarketNameKey } from '../../utils/marketSearch';
-import { API_BASE_URL } from '../../config/api';
-import { isPastClosingTime } from '../../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
+import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
-import PopularCasinoSection from './PopularCasinoSection';
 import HomeGamesPanel from './HomeGamesPanel';
 
-const formatTime = (time24) => {
-  if (!time24) return '';
-  const [hours, minutes] = time24.split(':');
-  const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-};
-
-const getMarketStatus = (market) => {
-  if (isPastClosingTime(market)) return { status: 'closed', timer: null };
-  const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
-  const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
-  if (hasOpening && hasClosing) return { status: 'closed', timer: null };
-  if (hasOpening && !hasClosing) return { status: 'running', timer: null };
-  return { status: 'open', timer: null };
-};
+const PopularCasinoSection = lazy(() => import('./PopularCasinoSection'));
 
 function MarketRow({
   titleKey,
@@ -43,7 +25,6 @@ function MarketRow({
 }) {
   const { t } = useTranslation();
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
-  const imageShape = scrollable ? 'round' : 'square';
   const rowClass = scrollable
     ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2`
     : 'grid w-full grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4 pb-2 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]';
@@ -76,7 +57,7 @@ function MarketRow({
       <div className={rowClass}>
         {markets.map((market, i) => (
           <div key={market.id} className={itemClass}>
-            <MarketCard market={market} index={i} section={section} imageShape={imageShape} />
+            <MarketCard market={market} index={i} section={section} />
           </div>
         ))}
       </div>
@@ -107,10 +88,8 @@ function MarketRowSkeleton({ scrollable = true, gapClass = 'gap-3' }) {
 export default function DesktopHomeSections({ searchQuery = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [markets, setMarkets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const isInitialLoad = useRef(true);
   const [, setTick] = useState(0);
+  const { markets, loading, refetch } = useMainMarkets();
 
   const getMarketDisplayName = useCallback(
     (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
@@ -129,51 +108,7 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
     return () => clearInterval(id);
   }, []);
 
-  const fetchMarkets = async () => {
-    const showLoading = isInitialLoad.current;
-    if (showLoading) setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
-      const data = await response.json();
-      if (data.success) {
-        const mainOnly = (data.data || []).filter((market) => market.marketType !== 'startline');
-        const transformed = mainOnly.map((market) => {
-          const status = getMarketStatus(market);
-          return {
-            id: market._id,
-            gameName: market.marketName,
-            showInPopular: Boolean(market.showInPopular),
-            timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
-            result: market.displayResult || '***-**-***',
-            status: status.status,
-            timer: status.timer,
-            winNumber: market.winNumber,
-            startingTime: market.startingTime,
-            closingTime: market.closingTime,
-            betClosureTime: market.betClosureTime ?? 0,
-            openingNumber: market.openingNumber,
-            closingNumber: market.closingNumber,
-          };
-        });
-        setMarkets(transformed);
-      }
-    } catch (error) {
-      console.error('Error fetching markets:', error);
-    } finally {
-      if (showLoading) {
-        isInitialLoad.current = false;
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchMarkets();
-    const dataInterval = setInterval(fetchMarkets, 30000);
-    return () => clearInterval(dataInterval);
-  }, []);
-
-  useRefreshOnMarketReset(fetchMarkets);
+  useRefreshOnMarketReset(refetch);
 
   const popularMarkets = filteredMarkets.filter((market) => market.showInPopular).slice(0, 12);
   const allMarkets = filteredMarkets;
@@ -209,7 +144,9 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   return (
     <div id="market-sections" className="mx-auto w-full max-w-[1440px] space-y-1 px-4 lg:px-6 xl:px-8">
-      <PopularCasinoSection onSelect={(path) => navigate(path)} />
+      <Suspense fallback={null}>
+        <PopularCasinoSection onSelect={(path) => navigate(path)} />
+      </Suspense>
 
       {loading ? (
         <MarketRowSkeleton />

@@ -4,16 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { HiMenu, HiUser } from 'react-icons/hi';
 import { HiBell, HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
 import { useWallet } from '../hooks/useWallet';
-import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
 import { SIDEBAR_COLLAPSED_W } from './DesktopSidebar';
+import aakdaLogo from '../config/logo';
+import useNotificationCount from '../hooks/useNotificationCount';
 
 export default function DashboardHeader({ activePanel, onPanelChange, sidebarCollapsed, onToggleSidebar }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { formattedBalance } = useWallet();
-  const [notificationCount, setNotificationCount] = useState(0);
+  const { notificationCount } = useNotificationCount();
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null');
@@ -41,22 +42,6 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
     };
   }, []);
 
-  const refreshNotificationCount = useCallback(() => {
-    getNotificationUnreadCount().then(setNotificationCount);
-  }, []);
-
-  useEffect(() => {
-    refreshNotificationCount();
-    window.addEventListener('notificationsSeen', refreshNotificationCount);
-    window.addEventListener('userLogin', refreshNotificationCount);
-    const intervalId = setInterval(refreshNotificationCount, 45000);
-    return () => {
-      window.removeEventListener('notificationsSeen', refreshNotificationCount);
-      window.removeEventListener('userLogin', refreshNotificationCount);
-      clearInterval(intervalId);
-    };
-  }, [refreshNotificationCount]);
-
   return (
     <header className="sticky top-0 z-50 shrink-0 border-b border-gray-200 bg-white font-sans shadow-sm dark:border-white/[0.08] dark:bg-[#141415] dark:shadow-none">
       <div className="flex items-center py-3">
@@ -82,7 +67,7 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
             className="shrink-0 rounded-lg p-0.5 transition-transform duration-200 hover:scale-[1.02]"
             aria-label="Aakda home"
           >
-            <img src="/aakdaLogo.png" alt="Aakda" className="h-9 w-auto object-contain" />
+            <img src={aakdaLogo} alt="Aakda" className="h-9 w-auto object-contain" />
           </button>
           {onPanelChange && (
             <DashboardNavPill activePanel={activePanel} onPanelChange={onPanelChange} />

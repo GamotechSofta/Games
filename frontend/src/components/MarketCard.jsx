@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getMarketImageUrl } from '../config/marketCardThemes';
+import OptimizedImage from './OptimizedImage';
+import { POPULAR_MARKET_CARD } from '../config/homeAssets';
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -12,17 +13,11 @@ const toMarketNameKey = (name) => {
     .replace(/^\w/, (c) => c.toLowerCase());
 };
 
-const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
-const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
-
-export default function MarketCard({ market, imageShape = 'round' }) {
+function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClickable = isOpen;
-  const imageUrl = getMarketImageUrl(market.gameName);
-  const useSquareImage = imageShape === 'square';
-
   const handleClick = () => {
     if (isClickable) {
       navigate('/bidoptions', { state: { market } });
@@ -48,7 +43,7 @@ export default function MarketCard({ market, imageShape = 'round' }) {
   const badgeStyle = isOpen
     ? 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50'
     : 'border-red-300/30 bg-red-500/18 text-white';
-  const cardImage = isOpen ? POPULAR_MARKET_CARD_OPEN_IMAGE : POPULAR_MARKET_CARD_CLOSED_IMAGE;
+  const cardImage = isOpen ? POPULAR_MARKET_CARD.open : POPULAR_MARKET_CARD.closed;
   const handleActionClick = (e) => {
     e.stopPropagation();
     if (isOpen) {
@@ -70,33 +65,16 @@ export default function MarketCard({ market, imageShape = 'round' }) {
           : ''
       }`}
     >
-      <img
-        src={cardImage}
+      <OptimizedImage
+        webp={cardImage.webp}
+        png={cardImage.png}
         alt=""
+        loading="lazy"
         className="absolute inset-0 h-full w-full object-contain object-center"
         aria-hidden
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
       <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,187,118,0.18),transparent)]" />
-      {imageUrl ? (
-        <>
-          <img
-            src={imageUrl}
-            alt=""
-            className={`absolute top-6 h-auto w-auto max-h-[74px] max-w-[74px] object-contain opacity-[0.16] blur-[1px] ${
-              useSquareImage
-                ? 'right-3 rounded-[18px]'
-                : '-right-4 rounded-full'
-            }`}
-            aria-hidden
-          />
-          <div
-            className={`absolute top-4 h-[92px] w-[92px] bg-[#ffbf78]/10 blur-2xl ${
-              useSquareImage ? 'right-1 rounded-[24px]' : '-right-2 rounded-full'
-            }`}
-          />
-        </>
-      ) : null}
 
       <div className="relative z-10 flex h-full flex-col p-3.5">
         <div className="flex justify-center pt-8">
@@ -137,3 +115,5 @@ export default function MarketCard({ market, imageShape = 'round' }) {
     </div>
   );
 }
+
+export default memo(MarketCard);

@@ -1,27 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
-import { getNotificationUnreadCount } from '../utils/notificationCount';
 import { triggerApkDownload } from '../utils/downloads';
 import aakdaLogo from '../config/logo';
-import LanguageSwitcher from './LanguageSwitcher';
-import ThemeSwitcher from './ThemeSwitcher';
 import { useTheme } from '../context/ThemeContext';
-import MobileInstallBanner from './MobileInstallBanner';
+import useNotificationCount from '../hooks/useNotificationCount';
+
+const LanguageSwitcher = lazy(() => import('./LanguageSwitcher'));
+const ThemeSwitcher = lazy(() => import('./ThemeSwitcher'));
+const MobileInstallBanner = lazy(() => import('./MobileInstallBanner'));
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const { isLight } = useTheme();
+  const { notificationCount } = useNotificationCount();
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
-  const [notificationCount, setNotificationCount] = useState(0);
-
-  const refreshNotificationCount = useCallback(() => {
-    getNotificationUnreadCount().then(setNotificationCount);
-  }, []);
 
   const loadStoredBalance = () => {
     try {
@@ -44,7 +41,6 @@ const AppHeader = () => {
         }
       } else {
         setUser(null);
-        setNotificationCount(0);
       }
       loadStoredBalance();
     };
@@ -64,31 +60,19 @@ const AppHeader = () => {
       } catch (_) {}
     };
 
-    fetchAndUpdateBalance();
+    const balanceDeferId = window.setTimeout(fetchAndUpdateBalance, 2500);
 
     window.addEventListener('storage', checkUser);
     window.addEventListener('userLogin', checkUser);
     window.addEventListener('userLogout', checkUser);
 
-    refreshNotificationCount();
-    window.addEventListener('notificationsSeen', refreshNotificationCount);
-    window.addEventListener('userLogin', refreshNotificationCount);
-
-    const intervalId = setInterval(refreshNotificationCount, 45000);
-
     return () => {
+      window.clearTimeout(balanceDeferId);
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userLogin', checkUser);
       window.removeEventListener('userLogout', checkUser);
-      window.removeEventListener('notificationsSeen', refreshNotificationCount);
-      window.removeEventListener('userLogin', refreshNotificationCount);
-      clearInterval(intervalId);
     };
-  }, [refreshNotificationCount]);
-
-  useEffect(() => {
-    refreshNotificationCount();
-  }, [location.pathname, refreshNotificationCount]);
+  }, []);
 
   const handleProfileClick = () => {
     navigate(user ? '/profile' : '/login');
@@ -119,7 +103,11 @@ const AppHeader = () => {
           }`}
       >
         <div className="flex flex-col gap-1.5">
-          {isDashboardRoute && <MobileInstallBanner />}
+          {isDashboardRoute && (
+            <Suspense fallback={null}>
+              <MobileInstallBanner />
+            </Suspense>
+          )}
 
           {isDashboardRoute ? (
             <div className="flex items-center gap-2.5 min-w-0 md:hidden">
@@ -198,8 +186,12 @@ const AppHeader = () => {
               </div>
 
               <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 lg:gap-3 shrink-0 min-w-0">
-                <ThemeSwitcher variant="auto" />
-                <LanguageSwitcher variant="auto" />
+                <Suspense fallback={null}>
+                  <ThemeSwitcher variant="auto" />
+                </Suspense>
+                <Suspense fallback={null}>
+                  <LanguageSwitcher variant="auto" />
+                </Suspense>
 
                 <button
                   onClick={triggerApkDownload}

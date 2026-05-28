@@ -1,25 +1,29 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, memo, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight } from 'react-icons/hi2';
 import {
   MdLocalFireDepartment,
 } from 'react-icons/md';
-import { API_BASE_URL } from '../../config/api';
 import { GAMES } from '../../config/games';
-import { getMarketImageUrl } from '../../config/marketCardThemes';
-import PopularCasinoSection from './PopularCasinoSection';
+import { HOME_QUICK_LINKS, POPULAR_MARKET_CARD } from '../../config/homeAssets';
+import OptimizedImage from '../OptimizedImage';
+import ResponsiveCloudinaryImage from '../ResponsiveCloudinaryImage';
+import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
-import { isPastClosingTime } from '../../utils/marketTiming';
+import useMainMarkets from '../../hooks/useMainMarkets';
+import useGameList from '../../hooks/useGameList';
+
+const PopularCasinoSection = lazy(() => import('./PopularCasinoSection'));
 
 const MOBILE_HOME_BANNERS = [
   {
-    src: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png',
+    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png'),
     alt: 'Black Orange Gaming Banner',
   },
   {
-    src: 'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png',
+    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png'),
     alt: 'Black Gold Casino Night Banner',
   },
 ];
@@ -30,7 +34,7 @@ const QUICK_LINKS = [
     label: 'Casino',
     icon: CasinoChipIcon,
     path: '/games?category=highEarning',
-    imageSrc: '/images/home/casino-card.png',
+    image: HOME_QUICK_LINKS.casino,
     iconColor: '#d58cff',
     darkCardClass:
       'border-[#6a3d8e] bg-[linear-gradient(135deg,#2b1438_0%,#17111f_52%,#0d0c14_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(141,88,184,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
@@ -47,7 +51,7 @@ const QUICK_LINKS = [
     icon: MarketsIcon,
     path: '/markets',
     active: true,
-    imageSrc: '/images/home/markets-card.png',
+    image: HOME_QUICK_LINKS.markets,
     iconColor: '#ff5a52',
     darkCardClass:
       'border-[#8f2a2a] bg-[linear-gradient(135deg,#371015_0%,#211012_52%,#110b0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(182,60,60,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
@@ -63,7 +67,7 @@ const QUICK_LINKS = [
     label: 'Starline',
     icon: StarlineIcon,
     path: '/startline-dashboard',
-    imageSrc: '/images/home/starline-card.png',
+    image: HOME_QUICK_LINKS.starline,
     iconColor: '#ffd75a',
     darkCardClass:
       'border-[#8b6a1d] bg-[linear-gradient(135deg,#3a2b10_0%,#241d10_52%,#13100b_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(185,146,46,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
@@ -79,7 +83,7 @@ const QUICK_LINKS = [
     label: 'King Bazaar',
     icon: CrownIcon,
     path: '/king-bazaar-market',
-    imageSrc: '/images/home/king-bazaar-card.png',
+    image: HOME_QUICK_LINKS.kingBazaar,
     iconColor: '#ffb149',
     darkCardClass:
       'border-[#8f5a1d] bg-[linear-gradient(135deg,#392110_0%,#24170f_52%,#120d0c_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_0_1px_rgba(188,120,48,0.18),0_10px_24px_rgba(0,0,0,0.32)]',
@@ -129,14 +133,12 @@ const TOP_GAME_TILES = [
     id: 'king-bazaar',
     title: 'King Bazaar',
     provider: 'Aakda',
-    image: getMarketImageUrl('king-bazaar'),
+    image: HOME_QUICK_LINKS.kingBazaar,
     bg: 'from-[#2e2008] via-[#7c5310] to-[#160f05]',
     icon: '♛',
   },
 ];
 
-const POPULAR_MARKET_CARD_CLOSED_IMAGE = '/images/home/popular-markets-table.png';
-const POPULAR_MARKET_CARD_OPEN_IMAGE = '/images/home/popular-markets-table-open.png';
 const MARKET_CARD_SCROLL_CLASS =
   'relative h-[160px] w-[calc((100%-0.625rem)/2)] min-w-[136px] max-w-[166px] shrink-0 overflow-hidden rounded-[24px] bg-[#180707] min-[375px]:h-[168px] min-[375px]:w-[calc((100%-0.75rem)/2.08)] min-[480px]:h-[176px] min-[480px]:w-[calc((100%-1.5rem)/3)] min-[480px]:min-w-[148px] min-[480px]:max-w-[182px]';
 const MARKET_CARD_GRID_CLASS =
@@ -165,24 +167,6 @@ const toMarketNameKey = (name) =>
     .toLowerCase()
     .replace(/\s+(\w)/g, (_, c) => c.toUpperCase())
     .replace(/^\w/, (c) => c.toLowerCase());
-
-const formatTime = (time24) => {
-  if (!time24) return '';
-  const [hours, minutes] = time24.split(':');
-  const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-};
-
-const getMarketStatus = (market) => {
-  if (isPastClosingTime(market)) return { status: 'closed' };
-  const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
-  const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
-  if (hasOpening && hasClosing) return { status: 'closed' };
-  if (hasOpening && !hasClosing) return { status: 'running' };
-  return { status: 'open' };
-};
 
 function MarketsIcon({ className = '', style }) {
   return (
@@ -249,18 +233,19 @@ function QuickAccessTile({ item, onClick, isLight }) {
   const titleStyle = isLight ? { color: '#1f2937' } : { color: '#ffffff' };
   const iconStyle = { color: item.iconColor };
 
-  if (item.imageSrc) {
+  if (item.image) {
     return (
       <button
         type="button"
         onClick={onClick}
         className="group relative block w-full min-w-0 overflow-hidden rounded-[18px] text-left transition active:scale-[0.98]"
       >
-        <img
-          src={item.imageSrc}
+        <OptimizedImage
+          webp={item.image.webp}
+          png={item.image.png}
           alt={item.label}
-          className="block h-auto w-full rounded-[18px] object-contain"
           loading="lazy"
+          className="block h-auto w-full rounded-[18px] object-contain"
         />
       </button>
     );
@@ -314,11 +299,14 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
       >
         {MOBILE_HOME_BANNERS.map((banner, bannerIndex) => (
           <div key={banner.src} className="relative w-full shrink-0 basis-full overflow-hidden">
-            <img
+            <ResponsiveCloudinaryImage
               src={banner.src}
               alt={banner.alt}
               className="block w-full h-auto object-contain opacity-95 dark:opacity-85"
+              sizes="100vw"
+              widths={[320, 420, 540, 640, 750, 960]}
               loading={bannerIndex === 0 ? 'eager' : 'lazy'}
+              fetchPriority={bannerIndex === 0 ? 'high' : undefined}
             />
           </div>
         ))}
@@ -328,7 +316,6 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
 }
 
 function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 'carousel' }) {
-  const imageUrl = getMarketImageUrl(market.gameName);
   const marketLabel = t(`markets.names.${toMarketNameKey(market.gameName)}`, { defaultValue: market.gameName });
   const isGrid = layout === 'grid';
   const statusLabel = liveVariant
@@ -350,7 +337,7 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
       ? 'border-red-300/30 bg-red-500/18 text-white'
       : 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50';
   const popularMarketCardImage =
-    market.status === 'closed' ? POPULAR_MARKET_CARD_CLOSED_IMAGE : POPULAR_MARKET_CARD_OPEN_IMAGE;
+    market.status === 'closed' ? POPULAR_MARKET_CARD.closed : POPULAR_MARKET_CARD.open;
   const cardShellClass = layout === 'grid' ? MARKET_CARD_GRID_CLASS : MARKET_CARD_SCROLL_CLASS;
   const cardPaddingClass = isGrid ? 'p-3' : 'p-3.5';
   const statusWrapClass = isGrid ? 'pt-[22px]' : 'pt-8';
@@ -367,25 +354,16 @@ function CompactMarketCard({ market, t, navigate, liveVariant = false, layout = 
 
   return (
     <div className={cardShellClass}>
-      <img
-        src={popularMarketCardImage}
+      <OptimizedImage
+        webp={popularMarketCardImage.webp}
+        png={popularMarketCardImage.png}
         alt=""
+        loading="lazy"
         className="absolute inset-0 h-full w-full object-contain object-center"
         aria-hidden
       />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(33,11,8,0.08)_0%,rgba(35,9,8,0.42)_32%,rgba(18,5,5,0.76)_64%,rgba(8,3,3,0.94)_100%)]" />
       <div className="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(255,187,118,0.18),transparent)]" />
-      {imageUrl ? (
-        <>
-          <img
-            src={imageUrl}
-            alt=""
-            className="absolute -right-4 top-6 h-auto w-auto max-h-[74px] max-w-[74px] rounded-full object-contain opacity-[0.16] blur-[1px]"
-            aria-hidden
-          />
-          <div className="absolute -right-2 top-4 h-[92px] w-[92px] rounded-full bg-[#ffbf78]/10 blur-2xl" />
-        </>
-      ) : null}
       <div className={`relative z-10 flex h-full flex-col ${cardPaddingClass}`}>
         <div className={`flex justify-center ${statusWrapClass}`}>
           <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[7px] font-bold uppercase leading-none tracking-[0.12em] min-[380px]:text-[8px] ${popularStatusClass}`}>
@@ -468,6 +446,7 @@ function TopGameCard({ game, onClick }) {
           <img
             src={game.image}
             alt={game.title}
+            loading="lazy"
             className="h-full w-full object-cover object-center transition-transform duration-300 group-active:scale-[1.01]"
           />
         ) : (
@@ -494,78 +473,27 @@ export default function MobileHomeDashboard() {
   const { isLight } = useTheme();
   const navigate = useNavigate();
   const [heroIndex, setHeroIndex] = useState(0);
-  const [markets, setMarkets] = useState([]);
+  const { markets, loading, refetch } = useMainMarkets();
+  const { games: fetchedGames } = useGameList();
   const [featuredGames, setFeaturedGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const isInitialLoad = useRef(true);
-  const baseApi = useMemo(() => API_BASE_URL.replace(/\/api\/v1\/?$/, ''), []);
-
-  const fetchMarkets = async () => {
-    const showLoading = isInitialLoad.current;
-    if (showLoading) setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
-      const data = await response.json();
-      if (data.success) {
-        const transformed = (data.data || [])
-          .filter((market) => market.marketType !== 'startline')
-          .map((market) => ({
-            id: market._id,
-            gameName: market.marketName,
-            showInPopular: Boolean(market.showInPopular),
-            timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
-            result: market.displayResult || '***-**-***',
-            startingTime: market.startingTime,
-            closingTime: market.closingTime,
-            openingNumber: market.openingNumber,
-            closingNumber: market.closingNumber,
-            ...getMarketStatus(market),
-          }));
-        setMarkets(transformed);
-      }
-    } catch (error) {
-      console.error('Error fetching home markets:', error);
-    } finally {
-      if (showLoading) {
-        isInitialLoad.current = false;
-        setLoading(false);
-      }
-    }
-  };
-
-  const fetchFeaturedGames = async () => {
-    try {
-      const response = await fetch(`${baseApi}/api/game/list`);
-      const data = await response.json();
-      if (!response.ok || !data?.success) return;
-
-      const nextGames = placeAviatorFirst(
-        (data.data || []).filter((game) => game?.image || game?.icon || game?.name),
-      )
-        .slice(0, 8)
-        .map((game, index) => ({
-          id: game._id || game.gameId || game.id || game.name || `game-${index}`,
-          title: game.name || game.title || 'Game',
-          provider: game.provider || 'Aakda',
-          image: game.image || null,
-          bg: TOP_GAME_TILES[index % TOP_GAME_TILES.length]?.bg || 'from-[#18181b] via-[#27272a] to-[#0f0f10]',
-          icon: game.icon || '🎮',
-        }));
-
-      if (nextGames.length) setFeaturedGames(nextGames);
-    } catch (error) {
-      console.error('Error fetching home games:', error);
-    }
-  };
 
   useEffect(() => {
-    fetchMarkets();
-    fetchFeaturedGames();
-    const dataInterval = window.setInterval(fetchMarkets, 30000);
-    return () => window.clearInterval(dataInterval);
-  }, [baseApi]);
+    const nextGames = placeAviatorFirst(
+      (fetchedGames || []).filter((game) => game?.image || game?.icon || game?.name),
+    )
+      .slice(0, 8)
+      .map((game, index) => ({
+        id: game._id || game.gameId || game.id || game.name || `game-${index}`,
+        title: game.name || game.title || 'Game',
+        provider: game.provider || 'Aakda',
+        image: game.image || null,
+        bg: TOP_GAME_TILES[index % TOP_GAME_TILES.length]?.bg || 'from-[#18181b] via-[#27272a] to-[#0f0f10]',
+        icon: game.icon || '🎮',
+      }));
+    if (nextGames.length) setFeaturedGames(nextGames);
+  }, [fetchedGames]);
 
-  useRefreshOnMarketReset(fetchMarkets);
+  useRefreshOnMarketReset(refetch);
 
   const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
   const topGames = useMemo(
@@ -592,7 +520,9 @@ export default function MobileHomeDashboard() {
           ))}
         </div>
 
-        <PopularCasinoSection onSelect={(path) => navigate(path)} />
+        <Suspense fallback={<div className="h-[176px] rounded-[15px] bg-white/70 dark:bg-white/10 animate-pulse" aria-hidden />}>
+          <PopularCasinoSection onSelect={(path) => navigate(path)} />
+        </Suspense>
 
         {(loading || popularMarkets.length > 0) && (
           <div>

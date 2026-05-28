@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
 import LanguageIcon from './LanguageIcon';
 import { normalizeLanguageCode } from '../utils/languageCode';
+import { ensureLocaleLoaded } from '../i18n/config';
 
 const languages = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -27,6 +28,7 @@ const LanguageSwitcher = ({ onClose, variant = 'dark' }) => {
   const isLight = variant === 'light' || (variant === 'auto' && theme === 'light');
 
   const changeLanguage = async (langCode) => {
+    await ensureLocaleLoaded(langCode);
     await i18n.changeLanguage(langCode);
     setIsOpen(false);
     if (onClose) onClose();

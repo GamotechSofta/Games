@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getBalance, updateUserBalance } from '../api/bets';
 
 export function useWallet() {
@@ -23,23 +24,21 @@ export function useWallet() {
     }
   }, []);
 
+  const balanceQuery = useQuery({
+    queryKey: ['walletBalance', user?.id || user?._id || 'guest'],
+    enabled: Boolean(user?.id || user?._id),
+    queryFn: async () => {
+      const res = await getBalance();
+      if (res.success && res.data?.balance != null) return Number(res.data.balance);
+      throw new Error(res?.message || 'Failed to fetch balance');
+    },
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
   useEffect(() => {
     loadStored();
-
-    const fetchBalance = async () => {
-      try {
-        const u = JSON.parse(localStorage.getItem('user') || 'null');
-        const userId = u?.id || u?._id;
-        if (!userId) return;
-        const res = await getBalance();
-        if (res.success && res.data?.balance != null) {
-          updateUserBalance(res.data.balance);
-          setBalance(res.data.balance);
-        }
-      } catch (_) {}
-    };
-
-    fetchBalance();
     window.addEventListener('storage', loadStored);
     window.addEventListener('userLogin', loadStored);
     window.addEventListener('userLogout', loadStored);
@@ -49,6 +48,12 @@ export function useWallet() {
       window.removeEventListener('userLogout', loadStored);
     };
   }, [loadStored]);
+
+  useEffect(() => {
+    if (balanceQuery.data == null) return;
+    updateUserBalance(balanceQuery.data);
+    setBalance(balanceQuery.data);
+  }, [balanceQuery.data]);
 
   const formattedBalance = new Intl.NumberFormat('en-IN', {
     minimumFractionDigits: 2,

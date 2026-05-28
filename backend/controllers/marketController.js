@@ -235,26 +235,43 @@ export const seedStartlineMarkets = async (req, res) => {
 export const getMarkets = async (req, res) => {
     try {
         await ensureResultsResetForNewDay(Market);
-        const markets = await Market.find().sort({ startingTime: 1 });
-        let data = markets.map((m) => {
+        const marketTypeFilter = (req.query.marketType || '').toString().toLowerCase();
+        const popularOnly =
+            ['1', 'true', 'yes'].includes((req.query.popularOnly || '').toString().toLowerCase());
+        const fieldsPreset = (req.query.fields || '').toString().toLowerCase();
+        const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
+        const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+            ? Math.min(parsedLimit, 100)
+            : null;
+
+        const filter = {};
+        if (marketTypeFilter === 'main') {
+            filter.$or = [{ marketType: 'main' }, { marketType: { $exists: false } }, { marketType: '' }];
+        } else if (marketTypeFilter === 'startline' || marketTypeFilter === 'starline') {
+            filter.marketType = 'startline';
+        } else if (marketTypeFilter === 'king') {
+            filter.marketType = 'king';
+        }
+        if (popularOnly) {
+            filter.showInPopular = true;
+        }
+
+        let query = Market.find(filter).sort({ startingTime: 1 });
+        if (fieldsPreset === 'home') {
+            query = query.select(
+                'marketName startingTime closingTime showInPopular marketType betClosureTime openingNumber closingNumber winNumber'
+            );
+        }
+        if (limit) {
+            query = query.limit(limit);
+        }
+
+        const markets = await query;
+        const data = markets.map((m) => {
             const doc = m.toObject();
             doc.displayResult = m.getDisplayResult();
             return doc;
         });
-        const marketTypeFilter = (req.query.marketType || '').toString().toLowerCase();
-        if (marketTypeFilter === 'main') {
-            // Only show main/regular markets
-            data = data.filter((m) => {
-                const type = (m.marketType || 'main').toString().toLowerCase();
-                return type === 'main' || type === '';
-            });
-        } else if (marketTypeFilter === 'startline' || marketTypeFilter === 'starline') {
-            // Only show starline markets
-            data = data.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline');
-        } else if (marketTypeFilter === 'king') {
-            // Only show king bazaar markets
-            data = data.filter((m) => (m.marketType || '').toString().toLowerCase() === 'king');
-        }
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

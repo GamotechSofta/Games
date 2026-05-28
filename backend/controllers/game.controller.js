@@ -193,10 +193,23 @@ export const listGames = async (req, res) => {
 /** GET /api/game/list - public active games for user panel */
 export const listActiveGames = async (req, res) => {
     try {
-        const games = await Game.find({ status: 'active' })
-            .select('name gameId provider status createdAt')
-            .sort({ createdAt: -1 })
-            .lean();
+        const fieldsPreset = (req.query.fields || '').toString().toLowerCase();
+        const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
+        const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+            ? Math.min(parsedLimit, 100)
+            : null;
+
+        let query = Game.find({ status: 'active' }).sort({ createdAt: -1 });
+        if (fieldsPreset === 'home') {
+            query = query.select('name gameId provider title image status createdAt');
+        } else {
+            query = query.select('name gameId provider status createdAt');
+        }
+        if (limit) {
+            query = query.limit(limit);
+        }
+
+        const games = await query.lean();
         return res.status(200).json({ success: true, data: games });
     } catch (error) {
         return res.status(500).json({

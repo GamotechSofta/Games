@@ -42,7 +42,7 @@ export const useHeartbeat = () => {
     const userData = localStorage.getItem('user');
     if (!userData) return;
 
-    sendHeartbeat();
+    const initialDelayId = window.setTimeout(sendHeartbeat, 3000);
     intervalRef.current = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
 
     const handleVisibilityChange = () => {
@@ -64,6 +64,7 @@ export const useHeartbeat = () => {
 
     window.addEventListener('userLogout', handleLogout);
     return () => {
+      window.clearTimeout(initialDelayId);
       if (intervalRef.current) clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('userLogout', handleLogout);

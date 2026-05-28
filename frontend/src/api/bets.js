@@ -1,5 +1,8 @@
 import { API_BASE_URL } from '../config/api';
 import { redirectToLoginIf401 } from '../utils/auth';
+import { createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
+
+const runSharedRequest = createSharedFetcher();
 
 /** MongoDB ObjectId is 24 hex characters */
 const VALID_OBJECTID = /^[a-fA-F0-9]{24}$/;
@@ -27,6 +30,10 @@ export function updateUserBalance(newBalance) {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     user.balance = newBalance;
     localStorage.setItem('user', JSON.stringify(user));
+    const userId = user?.id || user?._id;
+    if (userId) {
+      setSessionCache(`wallet.balance.${userId}`, { success: true, data: { balance: newBalance } }, 30 * 1000);
+    }
     window.dispatchEvent(new Event('userLogin'));
   } catch (_) {}
 }
@@ -158,20 +165,30 @@ export async function getRatesCurrent() {
  * Fetch current wallet balance for the logged-in user.
  * @returns {Promise<{ success: boolean, data?: { balance: number }, message?: string }>}
  */
-export async function getBalance() {
+export async function getBalance({ force = false } = {}) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   if (!userId) {
     return { success: false, message: 'Please log in' };
   }
-  const response = await fetch(`${API_BASE_URL}/wallet/balance?userId=${encodeURIComponent(userId)}`);
-  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
-  const data = await response.json();
-  if (!response.ok) {
-    return { success: false, message: data.message || 'Failed to fetch balance' };
+  const cacheKey = `wallet.balance.${userId}`;
+  if (!force) {
+    const cached = getSessionCache(cacheKey);
+    if (cached) return cached;
   }
-  return data;
+
+  return runSharedRequest(cacheKey, async () => {
+    const response = await fetch(`${API_BASE_URL}/wallet/balance?userId=${encodeURIComponent(userId)}`);
+    if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || 'Failed to fetch balance' };
+    }
+    setSessionCache(cacheKey, data, 30 * 1000);
+    return data;
+  });
 }
 
 /**

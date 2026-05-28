@@ -3,13 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { textPrimary } from '../styles/appTheme';
 
-const SINGLE_DICE_IMAGE = '/singleDice.png';
-const DOUBLE_DICE_IMAGE = '/doubleDice.png';
-const SINGLE_PATTI_IMAGE = '/singlePatti.png';
-const DOUBLE_PATTI_IMAGE = '/doublepatti.png';
-const TRIPLE_PATTI_IMAGE = '/triplePatti.png';
-const HALF_SANGAM_IMAGE = '/HalfSangam.png';
-const FULL_SANGAM_IMAGE = '/fullsangam.png';
+import { BID_OPTION_IMAGES, assetUrl } from '../config/homeAssets';
+
+const SINGLE_DICE_IMAGE = assetUrl(BID_OPTION_IMAGES.singleDice);
+const DOUBLE_DICE_IMAGE = assetUrl(BID_OPTION_IMAGES.doubleDice);
+const SINGLE_PATTI_IMAGE = assetUrl(BID_OPTION_IMAGES.singlePatti);
+const DOUBLE_PATTI_IMAGE = assetUrl(BID_OPTION_IMAGES.doublePatti);
+const TRIPLE_PATTI_IMAGE = assetUrl(BID_OPTION_IMAGES.triplePatti);
+const HALF_SANGAM_IMAGE = assetUrl(BID_OPTION_IMAGES.halfSangam);
+const FULL_SANGAM_IMAGE = assetUrl(BID_OPTION_IMAGES.fullSangam);
 
 const BidOptions = () => {
   const navigate = useNavigate();
@@ -110,6 +112,7 @@ const BidOptions = () => {
           src={SINGLE_DICE_IMAGE}
           alt={getGameTitle('Single Digit')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -122,6 +125,7 @@ const BidOptions = () => {
           src={SINGLE_DICE_IMAGE}
           alt={getGameTitle('Odd Even')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -134,6 +138,7 @@ const BidOptions = () => {
           src={DOUBLE_DICE_IMAGE}
           alt={getGameTitle('Jodi')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -146,6 +151,7 @@ const BidOptions = () => {
           src={DOUBLE_DICE_IMAGE}
           alt={getGameTitle('Jodi Bulk')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -158,6 +164,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Single Pana')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -170,6 +177,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Single Pana Bulk')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -182,6 +190,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP Common')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -194,6 +203,7 @@ const BidOptions = () => {
           src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('DP Common')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -206,6 +216,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('CP')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -218,6 +229,7 @@ const BidOptions = () => {
           src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('Double Pana')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -230,6 +242,7 @@ const BidOptions = () => {
           src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('Double Pana Bulk')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -242,6 +255,7 @@ const BidOptions = () => {
           src={TRIPLE_PATTI_IMAGE}
           alt={getGameTitle('Triple Pana')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -254,6 +268,7 @@ const BidOptions = () => {
           src={FULL_SANGAM_IMAGE}
           alt={getGameTitle('Full Sangam')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -266,6 +281,7 @@ const BidOptions = () => {
           src={HALF_SANGAM_IMAGE}
           alt={getGameTitle('Half Sangam')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -278,6 +294,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP Motor')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -290,6 +307,7 @@ const BidOptions = () => {
           src={DOUBLE_PATTI_IMAGE}
           alt={getGameTitle('DP Motor')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -302,6 +320,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP DP Motor')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -314,6 +333,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('SP DP T Motor')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -326,6 +346,7 @@ const BidOptions = () => {
           src={SINGLE_PATTI_IMAGE}
           alt={getGameTitle('Chart Game')}
           className="w-full h-full object-contain"
+          loading="lazy"
         />
       ),
     },
@@ -497,3 +518,4 @@ const BidOptions = () => {
 };
 
 export default BidOptions;
+

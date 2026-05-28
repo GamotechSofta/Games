@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { HiOutlineChevronDown } from 'react-icons/hi2';
 import LanguageIcon from './LanguageIcon';
 import { normalizeLanguageCode } from '../utils/languageCode';
+import { ensureLocaleLoaded } from '../i18n/config';
 
 const LANGUAGES = [
   { code: 'en', label: 'EN' },
@@ -43,8 +44,9 @@ export default function SidebarLanguagePill() {
               <button
                 key={lang.code}
                 type="button"
-                onClick={() => {
-                  i18n.changeLanguage(lang.code);
+                onClick={async () => {
+                  await ensureLocaleLoaded(lang.code);
+                  await i18n.changeLanguage(lang.code);
                   setOpen(false);
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50 dark:text-white/80 dark:hover:bg-white/[0.06]"

@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiOutlineHome, HiOutlineSquares2X2 } from 'react-icons/hi2';
 import { MdOutlineAccountBalanceWallet, MdOutlineReceiptLong } from 'react-icons/md';
 import { HiOutlineXMark } from 'react-icons/hi2';
-import SidebarLocaleSettings from './SidebarLocaleSettings';
+import aakdaLogo from '../config/logo';
 import { clearUserAuth } from '../utils/auth';
 import {
   DashboardIcon,
@@ -22,6 +22,8 @@ import {
   IconCasinoFilled,
   IconSportsFilled,
 } from './dashboard/dashboardIcons';
+
+const SidebarLocaleSettings = lazy(() => import('./SidebarLocaleSettings'));
 
 const MAIN_MENU_NAV = [
   { id: 'home', labelKey: 'navigation.home', path: '/', icon: HiHome },
@@ -231,7 +233,7 @@ const BottomNavbar = () => {
         >
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-4 pb-4 dark:border-white/[0.06] dark:bg-[#1d1e20]">
             <div className="flex min-w-0 items-center gap-3">
-              <img src="/aakdaLogo.png" alt="Aakda" className="h-9 w-auto object-contain" />
+              <img src={aakdaLogo} alt="Aakda" className="h-9 w-auto object-contain" />
               <span className="truncate text-base font-semibold">{t('navigation.menu', { defaultValue: 'Menu' })}</span>
             </div>
             <button
@@ -297,7 +299,9 @@ const BottomNavbar = () => {
                   <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400 dark:text-white/45">
                     {t('settings.preferences', { defaultValue: 'Preferences' })}
                   </div>
-                  <SidebarLocaleSettings collapsed={false} />
+            <Suspense fallback={null}>
+              <SidebarLocaleSettings collapsed={false} />
+            </Suspense>
                 </div>
               </div>
             </div>

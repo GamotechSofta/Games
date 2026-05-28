@@ -1,7 +1,11 @@
 import { API_BASE_URL } from '../config/api';
+import { createSharedFetcher, getSessionCache, setSessionCache, clearSessionCache } from './sessionCache';
 
 const NOTIFICATIONS_LAST_SEEN_KEY = 'notificationsLastSeenAt';
 export const NOTIFICATIONS_CLEARED_AT_KEY = 'notificationsClearedAt';
+const NOTIFICATION_COUNT_CACHE_KEY = 'header.notificationCount.v1';
+const NOTIFICATION_COUNT_TTL_MS = 2 * 60 * 1000;
+const runSharedRequest = createSharedFetcher();
 
 export function getNotificationsLastSeenAt() {
   try {
@@ -15,8 +19,19 @@ export function getNotificationsLastSeenAt() {
 export function markNotificationsSeen() {
   try {
     localStorage.setItem(NOTIFICATIONS_LAST_SEEN_KEY, String(Date.now()));
+    clearNotificationCountCache();
     window.dispatchEvent(new CustomEvent('notificationsSeen'));
   } catch (_) {}
+}
+
+export function clearNotificationCountCache() {
+  clearSessionCache(NOTIFICATION_COUNT_CACHE_KEY);
+}
+
+/** Instant badge value from cache (no network). */
+export function getCachedNotificationUnreadCount() {
+  const cached = getSessionCache(NOTIFICATION_COUNT_CACHE_KEY);
+  return typeof cached === 'number' ? cached : 0;
 }
 
 /** Cleared-at timestamp (when user tapped "Clear all"). Persisted so mobile/desktop and tabs stay in sync. */
@@ -50,11 +65,22 @@ const toDateKeyIST = (d) => {
   }
 };
 
-/**
- * Fetches notification sources and returns count of items newer than lastSeenAt.
- * Used by header to show unread badge.
- */
-export async function getNotificationUnreadCount() {
+/** Single lightweight endpoint (preferred). */
+async function fetchUnreadCountFromApi(userId, lastSeenAt) {
+  const params = new URLSearchParams({
+    userId: String(userId),
+    lastSeenAt: String(lastSeenAt || 0),
+  });
+  const res = await fetch(`${API_BASE_URL}/notifications/unread-count?${params.toString()}`);
+  const data = await res.json();
+  if (!res.ok || !data?.success) {
+    throw new Error(data?.message || 'Failed to fetch notification count');
+  }
+  return typeof data?.data?.count === 'number' ? data.data.count : 0;
+}
+
+/** Legacy fallback if unified endpoint is unavailable. */
+async function fetchNotificationUnreadCountLegacy() {
   try {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userId = user?.id || user?._id;
@@ -85,7 +111,7 @@ export async function getNotificationUnreadCount() {
 
     const toMarketId = (v) => (v == null ? '' : String(v && typeof v === 'object' && v._id != null ? v._id : v));
     const betMarketIds = new Set(
-      (Array.isArray(betsData?.data) ? betsData.data : []).map((b) => toMarketId(b.marketId)).filter(Boolean)
+      (Array.isArray(betsData?.data) ? betsData.data : []).map((b) => toMarketId(b.marketId)).filter(Boolean),
     );
     const resultArray = (data) => (Array.isArray(data?.data) ? data.data : []);
 
@@ -127,4 +153,37 @@ export async function getNotificationUnreadCount() {
   } catch {
     return 0;
   }
+}
+
+async function fetchNotificationUnreadCount() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user?.id || user?._id;
+    if (!userId) return 0;
+
+    const lastSeenAt = getNotificationsLastSeenAt();
+    try {
+      return await fetchUnreadCountFromApi(userId, lastSeenAt);
+    } catch {
+      return fetchNotificationUnreadCountLegacy();
+    }
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Fetches notification badge count (1 API call when backend supports /notifications/unread-count).
+ */
+export async function getNotificationUnreadCount({ force = false } = {}) {
+  if (!force) {
+    const cached = getSessionCache(NOTIFICATION_COUNT_CACHE_KEY);
+    if (typeof cached === 'number') return cached;
+  }
+
+  return runSharedRequest(NOTIFICATION_COUNT_CACHE_KEY, async () => {
+    const count = await fetchNotificationUnreadCount();
+    setSessionCache(NOTIFICATION_COUNT_CACHE_KEY, count, NOTIFICATION_COUNT_TTL_MS);
+    return count;
+  });
 }

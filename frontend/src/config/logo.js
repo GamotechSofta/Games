@@ -1,3 +1,6 @@
-import aakdaLogo from '../assets/aakdaLogo.png';
+/** Single logo asset — WebP preferred, PNG fallback in public/ */
+import { LOGO } from './homeAssets';
 
-export default aakdaLogo;
+export default LOGO.webp;
+
+export { LOGO };

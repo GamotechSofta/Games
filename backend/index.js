@@ -15,14 +15,17 @@ import helpDeskRoutes from './routes/helpDesk/helpDeskRoutes.js';
 import dashboardRoutes from './routes/dashboard/dashboardRoutes.js';
 import rateRoutes from './routes/rate/rateRoutes.js';
 import gameRoutes, { adminGameRoutes } from './routes/game.routes.js';
+import homeRoutes from './routes/home/homeRoutes.js';
 
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
+import notificationRoutes from './routes/notification/notificationRoutes.js';
 import { getClientIp } from './utils/activityLogger.js';
 import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
 import cors from 'cors';
+import compression from 'compression';
 import path from 'path';
 import { getCorsOptions, logCorsConfig, parseAllowedOrigins } from './config/cors.js';
 import { fileURLToPath } from 'url';
@@ -78,6 +81,7 @@ connectDB();
 app.set('trust proxy', 1);
 
 app.use(cors(getCorsOptions({ isProd })));
+app.use(compression({ threshold: 1024 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -181,10 +185,12 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/help-desk', helpDeskRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/rates', rateRoutes);
+app.use('/api/v1/home', homeRoutes);
 
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
 
 // Global error handler: ensure API always returns JSON (no HTML 500)
 app.use((err, req, res, next) => {

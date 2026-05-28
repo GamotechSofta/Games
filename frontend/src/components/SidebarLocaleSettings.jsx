@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { isThemeTransitionRunning } from '../utils/themeTransition';
 import LanguageIcon from './LanguageIcon';
 import { normalizeLanguageCode } from '../utils/languageCode';
+import { ensureLocaleLoaded } from '../i18n/config';
 
 const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -119,8 +120,9 @@ export default function SidebarLocaleSettings({ collapsed }) {
                 <button
                   key={lang.code}
                   type="button"
-                  onClick={() => {
-                    i18n.changeLanguage(lang.code);
+                  onClick={async () => {
+                    await ensureLocaleLoaded(lang.code);
+                    await i18n.changeLanguage(lang.code);
                     setLangOpen(false);
                   }}
                   className={[

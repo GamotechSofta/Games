@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight } from 'react-icons/hi2';
 import { API_BASE_URL } from '../../config/api';
 import { GAMES } from '../../config/games';
-import { getMarketImageUrl } from '../../config/marketCardThemes';
+import { HOME_QUICK_LINKS } from '../../config/homeAssets';
 import { useTheme } from '../../context/ThemeContext';
+import useGameList from '../../hooks/useGameList';
 
 const filterByCategory = (games, category) => {
   if (category === 'highEarning') return games.filter((g) => g.highEarning);
@@ -51,7 +52,7 @@ const TOP_GAME_TILES = [
     id: 'king-bazaar',
     title: 'King Bazaar',
     provider: 'Aakda',
-    image: getMarketImageUrl('king-bazaar'),
+    image: HOME_QUICK_LINKS.kingBazaar.webp,
     bg: 'from-[#2e2008] via-[#7c5310] to-[#160f05]',
     icon: '♛',
   },
@@ -138,35 +139,9 @@ export default function HomeGamesPanel({ category = 'highEarning', titleOverride
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isLight } = useTheme();
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [launchingGameId, setLaunchingGameId] = useState('');
-
+  const { games, loading, error } = useGameList();
   const baseApi = useMemo(() => API_BASE_URL.replace(/\/api\/v1\/?$/, ''), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await fetch(`${baseApi}/api/game/list`);
-        const data = await res.json();
-        if (!res.ok || !data?.success) {
-          throw new Error(data?.message || 'Failed to load games');
-        }
-        if (!cancelled) setGames(data.data || []);
-      } catch (e) {
-        if (!cancelled) setError(e.message || 'Unable to fetch games');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [baseApi]);
 
   const filteredGames = useMemo(() => filterByCategory(games, category), [games, category]);
 
@@ -271,7 +246,7 @@ export default function HomeGamesPanel({ category = 'highEarning', titleOverride
             >
               <div className="relative aspect-[4/3] bg-black">
                 {game.image ? (
-                  <img src={game.image} alt={game.name} className="h-full w-full object-cover" />
+                  <img src={game.image} alt={game.name} className="h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center bg-black">
                     <span className="text-5xl">{game.icon}</span>
