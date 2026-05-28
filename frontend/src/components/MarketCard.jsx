@@ -35,15 +35,19 @@ function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showClosedModal, setShowClosedModal] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const getIsDarkTheme = () => {
     if (typeof document === 'undefined') return true;
-    return document.documentElement.classList.contains('dark');
+    const rootClasses = document.documentElement.classList;
+    return rootClasses.contains('theme-dark') || rootClasses.contains('dark');
+  };
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return getIsDarkTheme();
   });
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const root = document.documentElement;
-    const syncTheme = () => setIsDarkMode(root.classList.contains('dark'));
+    const syncTheme = () => setIsDarkMode(getIsDarkTheme());
     syncTheme();
     const observer = new MutationObserver(syncTheme);
     observer.observe(root, { attributes: true, attributeFilter: ['class'] });
@@ -75,15 +79,15 @@ function MarketCard({ market }) {
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
   const theme = isDarkMode
     ? {
-        cardBg: '#0f111a',
+        cardBg: '#141a24',
         cardBorder: 'rgba(255,255,255,0.08)',
-        cardBorderHover: 'rgba(255,255,255,0.08)',
+        cardBorderHover: 'rgba(255,255,255,0.18)',
         nameColor: '#ffffff',
         resultColor: '#ef4444',
-        timeBarBg: '#1e2230',
+        timeBarBg: '#3f424d',
         timeText: '#ffffff',
-        timeLabel: 'rgba(255,255,255,0.7)',
-        iconColor: 'rgba(255,255,255,0.8)',
+        timeLabel: '#d7dbe3',
+        iconColor: '#b9beca',
         overlayGradient: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,22,0.65) 100%)',
         modalBg: '#14161d',
         modalBorder: '1px solid rgba(255,255,255,0.1)',
@@ -330,9 +334,9 @@ function MarketCard({ market }) {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0,1fr) 20px minmax(0,1fr)',
+                gridTemplateColumns: isDarkMode ? '1fr 24px 1fr' : 'minmax(0,1fr) 20px minmax(0,1fr)',
                 alignItems: 'center',
-                gap: 4,
+                gap: isDarkMode ? 10 : 4,
                 marginBottom: 0,
                 whiteSpace: 'nowrap',
               }}
@@ -354,7 +358,7 @@ function MarketCard({ market }) {
                 </div>
                 <div
                   style={{
-                    fontSize: 9,
+                    fontSize: isDarkMode ? 8 : 9,
                     fontWeight: 700,
                     color: theme.timeLabel,
                     letterSpacing: '0.08em',
@@ -368,7 +372,7 @@ function MarketCard({ market }) {
 
               {/* Clock icon */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <ClockIcon color={theme.iconColor} size={18} />
+                <ClockIcon color={theme.iconColor} size={isDarkMode ? 22 : 18} />
               </div>
 
               {/* Close */}
@@ -388,7 +392,7 @@ function MarketCard({ market }) {
                 </div>
                 <div
                   style={{
-                    fontSize: 9,
+                    fontSize: isDarkMode ? 8 : 9,
                     fontWeight: 700,
                     color: theme.timeLabel,
                     letterSpacing: '0.08em',
@@ -419,9 +423,13 @@ function MarketCard({ market }) {
                 cursor: 'pointer',
                 fontSize: 10,
                 fontWeight: 700,
-                color: isClosed ? '#ef4444' : '#22c55e',
+                color: isDarkMode
+                  ? (isClosed ? 'rgba(248, 113, 113, 0.72)' : '#6ee7b7')
+                  : (isClosed ? '#ef4444' : '#22c55e'),
                 letterSpacing: '0.03em',
-                animation: isClosed ? 'marketTomorrowBlink 1.1s ease-in-out infinite' : 'none',
+                animation: isClosed
+                  ? `marketTomorrowBlink ${isDarkMode ? '1.15s' : '1.1s'} ease-in-out infinite`
+                  : 'none',
                 textShadow: 'none',
                 filter: 'none',
                 outline: 'none',
