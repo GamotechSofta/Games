@@ -38,30 +38,59 @@
 /* YouTube-style skeleton shimmer */
 @keyframes skeleton-shimmer {
   0% {
-    transform: translateX(-100%);
+    transform: translateX(-140%);
   }
   100% {
-    transform: translateX(100%);
+    transform: translateX(140%);
   }
 }
 
 .skeleton-shimmer {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .skeleton-shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
+  background: linear-gradient(110deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.18) 45%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.18) 55%,
     transparent 100%
   );
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: skeleton-shimmer 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
+}
+
+.theme-dark .skeleton-shimmer::after {
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.08) 55%,
+    transparent 100%
+  );
+}
+
+@keyframes content-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-fade-in {
+  animation: content-fade-in 140ms ease-out both;
+  will-change: opacity, transform;
 }
 
 /* Smooth scrolling enhancement */
@@ -268,6 +297,12 @@ html.theme-light #root {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after,
+  .content-fade-in {
+    animation: none !important;
+    transform: none !important;
+  }
+
   .sidebar-width-shell {
     transition: none;
   }

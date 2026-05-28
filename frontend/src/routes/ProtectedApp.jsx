@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { prefetchHomeBootstrap } from '../api/prefetchHome';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
@@ -11,13 +12,13 @@ import {
   shouldShowMobileInstallBanner,
   getMobileDashboardContentTop,
 } from '../utils/mobileInstallBanner';
+import AppHeader from '../components/AppHeader';
+import BottomNavbar from '../components/BottomNavbar';
+import SubHeader from '../components/SubHeader';
+import Home from '../pages/Home';
 import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 
-const AppHeader = lazy(() => import('../components/AppHeader'));
-const BottomNavbar = lazy(() => import('../components/BottomNavbar'));
-const SubHeader = lazy(() => import('../components/SubHeader'));
-const Home = lazy(() => import('../pages/Home'));
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
 const BidOptions = lazy(() => import('../pages/BidOptions'));
@@ -47,7 +48,7 @@ const ProtectedDemo = lazy(() => import('../pages/ProtectedDemo'));
 
 function RouteFallback() {
   return (
-    <div className="min-h-[40vh] w-full px-4 py-3 space-y-3" aria-hidden>
+    <div className="content-fade-in min-h-[40vh] w-full px-4 py-3 space-y-3" aria-hidden>
       <SkeletonBlock className="h-14 w-full" />
       <SkeletonBlock className="h-28 w-full" />
       <SkeletonBlock className="h-28 w-full" />
@@ -141,7 +142,15 @@ const Layout = ({ children }) => {
   const hideBottomNavOnMobile = false;
 
   useEffect(() => {
-    const check = () => setHasUser(!!localStorage.getItem('user'));
+    if (localStorage.getItem('user')) void prefetchHomeBootstrap();
+  }, []);
+
+  useEffect(() => {
+    const check = () => {
+      const loggedIn = !!localStorage.getItem('user');
+      setHasUser(loggedIn);
+      if (loggedIn) void prefetchHomeBootstrap();
+    };
     window.addEventListener('userLogin', check);
     window.addEventListener('userLogout', check);
     return () => {
@@ -200,13 +209,11 @@ const Layout = ({ children }) => {
     const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
     return (
       <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-[#141415]">
-        <Suspense fallback={null}>
-          <AppHeader />
-        </Suspense>
-        <div style={{ paddingTop: getMobileDashboardContentTop(hasPromoBanner) }}>{children}</div>
-        <Suspense fallback={null}>
-          <BottomNavbar />
-        </Suspense>
+        <AppHeader />
+        <div className="content-fade-in" style={{ paddingTop: getMobileDashboardContentTop(hasPromoBanner) }}>
+          {children}
+        </div>
+        <BottomNavbar />
       </div>
     );
   }
@@ -228,26 +235,22 @@ const Layout = ({ children }) => {
     >
       {hideTopNavMobileOnly ? (
         <div className="hidden md:block">
-          <Suspense fallback={null}>
-            <AppHeader />
-          </Suspense>
-          <Suspense fallback={null}>
-            <SubHeader />
-          </Suspense>
+          <AppHeader />
+          <SubHeader />
         </div>
       ) : (
         !hideTopNavOnMobile && (
           <>
-            <Suspense fallback={null}>
-              <AppHeader />
-            </Suspense>
-            <Suspense fallback={null}>
-              <SubHeader />
-            </Suspense>
+            <AppHeader />
+            <SubHeader />
           </>
         )
       )}
       <div
+        className="content-fade-in"
+        style={{ animationDuration: '180ms' }}
+      >
+        <div
         className={
           hideTopNavMobileOnly
             ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
@@ -260,12 +263,11 @@ const Layout = ({ children }) => {
                   : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
         }
       >
-        {children}
+          {children}
+        </div>
       </div>
       {!hideBottomNavOnMobile && (
-        <Suspense fallback={null}>
-          <BottomNavbar />
-        </Suspense>
+        <BottomNavbar />
       )}
     </div>
   );

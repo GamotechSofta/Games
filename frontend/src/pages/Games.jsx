@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
+import { BACKEND_BASE_URL } from '../config/api';
+import useGameList from '../hooks/useGameList';
 import { iconBtn, textPrimary } from '../styles/appTheme';
 
 const Games = () => {
@@ -10,31 +11,10 @@ const Games = () => {
   const { t } = useTranslation();
   const category = searchParams.get('category') || 'all';
   const searchQuery = searchParams.get('q') || '';
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [launchingGameId, setLaunchingGameId] = useState('');
-
-  const baseApi = useMemo(() => API_BASE_URL.replace(/\/api\/v1\/?$/, ''), []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await fetch(`${baseApi}/api/game/list`);
-        const data = await res.json();
-        if (!res.ok || !data?.success) {
-          throw new Error(data?.message || 'Failed to load games');
-        }
-        setGames(data.data || []);
-      } catch (e) {
-        setError(e.message || 'Unable to fetch games');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [baseApi]);
+  const { games, loading, error: fetchError } = useGameList({ limit: 100 });
+  const error = fetchError || '';
+  const baseApi = useMemo(() => BACKEND_BASE_URL.replace(/\/$/, ''), []);
 
   const filteredGames = useMemo(() => {
     let list = games;

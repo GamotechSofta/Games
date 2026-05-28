@@ -4,11 +4,19 @@ import Market from '../models/market/market.js';
 import User from '../models/user/user.js';
 import { Wallet } from '../models/wallet/wallet.js';
 import { ensureResultsResetForNewDay } from '../utils/resultReset.js';
+import { attachDisplayResults } from '../utils/marketDisplayResult.js';
+
+/** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
+function scheduleMarketResetCheck() {
+    void ensureResultsResetForNewDay(Market).catch((err) => {
+        console.error('[home/bootstrap] background market reset check failed:', err?.message || err);
+    });
+}
 
 /** GET /api/v1/home/bootstrap */
 export const getHomeBootstrap = async (req, res) => {
     try {
-        await ensureResultsResetForNewDay(Market);
+        scheduleMarketResetCheck();
 
         const limitMarkets = Math.min(Math.max(Number.parseInt(String(req.query.marketLimit || 24), 10) || 24, 1), 100);
         const limitGames = Math.min(Math.max(Number.parseInt(String(req.query.gameLimit || 12), 10) || 12, 1), 100);
@@ -45,10 +53,12 @@ export const getHomeBootstrap = async (req, res) => {
             }
         }
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
+
         return res.status(200).json({
             success: true,
             data: {
-                markets,
+                markets: attachDisplayResults(markets),
                 games,
                 wallet,
                 generatedAt: Date.now(),

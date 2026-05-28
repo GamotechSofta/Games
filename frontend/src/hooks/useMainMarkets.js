@@ -12,7 +12,7 @@ export default function useMainMarkets({
   limit = DEFAULT_LIMIT,
   popularOnly = false,
 } = {}) {
-  const useBootstrap = limit === DEFAULT_LIMIT && !popularOnly;
+  const useBootstrap = limit <= DEFAULT_LIMIT && !popularOnly;
   const bootstrap = useHomeBootstrap({ marketLimit: limit, gameLimit: 12 });
   const bootstrapUnavailable =
     bootstrap.error?.code === 'HOME_BOOTSTRAP_UNAVAILABLE' ||
@@ -33,7 +33,7 @@ export default function useMainMarkets({
       if (!response.ok || !data?.success) throw new Error(data?.message || 'Failed to load markets');
       return transformMarkets(data.data);
     },
-    staleTime: 25 * 1000,
+    staleTime: 60 * 1000,
     refetchInterval: refreshMs,
     refetchOnWindowFocus: false,
     retry: 1,

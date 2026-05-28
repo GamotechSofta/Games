@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment } from 'react-icons/md';
@@ -9,8 +9,7 @@ import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
 import HomeGamesPanel from './HomeGamesPanel';
-
-const PopularCasinoSection = lazy(() => import('./PopularCasinoSection'));
+import PopularCasinoSection from './PopularCasinoSection';
 
 function MarketRow({
   titleKey,
@@ -144,9 +143,7 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   return (
     <div id="market-sections" className="mx-auto w-full max-w-[1440px] space-y-1 px-4 lg:px-6 xl:px-8">
-      <Suspense fallback={null}>
-        <PopularCasinoSection onSelect={(path) => navigate(path)} />
-      </Suspense>
+      <PopularCasinoSection onSelect={(path) => navigate(path)} />
 
       {loading ? (
         <MarketRowSkeleton />

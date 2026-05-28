@@ -1,13 +1,13 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SkeletonBlock from '../components/SkeletonBlock';
+import ProtectedApp from './ProtectedApp';
 
 const Login = lazy(() => import('../pages/Login'));
-const ProtectedApp = lazy(() => import('./ProtectedApp'));
 
 function RouteFallback() {
   return (
-    <div className="min-h-[40vh] w-full px-4 py-3 space-y-3" aria-hidden>
+    <div className="content-fade-in min-h-[40vh] w-full px-4 py-3 space-y-3" aria-hidden>
       <SkeletonBlock className="h-14 w-full" />
       <SkeletonBlock className="h-28 w-full" />
       <SkeletonBlock className="h-28 w-full" />

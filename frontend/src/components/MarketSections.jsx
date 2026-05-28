@@ -1,31 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
 import { MdLocalFireDepartment } from 'react-icons/md';
-import { API_BASE_URL } from '../config/api';
-import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import useMainMarkets from '../hooks/useMainMarkets';
 import MarketCard from './MarketCard';
 import { MARKET_SECTION_THEME } from '../config/dashboardTheme';
-
-const formatTime = (time24) => {
-  if (!time24) return '';
-  const [hours, minutes] = time24.split(':');
-  const hour = parseInt(hours, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-};
-
-const getMarketStatus = (market) => {
-  if (isPastClosingTime(market)) return { status: 'closed', timer: null };
-  const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
-  const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
-  if (hasOpening && hasClosing) return { status: 'closed', timer: null };
-  if (hasOpening && !hasClosing) return { status: 'running', timer: null };
-  return { status: 'open', timer: null };
-};
 
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 md:grid-cols-5 md:gap-3';
@@ -75,10 +56,8 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction =
 export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [markets, setMarkets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const isInitialLoad = useRef(true);
-  const [, setTick] = useState(0);
+  const [, setTick] = React.useState(0);
+  const { markets, loading, refetch } = useMainMarkets({ limit: 100 });
 
   const getMarketDisplayName = useCallback(
     (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
@@ -93,55 +72,11 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   const isSearching = Boolean(searchQuery.trim());
 
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    const id = setInterval(() => setTick((tick) => tick + 1), 60000);
     return () => clearInterval(id);
   }, []);
 
-  const fetchMarkets = async () => {
-    const showLoading = isInitialLoad.current;
-    if (showLoading) setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
-      const data = await response.json();
-      if (data.success) {
-        const mainOnly = (data.data || []).filter((m) => m.marketType !== 'startline');
-        const transformed = mainOnly.map((market) => {
-          const st = getMarketStatus(market);
-          return {
-            id: market._id,
-            gameName: market.marketName,
-            showInPopular: Boolean(market.showInPopular),
-            timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
-            result: market.displayResult || '***-**-***',
-            status: st.status,
-            timer: st.timer,
-            winNumber: market.winNumber,
-            startingTime: market.startingTime,
-            closingTime: market.closingTime,
-            betClosureTime: market.betClosureTime ?? 0,
-            openingNumber: market.openingNumber,
-            closingNumber: market.closingNumber,
-          };
-        });
-        setMarkets(transformed);
-      }
-    } catch (error) {
-      console.error('Error fetching markets:', error);
-    } finally {
-      if (showLoading) {
-        isInitialLoad.current = false;
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchMarkets();
-    const dataInterval = setInterval(fetchMarkets, 30000);
-    return () => clearInterval(dataInterval);
-  }, []);
-
-  useRefreshOnMarketReset(fetchMarkets);
+  useRefreshOnMarketReset(refetch);
 
   const allMarkets = filteredMarkets;
 
@@ -153,7 +88,7 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
     </div>
   );
 
-  if (loading) {
+  if (loading && !markets.length) {
     return (
       <div id="market-sections">
         <div className="mb-3 h-5 w-48 rounded bg-gray-200 skeleton-shimmer dark:bg-[#1a1a1a]" />

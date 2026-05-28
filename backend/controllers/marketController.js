@@ -22,6 +22,14 @@ import {
     parseHalfSangamBetNumber,
 } from '../utils/settleBets.js';
 import { ensureResultsResetForNewDay } from '../utils/resultReset.js';
+import { attachDisplayResults } from '../utils/marketDisplayResult.js';
+
+/** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
+function scheduleMarketResetCheck() {
+    void ensureResultsResetForNewDay(Market).catch((err) => {
+        console.error('[markets/get-markets] background market reset check failed:', err?.message || err);
+    });
+}
 import { getRatesMap } from '../models/rate/rate.js';
 import bcrypt from 'bcryptjs';
 
@@ -234,7 +242,7 @@ export const seedStartlineMarkets = async (req, res) => {
  */
 export const getMarkets = async (req, res) => {
     try {
-        await ensureResultsResetForNewDay(Market);
+        scheduleMarketResetCheck();
         const marketTypeFilter = (req.query.marketType || '').toString().toLowerCase();
         const popularOnly =
             ['1', 'true', 'yes'].includes((req.query.popularOnly || '').toString().toLowerCase());
@@ -266,12 +274,11 @@ export const getMarkets = async (req, res) => {
             query = query.limit(limit);
         }
 
-        const markets = await query;
-        const data = markets.map((m) => {
-            const doc = m.toObject();
-            doc.displayResult = m.getDisplayResult();
-            return doc;
-        });
+        const markets = await query.lean();
+        const data = attachDisplayResults(markets);
+        if (fieldsPreset === 'home' || limit) {
+            res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=30');
+        }
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
