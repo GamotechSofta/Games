@@ -7,20 +7,22 @@ pipeline {
         AWS_DEFAULT_REGION = "ap-south-1"
     }
 
-   stage('Install Dependencies') {
-    steps {
-        dir('frontend') {
-            sh '''
-            rm -rf node_modules
-            rm -f package-lock.json
-            npm cache clean --force
-            npm install
-            npm install gensync --save-dev
-            npm ls gensync
-            '''
+    stages {
+
+        stage('Install Dependencies') {
+            steps {
+                dir('frontend') {
+                    sh '''
+                    rm -rf node_modules
+                    rm -f package-lock.json
+                    npm cache clean --force
+                    npm install
+                    npm install gensync --save-dev
+                    npm ls gensync
+                    '''
+                }
+            }
         }
-    }
-}
 
         stage('Copy ENV') {
             steps {
@@ -57,5 +59,6 @@ pipeline {
                 '''
             }
         }
+
     }
 }
