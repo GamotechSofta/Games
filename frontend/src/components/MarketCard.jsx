@@ -2,8 +2,6 @@ import React, { memo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import OptimizedImage from './OptimizedImage';
-import { POPULAR_MARKET_CARD } from '../config/homeAssets';
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -14,12 +12,34 @@ const toMarketNameKey = (name) => {
     .replace(/^\w/, (c) => c.toLowerCase());
 };
 
+function ClockIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ width: 22, height: 22, color: 'rgba(255,255,255,0.8)' }}
+    >
+      <circle cx="12" cy="13" r="7.5" />
+      <path d="M12 8.8v4.2l2.8 1.7" />
+      <path d="M9.2 3h5.6" />
+      <path d="M10.2 5.5h3.6" />
+    </svg>
+  );
+}
+
 function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [showClosedModal, setShowClosedModal] = useState(false);
+
   const isOpen = market.status === 'open' || market.status === 'running';
-  const isClickable = true;
+  const isLive = market.status === 'running';
+  const isClosed = market.status === 'closed';
+
   const handleClick = () => {
     if (isOpen) {
       navigate('/bidoptions', { state: { market } });
@@ -28,10 +48,6 @@ function MarketCard({ market }) {
     setShowClosedModal(true);
   };
 
-  const handleTomorrow = (e) => {
-    e.stopPropagation();
-    navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
-  };
   const handlePlaceBetTomorrow = () => {
     navigate('/bidoptions', { state: { market, scheduleForTomorrow: true } });
     setShowClosedModal(false);
@@ -42,62 +58,91 @@ function MarketCard({ market }) {
   });
 
   const resultValue = market.result || '***-**-***';
-  const statusLabel =
-    market.status === 'open'
-      ? t('markets.statusOpen', { defaultValue: 'Open' })
-      : market.status === 'running'
-        ? t('homeMobile.live', { defaultValue: 'Live' })
-        : t('markets.statusClosed', { defaultValue: 'Closed' });
-  const badgeStyle = isOpen
-    ? 'border-emerald-300/25 bg-emerald-500/16 text-emerald-50'
-    : 'border-red-300/30 bg-red-500/18 text-white';
-  const cardImage = isOpen ? POPULAR_MARKET_CARD.open : POPULAR_MARKET_CARD.closed;
-
-  const handleActionClick = (e) => {
-    e.stopPropagation();
-    if (isOpen) {
-      handleClick();
-      return;
-    }
-    setShowClosedModal(true);
-  };
+  const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
 
   const closedModal = showClosedModal ? (
     <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 p-4"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1200,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.70)',
+        padding: 16,
+      }}
     >
       <div
-        className="relative w-full max-w-[340px] rounded-2xl border border-white/10 bg-[#14161d] p-4 text-center shadow-2xl"
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: 340,
+          borderRadius: 16,
+          border: '1px solid rgba(255,255,255,0.1)',
+          background: '#14161d',
+          padding: 16,
+          textAlign: 'center',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={() => setShowClosedModal(false)}
-          className="absolute right-3 top-3 rounded-md p-1 text-white/70 hover:bg-white/10 hover:text-white"
-          aria-label={t('common.close', { defaultValue: 'Close' })}
+          style={{
+            position: 'absolute',
+            right: 10,
+            top: 10,
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.7)',
+            cursor: 'pointer',
+            padding: 4,
+          }}
         >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <p className="text-[12px] font-semibold leading-snug text-white">
+        <p style={{ fontSize: 12, fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>
           {t('markets.closedForToday', { defaultValue: 'Market is closed for today.' })}
         </p>
-        <p className="mt-1 text-[12px] text-white/80">
+        <p style={{ marginTop: 4, fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
           {t('markets.betTomorrowHint', { defaultValue: 'You can place your bet for tomorrow.' })}
         </p>
-        <div className="mt-4 flex items-center gap-2">
+        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
           <button
             type="button"
             onClick={handlePlaceBetTomorrow}
-            className="flex-1 rounded-lg bg-[#d32f2f] px-3 py-2 text-[12px] font-semibold text-white hover:bg-[#b92b2b]"
+            style={{
+              flex: 1,
+              borderRadius: 10,
+              background: '#d32f2f',
+              border: 'none',
+              padding: '8px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#fff',
+              cursor: 'pointer',
+            }}
           >
             {t('markets.placeBet', { defaultValue: 'Place Bet' })}
           </button>
           <button
             type="button"
             onClick={() => setShowClosedModal(false)}
-            className="flex-1 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[12px] font-semibold text-white hover:bg-white/10"
+            style={{
+              flex: 1,
+              borderRadius: 10,
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              padding: '8px 12px',
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#fff',
+              cursor: 'pointer',
+            }}
           >
             {t('common.cancel', { defaultValue: 'Cancel' })}
           </button>
@@ -108,79 +153,237 @@ function MarketCard({ market }) {
 
   return (
     <>
+      <style>{`
+        @keyframes marketTomorrowBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.35; }
+        }
+      `}</style>
+      {/* Card */}
       <div
-        role={isClickable ? 'button' : undefined}
-        tabIndex={isClickable ? 0 : undefined}
+        role="button"
+        tabIndex={0}
         onClick={handleClick}
-        onKeyDown={(e) => isClickable && (e.key === 'Enter' || e.key === ' ') && handleClick()}
-        className={`relative flex h-full min-h-[182px] w-full flex-col overflow-hidden rounded-[22px] border border-white/10 bg-[#14161d] transition-all duration-200 sm:min-h-[190px] ${
-          isClickable
-            ? 'cursor-pointer hover:-translate-y-0.5'
-            : ''
-        }`}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick()}
+        style={{
+          position: 'relative',
+          width: '100%',
+          borderRadius: 16,
+          overflow: 'hidden',
+          background: '#0f111a',
+          border: '1px solid rgba(255,255,255,0.08)',
+          cursor: 'pointer',
+          fontFamily: "'Barlow', sans-serif",
+          transition: 'border-color 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
+        }}
       >
-      <div className="relative h-[76px] overflow-hidden rounded-b-[12px] sm:h-[80px]">
-        <OptimizedImage
-          webp={cardImage.webp}
-          png={cardImage.png}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover object-center"
-          aria-hidden
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,12,0.05)_25%,rgba(10,10,12,0.72)_100%)]" />
-      </div>
-
-      <div className="relative z-10 flex h-full flex-col justify-between p-3">
-        <div className="space-y-0.5">
-          <div className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[8px] font-bold uppercase ${badgeStyle}`}>
-            {statusLabel}
+        {/* Banner */}
+        <div style={{ position: 'relative', height: 106, overflow: 'hidden' }}>
+          <img
+            src="/marketCard.jpg"
+            alt=""
+            loading="lazy"
+            aria-hidden
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+          />
+          {/* Gradient overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,22,0.65) 100%)',
+            }}
+          />
+          {/* Live badge */}
+          {isLive && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 10,
+                left: 10,
+                background: 'rgba(220,50,50,0.92)',
+                color: '#fff',
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: '0.08em',
+                padding: '2px 7px',
+                borderRadius: 20,
+                border: '1px solid rgba(255,100,100,0.4)',
+                textTransform: 'uppercase',
+              }}
+            >
+              LIVE
+            </div>
+          )}
+          {/* Status chip */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 7,
+              right: 8,
+              borderRadius: 999,
+              border: isOpen ? '1px solid rgba(52,211,153,0.5)' : '1px solid rgba(248,113,113,0.45)',
+              background: isOpen ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.22)',
+              color: isOpen ? '#86efac' : '#fecaca',
+              fontSize: 8,
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              padding: '3px 8px',
+            }}
+          >
+            {isOpen ? t('markets.statusOpen', { defaultValue: 'Open' }) : t('markets.statusClosed', { defaultValue: 'Closed' })}
           </div>
-          <div className="truncate text-[11px] font-extrabold uppercase tracking-[0.03em] text-white">
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '9px 10px 10px' }}>
+          {/* Market name */}
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              color: '#ffffff',
+              textTransform: 'uppercase',
+              marginBottom: 3,
+            }}
+          >
             {displayName}
           </div>
-          <div className="w-full overflow-visible text-left">
-            <div className="text-[24px] font-black leading-[0.95] tracking-[0.02em] text-[#d7a11f] sm:text-[26px]">
-              {resultValue}
-            </div>
-          </div>
-        </div>
 
-        <div className="space-y-1">
-          <div className="rounded-[14px] bg-[#3a3d49] px-2 py-0.5">
-          <div className="grid grid-cols-3 items-center gap-1">
-            <div className="text-center">
-              <div className="text-[11px] font-bold text-white">{market.startingTime ? market.timeRange.split(' - ')[0] : '--'}</div>
-              <div className="text-[9px] font-semibold uppercase text-white/90">Open</div>
-            </div>
-            <div className="flex justify-center">
-              <svg className="h-6 w-6 text-white/85" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <circle cx="12" cy="12" r="8" />
-                <path d="M12 8v4l2.5 2.5" />
-              </svg>
-            </div>
-            <div className="text-center">
-              <div className="text-[11px] font-bold text-white">{market.closingTime ? market.timeRange.split(' - ')[1] : '--'}</div>
-              <div className="text-[9px] font-semibold uppercase text-white/90">Close</div>
-            </div>
-          </div>
-          </div>
-          <button
-            type="button"
-            onClick={handleActionClick}
-            className={`w-full pl-1 text-left text-[10px] font-semibold ${
-              market.status === 'closed' ? 'text-white/90' : 'text-emerald-300'
-            }`}
+          {/* Result */}
+          <div
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: 24,
+              fontWeight: 900,
+              color: '#d4a020',
+              letterSpacing: '0.04em',
+              lineHeight: 1,
+              marginBottom: 1,
+            }}
           >
-            {market.status === 'closed'
-              ? t('markets.runningForTomorrow')
-              : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
-          </button>
+            {resultValue}
+          </div>
+
+          {/* Time bar */}
+          <div
+            style={{
+              background: '#1e2230',
+              borderRadius: 14,
+              padding: '7px 8px',
+            }}
+          >
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 24px 1fr',
+                alignItems: 'center',
+                gap: 4,
+                marginBottom: 5,
+              }}
+            >
+              {/* Open */}
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#fff',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {market.startingTime ? openTime : '--'}
+                </div>
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: 'rgba(255,255,255,0.7)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    marginTop: 1,
+                  }}
+                >
+                  OPEN
+                </div>
+              </div>
+
+              {/* Clock icon */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <ClockIcon />
+              </div>
+
+              {/* Close */}
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: '#fff',
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {market.closingTime ? closeTime : '--'}
+                </div>
+                <div
+                  style={{
+                    fontSize: 8,
+                    fontWeight: 700,
+                    color: 'rgba(255,255,255,0.7)',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    marginTop: 1,
+                  }}
+                >
+                  CLOSE
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom action row */}
+          <div style={{ textAlign: 'center', paddingTop: 5 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isOpen) handleClick();
+                else setShowClosedModal(true);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontSize: 10,
+                fontWeight: 700,
+                color: isClosed ? 'rgba(248, 113, 113, 0.72)' : '#6ee7b7',
+                letterSpacing: '0.03em',
+                animation: isClosed ? 'marketTomorrowBlink 1.15s ease-in-out infinite' : 'none',
+              }}
+            >
+              {isClosed
+                ? t('markets.runningForTomorrow', { defaultValue: 'Running For Tomorrow' })
+                : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
+            </button>
+          </div>
         </div>
       </div>
 
-      </div>
-      {typeof document !== 'undefined' && closedModal ? createPortal(closedModal, document.body) : null}
+      {typeof document !== 'undefined' && closedModal
+        ? createPortal(closedModal, document.body)
+        : null}
     </>
   );
 }

@@ -28,7 +28,7 @@ const getMarketStatus = (market) => {
 };
 
 const ALL_MARKETS_GRID_CLASS =
-  'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 md:grid-cols-5';
+  'grid grid-cols-2 gap-2.5 pb-1 md:grid-cols-5 md:gap-3';
 
 const MARKET_CARD_SKELETON_CLASS =
   'relative h-[168px] w-full min-w-0 overflow-hidden rounded-[24px] bg-[#180707] sm:h-[176px]';
