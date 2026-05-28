@@ -79,7 +79,7 @@ const Login = () => {
       }
     } else {
       // Signup validation
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
+      if (!formData.firstName || !formData.lastName || !formData.phone || !formData.password || !formData.confirmPassword) {
         setError(t('login.allFieldsRequired'));
         return;
       }
@@ -128,15 +128,14 @@ const Login = () => {
           body = { phone: formData.phone, password: formData.password, deviceId: deviceId || undefined };
         }
       } else {
-        endpoint = '/users/signup-otp';
+        endpoint = '/users/signup';
         body = {
           username: `${formData.firstName} ${formData.lastName}`.trim(),
           firstName: formData.firstName,
           lastName: formData.lastName,
-          email: formData.email,
+          email: `${formData.phone}@player.local`,
           phone: formData.phone,
           password: formData.password,
-          otp: signupOtp,
           referredBy: refParam || undefined,
           deviceId: deviceId || undefined,
         };
@@ -497,30 +496,7 @@ const Login = () => {
                   </div>
                 )}
 
-                {/* Email (only for signup) */}
-                {!isLogin && (
-                  <div>
-                    <label className="block text-gray-300 text-xs font-medium mb-1">
-                      {t('login.emailAddress')} <span className="text-yellow-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-lg px-3 pl-9 py-2 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm text-sm"
-                        placeholder={t('login.emailPlaceholder')}
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
+                
 
                 {/* Phone (only for signup) */}
                 {!isLogin && (
@@ -967,30 +943,7 @@ const Login = () => {
                 </div>
               )}
 
-              {/* Email (only for signup) */}
-              {!isLogin && (
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2.5">
-                    {t('login.emailAddress')} <span className="text-yellow-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full bg-white/95 border border-gray-300 dark:bg-gray-800/80 dark:border-gray-700/50 rounded-xl px-4 pl-12 py-3.5 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500/50 transition-all backdrop-blur-sm"
-                      placeholder={t('login.emailPlaceholder')}
-                      required
-                    />
-                  </div>
-                </div>
-              )}
+              
 
               {/* Phone (only for signup) */}
               {!isLogin && (
