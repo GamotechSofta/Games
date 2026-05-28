@@ -14,10 +14,13 @@ export default function useMainMarkets({
 } = {}) {
   const useBootstrap = limit === DEFAULT_LIMIT && !popularOnly;
   const bootstrap = useHomeBootstrap({ marketLimit: limit, gameLimit: 12 });
+  const bootstrapUnavailable =
+    bootstrap.error?.code === 'HOME_BOOTSTRAP_UNAVAILABLE' ||
+    bootstrap.error?.message === 'HOME_BOOTSTRAP_UNAVAILABLE';
 
   const marketsQuery = useQuery({
     queryKey: ['mainMarkets', limit, popularOnly],
-    enabled: !useBootstrap,
+    enabled: !useBootstrap || bootstrapUnavailable,
     queryFn: async () => {
       const params = new URLSearchParams({
         marketType: 'main',
@@ -37,14 +40,16 @@ export default function useMainMarkets({
   });
 
   const markets = useMemo(() => {
-    if (useBootstrap) return bootstrap.data?.transformedMarkets || [];
+    if (useBootstrap && !bootstrapUnavailable) return bootstrap.data?.transformedMarkets || [];
     return marketsQuery.data || [];
-  }, [useBootstrap, bootstrap.data, marketsQuery.data]);
+  }, [useBootstrap, bootstrapUnavailable, bootstrap.data, marketsQuery.data]);
 
   return {
     markets,
-    loading: useBootstrap ? bootstrap.isLoading : marketsQuery.isLoading,
-    error: (useBootstrap ? bootstrap.error : marketsQuery.error)?.message || '',
-    refetch: () => (useBootstrap ? bootstrap.refetch() : marketsQuery.refetch()),
+    loading: useBootstrap && !bootstrapUnavailable ? bootstrap.isLoading : marketsQuery.isLoading,
+    error:
+      (useBootstrap && !bootstrapUnavailable ? bootstrap.error : marketsQuery.error)?.message || '',
+    refetch: () =>
+      (useBootstrap && !bootstrapUnavailable ? bootstrap.refetch() : marketsQuery.refetch()),
   };
 }
