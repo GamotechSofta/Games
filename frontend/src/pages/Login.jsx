@@ -165,39 +165,38 @@ const Login = () => {
           {error && <div className="mb-3 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</div>}
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            {isLogin ? (
-              <div>
-                <label className="mb-1 block text-xs font-medium text-[#d5deea]">Phone Number *</label>
-                {loginMode === 'password' ? (
-                  <input name="phone" value={formData.phone} onChange={handleChange} maxLength={10} placeholder="10-digit phone number" className={inputClass} />
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      maxLength={10}
-                      placeholder="10-digit phone number"
-                      className={inputClass}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSendOtp(false)}
-                      disabled={otpLoading}
-                      className="rounded-[10px] bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
-                    >
-                      {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send')}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
 
             {isLogin && (
               <>
                 <div className="grid grid-cols-2 gap-1 rounded-[10px] border border-[#1e2b41] bg-[#0b1322] p-1">
                   <button type="button" onClick={() => setLoginMode('password')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'password' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>Password</button>
                   <button type="button" onClick={() => setLoginMode('otp')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'otp' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>OTP</button>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#d5deea]">Phone Number *</label>
+                  {loginMode === 'password' ? (
+                    <input name="phone" value={formData.phone} onChange={handleChange} maxLength={10} placeholder="10-digit phone number" className={inputClass} />
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        maxLength={10}
+                        placeholder="10-digit phone number"
+                        className={inputClass}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSendOtp(false)}
+                        disabled={otpLoading}
+                        className="rounded-[10px] bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
+                      >
+                        {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send')}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {loginMode === 'password' ? (
