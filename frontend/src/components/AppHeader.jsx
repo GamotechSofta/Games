@@ -5,7 +5,6 @@ import { getBalance, updateUserBalance } from '../api/bets';
 import { triggerApkDownload } from '../utils/downloads';
 import aakdaLogo from '../config/logo';
 import { useTheme } from '../context/ThemeContext';
-import useNotificationCount from '../hooks/useNotificationCount';
 
 const LanguageSwitcher = lazy(() => import('./LanguageSwitcher'));
 const ThemeSwitcher = lazy(() => import('./ThemeSwitcher'));
@@ -16,7 +15,6 @@ const AppHeader = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { isLight } = useTheme();
-  const { notificationCount } = useNotificationCount();
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
 
@@ -137,22 +135,6 @@ const AppHeader = () => {
                   </svg>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigate('/notifications')}
-                  className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
-                  aria-label="Notifications"
-                  title="Notifications"
-                >
-                  <svg className="h-4 w-4 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                  </svg>
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e60000] px-1 text-[9px] font-bold text-white">
-                      {notificationCount > 99 ? '99+' : notificationCount}
-                    </span>
-                  )}
-                </button>
 
                 <button
                   type="button"
@@ -208,25 +190,6 @@ const AppHeader = () => {
                   </svg>
                 </button>
 
-                <button
-                  onClick={() => navigate('/notifications')}
-                  className={`shrink-0 w-9 h-9 sm:w-9 sm:h-9 md:w-10 md:h-10 min-w-[36px] min-h-[36px] rounded-lg flex items-center justify-center active:scale-95 transition-all duration-200 relative touch-manipulation ${
-                    isLight
-                      ? 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                      : 'bg-[#202124] border border-white/10 text-gray-900 dark:text-white hover:bg-[#2a2b2e] hover:border-white/20'
-                  }`}
-                  aria-label="Notifications"
-                  title="Notifications"
-                >
-                  <svg className="w-4 h-4 md:w-[18px] md:h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                  </svg>
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-0.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold">
-                      {notificationCount > 99 ? '99+' : notificationCount}
-                    </span>
-                  )}
-                </button>
 
                 <button
                   onClick={() => navigate('/funds?tab=add-fund')}

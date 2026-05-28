@@ -4,7 +4,6 @@ import Market from '../models/market/market.js';
 import User from '../models/user/user.js';
 import { Wallet } from '../models/wallet/wallet.js';
 import { ensureResultsResetForNewDay } from '../utils/resultReset.js';
-import { calculateUnreadNotificationCount } from './notificationController.js';
 
 /** GET /api/v1/home/bootstrap */
 export const getHomeBootstrap = async (req, res) => {
@@ -16,7 +15,6 @@ export const getHomeBootstrap = async (req, res) => {
 
         const userIdRaw = (req.query.userId || '').toString().trim();
         const userId = mongoose.Types.ObjectId.isValid(userIdRaw) ? userIdRaw : null;
-        const lastSeenAt = Number.parseInt(String(req.query.lastSeenAt || '0'), 10) || 0;
 
         const [markets, games] = await Promise.all([
             Market.find({
@@ -34,20 +32,17 @@ export const getHomeBootstrap = async (req, res) => {
         ]);
 
         let wallet = null;
-        let notifications = null;
 
         if (userId) {
-            const [walletDoc, userDoc, notificationCount] = await Promise.all([
+            const [walletDoc, userDoc] = await Promise.all([
                 Wallet.findOne({ userId }).select('balance').lean(),
                 User.findById(userId).select('balance').lean(),
-                calculateUnreadNotificationCount({ userId, lastSeenAt }).catch(() => 0),
             ]);
 
             const balance = walletDoc?.balance ?? userDoc?.balance;
             if (balance != null) {
                 wallet = { balance: Number(balance) };
             }
-            notifications = { count: Number(notificationCount || 0) };
         }
 
         return res.status(200).json({
@@ -56,7 +51,6 @@ export const getHomeBootstrap = async (req, res) => {
                 markets,
                 games,
                 wallet,
-                notifications,
                 generatedAt: Date.now(),
             },
         });

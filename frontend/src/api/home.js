@@ -1,5 +1,4 @@
 import { API_BASE_URL } from '../config/api';
-import { getNotificationsLastSeenAt } from '../utils/notificationCount';
 
 let homeBootstrapUnavailable = false;
 
@@ -18,7 +17,6 @@ export async function fetchHomeBootstrap({ marketLimit = 24, gameLimit = 12 } = 
   });
   if (userId) {
     params.set('userId', String(userId));
-    params.set('lastSeenAt', String(getNotificationsLastSeenAt() || 0));
   }
 
   const res = await fetch(`${API_BASE_URL}/home/bootstrap?${params.toString()}`);
@@ -32,6 +30,6 @@ export async function fetchHomeBootstrap({ marketLimit = 24, gameLimit = 12 } = 
   if (!res.ok || !data?.success) {
     throw new Error(data?.message || 'Failed to load home bootstrap');
   }
-  return data?.data || { markets: [], games: [], wallet: null, notifications: null };
+  return data?.data || { markets: [], games: [], wallet: null };
 }
 

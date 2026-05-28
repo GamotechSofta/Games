@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
+import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getActivePanelFromLocation, useDashboardNav } from '../utils/dashboardNav';
 import SkeletonBlock from '../components/SkeletonBlock';
@@ -36,7 +37,6 @@ const StartlineDashboard = lazy(() => import('../pages/StartlineDashboard'));
 const TopWinners = lazy(() => import('../pages/TopWinners'));
 const StarlineMarket = lazy(() => import('../pages/StarlineMarket'));
 const KingBazaarMarket = lazy(() => import('../pages/KingBazaarMarket'));
-const Notifications = lazy(() => import('../pages/Notifications'));
 const GameRate = lazy(() => import('../pages/GameRate'));
 const Games = lazy(() => import('../pages/Games'));
 const Wallet = lazy(() => import('../pages/Wallet'));
@@ -136,7 +136,7 @@ const Layout = ({ children }) => {
     location.pathname === '/market-result-history';
   const hideTopNavOnMobile =
     !isDesktop &&
-    (['/funds', '/profile', '/notifications', '/bidoptions', '/game-bid', '/games'].includes(location.pathname) ||
+    (['/funds', '/profile', '/bidoptions', '/game-bid', '/games'].includes(location.pathname) ||
       location.pathname.startsWith('/support'));
   const hideBottomNavOnMobile = false;
 
@@ -149,6 +149,8 @@ const Layout = ({ children }) => {
       window.removeEventListener('userLogout', check);
     };
   }, []);
+
+  usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel));
 
   useEffect(() => {
     const validateToken = () => {
@@ -299,7 +301,6 @@ export default function ProtectedApp() {
             <Route path="/starline-market" element={<StarlineMarket />} />
             <Route path="/king-bazaar-market" element={<KingBazaarMarket />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/notifications" element={<Notifications />} />
             <Route path="/top-winners" element={<TopWinners />} />
             <Route path="/game-rate" element={<GameRate />} />
             <Route path="/games" element={<Games />} />

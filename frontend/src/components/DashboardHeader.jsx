@@ -2,19 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMenu, HiUser } from 'react-icons/hi';
-import { HiBell, HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
+import { HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
 import { useWallet } from '../hooks/useWallet';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
 import { SIDEBAR_COLLAPSED_W } from './DesktopSidebar';
 import aakdaLogo from '../config/logo';
-import useNotificationCount from '../hooks/useNotificationCount';
 
 export default function DashboardHeader({ activePanel, onPanelChange, sidebarCollapsed, onToggleSidebar }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { formattedBalance } = useWallet();
-  const { notificationCount } = useNotificationCount();
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null');
@@ -92,20 +90,6 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
             aria-label={t('header.downloadApp')}
           >
             <HiDownload className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/notifications')}
-            className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
-            aria-label={t('header.notification')}
-          >
-            <HiBell className={[ICON_SIZE_NAV, iconColorClass(false)].join(' ')} />
-            {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#e60000] px-1 text-[10px] font-bold text-white">
-                {notificationCount > 99 ? '99+' : notificationCount}
-              </span>
-            )}
           </button>
 
           <button

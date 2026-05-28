@@ -3,6 +3,7 @@ import Bet from '../models/bet/bet.js';
 import User from '../models/user/user.js';
 import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
+import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
@@ -259,6 +260,8 @@ export const placeBet = async (req, res) => {
             await wallet.save();
             throw txErr;
         }
+
+        notifyPlayerWalletBalance(userId, 'bet_placed').catch(() => {});
 
         res.status(201).json({
             success: true,
@@ -527,6 +530,8 @@ export const cancelBet = async (req, res) => {
             meta: { userId, marketId: bet.marketId.toString(), amount: bet.amount, betNumber: bet.betNumber, betType: bet.betType },
             ip: getClientIp(req),
         });
+
+        notifyPlayerWalletBalance(userId, 'bet_cancelled').catch(() => {});
 
         res.status(200).json({
             success: true,

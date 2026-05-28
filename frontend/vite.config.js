@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -27,7 +27,12 @@ function spaFallback() {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const devProxyTarget =
+    env.VITE_DEV_PROXY_TARGET?.replace(/\/$/, '') || 'http://localhost:3010'
+
+  return {
   appType: 'spa',
   plugins: [
     spaFallback(),
@@ -77,7 +82,22 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
-  server: { strictPort: false },
+  server: {
+    strictPort: false,
+    proxy: {
+      '/api/v1': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/socket.io': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
+  },
   preview: { strictPort: false },
   build: {
     target: 'es2020',
@@ -99,4 +119,5 @@ export default defineConfig({
       },
     },
   },
+}
 })

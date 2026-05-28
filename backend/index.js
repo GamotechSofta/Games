@@ -1,4 +1,5 @@
 import express from 'express';
+import http from 'http';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
 import connectDB from './config/db_Connection.js';
@@ -20,7 +21,6 @@ import homeRoutes from './routes/home/homeRoutes.js';
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
-import notificationRoutes from './routes/notification/notificationRoutes.js';
 import { getClientIp } from './utils/activityLogger.js';
 import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
@@ -28,6 +28,7 @@ import cors from 'cors';
 import compression from 'compression';
 import path from 'path';
 import { getCorsOptions, logCorsConfig, parseAllowedOrigins } from './config/cors.js';
+import { initPlayerSocket } from './socket/playerSocket.js';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -190,7 +191,6 @@ app.use('/api/v1/home', homeRoutes);
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
-app.use('/api/v1/notifications', notificationRoutes);
 
 // Global error handler: ensure API always returns JSON (no HTML 500)
 app.use((err, req, res, next) => {
@@ -228,6 +228,8 @@ cron.schedule('30 18 * * *', async () => {
 });
 
 
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+initPlayerSocket(httpServer, { isProd });
+httpServer.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

@@ -4,6 +4,7 @@ import Bet from '../models/bet/bet.js';
 import Admin from '../models/admin/admin.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { toClientWalletTransaction } from '../utils/paymentDisplay.js';
 
 export const getAllWallets = async (req, res) => {
@@ -258,6 +259,8 @@ export const adjustBalance = async (req, res) => {
             });
         }
 
+        notifyPlayerWalletBalance(userId, 'wallet_adjust').catch(() => {});
+
         res.status(200).json({ success: true, data: wallet });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -352,6 +355,8 @@ export const setBalance = async (req, res) => {
                 ip: getClientIp(req),
             });
         }
+
+        notifyPlayerWalletBalance(userId, 'wallet_set').catch(() => {});
 
         res.status(200).json({ success: true, data: wallet });
     } catch (error) {

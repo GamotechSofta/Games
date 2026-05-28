@@ -32,20 +32,31 @@ export function useWallet() {
       if (res.success && res.data?.balance != null) return Number(res.data.balance);
       throw new Error(res?.message || 'Failed to fetch balance');
     },
-    staleTime: 30 * 1000,
+    staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchInterval: 5 * 60 * 1000,
     retry: 1,
   });
 
   useEffect(() => {
     loadStored();
+    const onBalance = (e) => {
+      const next = Number(e?.detail?.balance);
+      if (Number.isFinite(next)) {
+        setBalance(next);
+      } else {
+        loadStored();
+      }
+    };
     window.addEventListener('storage', loadStored);
     window.addEventListener('userLogin', loadStored);
     window.addEventListener('userLogout', loadStored);
+    window.addEventListener('balanceUpdated', onBalance);
     return () => {
       window.removeEventListener('storage', loadStored);
       window.removeEventListener('userLogin', loadStored);
       window.removeEventListener('userLogout', loadStored);
+      window.removeEventListener('balanceUpdated', onBalance);
     };
   }, [loadStored]);
 

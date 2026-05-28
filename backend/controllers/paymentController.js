@@ -7,6 +7,7 @@ import Settings from '../models/settings/settings.js';
 import bcrypt from 'bcryptjs';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { uploadToCloudinary } from '../config/cloudinary.js';
 import {
     createPaymentLink,
@@ -371,6 +372,7 @@ async function creditWalletForPayU(userId, amount, paymentId) {
         description: 'Deposit credited',
         referenceId: refId,
     });
+    notifyPlayerWalletBalance(userId, 'deposit_credited').catch(() => {});
     return wallet;
 }
 
@@ -904,6 +906,8 @@ export const approvePayment = async (req, res) => {
             meta: { paymentId: id, type: payment.type, amount: payment.amount },
             ip: getClientIp(req),
         });
+
+        notifyPlayerWalletBalance(payment.userId._id, `payment_${payment.type}_approved`).catch(() => {});
 
         res.status(200).json({
             success: true,

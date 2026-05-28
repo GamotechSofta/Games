@@ -35,6 +35,7 @@ export function updateUserBalance(newBalance) {
       setSessionCache(`wallet.balance.${userId}`, { success: true, data: { balance: newBalance } }, 30 * 1000);
     }
     window.dispatchEvent(new Event('userLogin'));
+    window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: newBalance } }));
   } catch (_) {}
 }
 
