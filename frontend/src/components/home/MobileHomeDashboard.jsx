@@ -146,7 +146,7 @@ const MARKET_CARD_GRID_CLASS =
 const MARKET_CARD_SKELETON_BASE_CLASS =
   'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
 const ALL_MARKETS_GRID_CLASS =
-  'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 min-[760px]:grid-cols-4 xl:grid-cols-5';
+  'grid grid-cols-2 gap-2.5 pb-1 min-[430px]:grid-cols-3 min-[430px]:gap-3 md:grid-cols-5';
 
 const isAviatorGame = (game) => {
   const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
@@ -534,22 +534,23 @@ export default function MobileHomeDashboard() {
               onAction={() => navigate('/markets')}
             />
             {loading ? (
-              <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-                {[1, 2, 3, 4].map((item) => (
+              <div className={ALL_MARKETS_GRID_CLASS}>
+                {[1, 2, 3, 4, 5, 6].map((item) => (
                   <div
                     key={item}
-                    className={`${MARKET_CARD_SCROLL_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
+                    className={`${MARKET_CARD_GRID_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
                   />
                 ))}
               </div>
             ) : (
-              <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
+              <div className={ALL_MARKETS_GRID_CLASS}>
                 {popularMarkets.map((market) => (
                   <CompactMarketCard
                     key={market.id}
                     market={market}
                     t={t}
                     navigate={navigate}
+                    layout="grid"
                   />
                 ))}
               </div>

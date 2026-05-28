@@ -27,7 +27,7 @@ function MarketRow({
   const theme = MARKET_SECTION_THEME[section] || MARKET_SECTION_THEME.popular;
   const rowClass = scrollable
     ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2`
-    : 'grid w-full grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4 pb-2 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]';
+    : 'grid w-full grid-cols-2 gap-3 pb-2 sm:grid-cols-3 md:grid-cols-5 md:gap-4';
   const itemClass = scrollable
     ? 'w-[170px] min-w-[170px] shrink-0 md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]'
     : 'min-w-0';
@@ -68,7 +68,7 @@ function MarketRow({
 function MarketRowSkeleton({ scrollable = true, gapClass = 'gap-3' }) {
   const rowClass = scrollable
     ? `scrollbar-hidden flex w-full ${gapClass} overflow-x-auto pb-2`
-    : 'grid w-full grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-4 pb-2 xl:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]';
+    : 'grid w-full grid-cols-2 gap-3 pb-2 sm:grid-cols-3 md:grid-cols-5 md:gap-4';
   const itemClass = scrollable
     ? 'h-[176px] w-[170px] min-w-[170px] shrink-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616] md:w-[180px] md:min-w-[180px] xl:w-[190px] xl:min-w-[190px]'
     : 'h-[176px] min-w-0 rounded-[24px] bg-gray-100 skeleton-shimmer dark:bg-[#161616]';
