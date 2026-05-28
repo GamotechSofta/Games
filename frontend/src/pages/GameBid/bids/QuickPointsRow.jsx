@@ -5,7 +5,7 @@ export const QUICK_POINT_VALUES = [10, 20, 30, 40, 50];
 const getQuickPointIconSrc = (pts) => `/images/icons/${pts}_rs_icon-removebg-preview.png`;
 
 export const getQuickPointButtonClass = (selected) =>
-    `h-10 sm:h-11 min-w-[2.5rem] sm:min-w-[2.75rem] flex items-center justify-center transition-transform active:scale-[0.98] ${
+    `h-7 w-full sm:h-10 flex items-center justify-center transition-transform active:scale-[0.98] ${
         selected ? 'scale-105' : 'hover:scale-105'
     }`;
 
@@ -20,7 +20,7 @@ export function QuickPointButton({ pts, selected, onClick, className = '' }) {
             <img
                 src={getQuickPointIconSrc(pts)}
                 alt={`${pts} points`}
-                className={`h-full w-auto object-contain transition-all ${
+                className={`max-h-full max-w-full w-auto object-contain transition-all ${
                     selected
                         ? 'drop-shadow-[0_0_10px_rgba(220,38,38,0.45)] brightness-110'
                         : 'opacity-70 hover:opacity-100'
@@ -28,8 +28,8 @@ export function QuickPointButton({ pts, selected, onClick, className = '' }) {
             />
             {selected && (
                 <>
-                    <span className="absolute -inset-1 rounded-lg border-2 border-red-500/90 pointer-events-none" />
-                    <span className="absolute -top-1.5 -right-1.5 h-3.5 w-3.5 rounded-full bg-red-600 border border-white shadow-sm pointer-events-none" />
+                    <span className="absolute -inset-0.5 sm:-inset-1 rounded-md sm:rounded-lg border-2 border-red-500/90 pointer-events-none" />
+                    <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 rounded-full bg-red-600 border border-white shadow-sm pointer-events-none" />
                 </>
             )}
         </button>
@@ -65,9 +65,9 @@ export default function QuickPointsRow({
     );
 
     return (
-        <div className={`flex items-center gap-2 ${className}`.trim()}>
+        <div className={`flex items-center gap-1.5 sm:gap-2 ${className}`.trim()}>
             {labelNode}
-            <div className="flex-1 min-w-0 grid grid-cols-5 gap-2">
+            <div className="flex-1 min-w-0 grid grid-cols-5 gap-1 sm:gap-2">
                 {values.map((pts) => (
                     <QuickPointButton
                         key={pts}
