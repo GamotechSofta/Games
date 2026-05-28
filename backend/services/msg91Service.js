@@ -8,7 +8,7 @@ const getMsg91Config = () => {
     const templateId = process.env.MSG91_TEMPLATE_ID;
     const senderId = process.env.MSG91_SENDER_ID;
     const debugEnabled = String(process.env.MSG91_DEBUG || '').toLowerCase() === 'true';
-    const useSender = String(process.env.MSG91_USE_SENDER || 'true').toLowerCase() === 'true';
+    const useSender = String(process.env.MSG91_USE_SENDER || 'false').toLowerCase() === 'true';
 
     if (!authKey || !templateId) {
         throw new Error('MSG91 credentials are not fully configured (MSG91_AUTH_KEY, MSG91_TEMPLATE_ID)');
