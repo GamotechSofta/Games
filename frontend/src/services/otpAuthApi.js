@@ -44,3 +44,22 @@ export const fetchMyProfile = async (token) => {
   } : undefined);
   return response.data;
 };
+
+export const loginWithPassword = async ({ phone, password, deviceId }) => {
+  const response = await otpApi.post('/users/login', { phone, password, deviceId });
+  return response.data;
+};
+
+export const signupUser = async ({ firstName, lastName, phone, password, referredBy, deviceId }) => {
+  const response = await otpApi.post('/users/signup', {
+    username: `${firstName} ${lastName}`.trim(),
+    firstName,
+    lastName,
+    phone,
+    email: `${phone}@player.local`,
+    password,
+    referredBy,
+    deviceId,
+  });
+  return response.data;
+};

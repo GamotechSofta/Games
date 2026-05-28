@@ -1,6 +1,6 @@
 import express from 'express';
 import { createUser, userLogin, userSignup, userHeartbeat, getUsers, getSingleUser, togglePlayerStatus, deletePlayer, clearLoginDevices, changePlayerPassword } from '../../controllers/userController.js';
-import { getMyProfile, sendOtp, verifyOtp } from '../../controllers/otpAuthController.js';
+import { getMyProfile, getOtpDebugStatus, sendOtp, verifyOtp } from '../../controllers/otpAuthController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 import { verifyUserAuth } from '../../middleware/userAuth.js';
 import { otpSendLimiter, otpVerifyLimiter } from '../../middleware/otpRateLimiter.js';
@@ -14,6 +14,7 @@ router.post('/heartbeat', userHeartbeat);
 router.post('/otp/send', otpSendLimiter, sendOtp);
 router.post('/otp/verify', otpVerifyLimiter, verifyOtp);
 router.get('/me', verifyUserAuth, getMyProfile);
+router.get('/otp/debug-status', getOtpDebugStatus);
 
 // Admin/Bookie routes
 router.get('/', verifyAdmin, getUsers);

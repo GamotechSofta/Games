@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { API_BASE_URL } from '../config/api';
 import aakdaLogo from '../config/logo';
+import { loginWithPassword, sendOtp, signupUser, verifyOtp } from '../services/otpAuthApi';
+import Toast from '../components/common/Toast';
+import { useToast } from '../hooks/useToast';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ const Login = () => {
   const [signupOtp, setSignupOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [signupOtpSent, setSignupOtpSent] = useState(false);
+  const { toast, showToast, hideToast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,20 +60,17 @@ const Login = () => {
     }
     setOtpLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/users/otp/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: formData.phone }),
-      });
-      const data = await response.json();
+      const data = await sendOtp(formData.phone);
       if (!data.success) {
         setError(data.message || 'Failed to send OTP');
         return;
       }
       if (isSignup) setSignupOtpSent(true);
       else setOtpSent(true);
+      showToast(data.message || 'OTP sent successfully', 'success');
     } catch {
       setError('Network error');
+      showToast('Failed to send OTP', 'error');
     } finally {
       setOtpLoading(false);
     }
@@ -98,44 +98,33 @@ const Login = () => {
 
     setLoading(true);
     try {
-      let endpoint = '/users/login';
-      let body = {};
-
+      let data;
       if (isLogin) {
         if (loginMode === 'otp') {
-          endpoint = '/users/otp/verify';
-          body = { phone: formData.phone, otp };
+          data = await verifyOtp(formData.phone, otp);
         } else {
-          body = { phone: formData.phone, password: formData.password, deviceId: getDeviceId() };
+          data = await loginWithPassword({ phone: formData.phone, password: formData.password, deviceId: getDeviceId() });
         }
       } else {
-        endpoint = '/users/signup';
-        body = {
-          username: `${formData.firstName} ${formData.lastName}`.trim(),
+        data = await signupUser({
           firstName: formData.firstName,
           lastName: formData.lastName,
           phone: formData.phone,
-          email: `${formData.phone}@player.local`,
           password: formData.password,
           referredBy: refParam || undefined,
           deviceId: getDeviceId(),
-        };
+        });
       }
-
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await response.json();
       if (!data.success) return setError(data.message || 'Request failed');
 
       localStorage.setItem('user', JSON.stringify(data.data || {}));
       if (data.token) localStorage.setItem('userToken', data.token);
       window.dispatchEvent(new Event('userLogin'));
+      showToast(data.message || 'Authentication successful', 'success');
       navigate('/');
     } catch {
       setError('Network error');
+      showToast('Authentication failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -146,6 +135,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-[#05070e] px-4 pt-14 pb-8">
+      <Toast toast={toast} onClose={hideToast} />
       <div className="mx-auto flex w-full max-w-6xl items-center justify-center gap-10">
         <div className="hidden lg:block lg:w-1/2">
           <img src={aakdaLogo} alt="Aakda" className="h-44 w-auto object-contain opacity-95" />
