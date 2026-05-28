@@ -208,7 +208,7 @@ const DPCommon = ({ market, title }) => {
                 )}
 
                 <div className="mb-3 text-gray-400 text-xs">
-                    Enter a single digit (0-9) and points — panna list will generate automatically. Double Patti only (e.g. 112,
+                    Enter a single digit (0-9) and points ï¿½ panna list will generate automatically. Double Patti only (e.g. 112,
                     200, 344).
                 </div>
 
@@ -274,7 +274,7 @@ const DPCommon = ({ market, title }) => {
                                         <button
                                             type="button"
                                             onClick={() => removeRow(row.id)}
-                                            className="min-h-[40px] h-9 flex items-center justify-center rounded-md bg-red-50/80 text-red-600"
+                                            className="min-h-[40px] h-9 flex items-center justify-center rounded-md bg-gray-50/80 text-gray-600"
                                             aria-label="Delete"
                                         >
                                             <svg

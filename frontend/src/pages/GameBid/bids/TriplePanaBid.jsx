@@ -139,13 +139,13 @@ const TriplePanaBid = ({ market, title }) => {
 
     const handleDeleteBid = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
     const fieldLabelClass = 'text-gray-900 dark:text-gray-200';
-    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center';
-    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
-    const valueInputClass = 'no-spinner w-full bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none';
-    const listHeaderClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1';
-    const listRowClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#2a1d21] rounded-lg border border-red-200 dark:border-white/20 text-sm';
-    const tripleBadgeClass = 'w-12 h-10 bg-gradient-to-br from-red-700 to-red-600 border-2 border-red-200 dark:border-white/20 text-white flex items-center justify-center rounded-l-md font-bold text-sm shrink-0';
-    const tripleInputClass = 'w-full h-10 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-red-500 dark:focus:border-white/35 px-3 text-sm font-semibold';
+    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center';
+    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
+    const valueInputClass = 'no-spinner w-full bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35 focus:outline-none';
+    const listHeaderClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1';
+    const listRowClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-gray-200 dark:border-white/20 text-sm';
+    const tripleBadgeClass = 'w-12 h-10 bg-gradient-to-br from-red-700 to-red-600 border-2 border-gray-200 dark:border-white/20 text-white flex items-center justify-center rounded-l-md font-bold text-sm shrink-0';
+    const tripleInputClass = 'w-full h-10 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-r-md focus:outline-none focus:border-gray-500 dark:focus:border-white/35 px-3 text-sm font-semibold';
 
     const submitBtnClass = (enabled) =>
         enabled
@@ -296,7 +296,7 @@ const TriplePanaBid = ({ market, title }) => {
                 <div>Type</div>
                 <div>Delete</div>
             </div>
-            <div className="h-px bg-red-200 dark:bg-white/20 w-full mb-2" />
+            <div className="h-px bg-gray-200 dark:bg-white/20 w-full mb-2" />
             <div className="space-y-2">
                 {bids.map((bid) => (
                     <div
@@ -304,13 +304,13 @@ const TriplePanaBid = ({ market, title }) => {
                         className={listRowClass}
                     >
                         <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
-                        <div className="font-bold text-red-700 dark:text-red-300">{bid.points}</div>
+                        <div className="font-bold text-gray-700 dark:text-red-300">{bid.points}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
                         <div className="flex justify-center">
                             <button
                                 type="button"
                                 onClick={() => handleDeleteBid(bid.id)}
-                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                className="p-2 text-gray-500 hover:text-gray-600 active:scale-95"
                                 aria-label="Delete"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -340,7 +340,7 @@ const TriplePanaBid = ({ market, title }) => {
                     type="text"
                     value={todayDate}
                     readOnly
-                    className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white rounded-full text-sm font-bold text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35"
+                    className="w-full pl-10 py-3 sm:py-2.5 min-h-[44px] bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white rounded-full text-sm font-bold text-center focus:outline-none focus:border-gray-500 dark:focus:border-white/35"
                 />
             </div>
             <div className="relative">
@@ -348,7 +348,7 @@ const TriplePanaBid = ({ market, title }) => {
                     value={session}
                     onChange={(e) => setSession(e.target.value)}
                     disabled={isRunning}
-                    className={`w-full appearance-none bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35 ${isRunning ? 'opacity-60 cursor-not-allowed bg-white/10' : ''}`}
+                    className={`w-full appearance-none bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white font-bold text-sm py-3 sm:py-2.5 min-h-[44px] px-4 rounded-full text-center focus:outline-none focus:border-gray-500 dark:focus:border-white/35 ${isRunning ? 'opacity-60 cursor-not-allowed bg-white/10' : ''}`}
                 >
                     {isRunning ? (
                         <option value="CLOSE">CLOSE</option>
@@ -387,7 +387,7 @@ const TriplePanaBid = ({ market, title }) => {
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:max-w-7xl md:mx-auto md:items-start">
                 <div className="space-y-4">
                     {warning && (
-                        <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                        <div className="bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                             {warning}
                         </div>
                     )}
@@ -406,8 +406,8 @@ const TriplePanaBid = ({ market, title }) => {
                                                 onChange={handleNumberInputChange}
                                                 placeholder="Pana"
                                                 maxLength={3}
-                                                className={`flex-1 min-w-0 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
-                                                    isPanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35'
+                                                className={`flex-1 min-w-0 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:outline-none ${
+                                                    isPanaInvalid ? 'border-red-500 focus:border-gray-500 focus:ring-red-500/20' : 'focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35'
                                                 }`}
                                             />
                                         </div>
@@ -426,7 +426,7 @@ const TriplePanaBid = ({ market, title }) => {
                                                 <button
                                                     type="button"
                                                     onClick={handleFormClearEasy}
-                                                    className="px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95"
+                                                    className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-medium hover:border-gray-400 dark:hover:border-white/35 active:scale-95"
                                                 >
                                                     Clear
                                                 </button>

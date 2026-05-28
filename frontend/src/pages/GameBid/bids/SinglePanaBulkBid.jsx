@@ -178,22 +178,22 @@ const SinglePanaBulkBid = ({ market, title }) => {
         () => reviewRows.reduce((sum, b) => sum + Number(b.points || 0), 0),
         [reviewRows]
     );
-    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-2 py-1.5 md:px-3 md:py-2 text-center';
-    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
+    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center';
+    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
     const greenSubmitClass = (enabled) =>
         enabled
             ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
             : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed';
     const groupBadgeClass = (hasBet = false) =>
-        `w-10 h-9 border-2 border-red-200 dark:border-white/20 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 ${
+        `w-10 h-9 border-2 border-gray-200 dark:border-white/20 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 ${
             hasBet ? 'bg-red-700 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'
         }`;
-    const groupInputClass = 'no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-white dark:bg-[#2a1d21] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded focus:outline-none focus:border-red-500 dark:focus:border-white/35 px-2 text-xs md:text-[11px] font-semibold text-center';
-    const actionBtnClass = 'h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] text-red-700 dark:text-red-200 hover:border-red-400 dark:hover:border-white/35';
+    const groupInputClass = 'no-spinner w-[86px] sm:w-[96px] md:w-[72px] lg:w-[80px] h-9 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded focus:outline-none focus:border-gray-500 dark:focus:border-white/35 px-2 text-xs md:text-[11px] font-semibold text-center';
+    const actionBtnClass = 'h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 hover:border-gray-400 dark:hover:border-white/35';
     const groupQuickLabelClass = 'text-[11px] font-semibold text-gray-900 dark:text-gray-200 shrink-0';
-    const cellWrapClass = (hasBet) => `flex items-center gap-1.5 rounded-lg p-0.5 border transition-all duration-200 ${hasBet ? 'border-red-200 dark:border-white/20 shadow-md bg-red-50 dark:bg-[#24171b]' : 'border-red-200/70 dark:border-white/10 bg-white/70 dark:bg-[#2a1d21]'}`;
+    const cellWrapClass = (hasBet) => `flex items-center gap-1.5 rounded-lg p-0.5 border transition-all duration-200 ${hasBet ? 'border-gray-200 dark:border-white/20 shadow-md bg-gray-50 dark:bg-[#1b1d22]' : 'border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-[#202329]'}`;
     const cellBadgeClass = (hasBet) => `w-10 h-9 border-0 flex items-center justify-center rounded-l-md font-bold text-xs shrink-0 select-none active:opacity-90 transition-colors ${hasBet ? 'bg-red-700 text-white shadow-inner' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
-    const cellInputClass = (hasBet) => `no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${hasBet ? 'bg-red-50 dark:bg-[#1a1114] border border-red-300 dark:border-white/25 text-red-700 dark:text-red-300 shadow-inner' : 'bg-white dark:bg-[#2a1d21]'}`;
+    const cellInputClass = (hasBet) => `no-spinner w-full md:w-[64px] lg:w-[72px] h-9 border-0 text-gray-900 dark:text-white placeholder-gray-400 rounded-r-md focus:outline-none focus:ring-0 px-2 text-xs md:text-[11px] font-semibold text-center transition-colors ${hasBet ? 'bg-gray-50 dark:bg-[#17191d] border border-red-300 dark:border-white/25 text-gray-700 dark:text-red-300 shadow-inner' : 'bg-white dark:bg-[#202329]'}`;
 
     const submitBtnClass = (enabled) =>
         enabled
@@ -245,7 +245,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
         >
             <div className="px-3 sm:px-6 py-3">
                 {warning && (
-                    <div className="mb-3 bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                    <div className="mb-3 bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                         {warning}
                     </div>
                 )}
@@ -334,8 +334,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
                                         disabled={!groupBulk[groupKey]}
                                         className={`h-9 px-3 rounded-md font-bold text-xs border-2 transition-colors ${
                                             groupBulk[groupKey]
-                                                ? 'bg-white dark:bg-[#2a1d21] border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 hover:border-red-400 dark:hover:border-white/35'
-                                                : 'bg-white/10 border-red-200 dark:border-white/20 text-gray-400 cursor-not-allowed'
+                                                ? 'bg-white dark:bg-[#202329] border-gray-200 dark:border-white/20 text-gray-700 dark:text-red-200 hover:border-gray-400 dark:hover:border-white/35'
+                                                : 'bg-white/10 border-gray-200 dark:border-white/20 text-gray-400 cursor-not-allowed'
                                         }`}
                                         title="Apply points to all numbers in this group"
                                     >

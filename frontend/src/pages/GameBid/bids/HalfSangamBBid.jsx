@@ -207,7 +207,7 @@ const HalfSangamBBid = ({ market, title }) => {
                     {/* Left: inputs + actions */}
                     <div className="space-y-4">
                         {warning && (
-                            <div className="bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                            <div className="bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                                 {warning}
                             </div>
                         )}
@@ -248,7 +248,7 @@ const HalfSangamBBid = ({ market, title }) => {
                                     }}
                                     placeholder="Pana"
                                     className={`flex-1 min-w-0 bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2.5 min-h-[40px] px-4 text-center text-sm focus:ring-2 focus:outline-none ${
-                                        closePanaInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
+                                        closePanaInvalid ? 'border-red-500 focus:border-gray-500 focus:ring-red-500/20' : 'focus:ring-[#d4af37]/30 focus:border-[#d4af37]'
                                     }`}
                                 />
                             </div>
@@ -301,7 +301,7 @@ const HalfSangamBBid = ({ market, title }) => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleDelete(b.id)}
-                                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
+                                                className="p-2 text-gray-500 hover:text-gray-600 active:scale-95"
                                                 aria-label="Delete"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

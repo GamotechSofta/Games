@@ -216,18 +216,18 @@ const JodiBulkBid = ({ market, title }) => {
 
     const totalPoints = useMemo(() => rows.reduce((sum, b) => sum + Number(b.points || 0), 0), [rows]);
     const canSubmit = rows.length > 0;
-    const statCardClass = 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] px-3 py-2 text-center';
-    const statValueClass = 'text-base font-bold text-red-700 dark:text-red-300 leading-tight';
-    const clearBtnClass = 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-red-200 bg-white dark:bg-[#2a1d21] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0';
-    const panelClass = 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#2a1d21] md:border md:border-red-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
-    const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-1';
-    const desktopGridClass = 'hidden md:block rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#2a1d21] p-2';
-    const blockLabelClass = 'h-6 sm:h-7 flex items-center justify-center text-red-700 dark:text-red-200 font-extrabold text-[11px] sm:text-sm tracking-wide';
-    const blockLabelDesktopClass = 'h-8 flex items-center justify-center text-red-700 dark:text-red-200 font-extrabold text-xs tracking-wide';
-    const blockInputMobileClass = 'no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
-    const blockInputDesktopClass = 'no-spinner h-8 w-full min-w-0 rounded-md border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114] px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
-    const cellInputMobileClass = (hasBet) => `no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-red-50 dark:bg-[#24171b]' : 'border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114]'}`;
-    const cellInputDesktopClass = (hasBet) => `no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-red-50 dark:bg-[#24171b]' : 'border border-red-200 dark:border-white/20 bg-white dark:bg-[#1a1114]'}`;
+    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center';
+    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
+    const clearBtnClass = 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/20 text-gray-700 dark:text-red-200 bg-white dark:bg-[#202329] hover:border-gray-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0';
+    const panelClass = 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202329] md:border md:border-gray-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
+    const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-1';
+    const desktopGridClass = 'hidden md:block rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-2';
+    const blockLabelClass = 'h-6 sm:h-7 flex items-center justify-center text-gray-700 dark:text-red-200 font-extrabold text-[11px] sm:text-sm tracking-wide';
+    const blockLabelDesktopClass = 'h-8 flex items-center justify-center text-gray-700 dark:text-red-200 font-extrabold text-xs tracking-wide';
+    const blockInputMobileClass = 'no-spinner h-6 sm:h-7 w-full rounded-[2px] border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 placeholder:text-gray-500 placeholder:text-center focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
+    const blockInputDesktopClass = 'no-spinner h-8 w-full min-w-0 rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d] px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
+    const cellInputMobileClass = (hasBet) => `no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-gray-50 dark:bg-[#1b1d22]' : 'border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d]'}`;
+    const cellInputDesktopClass = (hasBet) => `no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-gray-50 dark:bg-[#1b1d22]' : 'border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d]'}`;
     const cellBadgeClass = (hasBet) => `h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide ${hasBet ? 'bg-red-600 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
 
     const applyRow = (r, pts) => {
@@ -420,7 +420,7 @@ const JodiBulkBid = ({ market, title }) => {
         >
             <div className="px-2 sm:px-4 md:px-1 py-1 md:py-1 w-full">
                 {warning && (
-                    <div className="mb-3 bg-red-50 border-2 border-red-300 text-red-600 rounded-xl px-4 py-3 text-sm">
+                    <div className="mb-3 bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                         {warning}
                     </div>
                 )}
@@ -552,7 +552,7 @@ const JodiBulkBid = ({ market, title }) => {
                                             <div key={key} className="grid grid-rows-[10px_minmax(24px,1fr)] sm:grid-rows-[12px_minmax(28px,1fr)]">
                                                 <div
                                                     className={`pointer-events-none text-[9px] sm:text-[11px] font-bold leading-none text-center ${
-                                                        hasBet ? 'text-red-700 dark:text-red-300' : 'text-gray-400'
+                                                        hasBet ? 'text-gray-700 dark:text-red-300' : 'text-gray-400'
                                                     }`}
                                                 >
                                                     {key}
