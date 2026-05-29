@@ -12,21 +12,14 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 dir('frontend') {
-                    sh '''
-                    rm -rf node_modules
-                    rm -f package-lock.json
-                    npm cache clean --force
-                    npm install
-                    '''
+                    sh 'npm ci'
                 }
             }
         }
 
         stage('Copy ENV') {
             steps {
-                sh '''
-                cp /var/www/Aakda/Games/frontend/.env frontend/.env
-                '''
+                sh 'cp /var/www/Aakda/Games/frontend/.env frontend/.env'
             }
         }
 
@@ -42,21 +35,27 @@ pipeline {
             steps {
                 dir('frontend') {
                     sh '''
-                    aws s3 sync dist/ s3://$S3_BUCKET --delete
+                    aws s3 sync dist/ s3://$S3_BUCKET \
+                    --delete
                     '''
                 }
             }
         }
 
-        stage('Invalidate CloudFront Cache') {
+        stage('Invalidate Cache') {
             steps {
                 sh '''
                 aws cloudfront create-invalidation \
                 --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
-                --paths "/*"
+                --paths "/index.html"
                 '''
             }
         }
+    }
 
+    post {
+        always {
+            cleanWs()
+        }
     }
 }
