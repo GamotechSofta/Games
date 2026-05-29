@@ -6,6 +6,8 @@ import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMyBetsBootstrap from '../hooks/useMyBetsBootstrap';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
+import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
+import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 
 const safeParse = (raw, fallback) => {
   try {
@@ -231,6 +233,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const { t } = useTranslation();
   const displayTitle = pageTitle ?? t('bids.betHistory');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusTabFilter, setStatusTabFilter] = useState('all'); // 'all' | 'won' | 'lost' | 'cancelled'
   const [selectedSessions, setSelectedSessions] = useState([]); // ['OPEN','CLOSE']
   const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending','Cancelled']
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
@@ -565,6 +568,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
 
   const filtered = useMemo(() => {
     return (enriched || []).filter((row) => {
+      if (!matchesBetStatusTabFilter(row.verdict?.state, statusTabFilter)) return false;
+
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
 
       if (selectedMarkets.length > 0) {
@@ -587,7 +592,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
 
       return true;
     });
-  }, [enriched, selectedMarkets, selectedSessions, selectedStatuses, selectedBidOptions]);
+  }, [enriched, statusTabFilter, selectedMarkets, selectedSessions, selectedStatuses, selectedBidOptions]);
 
   const bidOptionFilterOptions = useMemo(() => {
     const keys = new Set((enriched || []).map((row) => row.bidOptionKey).filter(Boolean));
@@ -636,8 +641,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 pt-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
         {/* Header row */}
-        <div className="flex items-center justify-between gap-3 mb-4 overflow-visible">
-          <div className="flex items-center gap-3 min-w-0 overflow-visible">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 overflow-visible">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
             <button
               type="button"
               onClick={() => navigate('/bids', { replace: true })}
@@ -648,21 +653,27 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold truncate">{displayTitle}</h1>
+            <h1 className="text-lg sm:text-2xl font-bold truncate">{displayTitle}</h1>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsFilterOpen(true)}
-            className="shrink-0 flex items-center gap-2 text-[#d4af37] hover:text-[#f3b61b] transition-colors"
-            aria-label={t('bids.filterBy')}
-            title={t('bids.filterBy')}
-          >
-            <span className="text-sm font-semibold">{t('bids.filterBy')}</span>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-[58%] sm:max-w-[65%] justify-end">
+            <BetHistoryStatusTabs
+              activeFilter={statusTabFilter}
+              onChange={setStatusTabFilter}
+            />
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(true)}
+              className="shrink-0 flex items-center gap-1 sm:gap-2 text-[#d4af37] hover:text-[#f3b61b] transition-colors"
+              aria-label={t('bids.filterBy')}
+              title={t('bids.filterBy')}
+            >
+              <span className="text-[11px] sm:text-sm font-semibold whitespace-nowrap">{t('bids.filterBy')}</span>
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <BetHistoryScopeTabs

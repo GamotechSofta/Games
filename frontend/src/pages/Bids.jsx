@@ -13,6 +13,8 @@ import MyBetsBetHistoryPanel from './bids/MyBetsBetHistoryPanel';
 import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBetsGameResultsPanel';
 import { getBidOptionLabel } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
+import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
+import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 
 const safeParse = (raw, fallback) => {
   try {
@@ -257,6 +259,7 @@ const Bids = () => {
 
   // Desktop Bet History filters (desktop panel inside My Bets)
   const [isDesktopFilterOpen, setIsDesktopFilterOpen] = useState(false);
+  const [statusTabFilter, setStatusTabFilter] = useState('all'); // 'all' | 'won' | 'lost' | 'cancelled'
   const [selectedSessions, setSelectedSessions] = useState([]); // ['OPEN','CLOSE']
   const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending']
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
@@ -610,6 +613,7 @@ const Bids = () => {
         if (historyScope === 'king' && !isKing) return false;
         if (historyScope === 'main' && (isStar || isKing)) return false;
       }
+      if (!matchesBetStatusTabFilter(row.verdict?.state, statusTabFilter)) return false;
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
       if (effectiveSelectedMarkets.length > 0 && !effectiveSelectedMarkets.includes(row.marketKey)) return false;
       if (selectedStatuses.length > 0) {
@@ -625,7 +629,7 @@ const Bids = () => {
       return true;
     });
     return rows;
-  }, [desktopRows, selectedMarkets, selectedSessions, selectedStatuses, isAnyHistoryPanel, historyScope]);
+  }, [desktopRows, statusTabFilter, selectedMarkets, selectedSessions, selectedStatuses, isAnyHistoryPanel, historyScope]);
 
   // Group desktop bet history by market (sorted) for table layout
   const groupedDesktopByMarket = useMemo(() => {
@@ -730,15 +734,22 @@ const Bids = () => {
                 />
               </div>
             ) : isAnyHistoryPanel ? (
-              <button
-                type="button"
-                onClick={() => setIsDesktopFilterOpen(true)}
-                className="shrink-0 px-4 py-2 rounded-xl bg-[#d4af37] border border-[#c9a227] text-black font-bold text-sm shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:brightness-105 transition"
-                aria-label={t('bids.filterBy')}
-                title={t('bids.filterBy')}
-              >
-                {t('bids.filterBy')}
-              </button>
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end min-w-0 ml-2">
+                <BetHistoryStatusTabs
+                  activeFilter={statusTabFilter}
+                  onChange={setStatusTabFilter}
+                  size="md"
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsDesktopFilterOpen(true)}
+                  className="shrink-0 px-4 py-2 rounded-xl bg-[#d4af37] border border-[#c9a227] text-black font-bold text-sm shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:brightness-105 transition"
+                  aria-label={t('bids.filterBy')}
+                  title={t('bids.filterBy')}
+                >
+                  {t('bids.filterBy')}
+                </button>
+              </div>
             ) : null}
           </div>
         </div>

@@ -287,6 +287,8 @@
     "kingBazaarBetHistorySubtitle": "तुम्ही स्टारलाइन निकाल पाहू शकता",
     "marketResultHistory": "मार्केट निकाल इतिहास",
     "filterBy": "फिल्टर करा",
+    "filterAll": "सर्व",
+    "filterByStatus": "स्थितीनुसार फिल्टर",
     "byBidOption": "बिड पर्यायानुसार",
     "selectDate": "तारीख निवडा",
     "selectItemFromLeftMenu": "डाव्या मेनूमधून एखादा आयटम निवडा.",

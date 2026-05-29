@@ -360,6 +360,8 @@
     "kingBazaarBetHistorySubtitle": "View your King Bazaar bets",
     "marketResultHistory": "Market Result History",
     "filterBy": "Filter By",
+    "filterAll": "All",
+    "filterByStatus": "Filter by status",
     "byBidOption": "By Bid Option",
     "selectDate": "Select Date",
     "selectItemFromLeftMenu": "Select an item from the left menu.",

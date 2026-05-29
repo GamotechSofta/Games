@@ -227,6 +227,8 @@
     "kingBazaarBetHistorySubtitle": "आप स्टारलाइन परिणाम देख सकते हैं",
     "marketResultHistory": "बाज़ार परिणाम इतिहास",
     "filterBy": "फ़िल्टर करें",
+    "filterAll": "सभी",
+    "filterByStatus": "स्थिति के अनुसार फ़िल्टर",
     "selectDate": "तारीख चुनें",
     "selectItemFromLeftMenu": "बाएं मेनू से कोई आइटम चुनें।",
     "resultsFor": "परिणाम के लिए",
