@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
-import { iconBtn, surfaceElevated } from '../../styles/appTheme';
+import { backBtn, bidAccent, pageShell, surfaceElevated, textMuted } from '../../styles/appTheme';
 
 const getStatusLabelKey = (status) => {
   const map = { open: 'statusOpen', 'in-progress': 'statusInProgress', resolved: 'statusResolved', closed: 'statusClosed' };
@@ -11,12 +11,12 @@ const getStatusLabelKey = (status) => {
 
 const statusColor = (status) => {
   const map = {
-    open: 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',
-    'in-progress': 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40',
-    resolved: 'bg-green-50 text-green-800 border-green-200 dark:bg-green-500/20 dark:text-green-300 dark:border-green-500/40',
-    closed: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-500/40',
+    open: 'bg-red-50 text-red-800 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/35',
+    'in-progress': 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-white/10 dark:text-gray-200 dark:border-white/20',
+    resolved: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/35',
+    closed: 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-white/10 dark:text-gray-400 dark:border-white/15',
   };
-  return map[status] || 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-500/40';
+  return map[status] || 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-white/10 dark:text-gray-400 dark:border-white/15';
 };
 
 const SupportStatus = () => {
@@ -90,28 +90,22 @@ const SupportStatus = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-      <div className="max-w-md mx-auto pt-4">
-        {/* Header - relative z-10 to ensure back button is above any overlay */}
-        <div className="flex items-center gap-3 mb-6 relative z-10">
-          <button
-            type="button"
-            onClick={handleBack}
-            className={`min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0 touch-manipulation cursor-pointer active:scale-95 select-none ${iconBtn}`}
-            aria-label="Back"
-          >
+    <div className={`${pageShell} px-4 sm:px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}>
+      <div className="max-w-lg mx-auto pt-4 sm:pt-6">
+        <div className="flex items-center gap-3 mb-5 sm:mb-6 relative z-10">
+          <button type="button" onClick={handleBack} className={backBtn} aria-label="Back">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('support.myTickets')}</h1>
-            <p className="text-xs text-gray-500">{t('support.statusAndReplies')}</p>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">{t('support.myTickets')}</h1>
+            <p className={`text-xs sm:text-sm mt-0.5 ${textMuted}`}>{t('support.statusAndReplies')}</p>
           </div>
         </div>
 
         {!userId ? (
-          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 text-center text-amber-900 dark:bg-amber-500/10 dark:border-amber-500/30 dark:text-amber-200 text-sm">
+          <div className="rounded-2xl bg-red-50 border border-red-200 p-5 text-center text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-200 text-sm">
             {t('support.loginRequiredForTickets')}
           </div>
         ) : loading ? (
@@ -124,18 +118,22 @@ const SupportStatus = () => {
                 </div>
                 <div className="h-3 w-24 bg-gray-200 dark:bg-white/10 rounded mt-2" />
                 <div className="h-4 w-full bg-gray-200 dark:bg-white/10 rounded mt-2" />
-                <div className="h-3 w-3/4 bg-gray-200 dark:bg-white/10 rounded mt-2" />
               </div>
             ))}
           </div>
         ) : myTickets.length === 0 ? (
           <div className={`rounded-2xl p-8 text-center ${surfaceElevated}`}>
-            <p className="text-gray-700 dark:text-gray-400 text-sm">{t('support.noTicketsYet')}</p>
-            <p className="text-gray-500 text-xs mt-1">{t('support.sendRequestFromSupport')}</p>
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-red-700 to-red-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-red-500/20">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <p className="text-gray-800 dark:text-gray-300 text-sm font-medium">{t('support.noTicketsYet')}</p>
+            <p className={`text-xs mt-1 ${textMuted}`}>{t('support.sendRequestFromSupport')}</p>
             <button
               type="button"
               onClick={() => navigate('/support', { replace: true })}
-              className="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm transition"
+              className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-semibold text-sm transition active:scale-[0.98] dark:border dark:border-white/20"
             >
               {t('support.askForHelp')}
             </button>
@@ -143,24 +141,31 @@ const SupportStatus = () => {
         ) : (
           <div className="space-y-3">
             {myTickets.map((ticket) => (
-              <div
-                key={ticket._id}
-                className={`rounded-2xl p-4 ${surfaceElevated}`}
-              >
+              <div key={ticket._id} className={`rounded-2xl p-4 sm:p-5 ${surfaceElevated}`}>
                 <div className="flex justify-between items-start gap-2">
                   <p className="font-medium text-gray-900 dark:text-white text-sm truncate flex-1">{ticket.subject}</p>
-                  <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium border ${statusColor(ticket.status)}`}>
+                  <span className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColor(ticket.status)}`}>
                     {getStatusLabelKey(ticket.status) ? t(`support.${getStatusLabelKey(ticket.status)}`) : ticket.status}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                <p className={`text-xs mt-1.5 ${textMuted}`}>
+                  {ticket.createdAt
+                    ? new Date(ticket.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : ''}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{ticket.description}</p>
                 {ticket.adminResponse && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10">
-                    <p className="text-xs text-gray-500 mb-1">{t('support.replyFromSupport')}</p>
-                    <p className="text-sm text-green-800 dark:text-green-300/90 whitespace-pre-wrap">{ticket.adminResponse}</p>
+                  <div className="mt-3 pt-3 border-t border-red-100 dark:border-white/10">
+                    <p className={`text-xs mb-1 font-medium ${bidAccent}`}>{t('support.replyFromSupport')}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap rounded-lg bg-gray-50 dark:bg-white/5 p-3 border border-gray-200 dark:border-white/10">
+                      {ticket.adminResponse}
+                    </p>
                   </div>
                 )}
               </div>
