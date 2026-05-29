@@ -6,7 +6,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 dir('backend') {
-                    sh 'npm install'
+                    sh 'npm ci'
                 }
             }
         }
@@ -22,10 +22,17 @@ pipeline {
             }
         }
 
-        stage('Restart Backend') {
+        stage('Reload Backend') {
             steps {
                 sh '''
-                pm2 restart games-backend || pm2 start /var/www/Aakda/Games/backend/index.js --name games-backend
+                cd /var/www/Aakda/Games/backend
+
+                pm2 reload games-backend --update-env || \
+                pm2 start index.js --name games-backend
+
+                sleep 10
+
+                curl --fail http://localhost:4000/health
                 '''
             }
         }
