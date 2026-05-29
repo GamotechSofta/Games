@@ -6,6 +6,8 @@ import App from './App.jsx'
 import { applyThemeToDocument, getStoredTheme } from './context/ThemeContext'
 import { queryClient } from './queryClient'
 import { schedulePostLoginPrefetch } from './api/postLoginPrefetch'
+import { prefetchSpecialMarketsBootstrap } from './api/specialMarketsBootstrap'
+import { prefetchSpecialMarketChunks } from './api/prefetchSpecialMarkets'
 
 applyThemeToDocument(getStoredTheme())
 
@@ -16,6 +18,9 @@ function scheduleCriticalChunkPrefetch() {
     void import('./pages/Funds')
     void import('./pages/Profile')
     void import('./components/DesktopDashboardLayout')
+    void import('./pages/StartlineDashboard')
+    void import('./pages/StarlineMarket')
+    void import('./pages/KingBazaarMarket')
   }
   if (typeof window === 'undefined') return
   if ('requestIdleCallback' in window) {
@@ -39,6 +44,9 @@ function bootstrap() {
 
   if (localStorage.getItem('user')) {
     schedulePostLoginPrefetch()
+  } else {
+    void prefetchSpecialMarketsBootstrap()
+    prefetchSpecialMarketChunks()
   }
 
   scheduleCriticalChunkPrefetch()

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdShowChart } from 'react-icons/md';
+import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
 
 const BTN_BORDER =
   'border-2 border-[#E53935] shadow-[0_0_0_1px_#E53935,0_0_12px_rgba(229,57,53,0.4),0_2px_0_rgba(229,57,53,0.25)] hover:border-[#FF1744] hover:shadow-[0_0_0_1px_#FF1744,0_0_18px_rgba(229,57,53,0.55),0_0_28px_rgba(229,57,53,0.2)] dark:border-[#e60000] dark:shadow-[0_0_0_1px_#e60000,0_0_14px_rgba(230,0,0,0.35)] dark:hover:border-[#ff1a1a] dark:hover:shadow-[0_0_20px_rgba(230,0,0,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E53935]/60 focus-visible:ring-offset-2 dark:focus-visible:ring-[#e60000]/60 dark:focus-visible:ring-offset-black';
@@ -90,11 +91,13 @@ function BannerText({ link, t }) {
 }
 
 /** Starline / King Bazaar — black btn, logo fully visible (contain) */
-function LogoFitBannerButton({ link, t, onClick }) {
+function LogoFitBannerButton({ link, t, onClick, onPointerEnter, onTouchStart }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onPointerEnter={onPointerEnter}
+      onTouchStart={onTouchStart}
       className={`${BTN_BASE} bg-black dark:bg-gradient-to-br dark:from-[#1a1a1a] dark:to-black flex items-stretch`}
     >
       <div className="relative z-10 flex flex-col justify-center min-h-[88px] px-3 py-3 shrink-0 w-[45%]">
@@ -112,11 +115,13 @@ function LogoFitBannerButton({ link, t, onClick }) {
 }
 
 /** Casino / Skills — full-bleed cover banner */
-function CoverBannerButton({ link, t, onClick }) {
+function CoverBannerButton({ link, t, onClick, onPointerEnter, onTouchStart }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      onPointerEnter={onPointerEnter}
+      onTouchStart={onTouchStart}
       className={`${BTN_BASE} bg-cover bg-center bg-no-repeat`}
       style={{ backgroundImage: `url(${link.image})` }}
     >
@@ -127,11 +132,27 @@ function CoverBannerButton({ link, t, onClick }) {
   );
 }
 
-function BannerButton({ link, t, onClick }) {
+function BannerButton({ link, t, onClick, onPointerEnter, onTouchStart }) {
   if (link.logoFit) {
-    return <LogoFitBannerButton link={link} t={t} onClick={onClick} />;
+    return (
+      <LogoFitBannerButton
+        link={link}
+        t={t}
+        onClick={onClick}
+        onPointerEnter={onPointerEnter}
+        onTouchStart={onTouchStart}
+      />
+    );
   }
-  return <CoverBannerButton link={link} t={t} onClick={onClick} />;
+  return (
+    <CoverBannerButton
+      link={link}
+      t={t}
+      onClick={onClick}
+      onPointerEnter={onPointerEnter}
+      onTouchStart={onTouchStart}
+    />
+  );
 }
 
 function PlainButton({ link, t, onClick }) {
@@ -165,12 +186,30 @@ export default function QuickNavCards() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const warmSpecialMarkets = useCallback(() => {
+    prefetchSpecialMarketChunks();
+    prefetchSpecialMarketGroups();
+  }, []);
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
       {quickLinks.map((link) => {
-        const onClick = () => navigate(link.path);
+        const onClick = () => {
+          if (link.key === 'starline' || link.key === 'kingBazaar') warmSpecialMarkets();
+          navigate(link.path);
+        };
+        const onWarm = link.key === 'starline' || link.key === 'kingBazaar' ? warmSpecialMarkets : undefined;
         if (link.layout === 'banner') {
-          return <BannerButton key={link.key} link={link} t={t} onClick={onClick} />;
+          return (
+            <BannerButton
+              key={link.key}
+              link={link}
+              t={t}
+              onClick={onClick}
+              onPointerEnter={onWarm}
+              onTouchStart={onWarm}
+            />
+          );
         }
         return <PlainButton key={link.key} link={link} t={t} onClick={onClick} />;
       })}

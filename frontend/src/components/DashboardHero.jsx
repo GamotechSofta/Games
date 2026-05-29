@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { categoryPathActive } from '../utils/dashboardNav';
+import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
 import { useTranslation } from 'react-i18next';
 import { HiOutlineMagnifyingGlass, HiOutlineAdjustmentsHorizontal, HiOutlineXMark } from 'react-icons/hi2';
 import { HOME_BANNERS } from '../config/banners';
@@ -30,7 +31,12 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
   const secondaryBanner = HOME_BANNERS[1] || HOME_BANNERS[0];
 
   const handleCategory = (cat) => {
-    if (cat.path) navigate(cat.path);
+    if (!cat.path) return;
+    if (cat.id === 'starline' || cat.id === 'kingBazaar') {
+      prefetchSpecialMarketChunks();
+      prefetchSpecialMarketGroups();
+    }
+    navigate(cat.path);
   };
 
   const handleSearchSubmit = (e) => {

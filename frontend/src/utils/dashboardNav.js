@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
 
 export function getActivePanelFromLocation(pathname, search = '') {
   if (pathname === '/markets') return 'markets';
@@ -29,9 +30,13 @@ export function useDashboardNav() {
         navigate('/games?category=skills');
         break;
       case 'kingBazaar':
+        prefetchSpecialMarketChunks();
+        prefetchSpecialMarketGroups();
         navigate('/king-bazaar-market');
         break;
       case 'starline':
+        prefetchSpecialMarketChunks();
+        prefetchSpecialMarketGroups();
         navigate('/startline-dashboard');
         break;
       case 'home':

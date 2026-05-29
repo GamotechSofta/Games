@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config/api';
+import { queryClient } from '../queryClient';
+import { SLOTS_STALE_MS } from '../api/specialMarketsBootstrap';
 import {
   buildKingDemoSlots,
   mapKingBazaarSlot,
   mapStarlineSlot,
 } from '../utils/specialMarketSlots';
 
-const STALE_MS = 30 * 1000;
+const STALE_MS = SLOTS_STALE_MS;
 const REFRESH_MS = 60 * 1000;
 
 function buildMarketsUrl(marketType, groupKey) {
@@ -54,6 +56,10 @@ export function useSpecialMarketSlots({
     queryKey: ['specialMarketSlots', marketType, group],
     enabled: canFetch,
     queryFn: () => fetchSpecialSlots(marketType, group, marketLabel),
+    initialData: () => {
+      const cached = queryClient.getQueryData(['specialMarketSlots', marketType, group]);
+      return Array.isArray(cached) && cached.length ? cached : undefined;
+    },
     staleTime: STALE_MS,
     gcTime: 10 * 60 * 1000,
     placeholderData: (previous) => previous,
@@ -64,7 +70,7 @@ export function useSpecialMarketSlots({
 
   return {
     items: query.data || [],
-    loading: query.isLoading && !query.data?.length,
+    loading: query.isPending && !(query.data?.length),
     refetch: query.refetch,
   };
 }

@@ -2,13 +2,8 @@ import KingBazaarGroup from '../models/kingBazaarGroup/kingBazaarGroup.js';
 import Market from '../models/market/market.js';
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { listKingBazaarGroups } from '../services/specialMarketGroupsService.js';
 import bcrypt from 'bcryptjs';
-
-const DEFAULT_GROUPS = [
-    { key: 'king-morning', label: 'King Morning Bazaar', order: 0 },
-    { key: 'king-evening', label: 'King Evening Bazaar', order: 1 },
-    { key: 'king-night', label: 'King Night Bazaar', order: 2 },
-];
 
 const slugFromLabel = (label) => {
     return String(label || '')
@@ -26,17 +21,7 @@ const slugFromLabel = (label) => {
  */
 export const getKingBazaarGroups = async (req, res) => {
     try {
-        let list = await KingBazaarGroup.find().sort({ order: 1, key: 1 }).lean();
-        if (list.length === 0) {
-            for (const g of DEFAULT_GROUPS) {
-                await KingBazaarGroup.findOneAndUpdate(
-                    { key: g.key },
-                    { key: g.key, label: g.label, order: g.order },
-                    { upsert: true, new: true }
-                );
-            }
-            list = await KingBazaarGroup.find().sort({ order: 1, key: 1 }).lean();
-        }
+        const list = await listKingBazaarGroups();
         res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
         res.status(200).json({ success: true, data: list });
     } catch (error) {

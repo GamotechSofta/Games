@@ -1,25 +1,13 @@
-import { queryClient } from '../queryClient';
-import { API_BASE_URL } from '../config/api';
+import { prefetchSpecialMarketsBootstrap } from './specialMarketsBootstrap';
 
-const STALE_MS = 5 * 60 * 1000;
-
-async function fetchGroups(path) {
-  const res = await fetch(`${API_BASE_URL}/markets/${path}`);
-  const data = await res.json();
-  if (!res.ok || !data?.success) return [];
-  return Array.isArray(data.data) ? data.data : [];
+/** Warm Starline + King Bazaar groups and all slots (one API round-trip). */
+export function prefetchSpecialMarketGroups() {
+  void prefetchSpecialMarketsBootstrap();
 }
 
-/** Warm Starline / King Bazaar group lists after login. */
-export function prefetchSpecialMarketGroups() {
-  void queryClient.prefetchQuery({
-    queryKey: ['marketGroups', 'starline'],
-    queryFn: () => fetchGroups('starline-groups'),
-    staleTime: STALE_MS,
-  });
-  void queryClient.prefetchQuery({
-    queryKey: ['marketGroups', 'king'],
-    queryFn: () => fetchGroups('king-bazaar-groups'),
-    staleTime: STALE_MS,
-  });
+/** Preload route chunks for instant navigation. */
+export function prefetchSpecialMarketChunks() {
+  void import('../pages/StartlineDashboard');
+  void import('../pages/StarlineMarket');
+  void import('../pages/KingBazaarMarket');
 }

@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config/api';
+import { queryClient } from '../queryClient';
+import { GROUPS_STALE_MS } from '../api/specialMarketsBootstrap';
 
-const STALE_MS = 5 * 60 * 1000;
+const STALE_MS = GROUPS_STALE_MS;
 
 async function fetchMarketGroups(type) {
   const path = type === 'king' ? 'king-bazaar-groups' : 'starline-groups';
@@ -22,6 +24,7 @@ export function useMarketGroups(type, { enabled = true } = {}) {
     queryKey: ['marketGroups', type],
     enabled: Boolean(enabled && type),
     queryFn: () => fetchMarketGroups(type),
+    initialData: () => queryClient.getQueryData(['marketGroups', type]),
     staleTime: STALE_MS,
     gcTime: 15 * 60 * 1000,
     placeholderData: (previous) => previous,
@@ -31,7 +34,7 @@ export function useMarketGroups(type, { enabled = true } = {}) {
 
   return {
     groups: query.data || [],
-    loading: query.isLoading && !query.data?.length,
+    loading: query.isPending && !(query.data?.length),
     refetch: query.refetch,
   };
 }

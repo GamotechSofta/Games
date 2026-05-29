@@ -2,13 +2,8 @@ import StarlineGroup from '../models/starlineGroup/starlineGroup.js';
 import Market from '../models/market/market.js';
 import Admin from '../models/admin/admin.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+import { listStarlineGroups } from '../services/specialMarketGroupsService.js';
 import bcrypt from 'bcryptjs';
-
-const DEFAULT_GROUPS = [
-    { key: 'kalyan', label: 'Kalyan Starline', order: 0 },
-    { key: 'milan', label: 'Milan Starline', order: 1 },
-    { key: 'radha', label: 'Radha Starline', order: 2 },
-];
 
 const slugFromLabel = (label) => {
     return String(label || '')
@@ -26,17 +21,7 @@ const slugFromLabel = (label) => {
  */
 export const getStarlineGroups = async (req, res) => {
     try {
-        let list = await StarlineGroup.find().sort({ order: 1, key: 1 }).lean();
-        if (list.length === 0) {
-            for (const g of DEFAULT_GROUPS) {
-                await StarlineGroup.findOneAndUpdate(
-                    { key: g.key },
-                    { key: g.key, label: g.label, order: g.order },
-                    { upsert: true, new: true }
-                );
-            }
-            list = await StarlineGroup.find().sort({ order: 1, key: 1 }).lean();
-        }
+        const list = await listStarlineGroups();
         res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
         res.status(200).json({ success: true, data: list });
     } catch (error) {
