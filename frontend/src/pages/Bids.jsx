@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cancelBet, updateUserBalance } from '../api/bets';
-import useMyBetsBootstrap from '../hooks/useMyBetsBootstrap';
+import useMyBetsData from '../hooks/useMyBetsData';
 import useMarketResultHistory from '../hooks/useMarketResultHistory';
 import ResultDatePicker from '../components/ResultDatePicker';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
@@ -272,9 +272,9 @@ const Bids = () => {
     ratesMap,
     markets,
     loading: betsLoading,
-    invalidate: invalidateBetsBootstrap,
-    refetch: refetchBetsBootstrap,
-  } = useMyBetsBootstrap();
+    invalidate: invalidateBetsData,
+    refetch: refetchBetsData,
+  } = useMyBetsData();
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -351,7 +351,7 @@ const Bids = () => {
   } = useMarketResultHistory(resultsDateKey, { enabled: isGameResultsPanel });
 
   const refetchAll = async () => {
-    await Promise.all([refetchBetsBootstrap(), refetchResults()]);
+    await Promise.all([refetchBetsData(), refetchResults()]);
   };
 
   useRefreshOnMarketReset(refetchAll);
@@ -464,7 +464,7 @@ const Bids = () => {
           text: t('bids.cancelBetSuccess', { amount: result.data?.refundedAmount || 0 })
         });
         
-        invalidateBetsBootstrap();
+        invalidateBetsData();
         
         // Clear message after 5 seconds
         setTimeout(() => {

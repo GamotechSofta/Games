@@ -54,6 +54,7 @@ const connectDB = async () => {
     } catch (warmupErr) {
       console.warn("[db] rates cache warmup failed:", warmupErr?.message || warmupErr);
     }
+
   } catch (error) {
     dbReady = false;
     console.error("Error connecting to MongoDB:", error.message);

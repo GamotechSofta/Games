@@ -1,20 +1,20 @@
-import { prefetchHomeBootstrap, prefetchMainMarkets } from './prefetchHome';
-import { prefetchMyBetsBootstrap } from './prefetchBets';
+import { prefetchMainMarkets, prefetchWalletBalance } from './prefetchHome';
+import { prefetchMyBetsData } from './prefetchBets';
 import { prefetchBankAccounts, prefetchFundsHistory, prefetchPaymentConfig } from './prefetchPayments';
 import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from './prefetchSpecialMarkets';
 
-/** Markets, home, bets, starline/king bootstrap, and payment limits in parallel. */
+/** Separate API prefetches (no combined bootstrap endpoints). */
 export function schedulePostLoginPrefetch() {
   void prefetchMainMarkets();
-  void prefetchHomeBootstrap();
-  void prefetchMyBetsBootstrap();
+  void prefetchWalletBalance();
   void prefetchPaymentConfig();
   void prefetchBankAccounts();
-  void prefetchSpecialMarketGroups();
   prefetchSpecialMarketChunks();
 
   const deferHeavy = () => {
     void prefetchFundsHistory();
+    void prefetchMyBetsData();
+    void prefetchSpecialMarketGroups();
   };
 
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {

@@ -24,7 +24,6 @@ import {
 } from '../../controllers/marketController.js';
 import { getStarlineGroups, createStarlineGroup, deleteStarlineGroup } from '../../controllers/starlineGroupController.js';
 import { getKingBazaarGroups, createKingBazaarGroup, deleteKingBazaarGroup } from '../../controllers/kingBazaarGroupController.js';
-import { getSpecialMarketsBootstrapHandler } from '../../controllers/specialMarketsBootstrapController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -32,7 +31,6 @@ const router = express.Router();
 // Public routes
 router.get('/get-markets', getMarkets);
 router.get('/get-market/:id', getMarketById);
-router.get('/special-bootstrap', getSpecialMarketsBootstrapHandler);
 router.get('/starline-groups', getStarlineGroups);
 router.get('/king-bazaar-groups', getKingBazaarGroups);
 router.get('/result-history', getMarketResultHistory);

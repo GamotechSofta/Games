@@ -6,7 +6,6 @@ import App from './App.jsx'
 import { applyThemeToDocument, getStoredTheme } from './context/ThemeContext'
 import { queryClient } from './queryClient'
 import { schedulePostLoginPrefetch } from './api/postLoginPrefetch'
-import { prefetchSpecialMarketsBootstrap } from './api/specialMarketsBootstrap'
 import { prefetchSpecialMarketChunks } from './api/prefetchSpecialMarkets'
 
 applyThemeToDocument(getStoredTheme())
@@ -45,7 +44,6 @@ function bootstrap() {
   if (localStorage.getItem('user')) {
     schedulePostLoginPrefetch()
   } else {
-    void prefetchSpecialMarketsBootstrap()
     prefetchSpecialMarketChunks()
   }
 

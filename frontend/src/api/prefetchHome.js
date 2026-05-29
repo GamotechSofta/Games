@@ -1,11 +1,6 @@
 import { queryClient } from '../queryClient';
-import { fetchHomeBootstrap } from './home';
-import { transformMarkets } from '../utils/homeTransforms';
-import { updateUserBalance } from './bets';
+import { getBalance } from './bets';
 import { fetchMainMarkets, mainMarketsQueryKey } from '../hooks/useMainMarkets';
-
-const DEFAULT_MARKET_LIMIT = 24;
-const DEFAULT_GAME_LIMIT = 12;
 
 export function prefetchMainMarkets() {
   return queryClient.prefetchQuery({
@@ -15,25 +10,18 @@ export function prefetchMainMarkets() {
   });
 }
 
-export function prefetchHomeBootstrap() {
+export function prefetchWalletBalance() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
-  if (!user?.id && !user?._id) return;
+  const userId = user?.id || user?._id;
+  if (!userId) return;
 
   return queryClient.prefetchQuery({
-    queryKey: ['homeBootstrap', DEFAULT_MARKET_LIMIT, DEFAULT_GAME_LIMIT],
+    queryKey: ['walletBalance', userId],
     queryFn: async () => {
-      const data = await fetchHomeBootstrap({
-        marketLimit: DEFAULT_MARKET_LIMIT,
-        gameLimit: DEFAULT_GAME_LIMIT,
-      });
-      if (data?.wallet?.balance != null) {
-        updateUserBalance(data.wallet.balance);
-      }
-      return {
-        ...data,
-        transformedMarkets: transformMarkets(data?.markets || []),
-      };
+      const res = await getBalance();
+      if (!res?.success) throw new Error(res?.message || 'Failed to load balance');
+      return res;
     },
-    staleTime: 60 * 1000,
+    staleTime: 30 * 1000,
   });
 }

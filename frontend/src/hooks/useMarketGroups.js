@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config/api';
 import { queryClient } from '../queryClient';
-import { GROUPS_STALE_MS } from '../api/specialMarketsBootstrap';
 
-const STALE_MS = GROUPS_STALE_MS;
+const STALE_MS = 5 * 60 * 1000;
 
 async function fetchMarketGroups(type) {
   const path = type === 'king' ? 'king-bazaar-groups' : 'starline-groups';

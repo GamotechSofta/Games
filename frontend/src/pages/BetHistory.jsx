@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
-import useMyBetsBootstrap from '../hooks/useMyBetsBootstrap';
+import useMyBetsData from '../hooks/useMyBetsData';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
@@ -243,8 +243,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     ratesMap,
     markets,
     loading: betsLoading,
-    invalidate: invalidateBetsBootstrap,
-  } = useMyBetsBootstrap();
+    invalidate: invalidateBetsData,
+  } = useMyBetsData();
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -300,7 +300,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     }));
   }, [bets]);
 
-  useRefreshOnMarketReset(() => invalidateBetsBootstrap());
+  useRefreshOnMarketReset(() => invalidateBetsData());
 
   // Function to check if a bet can be cancelled
   const canCancelBet = (bet) => {
@@ -421,7 +421,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         });
         
         // Refresh bet list
-        invalidateBetsBootstrap();
+        invalidateBetsData();
         
         // Clear message after 5 seconds
         setTimeout(() => {

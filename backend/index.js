@@ -1,4 +1,4 @@
-import express from 'express';
+    import express from 'express';
 import http from 'http';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
@@ -16,8 +16,6 @@ import helpDeskRoutes from './routes/helpDesk/helpDeskRoutes.js';
 import dashboardRoutes from './routes/dashboard/dashboardRoutes.js';
 import rateRoutes from './routes/rate/rateRoutes.js';
 import gameRoutes, { adminGameRoutes } from './routes/game.routes.js';
-import homeRoutes from './routes/home/homeRoutes.js';
-
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
@@ -180,8 +178,6 @@ app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/help-desk', helpDeskRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/rates', rateRoutes);
-app.use('/api/v1/home', homeRoutes);
-
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);

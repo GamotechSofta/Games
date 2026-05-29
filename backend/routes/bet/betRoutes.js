@@ -1,5 +1,5 @@
 import express from 'express';
-import { placeBet, cancelBet, getMyBetHistory, getMyBetsBootstrap, getBetHistory, getTopWinners } from '../../controllers/betController.js';
+import { placeBet, cancelBet, getMyBetHistory, getBetHistory, getTopWinners } from '../../controllers/betController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
@@ -12,9 +12,6 @@ router.post('/cancel', cancelBet);
 
 // User-facing: get own bet history (no admin auth; frontend sends userId from session)
 router.get('/my-history', getMyBetHistory);
-
-// User-facing: bets + rates + markets in one request for My Bets screen
-router.get('/my-bootstrap', getMyBetsBootstrap);
 
 // Public: show top winners in user app menu
 router.get('/public/top-winners', getTopWinners);

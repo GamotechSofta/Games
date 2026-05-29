@@ -53,11 +53,11 @@ export default defineConfig(({ mode }) => {
             },
           },
           {
-            urlPattern: /\/api\/v1\/home\/bootstrap/i,
+            urlPattern: /\/api\/v1\/markets\/get-markets/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'home-bootstrap',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 10 },
+              cacheName: 'markets-list',
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 5 },
             },
           },
         ],

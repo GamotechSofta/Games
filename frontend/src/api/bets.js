@@ -249,40 +249,6 @@ export async function getMyBetHistory({ days = 30, limit = 200 } = {}) {
   return data;
 }
 
-export function clearMyBetsBootstrapCache() {
-  /* React Query owns cache; kept for callers after cancel bet */
-}
-
 export function clearMyBetHistoryCache() {
-  clearMyBetsBootstrapCache();
-}
-
-/**
- * Single round-trip for My Bets screen: bets + rates + markets (from populated bets).
- * @param {{ days?: number, limit?: number }} [options]
- */
-export async function fetchMyBetsBootstrap({ days = 30, limit = 200 } = {}) {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  const userId = user?.id || user?._id;
-  if (!userId) {
-    return { success: false, message: 'Please log in' };
-  }
-
-  const params = new URLSearchParams({
-    userId,
-    days: String(days),
-    limit: String(limit),
-  });
-
-  return runSharedRequest(`myBetsBootstrap.${params.toString()}`, async () => {
-    const response = await fetch(`${API_BASE_URL}/bets/my-bootstrap?${params.toString()}`);
-    if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
-
-    const data = await response.json();
-    if (!response.ok) {
-      return { success: false, message: data.message || 'Failed to fetch my bets data' };
-    }
-
-    return data;
-  });
+  /* React Query invalidates via useMyBetsData.invalidate() */
 }

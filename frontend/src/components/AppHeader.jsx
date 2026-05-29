@@ -1,5 +1,4 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getBalance, updateUserBalance } from '../api/bets';
@@ -16,7 +15,6 @@ const AppHeader = () => {
   const location = useLocation();
   const { t } = useTranslation();
   const { isLight } = useTheme();
-  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
 
@@ -47,13 +45,6 @@ const AppHeader = () => {
 
     checkUser();
 
-    const cachedBootstrap = queryClient.getQueryData(['homeBootstrap', 24, 12]);
-    const cachedBalance = cachedBootstrap?.wallet?.balance;
-    if (cachedBalance != null) {
-      updateUserBalance(cachedBalance);
-      setBalance(Number(cachedBalance));
-    }
-
     const fetchAndUpdateBalance = async () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -67,7 +58,7 @@ const AppHeader = () => {
       } catch (_) {}
     };
 
-    const balanceDeferId = window.setTimeout(fetchAndUpdateBalance, cachedBalance != null ? 15000 : 2500);
+    const balanceDeferId = window.setTimeout(fetchAndUpdateBalance, 2500);
 
     window.addEventListener('storage', checkUser);
     window.addEventListener('userLogin', checkUser);
