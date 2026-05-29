@@ -7,6 +7,19 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const DB_QUERY_MS = 8000;
+
+const isMongoTimeoutError = (error) => {
+    const name = error?.name || '';
+    const message = String(error?.message || '');
+    return (
+        name === 'MongoServerError' && error?.code === 50
+        || name === 'MongoNetworkTimeoutError'
+        || name === 'MongoServerSelectionError'
+        || message.includes('timed out')
+        || message.includes('timeout')
+    );
+};
 
 const addWalletBalanceToUsers = async (users) => {
     if (!users || users.length === 0) return users;
@@ -42,12 +55,15 @@ export const userLogin = async (req, res) => {
         // Normalize phone to digits only so lookup matches stored value (e.g. admin-created users store 10 digits)
         const normalizedPhone = phone ? String(phone).replace(/\D/g, '').slice(0, 10) : '';
 
+        const userSelect = '+password +loginDevices +failedLoginAttempts +accountLockedUntil';
+        const findOpts = { maxTimeMS: DB_QUERY_MS };
+
         // Try to find user by phone first, then by username
         let user = normalizedPhone.length >= 10
-            ? await User.findOne({ phone: normalizedPhone }).select('+password +loginDevices +failedLoginAttempts +accountLockedUntil')
+            ? await User.findOne({ phone: normalizedPhone }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean()
             : null;
         if (!user && username) {
-            user = await User.findOne({ username: String(username).trim() }).select('+password +loginDevices +failedLoginAttempts +accountLockedUntil');
+            user = await User.findOne({ username: String(username).trim() }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean();
         }
         
         if (!user) {
@@ -73,6 +89,13 @@ export const userLogin = async (req, res) => {
             });
         }
 
+        if (!user.password) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid credentials',
+            });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             const attempts = Number(user.failedLoginAttempts || 0) + 1;
@@ -95,14 +118,10 @@ export const userLogin = async (req, res) => {
         const clientIp = getClientIp(req);
         const rawDeviceId = req.body != null && 'deviceId' in req.body ? req.body.deviceId : deviceId;
         const trimmedDeviceId = (rawDeviceId != null && String(rawDeviceId).trim()) ? String(rawDeviceId).trim() : '';
-        user.lastActiveAt = new Date();
-        user.lastLoginAt = new Date();
-        user.lastLoginIp = clientIp || null;
-        user.failedLoginAttempts = 0;
-        user.accountLockedUntil = null;
+        const now = new Date();
         const update = {
-            lastActiveAt: new Date(),
-            lastLoginAt: new Date(),
+            lastActiveAt: now,
+            lastLoginAt: now,
             lastLoginIp: clientIp || undefined,
             failedLoginAttempts: 0,
             accountLockedUntil: null,
@@ -110,14 +129,28 @@ export const userLogin = async (req, res) => {
         };
 
         if (trimmedDeviceId) {
-            user.updateDevice({
-                deviceId: trimmedDeviceId,
-                ip: clientIp || null,
-                userAgent: req.headers['user-agent'] || null,
-            });
-            update.loginDevices = user.loginDevices;
+            const loginDevices = Array.isArray(user.loginDevices) ? [...user.loginDevices] : [];
+            const idx = loginDevices.findIndex((d) => String(d.deviceId) === trimmedDeviceId);
+            if (idx >= 0) {
+                loginDevices[idx] = {
+                    ...loginDevices[idx],
+                    lastLoginAt: now,
+                    ipAddress: clientIp || null,
+                    userAgent: req.headers['user-agent'] || null,
+                };
+            } else {
+                loginDevices.push({
+                    deviceId: trimmedDeviceId,
+                    firstLoginAt: now,
+                    lastLoginAt: now,
+                    ipAddress: clientIp || null,
+                    userAgent: req.headers['user-agent'] || null,
+                });
+            }
+            update.loginDevices = loginDevices;
         }
-        await User.updateOne({ _id: user._id }, { $set: update });
+
+        await User.updateOne({ _id: user._id }, { $set: update }, findOpts);
 
         void logActivity({
             action: 'player_login',
@@ -130,8 +163,10 @@ export const userLogin = async (req, res) => {
         }).catch(() => {});
 
         const [wallet, bookie] = await Promise.all([
-            Wallet.findOne({ userId: user._id }).select('balance').lean(),
-            user.referredBy ? Admin.findById(user.referredBy).select('uiTheme').lean() : Promise.resolve(null),
+            Wallet.findOne({ userId: user._id }).select('balance').maxTimeMS(DB_QUERY_MS).lean(),
+            user.referredBy
+                ? Admin.findById(user.referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
+                : Promise.resolve(null),
         ]);
         const balance = wallet?.balance ?? 0;
 
@@ -155,6 +190,13 @@ export const userLogin = async (req, res) => {
             data,
         });
     } catch (error) {
+        if (isMongoTimeoutError(error)) {
+            return res.status(503).json({
+                success: false,
+                message: 'Database is slow or unreachable. Please try again.',
+                code: 'DB_TIMEOUT',
+            });
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 };
