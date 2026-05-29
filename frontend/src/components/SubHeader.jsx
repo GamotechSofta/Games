@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { HiOutlineCash } from 'react-icons/hi';
 import { getBalance, updateUserBalance } from '../api/bets';
+import { formatWalletAmount } from '../utils/walletBalance';
 import { useTheme } from '../context/ThemeContext';
 import {
   isMobileInstallBannerDismissed,
@@ -72,8 +72,7 @@ const SubHeader = () => {
     };
   }, [location.pathname]);
 
-  const displayBalance = balance != null ? Number(balance) : 0;
-  const formattedBalance = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0, minimumFractionDigits: 0 }).format(displayBalance);
+  const formattedBalance = formatWalletAmount(balance != null ? balance : 0);
 
   return (
     <div
@@ -95,7 +94,7 @@ const SubHeader = () => {
             }`}
             aria-hidden
           >
-            <HiOutlineCash className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="text-sm sm:text-base font-bold leading-none">₹</span>
           </span>
           <span className={`text-sm sm:text-base font-bold truncate ${isLight ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>
             {formattedBalance}

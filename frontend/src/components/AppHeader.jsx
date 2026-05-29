@@ -5,6 +5,7 @@ import { getBalance, updateUserBalance } from '../api/bets';
 import { triggerApkDownload } from '../utils/downloads';
 import aakdaLogo from '../config/logo';
 import { useTheme } from '../context/ThemeContext';
+import { formatWalletAmount } from '../utils/walletBalance';
 
 const LanguageSwitcher = lazy(() => import('./LanguageSwitcher'));
 const ThemeSwitcher = lazy(() => import('./ThemeSwitcher'));
@@ -76,11 +77,7 @@ const AppHeader = () => {
     navigate(user ? '/profile' : '/login');
   };
 
-  const displayBalance = balance != null ? Number(balance) : 0;
-  const formattedBalance = new Intl.NumberFormat('en-IN', {
-    maximumFractionDigits: 0,
-    minimumFractionDigits: 0,
-  }).format(displayBalance);
+  const formattedBalance = formatWalletAmount(balance != null ? balance : 0);
   const isDashboardRoute = location.pathname === '/' || location.pathname === '/markets';
 
   return (
@@ -141,13 +138,11 @@ const AppHeader = () => {
                   onClick={() => navigate('/funds?tab=add-fund')}
                   className="flex min-w-0 max-w-[148px] items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
                 >
-                  <span className="truncate text-[13px] font-semibold leading-none text-gray-900 dark:text-white">
+                  <span className="flex min-w-0 items-center gap-1 truncate text-[13px] font-semibold leading-none text-gray-900 dark:text-white">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e60000] text-xs font-bold text-white">
+                      ₹
+                    </span>
                     {formattedBalance}
-                  </span>
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#e60000]">
-                    <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 4a1 1 0 011 1v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4V5a1 1 0 011-1z" />
-                    </svg>
                   </span>
                 </button>
               </div>
@@ -199,11 +194,14 @@ const AppHeader = () => {
                       : 'bg-[#202124] border-white/5 hover:bg-[#2a2b2e]'
                   }`}
                 >
-                  <img
-                    src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
-                    alt="Wallet"
-                    className="w-6 h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 object-contain shrink-0"
-                  />
+                  <span
+                    className={`flex h-7 w-7 lg:h-8 lg:w-8 shrink-0 items-center justify-center rounded-lg text-base lg:text-lg font-bold ${
+                      isLight ? 'bg-red-50 text-[#e60000]' : 'bg-[#e60000]/20 text-red-400'
+                    }`}
+                    aria-hidden
+                  >
+                    ₹
+                  </span>
                   <span className={`text-xs lg:text-sm xl:text-base font-bold truncate max-w-[80px] lg:max-w-[100px] xl:max-w-none ${isLight ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>
                     {formattedBalance}
                   </span>

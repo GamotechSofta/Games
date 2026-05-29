@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBalance, updateUserBalance } from '../api/bets';
+import { formatWalletAmount } from '../utils/walletBalance';
 
 export function useWallet() {
   const [user, setUser] = useState(null);
@@ -66,10 +67,7 @@ export function useWallet() {
     setBalance(balanceQuery.data);
   }, [balanceQuery.data]);
 
-  const formattedBalance = new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(balance != null ? Number(balance) : 0);
+  const formattedBalance = formatWalletAmount(balance != null ? balance : 0);
 
   const avatarInitial = (user?.username || 'U').charAt(0).toUpperCase();
 

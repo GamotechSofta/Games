@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMenu, HiUser } from 'react-icons/hi';
-import { HiDownload, HiPlus, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
+import { HiDownload, ICON_SIZE_NAV, iconColorClass } from './dashboard/dashboardIcons';
 import { useWallet } from '../hooks/useWallet';
 import { triggerApkDownload } from '../utils/downloads';
 import DashboardNavPill from './home/DashboardNavPill';
@@ -77,10 +77,10 @@ export default function DashboardHeader({ activePanel, onPanelChange, sidebarCol
             className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 pl-3 pr-1.5 py-1.5 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
             aria-label={t('navigation.funds')}
           >
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formattedBalance}</span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000]">
-              <HiPlus className="h-4 w-4 text-white" />
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e60000] text-sm font-bold text-white">
+              ₹
             </span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">{formattedBalance}</span>
           </button>
 
           <button

@@ -177,11 +177,11 @@ const StarlineMarket = () => {
           {/* Desktop legend */}
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-white/70">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400/90 shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400/90 dark:shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
               {t('starlineMarket.open')}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-white/70">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-400/90 shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 dark:bg-rose-400/90 dark:shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
               {t('starlineMarket.closed')}
             </div>
           </div>
@@ -252,10 +252,10 @@ const StarlineMarket = () => {
                     )}
                   </div>
 
-                  {/* Center: Result in black pill */}
+                  {/* Center: Result pill */}
                   <div className="flex-1 flex justify-center min-w-0">
-                    <div className="bg-gray-900 dark:bg-black rounded-full px-2.5 min-[375px]:px-3 sm:px-4 md:px-6 py-1.5 min-[375px]:py-2 sm:py-2.5 md:py-3 border border-gray-700 dark:border-white/10">
-                      <p className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap">
+                    <div className="flex items-center justify-center rounded-full border bg-slate-100 border-slate-200 dark:bg-black dark:border-white/10 min-w-[6.5rem] min-[375px]:min-w-[7.25rem] sm:min-w-[8rem] md:min-w-[8.75rem] h-9 min-[375px]:h-10 sm:h-11 md:h-12 px-3 sm:px-4">
+                      <p className="text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap text-red-600 dark:text-red-400 text-center tabular-nums">
                         {pill}
                       </p>
                     </div>
@@ -290,7 +290,7 @@ const StarlineMarket = () => {
                     }}
                     className={`shrink-0 border rounded-full px-2 min-[375px]:px-2.5 sm:px-3 md:px-4 py-1.5 min-[375px]:py-2 sm:py-2.5 flex items-center gap-1 min-[375px]:gap-1.5 sm:gap-2 transition-colors ${
                       isClickable
-                        ? 'bg-[#D32F2F] border-[#D32F2F] text-white hover:bg-[#c62828] dark:bg-[#D32F2F] dark:border-[#D32F2F] dark:hover:bg-[#c62828]'
+                        ? 'bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-600 text-white hover:from-emerald-500 hover:to-green-400 dark:border-emerald-500'
                         : 'bg-gray-100 border-gray-300 text-gray-700 dark:bg-gray-700/50 dark:border-white/10 dark:text-gray-200'
                     }`}
                   >
