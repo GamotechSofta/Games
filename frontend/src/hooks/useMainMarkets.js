@@ -4,7 +4,8 @@ import { API_BASE_URL } from '../config/api';
 import useHomeBootstrap from './useHomeBootstrap';
 import { transformMarkets } from '../utils/homeTransforms';
 
-const DEFAULT_REFRESH_MS = 90 * 1000;
+/** 0 = no background polling (rely on cache + manual/midnight refresh) */
+const DEFAULT_REFRESH_MS = 0;
 const DEFAULT_LIMIT = 24;
 
 export default function useMainMarkets({
@@ -34,7 +35,7 @@ export default function useMainMarkets({
       return transformMarkets(data.data);
     },
     staleTime: 60 * 1000,
-    refetchInterval: refreshMs,
+    refetchInterval: refreshMs > 0 ? refreshMs : false,
     refetchOnWindowFocus: false,
     retry: 1,
   });

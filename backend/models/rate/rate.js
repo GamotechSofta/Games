@@ -26,17 +26,32 @@ const rateSchema = new mongoose.Schema({
 
 const Rate = mongoose.model('Rate', rateSchema);
 
+let ratesCache = null;
+let ratesCacheAt = 0;
+const RATES_CACHE_TTL_MS = 60 * 1000;
+
+export function invalidateRatesCache() {
+    ratesCache = null;
+    ratesCacheAt = 0;
+}
+
 /**
  * Get all rates as a map { single: 10, jodi: 100, ... }. Seeds defaults if empty.
  * Every key from DEFAULT_RATES is guaranteed to be a finite number (from DB or default).
  * Used by settlement to pay winning players – must always reflect Update Rate screen values.
  */
 export async function getRatesMap() {
+    const now = Date.now();
+    if (ratesCache && now - ratesCacheAt < RATES_CACHE_TTL_MS) {
+        return ratesCache;
+    }
+
     let docs = await Rate.find().lean();
     if (docs.length === 0) {
-        for (const [gameType, rate] of Object.entries(DEFAULT_RATES)) {
-            await Rate.create({ gameType, rate });
-        }
+        await Rate.insertMany(
+            Object.entries(DEFAULT_RATES).map(([gameType, rate]) => ({ gameType, rate })),
+            { ordered: false }
+        ).catch(() => {});
         docs = await Rate.find().lean();
     }
     const map = { ...DEFAULT_RATES };
@@ -50,6 +65,8 @@ export async function getRatesMap() {
             map[normalizedKey] = num;
         }
     }
+    ratesCache = map;
+    ratesCacheAt = now;
     return map;
 }
 

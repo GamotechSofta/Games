@@ -691,10 +691,9 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         setError('');
         setSinglePattiSummary(null);
         try {
-            const [statsRes, summaryRes] = await Promise.all([
-                adminFetch(`${API_BASE_URL}/markets/get-market-stats/${marketId}`),
-                adminFetch(`${API_BASE_URL}/markets/get-single-patti-summary/${marketId}`),
-            ]);
+            const statsRes = await adminFetch(
+                `${API_BASE_URL}/markets/get-market-stats/${marketId}?includeSinglePatti=1`,
+            );
             const statsJson = await statsRes.json();
             if (!statsJson.success) {
                 setError(statsJson.message || 'Failed to load market detail');
@@ -708,18 +707,8 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
             if (initialStatusSetForMarketId.current !== marketId) {
                 initialStatusSetForMarketId.current = marketId;
             }
-            // Starline: show only open bets (no closed view in market management)
             setStatusView(isStartline ? 'open' : (hasOpenDeclared ? 'closed' : 'open'));
-            if (summaryRes.ok) {
-                const summaryJson = await summaryRes.json();
-                if (summaryJson.success && summaryJson.data) {
-                    setSinglePattiSummary(summaryJson.data);
-                } else {
-                    setSinglePattiSummary(null);
-                }
-            } else {
-                setSinglePattiSummary(null);
-            }
+            setSinglePattiSummary(statsJson.data?.singlePattiSummary || null);
         } catch (err) {
             setError('Network error. Please try again.');
         } finally {

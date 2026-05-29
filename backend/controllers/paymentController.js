@@ -705,13 +705,16 @@ export const getPayments = async (req, res) => {
         }
 
         const payments = await Payment.find(query)
+            .select('userId bookieId type amount method status screenshotUrl upiTransactionId transactionId payuInvoiceNumber userNote adminRemarks processedBy processedByType processedAt bankDetailId notes createdAt updatedAt')
             .populate('userId', 'username email phone')
             .populate('bookieId', 'username bookieType')
             .populate('bankDetailId', 'accountHolderName bankName accountNumber upiId ifscCode')
             .populate('processedBy', 'username role')
             .sort({ createdAt: -1 })
-            .limit(1000);
+            .limit(1000)
+            .lean();
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({
             success: true,
             data: payments.map((p) => toClientPayment(p)),

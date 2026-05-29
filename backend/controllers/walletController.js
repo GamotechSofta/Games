@@ -16,7 +16,8 @@ export const getAllWallets = async (req, res) => {
         }
         const wallets = await Wallet.find(query)
             .populate('userId', 'username email referredBy')
-            .sort({ balance: -1 });
+            .sort({ balance: -1 })
+            .lean();
 
         // For admin view: enrich each wallet with the user's bookie type
         if (req.admin?.role === 'super_admin') {
@@ -31,7 +32,7 @@ export const getAllWallets = async (req, res) => {
                 }
             }
             for (const w of wallets) {
-                const obj = w.toObject();
+                const obj = { ...w };
                 if (w.userId?.referredBy) {
                     const bookie = bookieMap[String(w.userId.referredBy)];
                     obj.userBookieType = bookie?.bookieType || 'admin_collects';
@@ -42,9 +43,11 @@ export const getAllWallets = async (req, res) => {
                 }
                 enriched.push(obj);
             }
+            res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
             return res.status(200).json({ success: true, data: enriched });
         }
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({ success: true, data: wallets });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -65,8 +68,10 @@ export const getTransactions = async (req, res) => {
         const transactions = await WalletTransaction.find(query)
             .populate('userId', 'username email')
             .sort({ createdAt: -1 })
-            .limit(1000);
+            .limit(1000)
+            .lean();
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({
             success: true,
             data: transactions.map((t) => toClientWalletTransaction(t)),
@@ -383,6 +388,7 @@ export const getBalance = async (req, res) => {
             wallet = { balance: 0 };
         }
         const balance = wallet.balance ?? 0;
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({ success: true, data: { balance } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

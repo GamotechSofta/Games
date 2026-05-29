@@ -47,83 +47,89 @@ export const getDashboardStats = async (req, res) => {
             ? { createdAt: { $gte: rangeStart, $lte: rangeEnd } }
             : {};
 
-        // Total Users (all-time)
-        const totalUsers = await User.countDocuments(userFilter);
-        const activeUsers = await User.countDocuments({ ...userFilter, isActive: true });
-        const newUsersInRange = await User.countDocuments({ ...userFilter, ...dateMatch });
-
-        // Total Markets (all-time, current open)
-        const totalMarkets = await Market.countDocuments();
-        const openMarkets = await Market.find().then(markets => {
-            return markets.filter(m => {
-                const now = new Date();
-                const currentTime = now.getHours() * 60 + now.getMinutes();
-                const startTime = parseTimeToMinutes(m.startingTime);
-                const endTime = parseTimeToMinutes(m.closingTime);
-                return startTime && endTime && currentTime >= startTime && currentTime <= endTime;
-            }).length;
-        });
-
-        // Revenue & Bets in selected range (exclude cancelled – they are refunded)
         const betMatchNoCancelled = { ...dateMatch, ...betFilter, status: { $ne: 'cancelled' } };
-        const totalRevenue = await Bet.aggregate([
-            { $match: betMatchNoCancelled },
-            { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]);
-        const totalPayouts = await Bet.aggregate([
-            { $match: { status: 'won', ...dateMatch, ...betFilter } },
-            { $group: { _id: null, total: { $sum: '$payout' } } },
-        ]);
-        const totalBets = await Bet.countDocuments(betMatchNoCancelled);
-        const winningBets = await Bet.countDocuments({ status: 'won', ...dateMatch, ...betFilter });
-        const losingBets = await Bet.countDocuments({ status: 'lost', ...dateMatch, ...betFilter });
-        const pendingBets = await Bet.countDocuments({ status: 'pending', ...betFilter });
 
-        // Payments in range (deposits/withdrawals completed in period)
-        const totalDeposits = await Payment.aggregate([
-            { $match: { type: 'deposit', status: { $in: ['approved', 'completed'] }, ...dateMatch, ...paymentFilter } },
-            { $group: { _id: null, total: { $sum: '$amount' } } },
-        ]);
-        const totalWithdrawals = await Payment.aggregate([
-            { $match: { type: 'withdrawal', status: { $in: ['approved', 'completed'] }, ...dateMatch, ...paymentFilter } },
-            { $group: { _id: null, total: { $sum: '$amount' } } },
+        // Total Users (all-time) + parallel stats queries
+        const [
+            totalUsers,
+            activeUsers,
+            newUsersInRange,
+            totalMarkets,
+            allMarketsForOpen,
+            mainMarkets,
+            starlineMarkets,
+            totalRevenue,
+            totalPayouts,
+            totalBets,
+            winningBets,
+            losingBets,
+            pendingBets,
+            totalDeposits,
+            totalWithdrawals,
+            totalPayments,
+            pendingDeposits,
+            totalWalletBalance,
+            totalTickets,
+            openTickets,
+            inProgressTickets,
+        ] = await Promise.all([
+            User.countDocuments(userFilter),
+            User.countDocuments({ ...userFilter, isActive: true }),
+            User.countDocuments({ ...userFilter, ...dateMatch }),
+            Market.countDocuments(),
+            Market.find()
+                .select('marketName marketType startingTime closingTime openingNumber closingNumber')
+                .lean(),
+            Market.countDocuments({ marketType: { $ne: 'startline' } }),
+            Market.countDocuments({ marketType: 'startline' }),
+            Bet.aggregate([
+                { $match: betMatchNoCancelled },
+                { $group: { _id: null, total: { $sum: '$amount' } } },
+            ]),
+            Bet.aggregate([
+                { $match: { status: 'won', ...dateMatch, ...betFilter } },
+                { $group: { _id: null, total: { $sum: '$payout' } } },
+            ]),
+            Bet.countDocuments(betMatchNoCancelled),
+            Bet.countDocuments({ status: 'won', ...dateMatch, ...betFilter }),
+            Bet.countDocuments({ status: 'lost', ...dateMatch, ...betFilter }),
+            Bet.countDocuments({ status: 'pending', ...betFilter }),
+            Payment.aggregate([
+                { $match: { type: 'deposit', status: { $in: ['approved', 'completed'] }, ...dateMatch, ...paymentFilter } },
+                { $group: { _id: null, total: { $sum: '$amount' } } },
+            ]),
+            Payment.aggregate([
+                { $match: { type: 'withdrawal', status: { $in: ['approved', 'completed'] }, ...dateMatch, ...paymentFilter } },
+                { $group: { _id: null, total: { $sum: '$amount' } } },
+            ]),
+            Payment.countDocuments(paymentFilter),
+            Payment.countDocuments({ type: 'deposit', status: 'pending', ...paymentFilter }),
+            Wallet.aggregate([
+                ...(Object.keys(walletMatch).length ? [{ $match: walletMatch }] : []),
+                { $group: { _id: null, total: { $sum: '$balance' } } },
+            ]),
+            HelpDesk.countDocuments(helpDeskFilter),
+            HelpDesk.countDocuments({ status: 'open', ...helpDeskFilter }),
+            HelpDesk.countDocuments({ status: 'in-progress', ...helpDeskFilter }),
         ]);
 
-        // All-time payment counts (for reference)
-        const totalPayments = await Payment.countDocuments(paymentFilter);
-        const pendingDeposits = await Payment.countDocuments({ type: 'deposit', status: 'pending', ...paymentFilter });
-        const withdrawalPendingFilter = { type: 'withdrawal', status: 'pending', ...paymentFilter };
-        if (req.admin?.role === 'super_admin') {
-            const bookieCollectsBookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' }).select('_id').lean();
-            const excludeBookieIds = bookieCollectsBookies.map((b) => b._id);
-            if (excludeBookieIds.length > 0) {
-                withdrawalPendingFilter.bookieId = { $nin: excludeBookieIds };
-            }
-        }
-        const pendingWithdrawals = await Payment.countDocuments(withdrawalPendingFilter);
-        const pendingPayments = pendingWithdrawals;
-
-        // Markets by type (main vs starline)
-        const mainMarkets = await Market.countDocuments({ marketType: { $ne: 'startline' } });
-        const starlineMarkets = await Market.countDocuments({ marketType: 'startline' });
-        const allMarketsForOpen = await Market.find();
+        const now = new Date();
+        const currentTime = now.getHours() * 60 + now.getMinutes();
+        let openMarkets = 0;
         let openMainMarkets = 0;
         let openStarlineMarkets = 0;
+        const marketsPendingResultList = [];
+
         for (const m of allMarketsForOpen) {
-            const now = new Date();
-            const currentTime = now.getHours() * 60 + now.getMinutes();
             const startTime = parseTimeToMinutes(m.startingTime);
             const endTime = parseTimeToMinutes(m.closingTime);
-            if (startTime && endTime && currentTime >= startTime && currentTime <= endTime) {
+            const isOpen = startTime != null && endTime != null && currentTime >= startTime && currentTime <= endTime;
+            if (isOpen) {
+                openMarkets++;
                 if (m.marketType === 'startline') openStarlineMarkets++;
                 else openMainMarkets++;
             }
-        }
 
-        // Markets pending result (betting closed but result not declared)
-        const now = new Date();
-        const marketsPendingResultList = [];
-        for (const m of allMarketsForOpen) {
             if (!isBettingClosed(m, now)) continue;
             const isStarline = m.marketType === 'startline';
             const needsResult = isStarline
@@ -135,21 +141,27 @@ export const getDashboardStats = async (req, res) => {
         }
         const marketsPendingResult = marketsPendingResultList.length;
 
+        const withdrawalPendingFilter = { type: 'withdrawal', status: 'pending', ...paymentFilter };
+        if (req.admin?.role === 'super_admin') {
+            const bookieCollectsBookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' }).select('_id').lean();
+            const excludeBookieIds = bookieCollectsBookies.map((b) => b._id);
+            if (excludeBookieIds.length > 0) {
+                withdrawalPendingFilter.bookieId = { $nin: excludeBookieIds };
+            }
+        }
+        const pendingWithdrawals = await Payment.countDocuments(withdrawalPendingFilter);
+        const pendingPayments = pendingWithdrawals;
+
         // Bookies & Commission (super_admin only – when bookieUserIds is null)
         let bookies = { total: 0, active: 0 };
         if (bookieUserIds === null && req.admin?.role === 'super_admin') {
-            bookies.total = await Admin.countDocuments({ role: 'bookie' });
-            bookies.active = await Admin.countDocuments({ role: 'bookie', status: 'active' });
+            const [total, active] = await Promise.all([
+                Admin.countDocuments({ role: 'bookie' }),
+                Admin.countDocuments({ role: 'bookie', status: 'active' }),
+            ]);
+            bookies.total = total;
+            bookies.active = active;
         }
-
-        // Wallet & Help Desk (all-time)
-        const totalWalletBalance = await Wallet.aggregate([
-            ...(Object.keys(walletMatch).length ? [{ $match: walletMatch }] : []),
-            { $group: { _id: null, total: { $sum: '$balance' } } },
-        ]);
-        const totalTickets = await HelpDesk.countDocuments(helpDeskFilter);
-        const openTickets = await HelpDesk.countDocuments({ status: 'open', ...helpDeskFilter });
-        const inProgressTickets = await HelpDesk.countDocuments({ status: 'in-progress', ...helpDeskFilter });
 
         const revenue = totalRevenue[0]?.total || 0;
         const payouts = totalPayouts[0]?.total || 0;
@@ -181,6 +193,7 @@ export const getDashboardStats = async (req, res) => {
             }
         }
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({
             success: true,
             data: {

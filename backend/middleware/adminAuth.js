@@ -1,6 +1,9 @@
 import Admin from '../models/admin/admin.js';
 import { verifyToken } from '../utils/jwt.js';
 
+const adminJwtCache = new Map();
+const ADMIN_JWT_CACHE_TTL_MS = 30 * 1000;
+
 /**
  * Middleware to verify admin/bookie authentication.
  * Supports:
@@ -19,8 +22,18 @@ export const verifyAdmin = async (req, res, next) => {
             const token = authHeader.replace('Bearer ', '').trim();
             const decoded = verifyToken(token);
             if (decoded) {
-                const admin = await Admin.findById(decoded.id);
+                const cacheKey = String(decoded.id);
+                const cached = adminJwtCache.get(cacheKey);
+                if (cached && Date.now() - cached.at < ADMIN_JWT_CACHE_TTL_MS) {
+                    req.admin = cached.admin;
+                    return next();
+                }
+
+                const admin = await Admin.findById(decoded.id)
+                    .select('username role bookieType commissionPercentage status uiTheme')
+                    .lean();
                 if (admin) {
+                    adminJwtCache.set(cacheKey, { admin, at: Date.now() });
                     req.admin = admin;
                     return next();
                 }

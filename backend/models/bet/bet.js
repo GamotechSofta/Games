@@ -72,5 +72,16 @@ const betSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+// User bet history, market stats, settlement, and admin reports.
+betSchema.index({ userId: 1, createdAt: -1 });
+betSchema.index({ marketId: 1, status: 1, createdAt: -1 });
+betSchema.index({ marketId: 1, createdAt: -1 });
+betSchema.index({ marketId: 1, createdAt: -1, status: 1 });
+betSchema.index({ status: 1, createdAt: -1 });
+betSchema.index({ userId: 1, status: 1, createdAt: -1 });
+betSchema.index({ scheduledDate: 1, marketId: 1 });
+// Market detail stats: match by market + status + createdAt / scheduledDate windows
+betSchema.index({ marketId: 1, status: 1, scheduledDate: 1 });
+
 const Bet = mongoose.model('Bet', betSchema);
 export default Bet;

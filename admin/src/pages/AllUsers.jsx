@@ -53,29 +53,19 @@ const AllUsers = () => {
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const fetches = [
-                adminFetch(`${API_BASE_URL}/users`),
-                adminFetch(`${API_BASE_URL}/users?filter=super_admin`),
-                adminFetch(`${API_BASE_URL}/users?filter=bookie`),
-            ];
-            if (isSuperAdmin) {
-                fetches.push(
-                    adminFetch(`${API_BASE_URL}/admin/bookies`),
-                    adminFetch(`${API_BASE_URL}/admin/super-admins`)
-                );
+            const res = await adminFetch(`${API_BASE_URL}/users/bootstrap`);
+            const json = await res.json();
+            if (!json.success) {
+                setError(json.message || 'Failed to fetch users');
+                return;
             }
-            const results = await Promise.all(fetches);
-            const allData = await results[0].json();
-            const superAdminData = await results[1].json();
-            const bookieData = await results[2].json();
-            if (allData.success) setAllUsers(allData.data || []);
-            if (superAdminData.success) setSuperAdminUsersList(superAdminData.data || []);
-            if (bookieData.success) setBookieUsersList(bookieData.data || []);
-            if (isSuperAdmin && results.length >= 5) {
-                const bookiesData = await results[3].json();
-                const adminsData = await results[4].json();
-                if (bookiesData.success) setAllBookies(bookiesData.data || []);
-                if (adminsData.success) setSuperAdminsList(adminsData.data || []);
+            const data = json.data || {};
+            setAllUsers(data.allUsers || []);
+            setSuperAdminUsersList(data.superAdminUsers || []);
+            setBookieUsersList(data.bookieUsers || []);
+            if (isSuperAdmin) {
+                setAllBookies(data.bookies || []);
+                setSuperAdminsList(data.superAdmins || []);
             }
         } catch (err) {
             if (showLoader) setError('Failed to fetch data');
@@ -98,7 +88,7 @@ const AllUsers = () => {
             })
             .catch(() => setHasSecretDeclarePassword(false));
 
-        const refreshInterval = setInterval(() => fetchData(false), 15000);
+        const refreshInterval = setInterval(() => fetchData(false), 60000);
         const tickInterval = setInterval(() => setTick((t) => t + 1), 5000);
         return () => {
             clearInterval(refreshInterval);

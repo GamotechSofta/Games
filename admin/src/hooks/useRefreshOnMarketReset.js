@@ -26,10 +26,12 @@ export function useRefreshOnMarketReset(refetch, intervalMs = 60000) {
         const interval = setInterval(checkAndRefetch, intervalMs);
 
         const onVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
+            if (document.visibilityState !== 'visible') return;
+            const today = getTodayIST();
+            if (lastDateKeyRef.current !== null && lastDateKeyRef.current !== today) {
                 refetchRef.current?.();
-                lastDateKeyRef.current = getTodayIST();
             }
+            lastDateKeyRef.current = today;
         };
         document.addEventListener('visibilitychange', onVisibilityChange);
 

@@ -1,4 +1,4 @@
-import Rate, { getRatesMap } from '../models/rate/rate.js';
+import Rate, { getRatesMap, invalidateRatesCache } from '../models/rate/rate.js';
 import Admin from '../models/admin/admin.js';
 import bcrypt from 'bcryptjs';
 
@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 export const getRatesCurrent = async (req, res) => {
     try {
         const map = await getRatesMap();
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
         res.status(200).json({ success: true, data: { ...map } });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -71,6 +72,7 @@ export const updateRate = async (req, res) => {
             { rate: rateNum },
             { new: true, upsert: true, runValidators: true }
         );
+        invalidateRatesCache();
         // Return full list (same as GET) so admin UI and settlement both use these rates
         const map = await getRatesMap();
         const list = [

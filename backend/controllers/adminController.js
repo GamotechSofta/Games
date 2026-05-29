@@ -532,8 +532,10 @@ export const getAllBookies = async (req, res) => {
 
         const bookies = await Admin.find({ role: 'bookie' })
             .select('-password')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean();
 
+        res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
         res.status(200).json({
             success: true,
             count: bookies.length,

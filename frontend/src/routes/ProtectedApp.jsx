@@ -1,5 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { prefetchHomeBootstrap } from '../api/prefetchHome';
+import { prefetchMyBetsBootstrap } from '../api/prefetchBets';
+import { prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
@@ -142,14 +144,22 @@ const Layout = ({ children }) => {
   const hideBottomNavOnMobile = false;
 
   useEffect(() => {
-    if (localStorage.getItem('user')) void prefetchHomeBootstrap();
+    if (localStorage.getItem('user')) {
+      void prefetchHomeBootstrap();
+      void prefetchMyBetsBootstrap();
+      void prefetchSpecialMarketGroups();
+    }
   }, []);
 
   useEffect(() => {
     const check = () => {
       const loggedIn = !!localStorage.getItem('user');
       setHasUser(loggedIn);
-      if (loggedIn) void prefetchHomeBootstrap();
+      if (loggedIn) {
+        void prefetchHomeBootstrap();
+        void prefetchMyBetsBootstrap();
+        void prefetchSpecialMarketGroups();
+      }
     };
     window.addEventListener('userLogin', check);
     window.addEventListener('userLogout', check);
@@ -169,7 +179,7 @@ const Layout = ({ children }) => {
       }
     };
     validateToken();
-    const timer = setInterval(validateToken, 30 * 1000);
+    const timer = setInterval(validateToken, 5 * 60 * 1000);
     return () => clearInterval(timer);
   }, []);
 

@@ -37,6 +37,7 @@ export const getStarlineGroups = async (req, res) => {
             }
             list = await StarlineGroup.find().sort({ order: 1, key: 1 }).lean();
         }
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
         res.status(200).json({ success: true, data: list });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

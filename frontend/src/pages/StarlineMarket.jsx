@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
-import { isPastClosingTime } from '../utils/marketTiming';
+import useSpecialMarketSlots from '../hooks/useSpecialMarketSlots';
+import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { iconBtn } from '../styles/appTheme';
 
 const STARLINE_MARKET_IMAGE_URL =
@@ -135,8 +135,12 @@ const StarlineMarket = () => {
   const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'Starline').toString();
 
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState([]);
+  const { items, loading, refetch } = useSpecialMarketSlots({
+    marketType: 'startline',
+    groupKey: marketKey,
+    marketLabel,
+    enabled: Boolean(marketKey),
+  });
   const [tick, setTick] = useState(() => Date.now());
   const [showClosedModal, setShowClosedModal] = useState(false);
 
@@ -145,90 +149,7 @@ const StarlineMarket = () => {
     return () => window.clearInterval(t);
   }, []);
 
-  // Only show slots that exist in the API for this market – no predefined/placeholder slots
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=startline`);
-        const data = await res.json();
-        const list = Array.isArray(data?.data) ? data.data : [];
-        const keyNorm = (marketKey || '').toString().trim().toLowerCase();
-
-        // Server already filters by marketType=startline, only filter by group
-        const filtered = list.filter((m) => {
-          const group = (m?.starlineGroup || '').toString().trim().toLowerCase();
-          if (!keyNorm) return true;
-          return group === keyNorm;
-        });
-
-        const mapped = filtered
-          .map((m) => {
-            const st = (m.startingTime || '').toString().trim().slice(0, 5);
-            const status = isPastClosingTime(m) ? 'closed' : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
-            return {
-              id: m._id,
-              marketName: m.marketName || m.gameName || marketLabel,
-              startingTime: st || null,
-              closingTime: m.closingTime || m.startingTime || null,
-              openingNumber: m.openingNumber || null,
-              closingNumber: m.closingNumber || null,
-              status,
-            };
-          })
-          .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-
-        if (!cancelled) setItems(mapped);
-      } catch {
-        if (!cancelled) setItems([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    run();
-    return () => { cancelled = true; };
-  }, [marketKey, marketLabel]);
-
-  // Refresh every 5 seconds to show new results
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const run = async () => {
-        try {
-          const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=startline`);
-          const data = await res.json();
-          const list = Array.isArray(data?.data) ? data.data : [];
-          const keyNorm = (marketKey || '').toString().trim().toLowerCase();
-          const filtered = list.filter((m) => {
-            const group = (m?.starlineGroup || '').toString().trim().toLowerCase();
-            if (!keyNorm) return true;
-            return group === keyNorm;
-          });
-          const mapped = filtered.map((m) => {
-            const st = (m.startingTime || '').toString().trim().slice(0, 5);
-            const status = isPastClosingTime(m) ? 'closed' : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
-            return {
-              id: m._id,
-              marketName: m.marketName || m.gameName || marketLabel,
-              startingTime: st || null,
-              closingTime: m.closingTime || m.startingTime || null,
-              openingNumber: m.openingNumber || null,
-              closingNumber: m.closingNumber || null,
-              displayResult: m.displayResult || '***-**-***',
-              status,
-              _raw: m,
-              _isDemo: false,
-            };
-          }).sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-          if (mapped.length > 0) setItems(mapped);
-        } catch (err) {
-          console.error('Error refreshing Starline markets:', err);
-        }
-      };
-      run();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [marketKey, marketLabel]);
+  useRefreshOnMarketReset(refetch);
 
   const title = marketLabel || 'Starline';
   const isKalyanStarline = title.toString().toLowerCase().includes('kalyan');

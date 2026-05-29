@@ -215,15 +215,21 @@ export async function getMyWalletTransactions(limit = 200) {
 
 /**
  * Fetch bet history for logged-in user from database.
+ * @param {{ days?: number, limit?: number }} [options]
  * @returns {Promise<{ success: boolean, data?: Array<Bet>, message?: string }>}
  */
-export async function getMyBetHistory() {
+export async function getMyBetHistory({ days = 30, limit = 200 } = {}) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   if (!userId) {
     return { success: false, message: 'Please log in' };
   }
-  const url = `${API_BASE_URL}/bets/my-history?userId=${encodeURIComponent(userId)}`;
+  const params = new URLSearchParams({
+    userId,
+    days: String(days),
+    limit: String(limit),
+  });
+  const url = `${API_BASE_URL}/bets/my-history?${params.toString()}`;
   const response = await fetch(url);
   if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
@@ -232,4 +238,51 @@ export async function getMyBetHistory() {
     return { success: false, message: data.message || 'Failed to fetch bet history' };
   }
   return data;
+}
+
+let myBetsBootstrapCacheKey = '';
+
+export function clearMyBetsBootstrapCache() {
+  myBetsBootstrapCacheKey = '';
+}
+
+export function clearMyBetHistoryCache() {
+  clearMyBetsBootstrapCache();
+}
+
+/**
+ * Single round-trip for My Bets screen: bets + rates + markets.
+ * @param {{ days?: number, limit?: number }} [options]
+ */
+export async function fetchMyBetsBootstrap({ days = 30, limit = 200 } = {}) {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const userId = user?.id || user?._id;
+  if (!userId) {
+    return { success: false, message: 'Please log in' };
+  }
+
+  const params = new URLSearchParams({
+    userId,
+    days: String(days),
+    limit: String(limit),
+  });
+  const cacheKey = params.toString();
+  if (myBetsBootstrapCacheKey === cacheKey) {
+    const cached = getSessionCache(`myBetsBootstrap.${cacheKey}`);
+    if (cached) return cached;
+  }
+
+  return runSharedRequest(`myBetsBootstrap.${cacheKey}`, async () => {
+    const response = await fetch(`${API_BASE_URL}/bets/my-bootstrap?${params.toString()}`);
+    if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || 'Failed to fetch my bets data' };
+    }
+
+    myBetsBootstrapCacheKey = cacheKey;
+    setSessionCache(`myBetsBootstrap.${cacheKey}`, data, 30 * 1000);
+    return data;
+  });
 }

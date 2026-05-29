@@ -5,6 +5,8 @@ import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import aakdaLogo from '../config/logo';
 import { prefetchHomeBootstrap } from '../api/prefetchHome';
+import { prefetchMyBetsBootstrap } from '../api/prefetchBets';
+import { prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -83,7 +85,9 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(data.data || {}));
       if (data.token) localStorage.setItem('userToken', data.token);
       void prefetchHomeBootstrap();
-        window.dispatchEvent(new Event('userLogin'));
+      void prefetchMyBetsBootstrap();
+      void prefetchSpecialMarketGroups();
+      window.dispatchEvent(new Event('userLogin'));
       showToast(data.message || 'Authentication successful', 'success');
         navigate('/');
     } catch {

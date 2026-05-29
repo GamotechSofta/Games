@@ -6,6 +6,8 @@ import App from './App.jsx'
 import { applyThemeToDocument, getStoredTheme } from './context/ThemeContext'
 import { queryClient } from './queryClient'
 import { prefetchHomeBootstrap } from './api/prefetchHome'
+import { prefetchMyBetsBootstrap } from './api/prefetchBets'
+import { prefetchSpecialMarketGroups } from './api/prefetchSpecialMarkets'
 
 applyThemeToDocument(getStoredTheme())
 
@@ -39,6 +41,8 @@ function bootstrap() {
 
   if (localStorage.getItem('user')) {
     void prefetchHomeBootstrap()
+    void prefetchMyBetsBootstrap()
+    void prefetchSpecialMarketGroups()
   }
 
   scheduleCriticalChunkPrefetch()

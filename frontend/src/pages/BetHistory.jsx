@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
-import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
+import { cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import useMyBetsBootstrap from '../hooks/useMyBetsBootstrap';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 
@@ -235,11 +235,13 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const [selectedStatuses, setSelectedStatuses] = useState([]); // ['Win','Loose','Pending','Cancelled']
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
   const [selectedBidOptions, setSelectedBidOptions] = useState([]); // bid option keys
-  const [markets, setMarkets] = useState([]);
-  const [ratesMap, setRatesMap] = useState(null);
-  const [localVersion, setLocalVersion] = useState(0);
-  const [apiBets, setApiBets] = useState([]);
-  const [betsLoading, setBetsLoading] = useState(true);
+  const {
+    bets: bootstrapBets,
+    ratesMap,
+    markets,
+    loading: betsLoading,
+    invalidate: invalidateBetsBootstrap,
+  } = useMyBetsBootstrap();
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -271,13 +273,13 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     const uid = u?._id || u?.id || u?.userId || u?.userid || u?.user_id || u?.uid || null;
     
     // Filter API bets by scope
-    const scoped = (apiBets || []).filter((bet) => {
+    const scoped = (bootstrapBets || []).filter((bet) => {
       const marketTitle = bet?.marketId?.marketName || '';
       return inScope(marketTitle);
     });
-    
+
     return { userId: uid, bets: scoped };
-  }, [localVersion, scope, apiBets]);
+  }, [scope, bootstrapBets]);
 
   const flat = useMemo(() => {
     // Convert API bets to the expected format for the UI
@@ -295,63 +297,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     }));
   }, [bets]);
 
-  const fetchMarkets = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
-      const data = await res.json();
-      if (data?.success && Array.isArray(data?.data)) {
-        setMarkets(data.data);
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  useEffect(() => {
-    let alive = true;
-    const wrapped = async () => {
-      await fetchMarkets();
-    };
-    wrapped();
-    const id = setInterval(wrapped, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, []);
-
-  useRefreshOnMarketReset(fetchMarkets);
-  useEffect(() => {
-    let alive = true;
-    getRatesCurrent().then((result) => {
-      if (!alive) return;
-      if (result?.success && result?.data) setRatesMap(result.data);
-    });
-    return () => { alive = false; };
-  }, []);
-
-  // Fetch bets from API
-  useEffect(() => {
-    let alive = true;
-    setBetsLoading(true);
-    const fetchBets = async () => {
-      try {
-        const result = await getMyBetHistory();
-        if (!alive) return;
-        if (result?.success && Array.isArray(result?.data)) {
-          setApiBets(result.data);
-        }
-      } finally {
-        if (alive) setBetsLoading(false);
-      }
-    };
-    fetchBets();
-    const id = setInterval(fetchBets, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, [localVersion]);
+  useRefreshOnMarketReset(() => invalidateBetsBootstrap());
 
   // Function to check if a bet can be cancelled
   const canCancelBet = (bet) => {
@@ -472,7 +418,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         });
         
         // Refresh bet list
-        setLocalVersion(v => v + 1);
+        invalidateBetsBootstrap();
         
         // Clear message after 5 seconds
         setTimeout(() => {

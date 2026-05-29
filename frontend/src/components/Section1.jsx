@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CasinoGamesCard from './CasinoGamesCard';
 import SkillsGamesCard from './SkillsGamesCard';
-import { API_BASE_URL } from '../config/api';
-import { isPastClosingTime } from '../utils/marketTiming';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import useMainMarkets from '../hooks/useMainMarkets';
 const STARLINE_IMAGE_URL =
   'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771486283/Black_and_White_Vintage_Star_Company_Logo_nbhlfi.png';
 const KING_BAZAAR_IMAGE_URL =
@@ -24,14 +23,7 @@ const toMarketNameKey = (name) => {
 const Section1 = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [markets, setMarkets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const isInitialLoad = useRef(true);
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 60000);
-    return () => clearInterval(id);
-  }, []);
+  const { markets: rawMarkets, loading, refetch } = useMainMarkets({ limit: 100, refreshMs: 0 });
 
   // Convert 24-hour time to 12-hour format
   const formatTime = (time24) => {
@@ -43,70 +35,9 @@ const Section1 = () => {
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Status: result format OR automatic close when closing time is reached
-  // ***-**-*** → Open (green) | 156-2*-*** → Running (green) | 987-45-456 or past closing time → Closed (red)
-  const getMarketStatus = (market) => {
-    if (isPastClosingTime(market)) {
-      return { status: 'closed', timer: null };
-    }
-    const hasOpening = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
-    const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
+  const markets = rawMarkets || [];
 
-    if (hasOpening && hasClosing) {
-      return { status: 'closed', timer: null };
-    }
-    if (hasOpening && !hasClosing) {
-      return { status: 'running', timer: null };
-    }
-    return { status: 'open', timer: null };
-  };
-
-  // Fetch markets from API – only show loading skeleton on initial load; refresh updates in place to avoid UI fluctuation
-  const fetchMarkets = async () => {
-    const showLoading = isInitialLoad.current;
-    if (showLoading) setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main`);
-      const data = await response.json();
-
-      if (data.success) {
-        const mainOnly = (data.data || []).filter((m) => m.marketType !== 'startline');
-        const transformedMarkets = mainOnly.map((market) => {
-          const st = getMarketStatus(market);
-          return {
-            id: market._id,
-            gameName: market.marketName,
-            timeRange: `${formatTime(market.startingTime)} - ${formatTime(market.closingTime)}`,
-            result: market.displayResult || '***-**-***',
-            status: st.status,
-            timer: st.timer,
-            winNumber: market.winNumber,
-            startingTime: market.startingTime,
-            closingTime: market.closingTime,
-            betClosureTime: market.betClosureTime ?? 0,
-            openingNumber: market.openingNumber,
-            closingNumber: market.closingNumber
-          };
-        });
-        setMarkets(transformedMarkets);
-      }
-    } catch (error) {
-      console.error('Error fetching markets:', error);
-    } finally {
-      if (showLoading) {
-        isInitialLoad.current = false;
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchMarkets();
-    const dataInterval = setInterval(fetchMarkets, 30000);
-    return () => clearInterval(dataInterval);
-  }, []);
-
-  useRefreshOnMarketReset(fetchMarkets);
+  useRefreshOnMarketReset(refetch);
 
 
   return (

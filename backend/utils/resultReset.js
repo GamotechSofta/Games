@@ -60,23 +60,31 @@ async function saveYesterdaySnapshotsToHistory(Market) {
             { openingNumber: { $nin: [null, ''] } },
             { closingNumber: { $nin: [null, ''] } },
         ],
-    }).lean();
+    })
+        .select('marketName openingNumber closingNumber')
+        .lean();
 
-    for (const m of marketsWithResults) {
+    if (marketsWithResults.length === 0) return;
+
+    const ops = marketsWithResults.map((m) => {
         const displayResult = computeDisplayResult(m.openingNumber, m.closingNumber);
-        await MarketResult.findOneAndUpdate(
-            { marketId: m._id, dateKey: yesterdayKey },
-            {
-                $set: {
-                    marketName: m.marketName,
-                    openingNumber: m.openingNumber ?? null,
-                    closingNumber: m.closingNumber ?? null,
-                    displayResult: displayResult || '***-**-***',
+        return {
+            updateOne: {
+                filter: { marketId: m._id, dateKey: yesterdayKey },
+                update: {
+                    $set: {
+                        marketName: m.marketName,
+                        openingNumber: m.openingNumber ?? null,
+                        closingNumber: m.closingNumber ?? null,
+                        displayResult: displayResult || '***-**-***',
+                    },
                 },
+                upsert: true,
             },
-            { upsert: true, new: true }
-        );
-    }
+        };
+    });
+
+    await MarketResult.bulkWrite(ops, { ordered: false });
 }
 
 /**
@@ -116,6 +124,26 @@ async function saveLastResetDateToDB(dateKey) {
 
 /** In-memory cache: we already ran the check for this IST date. Avoids running on every market API request. */
 let lastCheckedDateIST = null;
+let resetCheckInFlight = null;
+
+/**
+ * Fire-and-forget market reset check for read APIs — never block the HTTP response.
+ * @param {Model} Market
+ */
+export function scheduleMarketResetCheck(Market) {
+    const today = getTodayIST();
+    if (lastCheckedDateIST === today) return;
+
+    if (!resetCheckInFlight) {
+        resetCheckInFlight = ensureResultsResetForNewDay(Market)
+            .catch((err) => {
+                console.error('[resultReset] background check failed:', err?.message || err);
+            })
+            .finally(() => {
+                resetCheckInFlight = null;
+            });
+    }
+}
 
 /**
  * If we've crossed into a new calendar day (IST), save yesterday's results to history, then clear
@@ -131,61 +159,40 @@ export async function ensureResultsResetForNewDay(Market) {
     if (lastCheckedDateIST === today) {
         return;
     }
-    
-    console.log(`[resultReset] 🔍 Checking if reset needed for ${today}...`);
 
     // Get last reset date from database (persists across server restarts)
     const lastResetDate = await getLastResetDateFromDB();
-    
-    if (lastResetDate === null) {
-        console.log(`[resultReset] ⚠️  No previous reset date found in database (first run or database was cleared)`);
-    } else {
-        console.log(`[resultReset] 📅 Last reset was on: ${lastResetDate}`);
-    }
 
     // If we've already reset today, skip (use < instead of <= to allow same-day resets if needed)
     if (lastResetDate !== null && today <= lastResetDate) {
-        console.log(`[resultReset] ✓ Already reset today (${today}), skipping`);
         lastCheckedDateIST = today;
         return;
     }
 
-    // New day (IST) or first run: save yesterday's results to history, then clear all markets
-    if (lastResetDate === null) {
-        console.log(`[resultReset] 🚀 First-time reset - initializing for ${today}`);
-    } else {
-        console.log(`[resultReset] ✅ New day detected! Resetting markets from ${lastResetDate} to ${today}`);
-    }
+    console.log(`[resultReset] New day reset starting for ${today} (last reset: ${lastResetDate || 'never'})`);
     
-    // Save yesterday's snapshots to history (only if we have a previous date)
     if (lastResetDate !== null) {
         try {
             await saveYesterdaySnapshotsToHistory(Market);
-            console.log(`[resultReset] 💾 Saved yesterday's (${lastResetDate}) results to history`);
         } catch (err) {
-            console.error('[resultReset] ❌ Failed to save yesterday snapshots to history:', err.message);
+            console.error('[resultReset] Failed to save yesterday snapshots to history:', err.message);
         }
     }
 
-    // Clear all market results (opening/closing numbers, result, winNumber)
-    console.log(`[resultReset] 🔄 Clearing all market results...`);
     const result = await Market.updateMany(
         {},
-        { $set: { 
-            openingNumber: null, 
-            closingNumber: null,
-            result: null,
-            winNumber: null 
-        } }
+        {
+            $set: {
+                openingNumber: null,
+                closingNumber: null,
+                result: null,
+                winNumber: null,
+            },
+        }
     );
-    
-    console.log(`[resultReset] ✅ Cleared all result data for ${result.modifiedCount} markets`);
-    
-    // Save today's date to database so we don't reset again until tomorrow
-    await saveLastResetDateToDB(today);
 
+    await saveLastResetDateToDB(today);
     lastCheckedDateIST = today;
-    
-    console.log(`[resultReset] ✅ Market reset completed successfully for ${today}`);
-    console.log(`[resultReset] 📊 Summary: ${result.modifiedCount} markets reset, history preserved`);
+
+    console.log(`[resultReset] Completed reset for ${today}: ${result.modifiedCount} markets cleared`);
 }

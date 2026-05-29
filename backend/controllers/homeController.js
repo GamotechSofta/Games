@@ -3,20 +3,18 @@ import Game from '../models/game.model.js';
 import Market from '../models/market/market.js';
 import User from '../models/user/user.js';
 import { Wallet } from '../models/wallet/wallet.js';
-import { ensureResultsResetForNewDay } from '../utils/resultReset.js';
+import { scheduleMarketResetCheck } from '../utils/resultReset.js';
 import { attachDisplayResults } from '../utils/marketDisplayResult.js';
 
 /** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
-function scheduleMarketResetCheck() {
-    void ensureResultsResetForNewDay(Market).catch((err) => {
-        console.error('[home/bootstrap] background market reset check failed:', err?.message || err);
-    });
+function runBackgroundMarketResetCheck() {
+    scheduleMarketResetCheck(Market);
 }
 
 /** GET /api/v1/home/bootstrap */
 export const getHomeBootstrap = async (req, res) => {
     try {
-        scheduleMarketResetCheck();
+        runBackgroundMarketResetCheck();
 
         const limitMarkets = Math.min(Math.max(Number.parseInt(String(req.query.marketLimit || 24), 10) || 24, 1), 100);
         const limitGames = Math.min(Math.max(Number.parseInt(String(req.query.gameLimit || 12), 10) || 12, 1), 100);

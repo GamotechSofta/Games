@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
-import { isPastClosingTime } from '../utils/marketTiming';
-import { iconBtn } from '../styles/appTheme';
+import useMarketGroups from '../hooks/useMarketGroups';
+import useSpecialMarketSlots from '../hooks/useSpecialMarketSlots';
+import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
+import { iconBtn, textPrimary } from '../styles/appTheme';
 
 // Reuse the same hosted assets for consistent UI.
 const KING_BAZAAR_MARKET_IMAGE_URL =
@@ -114,10 +115,8 @@ const formatCountdown = (ms) => {
   return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
 };
 
-const DEMO_SLOTS = [
-  '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
-  '18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00',
-];
+const KING_BAZAAR_PICKER_IMAGE_URL =
+  'https://res.cloudinary.com/dnyp5jknp/image/upload/v1771486141/Yellow_and_Black_Illustrative_Esports_The_Lion_King_Logo_1_chmwuq.png';
 
 const KingBazaarMarket = () => {
   const navigate = useNavigate();
@@ -125,140 +124,46 @@ const KingBazaarMarket = () => {
   const { t } = useTranslation();
   const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'King Bazaar').toString();
+  const pickingGroup = !marketKey;
 
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState([]);
+  const { groups: kingGroups, loading: groupsLoading, refetch: refetchGroups } = useMarketGroups('king', {
+    enabled: pickingGroup,
+  });
+  const { items, loading: slotsLoading, refetch: refetchSlots } = useSpecialMarketSlots({
+    marketType: 'king',
+    groupKey: marketKey,
+    marketLabel,
+    enabled: Boolean(marketKey),
+  });
+
+  const loading = pickingGroup ? groupsLoading : slotsLoading;
   const [tick, setTick] = useState(() => Date.now());
   const [showClosedModal, setShowClosedModal] = useState(false);
 
   useEffect(() => {
-    const t = window.setInterval(() => setTick(Date.now()), 1000);
-    return () => window.clearInterval(t);
+    const timer = window.setInterval(() => setTick(Date.now()), 1000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  // Show markets from API if available, otherwise show frontend-only demo slots.
   useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
-        const data = await res.json();
-        const list = Array.isArray(data?.data) ? data.data : [];
-        const keyNorm = (marketKey || '').toString().trim().toLowerCase();
+    if (!pickingGroup || kingGroups.length !== 1) return;
+    const g = kingGroups[0];
+    navigate('/king-bazaar-market', {
+      replace: true,
+      state: { marketKey: g.key, marketLabel: g.label || 'King Bazaar' },
+    });
+  }, [pickingGroup, kingGroups, navigate]);
 
-        // Server already filters by marketType=king, only filter by group
-        const filtered = list.filter((m) => {
-          const group = (m?.kingBazaarGroup || '').toString().trim().toLowerCase();
-          if (!keyNorm) return true;
-          return group === keyNorm;
-        });
+  useRefreshOnMarketReset(() => {
+    if (pickingGroup) refetchGroups();
+    else refetchSlots();
+  });
 
-        const mapped = filtered
-          .map((m) => {
-            const st = (m.startingTime || '').toString().trim().slice(0, 5);
-            const status = isPastClosingTime(m)
-              ? 'closed'
-              : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
-            return {
-              id: m._id,
-              marketName: m.marketName || m.gameName || marketLabel,
-              startingTime: st || null,
-              closingTime: m.closingTime || m.startingTime || null,
-              openingNumber: m.openingNumber || null,
-              closingNumber: m.closingNumber || null,
-              displayResult: m.displayResult || '***-**-***',
-              status,
-              _raw: m,
-              _isDemo: false,
-            };
-          })
-          .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-
-        if (!cancelled) {
-          if (mapped.length > 0) {
-            setItems(mapped);
-          } else {
-            setItems(
-              DEMO_SLOTS.map((t) => ({
-                id: `king-demo-${t}`,
-                marketName: marketLabel,
-                startingTime: t,
-                closingTime: t,
-                openingNumber: null,
-                closingNumber: null,
-                displayResult: '***-**-***',
-                status: 'open',
-                _raw: null,
-                _isDemo: true,
-              })),
-            );
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setItems(
-            DEMO_SLOTS.map((t) => ({
-              id: `king-demo-${t}`,
-              marketName: marketLabel,
-              startingTime: t,
-              closingTime: t,
-              openingNumber: null,
-              closingNumber: null,
-              displayResult: '***-**-***',
-              status: 'open',
-              _raw: null,
-              _isDemo: true,
-            })),
-          );
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    run();
-    return () => { cancelled = true; };
-  }, [marketKey, marketLabel]);
-
-  // Refresh every 5 seconds to show new results
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const run = async () => {
-        try {
-          const res = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=king`);
-          const data = await res.json();
-          const list = Array.isArray(data?.data) ? data.data : [];
-          const keyNorm = (marketKey || '').toString().trim().toLowerCase();
-          const filtered = list.filter((m) => {
-            const group = (m?.kingBazaarGroup || '').toString().trim().toLowerCase();
-            if (!keyNorm) return true;
-            return group === keyNorm;
-          });
-          const mapped = filtered.map((m) => {
-            const st = (m.startingTime || '').toString().trim().slice(0, 5);
-            const status = isPastClosingTime(m) ? 'closed' : (m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'closed' : 'open');
-            return {
-              id: m._id,
-              marketName: m.marketName || m.gameName || marketLabel,
-              startingTime: st || null,
-              closingTime: m.closingTime || m.startingTime || null,
-              openingNumber: m.openingNumber || null,
-              closingNumber: m.closingNumber || null,
-              displayResult: m.displayResult || '***-**-***',
-              status,
-              _raw: m,
-              _isDemo: false,
-            };
-          }).sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-          if (mapped.length > 0) setItems(mapped);
-        } catch (err) {
-          console.error('Error refreshing King Bazaar markets:', err);
-        }
-      };
-      run();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [marketKey, marketLabel]);
+  const openKingGroup = (key, label) => {
+    navigate('/king-bazaar-market', {
+      state: { marketKey: key, marketLabel: label || 'King Bazaar' },
+    });
+  };
 
   const title = marketLabel || 'King Bazaar';
 
@@ -268,7 +173,13 @@ const KingBazaarMarket = () => {
         <div className="flex items-center gap-3 md:gap-4">
           <button
             type="button"
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (marketKey) {
+                navigate('/king-bazaar-market', { replace: true, state: {} });
+              } else {
+                navigate('/');
+              }
+            }}
             className={`w-11 h-11 flex items-center justify-center active:scale-95 transition shrink-0 ${iconBtn}`}
             aria-label={t('common.back')}
           >
@@ -296,6 +207,34 @@ const KingBazaarMarket = () => {
           </div>
         </div>
 
+        {pickingGroup ? (
+          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-[120px] rounded-2xl bg-gray-100 dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
+              ))
+            ) : kingGroups.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-gray-500 dark:text-white/60 text-sm">
+                {t('startlineDashboard.noMarkets')}
+              </div>
+            ) : (
+              kingGroups.map((g) => (
+                <button
+                  key={g.key}
+                  type="button"
+                  onClick={() => openKingGroup(g.key, g.label)}
+                  className="group rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#111113] p-3 flex flex-col items-center gap-2 active:scale-[0.98] transition-all"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 dark:bg-black flex items-center justify-center">
+                    <img src={KING_BAZAAR_PICKER_IMAGE_URL} alt="" className="w-full h-full object-contain" loading="lazy" />
+                  </div>
+                  <span className={`text-sm font-semibold text-center ${textPrimary}`}>{g.label}</span>
+                </button>
+              ))
+            )}
+          </div>
+        ) : (
+          <>
         {!loading && items.length === 0 && (
           <div className="mt-4 md:mt-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-sm dark:bg-amber-500/15 dark:border-amber-500/40 dark:text-amber-200">
             <p className="font-medium">{t('kingBazaarMarket.noTimeSlots', { title })}</p>
@@ -375,6 +314,8 @@ const KingBazaarMarket = () => {
             })
           )}
         </div>
+          </>
+        )}
       </div>
 
       {/* Closed Market Modal */}

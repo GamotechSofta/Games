@@ -87,32 +87,35 @@ export const getTickets = async (req, res) => {
         }
         if (status) query.status = status;
 
-        // Filter by specific bookie (super_admin only): tickets from users whose referredBy = bookieId
         if (bookieId && req.admin?.role === 'super_admin') {
             const userIdsForBookie = await User.find({ referredBy: bookieId }).select('_id').lean();
             const ids = userIdsForBookie.map((u) => u._id);
-            if (query.userId && query.userId.$in) {
-                query.userId = { $in: query.userId.$in.filter((id) => ids.some((x) => x.toString() === id.toString())) };
-            } else {
-                query.userId = { $in: ids };
-            }
+            query.userId = query.userId?.$in
+                ? { $in: query.userId.$in.filter((id) => ids.some((x) => x.toString() === id.toString())) }
+                : { $in: ids };
         }
 
-        // Filter by user source: bookie user vs admin user (super_admin)
         if (userSource === 'bookie' || userSource === 'super_admin') {
-            const sourceUserIds = await User.find({ source: userSource }).select('_id').lean();
+            const sourceFilter = userSource === 'bookie'
+                ? { referredBy: { $ne: null, $exists: true } }
+                : { $or: [{ referredBy: null }, { referredBy: { $exists: false } }] };
+            const sourceUserIds = await User.find(sourceFilter).select('_id').lean();
             const ids = sourceUserIds.map((u) => u._id);
-            if (query.userId && query.userId.$in) {
-                query.userId = { $in: query.userId.$in.filter((id) => ids.some((x) => x.toString() === id.toString())) };
-            } else {
-                query.userId = { $in: ids };
-            }
+            query.userId = query.userId?.$in
+                ? { $in: query.userId.$in.filter((id) => ids.some((x) => x.toString() === id.toString())) }
+                : { $in: ids };
         }
+
+        const parsedLimit = Number.parseInt(String(req.query.limit || 200), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 200;
 
         const tickets = await HelpDesk.find(query)
             .populate({ path: 'userId', select: 'username email source referredBy', populate: { path: 'referredBy', select: 'username' } })
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean();
 
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({ success: true, data: tickets });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

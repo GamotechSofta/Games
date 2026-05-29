@@ -3,6 +3,7 @@ import Bet from '../models/bet/bet.js';
 import User from '../models/user/user.js';
 import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
+import { getRatesMap } from '../models/rate/rate.js';
 import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
@@ -203,19 +204,20 @@ export const placeBet = async (req, res) => {
         const betIds = [];
         const createdBets = [];
         try {
-            for (const { betType, betNumber, amount, betOn } of sanitized) {
-                const bet = await Bet.create({
-                    userId,
-                    marketId,
-                    betOn,
-                    betType,
-                    betNumber,
-                    amount,
-                    status: 'pending',
-                    payout: 0,
-                    scheduledDate: scheduledDateObj,
-                    isScheduled: isScheduled,
-                });
+            const betDocs = sanitized.map(({ betType, betNumber, amount, betOn }) => ({
+                userId,
+                marketId,
+                betOn,
+                betType,
+                betNumber,
+                amount,
+                status: 'pending',
+                payout: 0,
+                scheduledDate: scheduledDateObj,
+                isScheduled: isScheduled,
+            }));
+            const inserted = await Bet.insertMany(betDocs, { ordered: true });
+            for (const bet of inserted) {
                 betIds.push(bet._id);
                 createdBets.push(bet);
             }
@@ -303,23 +305,78 @@ export const getMyBetHistory = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid userId' });
         }
 
-        // Get user's bets from last 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const parsedDays = Number.parseInt(String(req.query.days || 30), 10);
+        const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 30;
+        const parsedLimit = Number.parseInt(String(req.query.limit || 200), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 200;
+
+        const since = new Date();
+        since.setDate(since.getDate() - days);
 
         const bets = await Bet.find({
             userId,
-            createdAt: { $gte: thirtyDaysAgo }
+            createdAt: { $gte: since },
         })
             .populate({ path: 'marketId', select: 'marketName closingTime marketType', model: Market })
             .sort({ createdAt: -1 })
-            .limit(500)
+            .limit(limit)
             .lean();
 
+        res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
         res.status(200).json({ success: true, data: bets });
     } catch (error) {
         console.error('[getMyBetHistory]', error.message || error);
         res.status(500).json({ success: false, message: error.message || 'Failed to fetch bet history' });
+    }
+};
+
+/**
+ * Combined bootstrap for My Bets screen: bets + rates + markets in one round trip.
+ * Query: userId (required), days?, limit?
+ */
+export const getMyBetsBootstrap = async (req, res) => {
+    try {
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid userId' });
+        }
+
+        const parsedDays = Number.parseInt(String(req.query.days || 30), 10);
+        const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 30;
+        const parsedLimit = Number.parseInt(String(req.query.limit || 200), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 200;
+
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+
+        const [bets, rates, markets] = await Promise.all([
+            Bet.find({ userId, createdAt: { $gte: since } })
+                .populate({ path: 'marketId', select: 'marketName closingTime marketType startingTime', model: Market })
+                .sort({ createdAt: -1 })
+                .limit(limit)
+                .lean(),
+            getRatesMap(),
+            Market.find({
+                $or: [{ marketType: 'main' }, { marketType: { $exists: false } }, { marketType: '' }],
+            })
+                .select('marketName closingTime marketType startingTime betClosureTime openingNumber closingNumber')
+                .sort({ startingTime: 1 })
+                .limit(100)
+                .lean(),
+        ]);
+
+        res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+        res.status(200).json({
+            success: true,
+            data: { bets, rates, markets },
+        });
+    } catch (error) {
+        console.error('[getMyBetsBootstrap]', error.message || error);
+        res.status(500).json({ success: false, message: error.message || 'Failed to fetch my bets bootstrap' });
     }
 };
 
@@ -350,7 +407,8 @@ export const getBetHistory = async (req, res) => {
             .populate('userId', 'username email')
             .populate({ path: 'marketId', select: 'marketName marketType', model: Market })
             .sort({ createdAt: -1 })
-            .limit(1000);
+            .limit(1000)
+            .lean();
 
         res.status(200).json({ success: true, data: bets });
     } catch (error) {
@@ -567,20 +625,26 @@ export const getTopWinners = async (req, res) => {
             dateFilter.createdAt = { $gte: monthAgo };
         }
 
-        const matchStage = { status: 'won', ...dateFilter };
+        const allBetsMatch = { ...dateFilter };
         if (bookieUserIds !== null) {
-            matchStage.userId = { $in: bookieUserIds };
+            allBetsMatch.userId = { $in: bookieUserIds };
         }
 
         const winners = await Bet.aggregate([
-            { $match: matchStage },
+            { $match: allBetsMatch },
             {
                 $group: {
                     _id: '$userId',
-                    totalWins: { $sum: 1 },
-                    totalWinnings: { $sum: '$payout' },
+                    totalBets: { $sum: 1 },
+                    totalWins: {
+                        $sum: { $cond: [{ $eq: ['$status', 'won'] }, 1, 0] },
+                    },
+                    totalWinnings: {
+                        $sum: { $cond: [{ $eq: ['$status', 'won'] }, '$payout', 0] },
+                    },
                 },
             },
+            { $match: { totalWins: { $gt: 0 } } },
             {
                 $lookup: {
                     from: 'users',
@@ -599,22 +663,27 @@ export const getTopWinners = async (req, res) => {
                     },
                     totalWins: 1,
                     totalWinnings: 1,
+                    totalBets: 1,
+                    winRate: {
+                        $cond: [
+                            { $gt: ['$totalBets', 0] },
+                            {
+                                $round: [
+                                    { $multiply: [{ $divide: ['$totalWins', '$totalBets'] }, 100] },
+                                    2,
+                                ],
+                            },
+                            0,
+                        ],
+                    },
                 },
             },
             { $sort: { totalWinnings: -1 } },
             { $limit: 50 },
         ]);
 
-        // Calculate win rate
-        const winnersWithRate = await Promise.all(
-            winners.map(async (winner) => {
-                const totalBets = await Bet.countDocuments({ userId: winner._id, ...dateFilter });
-                const winRate = totalBets > 0 ? ((winner.totalWins / totalBets) * 100).toFixed(2) : 0;
-                return { ...winner, winRate };
-            })
-        );
-
-        res.status(200).json({ success: true, data: winnersWithRate });
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+        res.status(200).json({ success: true, data: winners });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

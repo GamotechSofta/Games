@@ -520,6 +520,77 @@ export const createUser = async (req, res) => {
 };
 
 /**
+ * Admin All Users page: one round trip for all player/bookie/admin lists.
+ */
+export const getAdminUsersBootstrap = async (req, res) => {
+    try {
+        const isSuperAdmin = req.admin?.role === 'super_admin';
+        const bookieUserIds = await getBookieUserIds(req.admin);
+        const bookieFilter = bookieUserIds !== null ? { _id: { $in: bookieUserIds } } : {};
+        const userSelect = 'username email phone role isActive source referredBy lastActiveAt createdAt +lastLoginIp +lastLoginDeviceId +loginDevices';
+
+        const queries = [
+            User.find(bookieFilter)
+                .select(userSelect)
+                .populate('referredBy', 'username')
+                .sort({ createdAt: -1 })
+                .limit(500)
+                .lean(),
+            User.find({ ...bookieFilter, $or: [{ referredBy: null }, { referredBy: { $exists: false } }] })
+                .select(userSelect)
+                .populate('referredBy', 'username')
+                .sort({ createdAt: -1 })
+                .limit(500)
+                .lean(),
+            User.find({ ...bookieFilter, referredBy: { $ne: null, $exists: true } })
+                .select(userSelect)
+                .populate('referredBy', 'username')
+                .sort({ referredBy: 1, createdAt: -1 })
+                .limit(500)
+                .lean(),
+        ];
+
+        if (isSuperAdmin) {
+            queries.push(
+                Admin.find({ role: 'bookie' }).select('-password').sort({ createdAt: -1 }).lean(),
+                Admin.find({ role: 'super_admin' }).select('-password').lean(),
+            );
+        }
+
+        const results = await Promise.all(queries);
+
+        let allUsers = addOnlineStatus(await addWalletBalanceToUsers(results[0] || []));
+        let superAdminUsers = addOnlineStatus(await addWalletBalanceToUsers(results[1] || []));
+        let bookieUsers = addOnlineStatus(await addWalletBalanceToUsers(results[2] || []));
+
+        if (bookieUsers.length > 0) {
+            bookieUsers.sort((a, b) => {
+                const bookieA = a.referredBy?.username || '';
+                const bookieB = b.referredBy?.username || '';
+                if (bookieA !== bookieB) return bookieA.localeCompare(bookieB);
+                return new Date(b.createdAt) - new Date(a.createdAt);
+            });
+        }
+
+        const data = {
+            allUsers,
+            superAdminUsers,
+            bookieUsers,
+        };
+
+        if (isSuperAdmin && results.length >= 5) {
+            data.bookies = results[3] || [];
+            data.superAdmins = results[4] || [];
+        }
+
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
+        res.status(200).json({ success: true, data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
  * Get users with optional filter.
  * filter=all (default): all users; super_admin sees all, bookie sees only their users.
  * filter=super_admin: users where source=super_admin or (referredBy=null) - super admin's users only.

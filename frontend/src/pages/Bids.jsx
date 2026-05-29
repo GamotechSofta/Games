@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
-import { getRatesCurrent, getMyBetHistory, cancelBet, updateUserBalance } from '../api/bets';
+import { cancelBet, updateUserBalance } from '../api/bets';
+import useMyBetsBootstrap from '../hooks/useMyBetsBootstrap';
+import useMarketResultHistory from '../hooks/useMarketResultHistory';
 import ResultDatePicker from '../components/ResultDatePicker';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -263,15 +264,17 @@ const Bids = () => {
   const [draftStatuses, setDraftStatuses] = useState([]);
   const [draftMarkets, setDraftMarkets] = useState([]);
 
-  const [markets, setMarkets] = useState([]);
-  const [ratesMap, setRatesMap] = useState(null);
-  const [apiBets, setApiBets] = useState([]);
-  const [betsLoading, setBetsLoading] = useState(true);
-  const [resultsLoading, setResultsLoading] = useState(true);
+  const {
+    bets: apiBets,
+    ratesMap,
+    markets,
+    loading: betsLoading,
+    invalidate: invalidateBetsBootstrap,
+    refetch: refetchBetsBootstrap,
+  } = useMyBetsBootstrap();
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
-  const [localVersion, setLocalVersion] = useState(0);
 
   // Keep selected desktop panel on refresh (via ?tab=...) and sync activeTitle when language changes
   useEffect(() => {
@@ -337,96 +340,18 @@ const Bids = () => {
   const todayKey = useMemo(() => toDateKeyIST(new Date()), []);
 
   const [resultsDate, setResultsDate] = useState(() => new Date());
-  const [resultsRows, setResultsRows] = useState([]);
-
-  const fetchMarkets = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/markets/get-markets`);
-      const data = await res.json();
-      if (data?.success && Array.isArray(data?.data)) {
-        setMarkets(data.data);
-      }
-    } catch {
-      // ignore
-    }
-  };
-
-  const fetchHistory = async () => {
-    try {
-      const dateKey = toDateKeyIST(resultsDate) || toDateKeyIST(new Date());
-      const res = await fetch(`${API_BASE_URL}/markets/result-history?date=${encodeURIComponent(dateKey)}`);
-      const data = await res.json();
-      if (data?.success && Array.isArray(data?.data)) {
-        const mapped = data.data.map((x) => ({
-          id: x?._id || `${x?.marketId || ''}-${x?.dateKey || ''}`,
-          name: (x?.marketName || '').toString().trim().toUpperCase(),
-          result: (x?.displayResult || '***-**-***').toString().trim(),
-          startingTime: x?.startingTime || null,
-          closingTime: x?.closingTime || null,
-        })).filter((x) => x.name);
-        mapped.sort((a, b) => a.name.localeCompare(b.name));
-        setResultsRows(mapped);
-      } else {
-        setResultsRows([]);
-      }
-    } catch {
-      setResultsRows([]);
-    } finally {
-      setResultsLoading(false);
-    }
-  };
+  const resultsDateKey = useMemo(() => toDateKeyIST(resultsDate), [resultsDate]);
+  const {
+    rows: resultsRows,
+    loading: resultsLoading,
+    refetch: refetchResults,
+  } = useMarketResultHistory(resultsDateKey);
 
   const refetchAll = async () => {
-    setResultsLoading(true);
-    await Promise.all([fetchMarkets(), fetchHistory()]);
+    await Promise.all([refetchBetsBootstrap(), refetchResults()]);
   };
 
-  useEffect(() => {
-    let alive = true;
-    const run = async () => {
-      await fetchMarkets();
-    };
-    run();
-    const id = setInterval(run, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, []);
-
   useRefreshOnMarketReset(refetchAll);
-  useEffect(() => {
-    let alive = true;
-    getRatesCurrent().then((result) => {
-      if (!alive) return;
-      if (result?.success && result?.data) setRatesMap(result.data);
-    });
-    return () => { alive = false; };
-  }, []);
-
-  // Fetch bets from API
-  useEffect(() => {
-    let alive = true;
-    setBetsLoading(true);
-    const fetchBets = async () => {
-      if (!alive) return;
-      try {
-        const result = await getMyBetHistory();
-        if (!alive) return;
-        if (result?.success && Array.isArray(result?.data)) {
-          setApiBets(result.data);
-        }
-      } finally {
-        if (alive) setBetsLoading(false);
-      }
-    };
-    fetchBets();
-    const id = setInterval(fetchBets, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
-  }, [localVersion]);
 
   // Function to check if a bet can be cancelled
   const canCancelBet = (bet) => {
@@ -536,8 +461,7 @@ const Bids = () => {
           text: t('bids.cancelBetSuccess', { amount: result.data?.refundedAmount || 0 })
         });
         
-        // Refresh bet list
-        setLocalVersion(v => v + 1);
+        invalidateBetsBootstrap();
         
         // Clear message after 5 seconds
         setTimeout(() => {
@@ -579,20 +503,6 @@ const Bids = () => {
   useEffect(() => {
     const k = toDateKeyIST(resultsDate);
     if (k && k > todayKey) setResultsDate(new Date());
-  }, [resultsDate, todayKey]);
-
-  useEffect(() => {
-    let alive = true;
-    setResultsLoading(true);
-    const run = async () => {
-      await fetchHistory();
-    };
-    run();
-    const id = setInterval(run, 30000);
-    return () => {
-      alive = false;
-      clearInterval(id);
-    };
   }, [resultsDate, todayKey]);
 
   const desktopRows = useMemo(() => {

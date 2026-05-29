@@ -41,7 +41,7 @@ const Markets = () => {
     const fetchMarkets = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}/markets/get-markets?marketType=main&_t=${Date.now()}`);
+            const response = await adminFetch(`${API_BASE_URL}/markets/get-markets?marketType=main&fields=home`);
             const data = await response.json();
             if (data.success) {
                 setMarkets(data.data || []);
