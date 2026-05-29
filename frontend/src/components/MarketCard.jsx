@@ -77,7 +77,7 @@ function MarketCard({ market }) {
 
   const resultValue = market.result || '***-**-***';
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
-  const bannerImageSrc = isDarkMode ? '/marketCard.jpg' : '/marketCard-light.webp';
+  const bannerImageSrc = '/marketCard.jpg';
   const theme = isDarkMode
     ? {
         cardBg: '#141a24',
