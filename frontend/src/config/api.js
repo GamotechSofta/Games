@@ -1,14 +1,32 @@
 import { clearUserAuth } from '../utils/auth';
 
 // API Configuration – set VITE_API_BASE_URL in Render (or .env) for production.
+// Must resolve to .../api/v1 (backend mounts routes under /api/v1).
 // Local dev: VITE_API_BASE_URL=/api/v1 + Vite proxy (vite.config.js) avoids CORS.
-const _api =
+/** @param {string} raw */
+export function normalizeApiBaseUrl(raw) {
+  let url = String(raw || '').trim();
+  if (!url) return '';
+
+  url = url.replace(/\/+$/, '');
+  if (/\/api\/v1$/i.test(url)) return url;
+
+  if (url.startsWith('/')) {
+    return url === '/' ? '/api/v1' : `${url}/api/v1`;
+  }
+
+  return `${url}/api/v1`;
+}
+
+const _raw =
   import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.DEV ? 'http://localhost:3010/api/v1' : '');
 
+const _api = normalizeApiBaseUrl(_raw) || _raw;
+
 export const API_BASE_URL = _api || 'http://localhost:3010/api/v1';
 
-const isRelativeApi = typeof _api === 'string' && _api.startsWith('/');
+const isRelativeApi = typeof API_BASE_URL === 'string' && API_BASE_URL.startsWith('/');
 
 export const BACKEND_BASE_URL =
   import.meta.env.VITE_BACKEND_BASE_URL ||
