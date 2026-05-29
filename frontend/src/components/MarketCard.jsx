@@ -281,10 +281,10 @@ function MarketCard({ market }) {
               borderRadius: 999,
               border: isDarkMode
                 ? (isOpen ? '1px solid rgba(52,211,153,0.5)' : '1px solid rgba(248,113,113,0.45)')
-                : '1px solid rgba(239,68,68,0.55)',
+                : (isOpen ? '1px solid rgba(34,197,94,0.55)' : '1px solid rgba(239,68,68,0.55)'),
               background: isDarkMode
                 ? (isOpen ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.22)')
-                : '#ef4444',
+                : (isOpen ? '#22c55e' : '#ef4444'),
               color: isDarkMode ? (isOpen ? '#86efac' : '#fecaca') : '#ffffff',
               fontSize: 8,
               fontWeight: 800,
