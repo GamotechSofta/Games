@@ -127,11 +127,10 @@ const KingBazaarMarket = () => {
   const { t } = useTranslation();
   const marketKey = (location.state?.marketKey || location.state?.key || '').toString().trim().toLowerCase();
   const marketLabel = (location.state?.marketLabel || location.state?.label || 'King Bazaar').toString();
+  const manualPick = location.state?.manualPick === true;
   const pickingGroup = !marketKey;
 
-  const { groups: kingGroups, loading: groupsLoading, refetch: refetchGroups } = useMarketGroups('king', {
-    enabled: pickingGroup,
-  });
+  const { groups: kingGroups, loading: groupsLoading, refetch: refetchGroups } = useMarketGroups('king');
   const { items, loading: slotsLoading, refetch: refetchSlots } = useSpecialMarketSlots({
     marketType: 'king',
     groupKey: marketKey,
@@ -149,13 +148,13 @@ const KingBazaarMarket = () => {
   }, []);
 
   useEffect(() => {
-    if (!pickingGroup || kingGroups.length !== 1) return;
+    if (!pickingGroup || manualPick || kingGroups.length !== 1) return;
     const g = kingGroups[0];
     navigate('/king-bazaar-market', {
       replace: true,
       state: { marketKey: g.key, marketLabel: g.label || 'King Bazaar' },
     });
-  }, [pickingGroup, kingGroups, navigate]);
+  }, [pickingGroup, manualPick, kingGroups, navigate]);
 
   useRefreshOnMarketReset(() => {
     if (pickingGroup) refetchGroups();
@@ -168,6 +167,18 @@ const KingBazaarMarket = () => {
     });
   };
 
+  const handleBack = () => {
+    if (marketKey) {
+      if (!groupsLoading && kingGroups.length <= 1) {
+        navigate('/');
+        return;
+      }
+      navigate('/king-bazaar-market', { replace: true, state: { manualPick: true } });
+      return;
+    }
+    navigate('/');
+  };
+
   const title = marketLabel || 'King Bazaar';
 
   return (
@@ -176,13 +187,7 @@ const KingBazaarMarket = () => {
         <div className="flex items-center gap-3 md:gap-4">
           <button
             type="button"
-            onClick={() => {
-              if (marketKey) {
-                navigate('/king-bazaar-market', { replace: true, state: {} });
-              } else {
-                navigate('/');
-              }
-            }}
+            onClick={handleBack}
             className={`w-11 h-11 flex items-center justify-center active:scale-95 transition shrink-0 ${iconBtn}`}
             aria-label={t('common.back')}
           >
