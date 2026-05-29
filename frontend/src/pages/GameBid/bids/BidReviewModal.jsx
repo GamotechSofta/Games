@@ -34,6 +34,7 @@ const renderBetNumber = (val) => {
 const BidReviewModal = ({
   open,
   onClose,
+  onAfterSuccessClose,
   onSubmit,
   marketTitle,
   dateText,
@@ -69,8 +70,8 @@ const BidReviewModal = ({
     };
   }, [open, stage]);
 
-  // Keep showing success popup even if parent sets open=false after submit.
-  if (!open && stage !== 'success') return null;
+  // Keep modal visible while submitting and on success (parent may close `open` too early).
+  if (!open && stage !== 'success' && !submitting) return null;
 
   const before = open ? liveBalance : (Number(walletBefore) || getStoredWalletBalance());
   const amount = Number(totalAmount) || 0;
@@ -166,10 +167,15 @@ const BidReviewModal = ({
                   <path className="success-check-path" strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <div className="mt-6 text-center">
-                <div className="text-[#43b36a] font-semibold text-base sm:text-lg">
+              <div className="mt-6 text-center px-2">
+                <div className="text-[#43b36a] font-bold text-lg sm:text-xl">
                   {t('gameBid.betPlacedSuccessfully')}
                 </div>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  {t('gameBid.betPlacedSuccessfullyHint', {
+                    defaultValue: 'Your bet has been recorded successfully.',
+                  })}
+                </p>
               </div>
             </div>
             <div className="px-6 pb-6">
@@ -177,7 +183,8 @@ const BidReviewModal = ({
                 type="button"
                 onClick={() => {
                   setStage('review');
-                  handleClose();
+                  const done = onAfterSuccessClose || onClose;
+                  if (done) done();
                 }}
                 className="w-full bg-gradient-to-r from-red-700 to-red-600 text-white font-bold py-3.5 rounded-lg shadow-md active:scale-[0.99] transition-transform hover:from-red-600 hover:to-red-500"
               >

@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { useBettingWindow } from '../BettingWindowContext';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { generateDPCommon, validateDigit } from './dpCommonGenerator';
 
 const DPCommon = ({ market, title }) => {
@@ -149,11 +150,12 @@ const DPCommon = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
 
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
+    };
 
-        setIsReviewOpen(false);
+    const resetAfterSuccessfulBet = () => {
         setReviewRows([]);
         clearLocal();
         const todayStr = new Date().toISOString().split('T')[0];
@@ -163,7 +165,7 @@ const DPCommon = ({ market, title }) => {
         } catch (e) {}
     };
 
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
     const marketTitle = market?.gameName || market?.marketName || title;
     const { allowed: bettingAllowed } = useBettingWindow();
 
@@ -334,6 +336,10 @@ const DPCommon = ({ market, title }) => {
             <BidReviewModal
                 open={isReviewOpen}
                 onClose={() => setIsReviewOpen(false)}
+                onAfterSuccessClose={() => {
+                    setIsReviewOpen(false);
+                    resetAfterSuccessfulBet();
+                }}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}

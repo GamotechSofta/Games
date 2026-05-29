@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { bidStatValue, bidLabelStrong, bidTableHeader, bidRowBg } from '../../../styles/appTheme';
 
 const SingleDigitBid = ({ market, title }) => {
@@ -11,32 +12,8 @@ const SingleDigitBid = ({ market, title }) => {
     const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    });
-    
-    // Save to localStorage when date changes
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
     const showWarning = (msg) => {
         setWarning(msg);
         window.clearTimeout(showWarning._t);
@@ -85,7 +62,7 @@ const SingleDigitBid = ({ market, title }) => {
     const bulkBidsCount = bids.length;
     const bulkTotalPoints = bids.reduce((sum, b) => sum + Number(b.points || 0), 0);
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
     const marketTitle = market?.gameName || market?.marketName || title;
 
     const walletBefore = useMemo(() => {
@@ -133,7 +110,6 @@ const SingleDigitBid = ({ market, title }) => {
     };
 
     const clearAll = () => {
-        setIsReviewOpen(false);
         setBids([]);
         setInputPoints('');
         // Reset scheduled date to today after bet is placed
@@ -163,11 +139,9 @@ const SingleDigitBid = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
         
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
     };
 
     const submitBtnClass = (enabled) =>
@@ -447,7 +421,7 @@ const SingleDigitBid = ({ market, title }) => {
 
             <BidReviewModal
                 open={isReviewOpen}
-                onClose={clearAll}
+                onClose={() => { setIsReviewOpen(false); clearAll(); }}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}

@@ -446,6 +446,7 @@
     "selectGameType": "गेम प्रकार चुनें",
     "enterSingleDigit": "सिंगल अंक दर्ज करें",
     "betPlacedSuccessfully": "आपकी बेट सफलतापूर्वक लगी",
+    "betPlacedSuccessfullyHint": "आपकी बेट सफलतापूर्वक दर्ज हो गई है।",
     "ok": "ठीक है",
     "submitBet": "बेट सबमिट करें",
     "totalBets": "कुल बेट",

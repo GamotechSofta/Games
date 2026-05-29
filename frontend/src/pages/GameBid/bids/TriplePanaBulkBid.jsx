@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 
 const isValidTriplePana = (n) => {
     const s = (n ?? '').toString().trim();
@@ -119,11 +120,9 @@ const TriplePanaBulkBid = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
 
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
     };
 
     const handleAddBid = () => {
@@ -182,7 +181,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
         };
     }, [bids, totalPoints, inputNumber, inputPoints]);
     const isPanaInvalid = !!inputNumber && inputNumber.length === 3 && !isValidTriplePana(inputNumber);
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
     const marketTitle = market?.gameName || market?.marketName || title;
 
     const submitBtnClass = (enabled) =>

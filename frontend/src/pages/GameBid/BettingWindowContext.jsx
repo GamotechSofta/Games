@@ -88,15 +88,25 @@ function MarketClosedModal({ market, allowed }) {
     );
 }
 
-export function BettingWindowProvider({ market, children }) {
-    const [windowState, setWindowState] = useState(() => computeWindowState(market));
+export function BettingWindowProvider({ market, scheduleForTomorrow = false, children }) {
+    const [windowState, setWindowState] = useState(() =>
+        scheduleForTomorrow
+            ? { allowed: true, closeOnly: false, message: null }
+            : computeWindowState(market),
+    );
 
     useEffect(() => {
-        const tick = () => setWindowState(computeWindowState(market));
+        const tick = () => {
+            if (scheduleForTomorrow) {
+                setWindowState({ allowed: true, closeOnly: false, message: null });
+                return;
+            }
+            setWindowState(computeWindowState(market));
+        };
         tick();
         const id = setInterval(tick, 1000);
         return () => clearInterval(id);
-    }, [market?._id, market?.id, market?.startingTime, market?.closingTime, market?.betClosureTime]);
+    }, [market?._id, market?.id, market?.startingTime, market?.closingTime, market?.betClosureTime, scheduleForTomorrow]);
 
     const value = useMemo(
         () => ({

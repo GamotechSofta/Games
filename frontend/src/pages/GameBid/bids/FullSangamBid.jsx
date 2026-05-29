@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { isValidAnyPana } from './panaRules';
 
 const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').slice(0, maxLen);
@@ -54,7 +55,7 @@ const FullSangamBid = ({ market, title }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
     const totalPoints = useMemo(() => bids.reduce((sum, b) => sum + Number(b.points || 0), 0), [bids]);
 
     const submitBtnClass = (enabled) =>
@@ -63,7 +64,6 @@ const FullSangamBid = ({ market, title }) => {
             : 'w-full bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
 
     const clearAll = () => {
-        setIsReviewOpen(false);
         setOpenPana('');
         setClosePana('');
         setPoints('');
@@ -97,10 +97,9 @@ const FullSangamBid = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
 
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        clearAll();
     };
 
     const handleAdd = () => {
@@ -371,7 +370,7 @@ const FullSangamBid = ({ market, title }) => {
 
             <BidReviewModal
                 open={isReviewOpen}
-                onClose={clearAll}
+                onClose={() => { setIsReviewOpen(false); clearAll(); }}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}

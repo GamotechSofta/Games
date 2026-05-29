@@ -4,6 +4,7 @@ import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { useBettingWindow } from '../BettingWindowContext';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 
 const sanitizeDigits = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 10);
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -199,11 +200,13 @@ const DpMotorBid = ({ market, title }) => {
     selectedDateObj.setHours(0, 0, 0, 0);
     const scheduledDate = selectedDateObj > today ? selectedDate : null;
 
-    const result = await placeBet(marketId, payload, scheduledDate);
+    const result = await placeBet(marketId, payload, scheduledDateForApi);
     if (!result.success) throw new Error(result.message);
     if (result.data?.newBalance != null)
       updateUserBalance(result.data.newBalance);
-    setIsReviewOpen(false);
+  };
+
+  const resetAfterSuccessfulBet = () => {
     clearLocal();
     setReviewRows([]);
     const todayStr = new Date().toISOString().split('T')[0];
@@ -213,7 +216,7 @@ const DpMotorBid = ({ market, title }) => {
     } catch (e) {}
   };
 
-  const dateText = new Date().toLocaleDateString('en-GB');
+  const dateText = reviewDateText;
   const marketTitle = market?.gameName || market?.marketName || title;
   const { allowed: bettingAllowed } = useBettingWindow();
   const walletBefore = useMemo(() => {
@@ -410,6 +413,10 @@ const DpMotorBid = ({ market, title }) => {
       <BidReviewModal
         open={isReviewOpen}
         onClose={() => setIsReviewOpen(false)}
+        onAfterSuccessClose={() => {
+          setIsReviewOpen(false);
+          resetAfterSuccessfulBet();
+        }}
         onSubmit={handleSubmitBet}
         marketTitle={marketTitle}
         dateText={dateText}

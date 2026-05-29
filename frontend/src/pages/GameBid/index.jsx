@@ -50,6 +50,12 @@ const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { market, betType } = location.state || {};
+    const scheduleForTomorrow =
+        location.state?.scheduleForTomorrow === true ||
+        (market &&
+            market.status === 'closed' &&
+            market.marketType !== 'startline' &&
+            market.marketType !== 'king');
 
     useEffect(() => {
         if (!market && !location.state?.title) {
@@ -62,7 +68,7 @@ const GameBid = () => {
     const BidComponent = BID_COMPONENTS[key] || SingleDigitBid;
 
     return (
-        <BettingWindowProvider market={market}>
+        <BettingWindowProvider market={market} scheduleForTomorrow={scheduleForTomorrow === true}>
             <BidComponent market={market} title={title} />
         </BettingWindowProvider>
     );

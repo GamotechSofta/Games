@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
 import { formatWalletAmount, getStoredWalletBalance } from '../../utils/walletBalance';
+import { getBetDisplayDate } from '../../utils/scheduledBetDate';
 
 const BidLayout = ({
     market,
@@ -42,7 +43,10 @@ const BidLayout = ({
     const { t } = useTranslation();
     const contentRef = useRef(null);
     const { allowed: bettingAllowed, closeOnly: bettingCloseOnly } = useBettingWindow();
+    const scheduleForTomorrow = location.state?.scheduleForTomorrow === true;
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    const scheduledDisplayDate =
+        displayDate || (scheduleForTomorrow ? getBetDisplayDate(true, null) : null);
     const [wallet, setWallet] = useState(() =>
         Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getStoredWalletBalance()
     );
@@ -179,12 +183,12 @@ const BidLayout = ({
                             </div>
                             <input
                                 type="text"
-                                value={displayDate || todayDate}
+                                value={scheduledDisplayDate || todayDate}
                                 readOnly
                                 className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${bidInput} ${dateSessionControlClassName}`}
                             />
                         </div>
-                        {displayDate && displayDate !== todayDate && (
+                        {scheduledDisplayDate && scheduledDisplayDate !== todayDate && (
                             <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-gray-50 text-red-700 border border-red-200 dark:bg-gray-950/35 dark:text-red-200 dark:border-red-900/60">
                                 {t('gameBid.scheduled')}
                             </span>

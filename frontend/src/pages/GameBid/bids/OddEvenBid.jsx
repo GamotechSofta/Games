@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 
 const ODD_DIGITS = [1, 3, 5, 7, 9];
 const EVEN_DIGITS = [0, 2, 4, 6, 8];
@@ -74,7 +75,7 @@ const OddEvenBid = ({ market, title }) => {
     };
 
     const totalPoints = bids.reduce((sum, b) => sum + Number(b.points), 0);
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
     const marketTitle = market?.gameName || market?.marketName || title;
     const isRunning = market?.status === 'running';
 
@@ -109,15 +110,18 @@ const OddEvenBid = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
 
-        const result = await placeBet(marketId, bets, scheduledDate);
+        const result = await placeBet(marketId, bets, scheduledDateForApi);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
     };
 
     const handleCancelBet = () => {
         setIsReviewOpen(false);
+    };
+
+    const handleAfterSuccess = () => {
+        setIsReviewOpen(false);
+        clearAll();
     };
 
     const handleOpenSubmit = () => {
@@ -307,6 +311,7 @@ const OddEvenBid = ({ market, title }) => {
             <BidReviewModal
                 open={isReviewOpen}
                 onClose={handleCancelBet}
+                onAfterSuccessClose={handleAfterSuccess}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}

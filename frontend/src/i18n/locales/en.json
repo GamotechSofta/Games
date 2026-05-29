@@ -597,6 +597,7 @@
     "selectGameType": "Select Game Type",
     "enterSingleDigit": "Enter Single Digit",
     "betPlacedSuccessfully": "Your Bet Placed Successfully",
+    "betPlacedSuccessfullyHint": "Your bet has been recorded successfully.",
     "ok": "OK",
     "totalBets": "Total Bets",
     "totalBetAmount": "Total Bet Amount",

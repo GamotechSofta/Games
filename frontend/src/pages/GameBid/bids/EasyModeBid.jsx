@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 
 const EasyModeBid = ({
     market,
@@ -39,32 +40,8 @@ const EasyModeBid = ({
     const [warning, setWarning] = useState('');
     const [matchingPanas, setMatchingPanas] = useState([]);
     const [selectedSum, setSelectedSum] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    });
-    
-    // Save to localStorage when date changes
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
     const showWarning = (msg) => {
         setWarning(msg);
         window.clearTimeout(showWarning._t);
@@ -402,7 +379,7 @@ const EasyModeBid = ({
         lastAutoAddKeyRef.current = key;
         handleAddBid();
     }, [inputNumber, inputPoints, session, maxLength, labelKey]);
-    const dateText = new Date().toLocaleDateString('en-GB'); // dd/mm/yyyy
+    const dateText = reviewDateText;
     const marketTitle = market?.gameName || market?.marketName || title;
     const showInvalidNumberStyle = maxLength === 3; // Pana inputs
     const isNumberComplete = !!inputNumber && (!!maxLength ? String(inputNumber).length === maxLength : true);
@@ -688,6 +665,11 @@ const EasyModeBid = ({
         clearAll();
     };
 
+    const handleReviewClose = () => {
+        setIsReviewOpen(false);
+        clearAll();
+    };
+
     const handleSubmitBet = async () => {
         const marketId = market?._id || market?.id;
         if (!marketId) throw new Error('Market not found');
@@ -702,18 +684,9 @@ const EasyModeBid = ({
         })).filter((b) => b.betNumber && b.amount > 0);
         if (!payload.length) throw new Error('No valid bets to place');
         
-        // Check if date is in the future (scheduled bet)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const selectedDateObj = new Date(selectedDate);
-        selectedDateObj.setHours(0, 0, 0, 0);
-        const scheduledDate = selectedDateObj > today ? selectedDate : null;
-        
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message || 'Failed to place bet');
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
     };
 
     return (
@@ -736,6 +709,7 @@ const EasyModeBid = ({
             showDateSession={true}
             showSessionOnMobile={true}
             extraHeader={null}
+            displayDate={displayDate}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
         >
@@ -1102,7 +1076,7 @@ const EasyModeBid = ({
 
             <BidReviewModal
                 open={isReviewOpen}
-                onClose={handleCancelBet}
+                onClose={handleReviewClose}
                 onSubmit={handleSubmitBet}
                 marketTitle={marketTitle}
                 dateText={dateText}

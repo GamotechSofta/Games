@@ -3,6 +3,7 @@ import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
+import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 // Valid Single Panna chart (as per screenshots) grouped by sum digit (0-9)
@@ -28,32 +29,8 @@ const SinglePanaBulkBid = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
     const [isReviewOpen, setIsReviewOpen] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                // Only restore if saved date is in the future (not today)
-                if (savedDate > today) {
-                    return savedDate;
-                }
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        const today = new Date();
-        return today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    });
-    
-    // Save to localStorage when date changes
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
     const [reviewRows, setReviewRows] = useState([]);
 
     const showWarning = (msg) => {
@@ -86,7 +63,7 @@ const SinglePanaBulkBid = ({ market, title }) => {
     }, []);
 
     const marketTitle = market?.gameName || market?.marketName || title;
-    const dateText = new Date().toLocaleDateString('en-GB');
+    const dateText = reviewDateText;
 
     const singlePanas = useMemo(() => buildSinglePanas(), []);
     const [specialInputs, setSpecialInputs] = useState(() =>
@@ -115,7 +92,6 @@ const SinglePanaBulkBid = ({ market, title }) => {
     );
 
     const clearAll = () => {
-        setIsReviewOpen(false);
         setReviewRows([]);
         setSpecialInputs(Object.fromEntries(singlePanas.map((n) => [n, ''])));
         setGroupBulk(Object.fromEntries(Array.from({ length: 10 }, (_, d) => [String(d), ''])));
@@ -130,7 +106,10 @@ const SinglePanaBulkBid = ({ market, title }) => {
         }
     };
 
-    const handleCancel = () => clearAll();
+    const handleCancel = () => {
+        setIsReviewOpen(false);
+        clearAll();
+    };
     const handleSubmit = async () => {
         const marketId = market?._id || market?.id;
         if (!marketId) throw new Error('Market not found');
@@ -148,11 +127,9 @@ const SinglePanaBulkBid = ({ market, title }) => {
         selectedDateObj.setHours(0, 0, 0, 0);
         const scheduledDate = selectedDateObj > today ? selectedDate : null;
         
-        const result = await placeBet(marketId, payload, scheduledDate);
+        const result = await placeBet(marketId, payload, scheduledDateForApi);
         if (!result.success) throw new Error(result.message);
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
-        setIsReviewOpen(false);
-        clearAll();
     };
 
     const openReview = () => {
