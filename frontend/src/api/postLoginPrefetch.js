@@ -2,13 +2,13 @@ import { prefetchHomeBootstrap, prefetchMainMarkets } from './prefetchHome';
 import { prefetchMyBetsBootstrap } from './prefetchBets';
 import { prefetchSpecialMarketGroups } from './prefetchSpecialMarkets';
 
-/** Markets + home bootstrap first; heavy bet/group prefetches when idle. */
+/** Markets, home, and bet history up front; starline/king groups when idle. */
 export function schedulePostLoginPrefetch() {
   void prefetchMainMarkets();
   void prefetchHomeBootstrap();
+  void prefetchMyBetsBootstrap();
 
   const deferHeavy = () => {
-    void prefetchMyBetsBootstrap();
     void prefetchSpecialMarketGroups();
   };
 

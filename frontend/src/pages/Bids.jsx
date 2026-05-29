@@ -345,7 +345,7 @@ const Bids = () => {
     rows: resultsRows,
     loading: resultsLoading,
     refetch: refetchResults,
-  } = useMarketResultHistory(resultsDateKey);
+  } = useMarketResultHistory(resultsDateKey, { enabled: isGameResultsPanel });
 
   const refetchAll = async () => {
     await Promise.all([refetchBetsBootstrap(), refetchResults()]);
@@ -513,7 +513,8 @@ const Bids = () => {
       const session = (bet?.betOn || '').toString().trim().toUpperCase();
       const market = (bet?.marketId?.marketName || '').toString().trim() || 'MARKET';
       const marketKey = normalizeMarketName(market);
-      const m = marketByName.get(marketKey) || bet.marketId;
+      const m =
+        bet.marketId && typeof bet.marketId === 'object' ? bet.marketId : marketByName.get(marketKey);
       
       // If bet is already settled, use that status
       let verdict;
@@ -552,7 +553,7 @@ const Bids = () => {
         statusLabel, 
         marketType,
         createdAt: bet.createdAt,
-        canCancel: canCancelBet(bet),
+        canCancel: bet.status === 'pending' ? canCancelBet(bet) : { canCancel: false, reason: '' },
       };
     });
   }, [desktopBetHistory.items, marketByName, ratesMap]);

@@ -329,7 +329,11 @@ export const getMyBetHistory = async (req, res) => {
             userId,
             createdAt: { $gte: since },
         })
-            .populate({ path: 'marketId', select: 'marketName closingTime marketType', model: Market })
+            .populate({
+                path: 'marketId',
+                select: 'marketName closingTime marketType startingTime openingNumber closingNumber',
+                model: Market,
+            })
             .sort({ createdAt: -1 })
             .limit(limit)
             .lean();
@@ -365,21 +369,26 @@ export const getMyBetsBootstrap = async (req, res) => {
         const since = new Date();
         since.setDate(since.getDate() - days);
 
-        const [bets, rates, markets] = await Promise.all([
+        const marketSelect =
+            'marketName closingTime marketType startingTime betClosureTime openingNumber closingNumber';
+
+        const [bets, rates] = await Promise.all([
             Bet.find({ userId, createdAt: { $gte: since } })
-                .populate({ path: 'marketId', select: 'marketName closingTime marketType startingTime', model: Market })
+                .populate({ path: 'marketId', select: marketSelect, model: Market })
                 .sort({ createdAt: -1 })
                 .limit(limit)
                 .lean(),
             getRatesMap(),
-            Market.find({
-                $or: [{ marketType: 'main' }, { marketType: { $exists: false } }, { marketType: '' }],
-            })
-                .select('marketName closingTime marketType startingTime betClosureTime openingNumber closingNumber')
-                .sort({ startingTime: 1 })
-                .limit(100)
-                .lean(),
         ]);
+
+        const marketsById = new Map();
+        for (const bet of bets) {
+            const m = bet.marketId;
+            if (m && typeof m === 'object' && m._id) {
+                marketsById.set(String(m._id), m);
+            }
+        }
+        const markets = Array.from(marketsById.values());
 
         res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
         res.status(200).json({

@@ -244,10 +244,8 @@ export async function getMyBetHistory({ days = 30, limit = 200 } = {}) {
   return data;
 }
 
-let myBetsBootstrapCacheKey = '';
-
 export function clearMyBetsBootstrapCache() {
-  myBetsBootstrapCacheKey = '';
+  /* React Query owns cache; kept for callers after cancel bet */
 }
 
 export function clearMyBetHistoryCache() {
@@ -255,7 +253,7 @@ export function clearMyBetHistoryCache() {
 }
 
 /**
- * Single round-trip for My Bets screen: bets + rates + markets.
+ * Single round-trip for My Bets screen: bets + rates + markets (from populated bets).
  * @param {{ days?: number, limit?: number }} [options]
  */
 export async function fetchMyBetsBootstrap({ days = 30, limit = 200 } = {}) {
@@ -270,13 +268,8 @@ export async function fetchMyBetsBootstrap({ days = 30, limit = 200 } = {}) {
     days: String(days),
     limit: String(limit),
   });
-  const cacheKey = params.toString();
-  if (myBetsBootstrapCacheKey === cacheKey) {
-    const cached = getSessionCache(`myBetsBootstrap.${cacheKey}`);
-    if (cached) return cached;
-  }
 
-  return runSharedRequest(`myBetsBootstrap.${cacheKey}`, async () => {
+  return runSharedRequest(`myBetsBootstrap.${params.toString()}`, async () => {
     const response = await fetch(`${API_BASE_URL}/bets/my-bootstrap?${params.toString()}`);
     if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
@@ -285,8 +278,6 @@ export async function fetchMyBetsBootstrap({ days = 30, limit = 200 } = {}) {
       return { success: false, message: data.message || 'Failed to fetch my bets data' };
     }
 
-    myBetsBootstrapCacheKey = cacheKey;
-    setSessionCache(`myBetsBootstrap.${cacheKey}`, data, 30 * 1000);
     return data;
   });
 }
