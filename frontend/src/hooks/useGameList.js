@@ -10,7 +10,7 @@ const getBaseApi = () => API_BASE_URL.replace(/\/api\/v1\/?$/, '');
 
 export default function useGameList({ staleMs = DEFAULT_STALE_MS, limit = DEFAULT_LIMIT } = {}) {
   const useBootstrap = limit === DEFAULT_LIMIT;
-  const bootstrap = useHomeBootstrap({ marketLimit: 24, gameLimit: limit });
+  const bootstrap = useHomeBootstrap({ marketLimit: 24, gameLimit: limit, enabled: useBootstrap });
   const bootstrapUnavailable =
     bootstrap.error?.code === 'HOME_BOOTSTRAP_UNAVAILABLE' ||
     bootstrap.error?.message === 'HOME_BOOTSTRAP_UNAVAILABLE';

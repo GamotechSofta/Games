@@ -23,7 +23,7 @@ const toMarketNameKey = (name) => {
 const Section1 = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { markets: rawMarkets, loading, refetch } = useMainMarkets({ limit: 100, refreshMs: 0 });
+  const { markets: rawMarkets, loading, refetch } = useMainMarkets();
 
   // Convert 24-hour time to 12-hour format
   const formatTime = (time24) => {

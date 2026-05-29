@@ -1,9 +1,10 @@
-import { prefetchHomeBootstrap } from './prefetchHome';
+import { prefetchHomeBootstrap, prefetchMainMarkets } from './prefetchHome';
 import { prefetchMyBetsBootstrap } from './prefetchBets';
 import { prefetchSpecialMarketGroups } from './prefetchSpecialMarkets';
 
-/** Home data first; heavy bet/group prefetches after navigation so login feels instant. */
+/** Markets + home bootstrap first; heavy bet/group prefetches when idle. */
 export function schedulePostLoginPrefetch() {
+  void prefetchMainMarkets();
   void prefetchHomeBootstrap();
 
   const deferHeavy = () => {

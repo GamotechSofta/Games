@@ -2,9 +2,18 @@ import { queryClient } from '../queryClient';
 import { fetchHomeBootstrap } from './home';
 import { transformMarkets } from '../utils/homeTransforms';
 import { updateUserBalance } from './bets';
+import { fetchMainMarkets, mainMarketsQueryKey } from '../hooks/useMainMarkets';
 
 const DEFAULT_MARKET_LIMIT = 24;
 const DEFAULT_GAME_LIMIT = 12;
+
+export function prefetchMainMarkets() {
+  return queryClient.prefetchQuery({
+    queryKey: mainMarketsQueryKey(false),
+    queryFn: () => fetchMainMarkets(false),
+    staleTime: 60 * 1000,
+  });
+}
 
 export function prefetchHomeBootstrap() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');

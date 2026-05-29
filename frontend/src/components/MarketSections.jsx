@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
@@ -56,8 +56,7 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction =
 export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [, setTick] = React.useState(0);
-  const { markets, loading, error, refetch } = useMainMarkets({ limit: 100 });
+  const { markets, loading, error, refetch } = useMainMarkets();
 
   const getMarketDisplayName = useCallback(
     (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
@@ -70,11 +69,6 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   );
 
   const isSearching = Boolean(searchQuery.trim());
-
-  useEffect(() => {
-    const id = setInterval(() => setTick((tick) => tick + 1), 60000);
-    return () => clearInterval(id);
-  }, []);
 
   useRefreshOnMarketReset(refetch);
 

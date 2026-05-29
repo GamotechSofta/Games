@@ -9,9 +9,11 @@ const DEFAULT_GAME_LIMIT = 12;
 export default function useHomeBootstrap({
   marketLimit = DEFAULT_MARKET_LIMIT,
   gameLimit = DEFAULT_GAME_LIMIT,
+  enabled = true,
 } = {}) {
   return useQuery({
     queryKey: ['homeBootstrap', marketLimit, gameLimit],
+    enabled,
     queryFn: async () => {
       const data = await fetchHomeBootstrap({ marketLimit, gameLimit });
       if (data?.wallet?.balance != null) {
