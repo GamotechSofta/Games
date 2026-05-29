@@ -36,6 +36,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3010;
+let dbReady = false;
 
 const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
 const signatureEnabled = String(process.env.GAP_SIGNATURE_ENABLED || 'false').toLowerCase() === 'true';
@@ -77,8 +78,6 @@ console.log("Hello World!!");
 validateEnvConfig();
 logCorsConfig({ isProd });
 
-connectDB();
-
 app.set('trust proxy', 1);
 
 app.use(cors(getCorsOptions({ isProd })));
@@ -107,10 +106,22 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
     return res.status(200).json({
         success: true,
-        status: 'ok',
+        status: dbReady ? 'ok' : 'starting',
         service: 'games-backend',
+        dbReady,
         timestamp: new Date().toISOString(),
     });
+});
+
+app.use('/api', (req, res, next) => {
+    if (!dbReady) {
+        return res.status(503).json({
+            success: false,
+            message: 'Database connection is not ready. Please retry in a moment.',
+            code: 'DB_NOT_READY',
+        });
+    }
+    next();
 });
 
 // Temporary: verify real client IP behind Render proxy
@@ -228,8 +239,20 @@ cron.schedule('30 18 * * *', async () => {
 });
 
 
-const httpServer = http.createServer(app);
-initPlayerSocket(httpServer, { isProd });
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+async function startServer() {
+    try {
+        await connectDB();
+        dbReady = true;
+
+        const httpServer = http.createServer(app);
+        initPlayerSocket(httpServer, { isProd });
+        httpServer.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error?.message || error);
+        process.exit(1);
+    }
+}
+
+startServer();

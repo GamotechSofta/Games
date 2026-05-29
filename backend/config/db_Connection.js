@@ -4,14 +4,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+const isProd = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 
 const MONGO_OPTIONS = {
   maxPoolSize: 20,
   minPoolSize: 2,
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 15000,
+  connectTimeoutMS: 15000,
   socketTimeoutMS: 45000,
   maxIdleTimeMS: 60000,
+  autoIndex: !isProd,
 };
 
 const connectDB = async () => {

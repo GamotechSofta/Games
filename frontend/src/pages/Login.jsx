@@ -4,8 +4,13 @@ import { loginWithPassword, signupUser } from '../services/otpAuthApi';
 import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import aakdaLogo from '../config/logo';
+<<<<<<< Updated upstream
 import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
 import { setUserAuth } from '../utils/auth';
+=======
+import { prefetchPlayerSessionData } from '../api/prefetchSession';
+import { getApiErrorMessage } from '../utils/apiErrorMessage';
+>>>>>>> Stashed changes
 
 const Login = () => {
   const navigate = useNavigate();
@@ -81,6 +86,7 @@ const Login = () => {
       }
       if (!data.success) return setError(data.message || 'Request failed');
 
+<<<<<<< Updated upstream
       setUserAuth({ user: data.data || {}, token: data.token });
       showToast(data.message || 'Authentication successful', 'success');
       void import('../pages/Home');
@@ -90,6 +96,18 @@ const Login = () => {
       const message = err?.response?.data?.message || 'Network error. Please try again.';
       setError(message);
       showToast(message, 'error');
+=======
+      localStorage.setItem('user', JSON.stringify(data.data || {}));
+      if (data.token) localStorage.setItem('userToken', data.token);
+      void prefetchPlayerSessionData();
+      window.dispatchEvent(new Event('userLogin'));
+      showToast(data.message || 'Authentication successful', 'success');
+      navigate('/');
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Authentication failed');
+      setError(msg);
+      showToast(msg, 'error');
+>>>>>>> Stashed changes
     } finally {
       setLoading(false);
     }

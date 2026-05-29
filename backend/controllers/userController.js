@@ -5,22 +5,13 @@ import bcrypt from 'bcryptjs';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
+<<<<<<< Updated upstream
 import { generateUserToken } from '../utils/jwt.js';
+=======
+import { isMongoTimeoutError, DB_QUERY_MS } from '../utils/mongoErrors.js';
+>>>>>>> Stashed changes
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-const DB_QUERY_MS = 8000;
-
-const isMongoTimeoutError = (error) => {
-    const name = error?.name || '';
-    const message = String(error?.message || '');
-    return (
-        name === 'MongoServerError' && error?.code === 50
-        || name === 'MongoNetworkTimeoutError'
-        || name === 'MongoServerSelectionError'
-        || message.includes('timed out')
-        || message.includes('timeout')
-    );
-};
 
 const addWalletBalanceToUsers = async (users) => {
     if (!users || users.length === 0) return users;
@@ -59,13 +50,13 @@ export const userLogin = async (req, res) => {
         const userSelect = '+password +loginDevices +failedLoginAttempts +accountLockedUntil';
         const findOpts = { maxTimeMS: DB_QUERY_MS };
 
-        // Try to find user by phone first, then by username
-        let user = normalizedPhone.length >= 10
-            ? await User.findOne({ phone: normalizedPhone }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean()
+        const loginFilters = [];
+        if (normalizedPhone.length >= 10) loginFilters.push({ phone: normalizedPhone });
+        if (username) loginFilters.push({ username: String(username).trim() });
+
+        const user = loginFilters.length > 0
+            ? await User.findOne({ $or: loginFilters }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean()
             : null;
-        if (!user && username) {
-            user = await User.findOne({ username: String(username).trim() }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean();
-        }
         
         if (!user) {
             return res.status(401).json({
@@ -101,15 +92,16 @@ export const userLogin = async (req, res) => {
         if (!isPasswordValid) {
             const attempts = Number(user.failedLoginAttempts || 0) + 1;
             const shouldLock = attempts >= 5;
-            await User.updateOne(
+            User.updateOne(
                 { _id: user._id },
                 {
                     $set: {
                         failedLoginAttempts: shouldLock ? 0 : attempts,
                         accountLockedUntil: shouldLock ? new Date(Date.now() + (15 * 60 * 1000)) : null,
                     },
-                }
-            );
+                },
+                findOpts,
+            ).catch(() => {});
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials',
@@ -151,10 +143,14 @@ export const userLogin = async (req, res) => {
             update.loginDevices = loginDevices;
         }
 
+<<<<<<< Updated upstream
         const walletPromise = Wallet.findOne({ userId: user._id }).select('balance').maxTimeMS(DB_QUERY_MS).lean();
         const bookiePromise = user.referredBy
             ? Admin.findById(user.referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
             : Promise.resolve(null);
+=======
+        User.updateOne({ _id: user._id }, { $set: update }, findOpts).catch(() => {});
+>>>>>>> Stashed changes
 
         const [wallet, bookie] = await Promise.all([walletPromise, bookiePromise]);
         const balance = wallet?.balance ?? 0;

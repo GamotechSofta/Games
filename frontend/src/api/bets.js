@@ -100,9 +100,13 @@ export async function placeBet(marketId, bets, scheduledDate) {
 
   if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    return { success: false, message: data.message || 'Failed to place bet' };
+    return {
+      success: false,
+      message: data.message || 'Failed to place bet',
+      code: data.code,
+    };
   }
   return data;
 }

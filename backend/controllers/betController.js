@@ -9,6 +9,7 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
+import { isMongoTimeoutError, DB_QUERY_MS } from '../utils/mongoErrors.js';
 
 const VALID_BET_TYPES = [
     'single',
@@ -66,7 +67,11 @@ export const placeBet = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid marketId' });
         }
 
-        const user = await User.findById(userId).select('isActive').lean();
+        const [user, market] = await Promise.all([
+            User.findById(userId).select('isActive').maxTimeMS(DB_QUERY_MS).lean(),
+            Market.findById(marketId).maxTimeMS(DB_QUERY_MS).lean(),
+        ]);
+
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -78,7 +83,6 @@ export const placeBet = async (req, res) => {
             });
         }
 
-        const market = await Market.findById(marketId).lean();
         if (!market) {
             return res.status(404).json({ success: false, message: 'Market not found' });
         }
@@ -157,21 +161,23 @@ export const placeBet = async (req, res) => {
             sanitized.push({ betType, betNumber, amount, betOn });
         }
 
-        let wallet = await Wallet.findOne({ userId });
-        if (!wallet) {
-            wallet = new Wallet({ userId, balance: 0 });
-            await wallet.save();
-        }
+        let wallet = await Wallet.findOneAndUpdate(
+            { userId, balance: { $gte: totalAmount } },
+            { $inc: { balance: -totalAmount } },
+            { new: true, maxTimeMS: DB_QUERY_MS },
+        );
 
-        if (wallet.balance < totalAmount) {
+        if (!wallet) {
+            const existingWallet = await Wallet.findOne({ userId }).select('balance').maxTimeMS(DB_QUERY_MS).lean();
+            if (!existingWallet) {
+                await Wallet.create([{ userId, balance: 0 }]);
+            }
+            const available = existingWallet?.balance ?? 0;
             return res.status(400).json({
                 success: false,
-                message: `Insufficient balance. Required: ₹${totalAmount}, Available: ₹${wallet.balance}`,
+                message: `Insufficient balance. Required: ₹${totalAmount}, Available: ₹${available}`,
             });
         }
-
-        wallet.balance -= totalAmount;
-        await wallet.save();
 
         // Validate scheduledDate if provided
         let scheduledDateObj = null;
@@ -179,8 +185,7 @@ export const placeBet = async (req, res) => {
         if (scheduledDate) {
             scheduledDateObj = new Date(scheduledDate);
             if (isNaN(scheduledDateObj.getTime())) {
-                wallet.balance += totalAmount;
-                await wallet.save();
+                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid scheduledDate format',
@@ -191,8 +196,7 @@ export const placeBet = async (req, res) => {
             now.setHours(0, 0, 0, 0);
             scheduledDateObj.setHours(0, 0, 0, 0);
             if (scheduledDateObj < now) {
-                wallet.balance += totalAmount;
-                await wallet.save();
+                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
                 return res.status(400).json({
                     success: false,
                     message: 'Scheduled date must be today or in the future',
@@ -222,8 +226,7 @@ export const placeBet = async (req, res) => {
                 createdBets.push(bet);
             }
         } catch (createErr) {
-            wallet.balance += totalAmount;
-            await wallet.save();
+            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
             throw createErr;
         }
 
@@ -258,8 +261,7 @@ export const placeBet = async (req, res) => {
                 );
             }
         } catch (txErr) {
-            wallet.balance += totalAmount;
-            await wallet.save();
+            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
             throw txErr;
         }
 
@@ -275,6 +277,13 @@ export const placeBet = async (req, res) => {
             },
         });
     } catch (error) {
+        if (isMongoTimeoutError(error)) {
+            return res.status(503).json({
+                success: false,
+                message: 'Database is slow or unreachable. Please try again.',
+                code: 'DB_TIMEOUT',
+            });
+        }
         if (error.name === 'CastError') {
             return res.status(400).json({ success: false, message: 'Invalid id format for user or market' });
         }

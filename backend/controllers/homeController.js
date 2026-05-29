@@ -22,7 +22,7 @@ export const getHomeBootstrap = async (req, res) => {
         const userIdRaw = (req.query.userId || '').toString().trim();
         const userId = mongoose.Types.ObjectId.isValid(userIdRaw) ? userIdRaw : null;
 
-        const [markets, games] = await Promise.all([
+        const [markets, games, walletDoc, userDoc] = await Promise.all([
             Market.find({
                 $or: [{ marketType: 'main' }, { marketType: { $exists: false } }, { marketType: '' }],
             })
@@ -35,16 +35,12 @@ export const getHomeBootstrap = async (req, res) => {
                 .sort({ createdAt: -1 })
                 .limit(limitGames)
                 .lean(),
+            userId ? Wallet.findOne({ userId }).select('balance').lean() : Promise.resolve(null),
+            userId ? User.findById(userId).select('+balance').lean() : Promise.resolve(null),
         ]);
 
         let wallet = null;
-
         if (userId) {
-            const [walletDoc, userDoc] = await Promise.all([
-                Wallet.findOne({ userId }).select('balance').lean(),
-                User.findById(userId).select('+balance').lean(),
-            ]);
-
             const balance = walletDoc?.balance ?? userDoc?.balance;
             if (balance != null) {
                 wallet = { balance: Number(balance) };
