@@ -48,27 +48,45 @@ const AllUsers = () => {
         }
     };
 
+    const parseUsersResponse = async (res, label) => {
+        const json = await res.json();
+        if (!json.success) {
+            throw new Error(json.message || `Failed to fetch ${label}`);
+        }
+        return Array.isArray(json.data) ? json.data : [];
+    };
+
     const fetchData = async (showLoader = true) => {
         const isSuperAdmin = getAdminRole() === 'super_admin';
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const res = await adminFetch(`${API_BASE_URL}/users/bootstrap`);
-            const json = await res.json();
-            if (!json.success) {
-                setError(json.message || 'Failed to fetch users');
-                return;
-            }
-            const data = json.data || {};
-            setAllUsers(data.allUsers || []);
-            setSuperAdminUsersList(data.superAdminUsers || []);
-            setBookieUsersList(data.bookieUsers || []);
+            const requests = [
+                adminFetch(`${API_BASE_URL}/users?filter=all`),
+                adminFetch(`${API_BASE_URL}/users?filter=super_admin`),
+                adminFetch(`${API_BASE_URL}/users?filter=bookie`),
+            ];
             if (isSuperAdmin) {
-                setAllBookies(data.bookies || []);
-                setSuperAdminsList(data.superAdmins || []);
+                requests.push(adminFetch(`${API_BASE_URL}/admin/bookies`));
+                requests.push(adminFetch(`${API_BASE_URL}/admin/super-admins`));
+            }
+
+            const results = await Promise.all(requests);
+
+            setAllUsers(await parseUsersResponse(results[0], 'all players'));
+            setSuperAdminUsersList(await parseUsersResponse(results[1], 'super admin players'));
+            setBookieUsersList(await parseUsersResponse(results[2], 'bookie players'));
+
+            if (isSuperAdmin && results.length >= 5) {
+                const bookiesJson = await results[3].json();
+                const superAdminsJson = await results[4].json();
+                if (!bookiesJson.success) throw new Error(bookiesJson.message || 'Failed to fetch bookies');
+                if (!superAdminsJson.success) throw new Error(superAdminsJson.message || 'Failed to fetch super admins');
+                setAllBookies(Array.isArray(bookiesJson.data) ? bookiesJson.data : []);
+                setSuperAdminsList(Array.isArray(superAdminsJson.data) ? superAdminsJson.data : []);
             }
         } catch (err) {
-            if (showLoader) setError('Failed to fetch data');
+            if (showLoader) setError(err?.message || 'Failed to fetch data');
         } finally {
             if (showLoader) setLoading(false);
         }

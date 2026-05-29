@@ -29,7 +29,7 @@ function scheduleCriticalChunkPrefetch() {
   }
 }
 
-function bootstrap() {
+function startApp() {
   createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <App />
@@ -62,4 +62,4 @@ function bootstrap() {
   }
 }
 
-bootstrap()
+startApp()

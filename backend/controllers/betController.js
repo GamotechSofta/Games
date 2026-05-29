@@ -344,61 +344,6 @@ export const getMyBetHistory = async (req, res) => {
     }
 };
 
-/**
- * Combined bootstrap for My Bets screen: bets + rates + markets in one round trip.
- * Query: userId (required), days?, limit?
- */
-export const getMyBetsBootstrap = async (req, res) => {
-    try {
-        const { userId } = req.query;
-
-        if (!userId) {
-            return res.status(400).json({ success: false, message: 'userId is required' });
-        }
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ success: false, message: 'Invalid userId' });
-        }
-
-        const parsedDays = Number.parseInt(String(req.query.days || 30), 10);
-        const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 30;
-        const parsedLimit = Number.parseInt(String(req.query.limit || 200), 10);
-        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 200;
-
-        const since = new Date();
-        since.setDate(since.getDate() - days);
-
-        const marketSelect =
-            'marketName closingTime marketType startingTime betClosureTime openingNumber closingNumber';
-
-        const [bets, rates] = await Promise.all([
-            Bet.find({ userId, createdAt: { $gte: since } })
-                .populate({ path: 'marketId', select: marketSelect, model: Market })
-                .sort({ createdAt: -1 })
-                .limit(limit)
-                .lean(),
-            getRatesMap(),
-        ]);
-
-        const marketsById = new Map();
-        for (const bet of bets) {
-            const m = bet.marketId;
-            if (m && typeof m === 'object' && m._id) {
-                marketsById.set(String(m._id), m);
-            }
-        }
-        const markets = Array.from(marketsById.values());
-
-        res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
-        res.status(200).json({
-            success: true,
-            data: { bets, rates, markets },
-        });
-    } catch (error) {
-        console.error('[getMyBetsBootstrap]', error.message || error);
-        res.status(500).json({ success: false, message: error.message || 'Failed to fetch my bets bootstrap' });
-    }
-};
-
 export const getBetHistory = async (req, res) => {
     try {
         const { userId, marketId, status, startDate, endDate } = req.query;

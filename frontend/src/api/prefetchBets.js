@@ -30,6 +30,4 @@ export function prefetchMyBetsData() {
   });
 }
 
-/** @deprecated */
-export const prefetchMyBetsBootstrap = prefetchMyBetsData;
 export const prefetchMyBetHistory = prefetchMyBetsData;

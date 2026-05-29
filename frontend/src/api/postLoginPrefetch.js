@@ -3,7 +3,7 @@ import { prefetchMyBetsData } from './prefetchBets';
 import { prefetchBankAccounts, prefetchFundsHistory, prefetchPaymentConfig } from './prefetchPayments';
 import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from './prefetchSpecialMarkets';
 
-/** Separate API prefetches (no combined bootstrap endpoints). */
+/** Separate API prefetches after login. */
 export function schedulePostLoginPrefetch() {
   void prefetchMainMarkets();
   void prefetchWalletBalance();

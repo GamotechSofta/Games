@@ -10,7 +10,7 @@ async function fetchGroups(path) {
   return Array.isArray(data.data) ? data.data : [];
 }
 
-/** Light prefetch: group lists only (no heavy bootstrap / all slots). */
+/** Light prefetch: Starline / King group lists only. */
 export function prefetchSpecialMarketGroups() {
   void queryClient.prefetchQuery({
     queryKey: ['marketGroups', 'starline'],

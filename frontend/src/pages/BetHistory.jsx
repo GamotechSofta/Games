@@ -239,7 +239,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const [selectedMarkets, setSelectedMarkets] = useState([]); // normalized market keys
   const [selectedBidOptions, setSelectedBidOptions] = useState([]); // bid option keys
   const {
-    bets: bootstrapBets,
+    bets: historyBets,
     ratesMap,
     markets,
     loading: betsLoading,
@@ -276,13 +276,13 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     const uid = u?._id || u?.id || u?.userId || u?.userid || u?.user_id || u?.uid || null;
     
     // Filter API bets by scope
-    const scoped = (bootstrapBets || []).filter((bet) => {
+    const scoped = (historyBets || []).filter((bet) => {
       const marketTitle = bet?.marketId?.marketName || '';
       return inScope(marketTitle);
     });
 
     return { userId: uid, bets: scoped };
-  }, [scope, bootstrapBets]);
+  }, [scope, historyBets]);
 
   const flat = useMemo(() => {
     // Convert API bets to the expected format for the UI

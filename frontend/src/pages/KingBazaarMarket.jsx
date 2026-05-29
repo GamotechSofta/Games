@@ -300,7 +300,7 @@ const KingBazaarMarket = () => {
                     }}
                     className={`shrink-0 border rounded-full px-2 min-[375px]:px-2.5 sm:px-3 md:px-4 py-1.5 min-[375px]:py-2 sm:py-2.5 flex items-center gap-1 min-[375px]:gap-1.5 sm:gap-2 transition-colors ${
                       isClickable
-                        ? 'bg-[#D32F2F] border-[#D32F2F] text-white hover:bg-[#c62828] dark:bg-[#D32F2F] dark:border-[#D32F2F] dark:hover:bg-[#c62828]'
+                        ? 'bg-gradient-to-r from-emerald-600 to-green-500 border-emerald-600 text-white hover:from-emerald-500 hover:to-green-400 dark:border-emerald-500'
                         : 'bg-gray-100 border-gray-300 text-gray-700 dark:bg-gray-700/50 dark:border-white/10 dark:text-gray-200'
                     }`}
                   >
