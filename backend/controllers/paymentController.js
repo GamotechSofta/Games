@@ -20,8 +20,17 @@ import { toClientPayment } from '../utils/paymentDisplay.js';
 
 // ============ CONFIG API ============
 
+const LIMITS_CACHE_TTL_MS = 60 * 1000;
+let limitsCache = null;
+let limitsCacheAt = 0;
+
 /** Get min/max deposit and withdrawal from Settings (admin-set) or env fallback. */
 async function getPaymentLimits() {
+    const now = Date.now();
+    if (limitsCache && now - limitsCacheAt < LIMITS_CACHE_TTL_MS) {
+        return limitsCache;
+    }
+
     const defaults = {
         minDeposit: parseInt(process.env.MIN_DEPOSIT, 10) || 100,
         maxDeposit: parseInt(process.env.MAX_DEPOSIT, 10) || 50000,
@@ -38,6 +47,8 @@ async function getPaymentLimits() {
                 if (!Number.isNaN(num)) result[d.key] = num;
             }
         }
+        limitsCache = result;
+        limitsCacheAt = now;
         return result;
     } catch {
         return defaults;
@@ -50,6 +61,7 @@ async function getPaymentLimits() {
 export const getPaymentConfig = async (req, res) => {
     try {
         const limits = await getPaymentLimits();
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
         res.status(200).json({
             success: true,
             data: {

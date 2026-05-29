@@ -1,17 +1,40 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
-import { AddFund, WithdrawFund, BankDetail, AddFundHistory, WithdrawFundHistory } from './funds/index';
 import FundsSidebar from './funds/FundsSidebar';
 import FundsContentArea from './funds/FundsContentArea';
+
+const AddFund = lazy(() => import('./funds/AddFund'));
+const WithdrawFund = lazy(() => import('./funds/WithdrawFund'));
+const BankDetail = lazy(() => import('./funds/BankDetail'));
+const AddFundHistory = lazy(() => import('./funds/AddFundHistory'));
+const WithdrawFundHistory = lazy(() => import('./funds/WithdrawFundHistory'));
+
+const TAB_COMPONENTS = {
+  'add-fund': AddFund,
+  'withdraw-fund': WithdrawFund,
+  'bank-detail': BankDetail,
+  'add-fund-history': AddFundHistory,
+  'withdraw-fund-history': WithdrawFundHistory,
+};
+
+function FundsTabFallback() {
+  return (
+    <div className="px-3 py-6 max-w-[520px] md:max-w-none mx-auto md:mx-0 animate-pulse space-y-4">
+      <div className="h-32 rounded-2xl bg-gray-200 dark:bg-white/10" />
+      <div className="h-12 rounded-xl bg-gray-200 dark:bg-white/10" />
+      <div className="h-12 rounded-xl bg-gray-200 dark:bg-white/10" />
+    </div>
+  );
+}
 
 const Funds = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const items = useMemo(() => ([
     {
       key: 'add-fund',
@@ -19,7 +42,6 @@ const Funds = () => {
       subtitle: t('funds.addFundSubtitle'),
       color: '#34a853',
       icon: <span className="text-3xl font-extrabold text-black leading-none">₹</span>,
-      component: AddFund,
     },
     {
       key: 'withdraw-fund',
@@ -31,7 +53,6 @@ const Funds = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m-4-4l4 4 4-4M16 6a6 6 0 00-8 0" />
         </svg>
       ),
-      component: WithdrawFund,
     },
     {
       key: 'bank-detail',
@@ -43,7 +64,6 @@ const Funds = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M4 10l8-4 8 4" />
         </svg>
       ),
-      component: BankDetail,
     },
     {
       key: 'add-fund-history',
@@ -56,7 +76,6 @@ const Funds = () => {
           <circle cx="12" cy="12" r="8" />
         </svg>
       ),
-      component: AddFundHistory,
     },
     {
       key: 'withdraw-fund-history',
@@ -69,102 +88,68 @@ const Funds = () => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 12a8 8 0 11-2.343-5.657" />
         </svg>
       ),
-      component: WithdrawFundHistory,
     },
   ]), [t]);
 
   const { isDesktop } = useBreakpoint();
   const tabParam = searchParams.get('tab');
-  const [activeKey, setActiveKey] = useState(() => (tabParam && items.some((i) => i.key === tabParam)) ? tabParam : (items[0]?.key || 'add-fund'));
-  const [mobileView, setMobileView] = useState(() => (!isDesktop && tabParam && items.some((i) => i.key === tabParam)) ? tabParam : null); // mobile: null = list, key = detail
-  const userJustSelectedTabRef = useRef(false);
-  const lastSyncedTabRef = useRef(tabParam);
+  const defaultKey = 'add-fund';
+  const [activeKey, setActiveKey] = useState(() =>
+    tabParam && items.some((i) => i.key === tabParam) ? tabParam : defaultKey,
+  );
+  const [mobileView, setMobileView] = useState(() =>
+    !isDesktop && tabParam && items.some((i) => i.key === tabParam) ? tabParam : null,
+  );
 
-  // Sync activeKey to URL: on desktop always; on mobile push when opening a sub-view. Preserve other params (e.g. step) when updating tab.
   useEffect(() => {
-    const desiredTab = (!isDesktop && mobileView === null) ? null : activeKey;
-    if (desiredTab === null) {
-      if (tabParam != null) {
-        lastSyncedTabRef.current = null;
-        setSearchParams((prev) => {
-          const next = new URLSearchParams(prev);
-          next.delete('tab');
-          next.delete('step');
-          return next;
-        }, { replace: true });
-      }
-      return;
-    }
-    if (lastSyncedTabRef.current === desiredTab) return;
-    if (tabParam === desiredTab) return;
-    lastSyncedTabRef.current = desiredTab;
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('tab', desiredTab);
-      next.delete('step');
-      return next;
-    }, { replace: isDesktop });
-  }, [activeKey, isDesktop, mobileView, tabParam]);
-
-  // Sync tabParam from URL to state when navigating (e.g. device back or external link). Don't reset mobileView to list when tabParam is still null after a tap — URL updates async.
-  useEffect(() => {
-    if (tabParam && items.some((i) => i.key === tabParam)) {
-      userJustSelectedTabRef.current = false;
-      lastSyncedTabRef.current = tabParam;
-      if (tabParam !== activeKey) {
-        setActiveKey(tabParam);
-      }
-      if (!isDesktop && tabParam !== mobileView) {
-        setMobileView(tabParam);
-      }
-    } else if (!tabParam || !items.some((i) => i.key === tabParam)) {
-      lastSyncedTabRef.current = null;
-      // No tab or invalid tab → show list. Don't reset when user just tapped a tab (URL hasn't updated yet).
-      if (!userJustSelectedTabRef.current) {
-        if (activeKey !== (items[0]?.key || 'add-fund')) {
-          setActiveKey(items[0]?.key || 'add-fund');
-        }
-        if (!isDesktop && mobileView !== null) {
-          setMobileView(null);
-        }
-      }
-    }
-  }, [tabParam, activeKey, mobileView, isDesktop, items]);
-
-  // Device/hardware back: ensure we sync to list when user presses browser back (popstate).
-  useEffect(() => {
-    const handlePopState = () => {
-      userJustSelectedTabRef.current = false;
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+    if (!tabParam || !items.some((i) => i.key === tabParam)) return;
+    setActiveKey(tabParam);
+    if (!isDesktop) setMobileView(tabParam);
+  }, [tabParam, isDesktop, items]);
 
   const activeItem = items.find((i) => i.key === activeKey) || items[0];
   const mobileDetailItem = mobileView ? items.find((i) => i.key === mobileView) : null;
-  const ActiveComponent = activeItem?.component;
+  const ActiveComponent = TAB_COMPONENTS[activeKey] || TAB_COMPONENTS[defaultKey];
   const showList = mobileView === null || isDesktop;
   const showContent = mobileView !== null || isDesktop;
 
-  const handleItemClick = useCallback((key) => {
-    if (key == null) return;
-    userJustSelectedTabRef.current = true;
-    setActiveKey(key);
-    if (!isDesktop) {
-      setMobileView(key);
-      // Do not setSearchParams here — the sync effect will push one history entry. Otherwise we push twice and device back needs two presses.
-    }
-  }, [isDesktop]);
+  const setTabInUrl = useCallback(
+    (key) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (key) next.set('tab', key);
+          else next.delete('tab');
+          next.delete('step');
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const handleItemClick = useCallback(
+    (key) => {
+      if (key == null) return;
+      setActiveKey(key);
+      if (!isDesktop) {
+        setMobileView(key);
+        setTabInUrl(key);
+      } else {
+        setTabInUrl(key);
+      }
+    },
+    [isDesktop, setTabInUrl],
+  );
 
   const handleMobileBack = () => {
-    userJustSelectedTabRef.current = false;
     setMobileView(null);
     if (!isDesktop) {
       navigate({ pathname: '/funds', search: '' }, { replace: true });
     }
   };
 
-  // Back from main Funds list: same behaviour as My Bets (desktop → home, mobile → prev or home).
   const isFundsPath = (p) => !p || p === '/funds' || p.startsWith('/funds?');
   const handleBack = () => {
     if (mobileView) {
@@ -187,12 +172,12 @@ const Funds = () => {
     navigate('/');
   };
 
-  const isAddFundMobileView = mobileView === 'add-fund';
-  const isWithdrawFundMobileView = mobileView === 'withdraw-fund';
-  const isBankDetailMobileView = mobileView === 'bank-detail';
-  const isAddFundHistoryMobileView = mobileView === 'add-fund-history';
-  const isWithdrawFundHistoryMobileView = mobileView === 'withdraw-fund-history';
-  const shouldRemoveCardBackground = isAddFundMobileView || isWithdrawFundMobileView || isBankDetailMobileView || isAddFundHistoryMobileView || isWithdrawFundHistoryMobileView;
+  const shouldRemoveCardBackground =
+    mobileView === 'add-fund' ||
+    mobileView === 'withdraw-fund' ||
+    mobileView === 'bank-detail' ||
+    mobileView === 'add-fund-history' ||
+    mobileView === 'withdraw-fund-history';
 
   return (
     <div className="w-full text-gray-900 dark:text-white">
@@ -220,22 +205,23 @@ const Funds = () => {
         </div>
 
         <ResponsiveSidebarLayout
-          sidebar={showList ? (
-            <FundsSidebar
-              items={items}
-              activeKey={activeKey}
-              onItemClick={handleItemClick}
-            />
-          ) : null}
-          content={showContent ? (
-            <FundsContentArea
-              isDesktop={isDesktop}
-              activeItem={activeItem}
-              ActiveComponent={ActiveComponent}
-              mobileDetailItem={mobileDetailItem}
-              shouldRemoveCardBackground={shouldRemoveCardBackground}
-            />
-          ) : null}
+          sidebar={
+            showList ? (
+              <FundsSidebar items={items} activeKey={activeKey} onItemClick={handleItemClick} />
+            ) : null
+          }
+          content={
+            showContent ? (
+              <FundsContentArea
+                isDesktop={isDesktop}
+                activeItem={activeItem}
+                ActiveComponent={ActiveComponent}
+                mobileDetailItem={mobileDetailItem}
+                shouldRemoveCardBackground={shouldRemoveCardBackground}
+                tabFallback={<FundsTabFallback />}
+              />
+            ) : null
+          }
         />
       </div>
     </div>

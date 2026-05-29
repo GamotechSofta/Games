@@ -8,7 +8,6 @@ import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
-import HomeGamesPanel from './HomeGamesPanel';
 import PopularCasinoSection from './PopularCasinoSection';
 
 function MarketRow({
@@ -157,8 +156,6 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
           onAction={() => navigate('/markets?view=all')}
         />
       )}
-
-      <HomeGamesPanel category="all" titleOverride={t('games.allCasinoGames', { defaultValue: 'All Casino Games' })} />
 
       {loading ? (
         <MarketRowSkeleton scrollable={false} gapClass="gap-4" />

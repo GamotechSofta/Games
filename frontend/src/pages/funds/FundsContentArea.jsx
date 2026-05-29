@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 
 /**
  * Main content area for Funds screen: desktop (header + component) or mobile (component only).
@@ -9,7 +9,13 @@ export default function FundsContentArea({
   ActiveComponent,
   mobileDetailItem,
   shouldRemoveCardBackground,
+  tabFallback = null,
 }) {
+  const panel = ActiveComponent ? (
+    <Suspense fallback={tabFallback}>
+      <ActiveComponent />
+    </Suspense>
+  ) : null;
   if (isDesktop) {
     return (
       <main className="min-h-0 flex flex-col">
@@ -26,7 +32,7 @@ export default function FundsContentArea({
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden ios-scroll-touch max-h-[calc(100vh-280px)]">
-          {ActiveComponent && <ActiveComponent />}
+          {panel}
         </div>
       </main>
     );
@@ -40,7 +46,7 @@ export default function FundsContentArea({
           : 'min-h-[50vh] max-h-[calc(100dvh-140px)] pt-1'
       } min-h-[280px] overflow-y-auto overflow-x-hidden scrollbar-hidden ios-scroll-touch`}
     >
-      {mobileDetailItem?.component && React.createElement(mobileDetailItem.component)}
+      {mobileDetailItem && ActiveComponent ? panel : null}
     </div>
   );
 }

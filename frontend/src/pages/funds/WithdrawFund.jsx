@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import { getBalance, updateUserBalance } from '../../api/bets';
+import usePaymentConfig from '../../hooks/usePaymentConfig';
+import useBankAccounts from '../../hooks/useBankAccounts';
+import { useWallet } from '../../hooks/useWallet';
 
 const WithdrawFund = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [config, setConfig] = useState(null);
-    const [bankAccounts, setBankAccounts] = useState([]);
-    const [walletBalance, setWalletBalance] = useState(0);
-    const [pageLoading, setPageLoading] = useState(true);
+    const { config } = usePaymentConfig();
+    const { bankAccounts, isFetching: banksFetching } = useBankAccounts();
+    const { balance: walletBalance } = useWallet();
     const [amount, setAmount] = useState('');
     const [selectedBankId, setSelectedBankId] = useState('');
     const [userNote, setUserNote] = useState('');
@@ -24,66 +27,17 @@ const WithdrawFund = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     useEffect(() => {
-        let cancelled = false;
-        setPageLoading(true);
-        (async () => {
-            await Promise.all([
-                fetchConfig(),
-                fetchBankAccounts(),
-                fetchWalletBalance(),
-            ]);
-            if (!cancelled) setPageLoading(false);
-        })();
-        return () => { cancelled = true; };
-    }, []);
-
-    const fetchConfig = async () => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/payments/config`);
-            const data = await res.json();
-            if (data.success) {
-                setConfig(data.data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch config:', err);
+        if (banksFetching) return;
+        if (!bankAccounts.length) {
+            setShowNoBankAccountModal(true);
+            return;
         }
-    };
-
-    const fetchBankAccounts = async () => {
-        if (!user.id) return;
-        try {
-            const res = await fetch(`${API_BASE_URL}/bank-details?userId=${user.id}`);
-            const data = await res.json();
-            if (data.success) {
-                const accounts = data.data || [];
-                setBankAccounts(accounts);
-                // Show popup if no bank accounts
-                if (accounts.length === 0) {
-                    setShowNoBankAccountModal(true);
-                }
-                // Auto-select default account
-                const defaultAcc = accounts.find(acc => acc.isDefault);
-                if (defaultAcc) {
-                    setSelectedBankId(defaultAcc._id);
-                }
-            }
-        } catch (err) {
-            console.error('Failed to fetch bank accounts:', err);
+        setShowNoBankAccountModal(false);
+        const defaultAcc = bankAccounts.find((acc) => acc.isDefault) || bankAccounts[0];
+        if (defaultAcc) {
+            setSelectedBankId((prev) => prev || defaultAcc._id);
         }
-    };
-
-    const fetchWalletBalance = async () => {
-        if (!user.id) return;
-        try {
-            const res = await fetch(`${API_BASE_URL}/wallet/balance?userId=${user.id}`);
-            const data = await res.json();
-            if (data.success) {
-                setWalletBalance(data.data?.balance || 0);
-            }
-        } catch (err) {
-            console.error('Failed to fetch balance:', err);
-        }
-    };
+    }, [bankAccounts, banksFetching]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -104,7 +58,7 @@ const WithdrawFund = () => {
             return;
         }
 
-        if (numAmount > walletBalance) {
+        if (numAmount > (Number(walletBalance) || 0)) {
             setError(t('funds.insufficientBalanceWithdraw'));
             return;
         }
@@ -159,7 +113,10 @@ const WithdrawFund = () => {
                 setShowSuccessModal(true);
                 setAmount('');
                 setUserNote('');
-                fetchWalletBalance();
+                const balRes = await getBalance();
+                if (balRes.success && balRes.data?.balance != null) {
+                    updateUserBalance(balRes.data.balance);
+                }
             } else {
                 setError(data.message || t('funds.failedToSubmitWithdraw'));
             }
@@ -172,22 +129,6 @@ const WithdrawFund = () => {
 
     return (
         <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-            {pageLoading ? (
-                <div className="space-y-6">
-                    <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6">
-                        <div className="bg-white dark:bg-[#202124] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden skeleton-shimmer">
-                            <div className="h-8 bg-white/10 mx-4 mt-3 w-36 rounded" />
-                            <div className="h-16 bg-white/10 mx-4 my-3 rounded-xl w-2/3" />
-                            <div className="h-8 bg-white/10 mx-4 mb-3 rounded w-48" />
-                        </div>
-                    </div>
-                    <div className="px-4 sm:px-6 space-y-4">
-                        <div className="h-12 w-full rounded-xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
-                        <div className="h-14 w-full rounded-xl bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
-                    </div>
-                </div>
-            ) : (
-            <>
             <div className="rounded-2xl bg-black/0 px-4 py-4 sm:px-6 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start">
                 {/* Left: GoldenBets.com wallet card with balance and user info */}
                 <div className="md:max-w-[360px]">
@@ -299,8 +240,6 @@ const WithdrawFund = () => {
                     </form>
                 </div>
             </div>
-            </>
-            )}
 
             {/* No Bank Account Warning Modal */}
             {showNoBankAccountModal && (

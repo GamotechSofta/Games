@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import useBankAccounts from '../../hooks/useBankAccounts';
 
 const BankDetail = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [bankAccounts, setBankAccounts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { bankAccounts, isFetching, refetch } = useBankAccounts();
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -26,26 +26,6 @@ const BankDetail = () => {
     const [fetchingBankName, setFetchingBankName] = useState(false);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    useEffect(() => {
-        fetchBankAccounts();
-    }, []);
-
-    const fetchBankAccounts = async () => {
-        if (!user.id) return;
-        try {
-            setLoading(true);
-            const res = await fetch(`${API_BASE_URL}/bank-details?userId=${user.id}`);
-            const data = await res.json();
-            if (data.success) {
-                setBankAccounts(data.data || []);
-            }
-        } catch (err) {
-            setError(t('funds.failedToFetchBankAccounts'));
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const resetForm = () => {
         setFormData({
@@ -149,7 +129,7 @@ const BankDetail = () => {
                 });
                 setShowSuccessModal(true);
                 resetForm();
-                fetchBankAccounts();
+                refetch();
             } else {
                 setError(data.message || t('funds.failedToSave'));
             }
@@ -173,7 +153,7 @@ const BankDetail = () => {
             const data = await res.json();
             if (data.success) {
                 setSuccess(t('funds.bankAccountDeleted'));
-                fetchBankAccounts();
+                refetch();
             } else {
                 setError(data.message || t('funds.failedToDelete'));
             }
@@ -193,7 +173,7 @@ const BankDetail = () => {
             const data = await res.json();
             if (data.success) {
                 setSuccess(t('funds.bankAccountSetAsDefault'));
-                fetchBankAccounts();
+                refetch();
             }
         } catch (err) {
             setError(t('funds.failedToSetDefault'));
@@ -308,18 +288,8 @@ const BankDetail = () => {
             )}
 
             {/* Bank Accounts List */}
-            {loading ? (
-                <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 p-4 flex items-center justify-between gap-4 skeleton-shimmer">
-                            <div className="space-y-2 flex-1 min-w-0">
-                                <div className="h-5 w-32 bg-white/10 rounded" />
-                                <div className="h-4 w-48 bg-white/10 rounded" />
-                            </div>
-                            <div className="h-9 w-20 rounded-lg bg-white/10 shrink-0" />
-                        </div>
-                    ))}
-                </div>
+            {isFetching && bankAccounts.length === 0 ? (
+                <p className="text-center text-sm text-gray-500 py-6">{t('common.loading', { defaultValue: 'Loading...' })}</p>
             ) : bankAccounts.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10">
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,7 +5,6 @@ import { HiMiniArrowRight } from 'react-icons/hi2';
 import {
   MdLocalFireDepartment,
 } from 'react-icons/md';
-import { GAMES } from '../../config/games';
 import { HOME_QUICK_LINKS } from '../../config/homeAssets';
 import OptimizedImage from '../OptimizedImage';
 import ResponsiveCloudinaryImage from '../ResponsiveCloudinaryImage';
@@ -13,7 +12,6 @@ import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
-import useGameList from '../../hooks/useGameList';
 import MarketCard from '../MarketCard';
 
 const PopularCasinoSection = lazy(() => import('./PopularCasinoSection'));
@@ -97,67 +95,12 @@ const QUICK_LINKS = [
   },
 ];
 
-const TOP_GAME_TILES = [
-  {
-    id: 'aviator',
-    title: 'Aviator',
-    provider: 'Spribe',
-    image: GAMES.find((game) => game.id === 'aviator')?.image || null,
-    bg: 'from-[#20060a] via-[#4d0f1f] to-[#0d0608]',
-    icon: '✈',
-  },
-  {
-    id: 'andar-bahar',
-    title: 'Andar Bahar',
-    provider: 'Aakda',
-    image: null,
-    bg: 'from-[#5b0f19] via-[#8f1b1f] to-[#22100e]',
-    icon: 'A♠',
-  },
-  {
-    id: 'teen-patti',
-    title: 'Teen Patti',
-    provider: 'Aakda',
-    image: null,
-    bg: 'from-[#4f123d] via-[#8b5cf6] to-[#1f1147]',
-    icon: '3',
-  },
-  {
-    id: 'ludo',
-    title: 'Ludo',
-    provider: 'Aakda',
-    image: null,
-    bg: 'from-[#0f4c81] via-[#1d78ff] to-[#20104a]',
-    icon: '🎲',
-  },
-  {
-    id: 'king-bazaar',
-    title: 'King Bazaar',
-    provider: 'Aakda',
-    image: HOME_QUICK_LINKS.kingBazaar,
-    bg: 'from-[#2e2008] via-[#7c5310] to-[#160f05]',
-    icon: '♛',
-  },
-];
-
 const MARKET_CARD_GRID_CLASS =
   'relative h-[150px] w-full min-w-0 overflow-hidden rounded-[22px] bg-[#180707] min-[375px]:h-[158px] min-[430px]:h-[164px] min-[640px]:h-[170px]';
 const MARKET_CARD_SKELETON_BASE_CLASS =
   'rounded-[24px] border border-gray-200 bg-white skeleton-shimmer dark:border-white/10 dark:bg-[#151515]';
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 md:grid-cols-5 md:gap-3';
-
-const isAviatorGame = (game) => {
-  const id = (game?.id || game?.gameId || '').toString().trim().toLowerCase();
-  const title = (game?.title || game?.name || '').toString().trim().toLowerCase();
-  return id === 'aviator' || title === 'aviator';
-};
-
-const placeAviatorFirst = (games) => {
-  const aviatorGames = games.filter((game) => isAviatorGame(game));
-  const otherGames = games.filter((game) => !isAviatorGame(game));
-  return [...aviatorGames, ...otherGames];
-};
 
 const toMarketNameKey = (name) =>
   (name || '')
@@ -314,112 +257,16 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   );
 }
 
-function GamesSectionHeader({ title, actionLabel, onAction, isLight }) {
-  return (
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2.5">
-        <span className="grid grid-cols-2 gap-1">
-          {[0, 1, 2, 3].map((dot) => (
-            <span
-              key={dot}
-              className={`h-2.5 w-2.5 rounded-[4px] ${isLight ? 'bg-gray-400' : 'bg-white/85'}`}
-            />
-          ))}
-        </span>
-        <h2 className={`text-[15px] font-extrabold tracking-tight ${isLight ? 'text-gray-900' : 'text-white'}`}>
-          {title}
-        </h2>
-      </div>
-      <button
-        type="button"
-        onClick={onAction}
-        className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-bold transition active:scale-[0.98] ${
-          isLight
-            ? 'bg-[#2a2b2f] text-white shadow-[0_10px_24px_rgba(15,23,42,0.12)]'
-            : 'bg-[#2a2a2e] text-white shadow-[0_10px_26px_rgba(0,0,0,0.34)]'
-        }`}
-      >
-        <span>{actionLabel}</span>
-        <HiMiniArrowRight className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
-
-function TopGameCard({ game, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group relative w-[112px] shrink-0 overflow-hidden rounded-[16px] bg-[#18191d] shadow-[0_12px_28px_rgba(0,0,0,0.28)] transition active:scale-[0.98] min-[375px]:w-[122px] min-[480px]:w-[132px] min-[640px]:w-[144px]"
-    >
-      <div className={`relative h-[156px] overflow-hidden bg-gradient-to-br ${game.bg} min-[375px]:h-[166px] min-[480px]:h-[174px] min-[640px]:h-[186px]`}>
-        {game.image ? (
-          <img
-            src={game.image}
-            alt={game.title}
-            loading="lazy"
-            className="h-full w-full object-cover object-center transition-transform duration-300 group-active:scale-[1.01]"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[34px] font-black text-white/95">
-            {game.icon}
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/18 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 px-3 pb-2.5 pt-8 text-left">
-          <div className="line-clamp-2 text-[10px] font-black uppercase leading-[1.02] tracking-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">
-            {game.title}
-          </div>
-          <div className="mt-2 text-center text-[8px] font-semibold uppercase tracking-[0.16em] text-white/72">
-            {game.provider || 'Aakda'}
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
 export default function MobileHomeDashboard() {
   const { t } = useTranslation();
   const { isLight } = useTheme();
   const navigate = useNavigate();
   const [heroIndex, setHeroIndex] = useState(0);
   const { markets, loading, refetch } = useMainMarkets();
-  const { games: fetchedGames } = useGameList();
-  const [featuredGames, setFeaturedGames] = useState([]);
-
-  useEffect(() => {
-    const nextGames = placeAviatorFirst(
-      (fetchedGames || []).filter((game) => game?.image || game?.icon || game?.name),
-    )
-      .slice(0, 8)
-      .map((game, index) => ({
-        id: game._id || game.gameId || game.id || game.name || `game-${index}`,
-        title: game.name || game.title || 'Game',
-        provider: game.provider || 'Aakda',
-        image: game.image || null,
-        bg: TOP_GAME_TILES[index % TOP_GAME_TILES.length]?.bg || 'from-[#18181b] via-[#27272a] to-[#0f0f10]',
-        icon: game.icon || '🎮',
-      }));
-    if (nextGames.length) setFeaturedGames(nextGames);
-  }, [fetchedGames]);
 
   useRefreshOnMarketReset(refetch);
 
   const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
-  const topGames = useMemo(
-    () =>
-      featuredGames.length
-        ? placeAviatorFirst(featuredGames)
-        : placeAviatorFirst(
-            TOP_GAME_TILES.map((game) => {
-              const mapped = GAMES.find((entry) => entry.id === game.id);
-              return mapped ? { ...game, image: mapped.image || game.image } : game;
-            }),
-          ),
-    [featuredGames],
-  );
 
   return (
     <div className="w-full pb-8">
@@ -463,24 +310,6 @@ export default function MobileHomeDashboard() {
             )}
           </div>
         )}
-
-        <div>
-          <GamesSectionHeader
-            title={t('games.allCasinoGames', { defaultValue: 'All Casino Games' })}
-            actionLabel={t('games.allCasinoGames', { defaultValue: 'All Casino Games' })}
-            onAction={() => navigate('/games')}
-            isLight={isLight}
-          />
-          <div className="scrollbar-hidden flex gap-2.5 overflow-x-auto pb-1">
-            {topGames.map((game) => (
-              <TopGameCard
-                key={game.id}
-                game={game}
-                onClick={() => navigate('/games')}
-              />
-            ))}
-          </div>
-        </div>
 
         <div>
           <SectionHeader

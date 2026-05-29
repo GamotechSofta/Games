@@ -2,15 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import usePaymentConfig from '../../hooks/usePaymentConfig';
 
 const AddFund = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
-    const [config, setConfig] = useState(null);
+    const { config } = usePaymentConfig();
     const paySubmitInProgress = useRef(false);
     const payuVerifyDone = useRef(new Set());
-    const [configLoading, setConfigLoading] = useState(true);
     const [amount, setAmount] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,10 +18,6 @@ const AddFund = () => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showFailedModal, setShowFailedModal] = useState(false);
     const [creditedAmount, setCreditedAmount] = useState(0);
-
-    useEffect(() => {
-        fetchConfig();
-    }, []);
 
     // Handle return from PayU: verify payment and show result
     useEffect(() => {
@@ -75,22 +71,6 @@ const AddFund = () => {
             }, { replace: true });
         }
     }, [searchParams]);
-
-    const fetchConfig = async () => {
-        try {
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const userId = user?.id || '';
-            const res = await fetch(`${API_BASE_URL}/payments/config${userId ? `?userId=${userId}` : ''}`);
-            const data = await res.json();
-            if (data.success) {
-                setConfig(data.data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch config:', err);
-        } finally {
-            setConfigLoading(false);
-        }
-    };
 
     const handlePayWithPayU = async (e) => {
         e.preventDefault();
@@ -190,20 +170,7 @@ const AddFund = () => {
                 </div>
             )}
 
-            {configLoading ? (
-                <div className="rounded-2xl bg-black/0 py-4 sm:py-6 space-y-4 sm:space-y-6">
-                    <div className="bg-white dark:bg-[#202124] rounded-2xl border border-gray-200 dark:border-white/10 overflow-hidden skeleton-shimmer">
-                        <div className="h-7 sm:h-8 bg-white/10 mx-3 sm:mx-4 mt-3 w-28 sm:w-32 rounded" />
-                        <div className="h-12 sm:h-14 bg-white/10 mx-3 sm:mx-4 my-3 rounded-xl w-3/4" />
-                        <div className="h-7 sm:h-8 bg-white/10 mx-3 sm:mx-4 mb-3 rounded w-20 sm:w-24" />
-                    </div>
-                    <div className="flex justify-center gap-2">
-                        <div className="h-11 w-11 rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer shrink-0" />
-                        <div className="h-11 flex-1 max-w-[280px] sm:max-w-[320px] rounded-full bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 skeleton-shimmer" />
-                    </div>
-                </div>
-            ) : (
-                <div className="rounded-2xl bg-black/0 py-3 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start md:max-w-none">
+            <div className="rounded-2xl bg-black/0 py-3 sm:py-6 md:grid md:grid-cols-[1fr_1fr] md:gap-8 lg:gap-10 md:items-start md:max-w-none">
                     {/* Wallet balance card - compact on mobile */}
                     <div className="md:max-w-[340px] w-full">
                         <div className="bg-white dark:bg-[#202124] rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] sm:shadow-[0_18px_40px_rgba(0,0,0,0.45)] border border-gray-200 dark:border-white/10 overflow-hidden">
@@ -310,7 +277,6 @@ const AddFund = () => {
                         </div>
                     </div>
                 </div>
-            )}
 
             {showSuccessModal && (
                 <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:pb-4">

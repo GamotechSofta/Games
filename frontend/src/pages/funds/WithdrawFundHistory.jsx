@@ -1,66 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../../config/api';
+import useWithdrawalHistory from '../../hooks/useWithdrawalHistory';
 
 const WithdrawFundHistory = () => {
     const { t } = useTranslation();
-    const [withdrawals, setWithdrawals] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { withdrawals, isFetching } = useWithdrawalHistory();
     const [filter, setFilter] = useState('all');
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-    useEffect(() => {
-        fetchWithdrawals();
-    }, []);
-
-    const fetchWithdrawals = async () => {
-        if (!user.id) return;
-        try {
-            setLoading(true);
-            const [withdrawRes, walletTxRes] = await Promise.all([
-                fetch(`${API_BASE_URL}/payments/my-withdrawals?userId=${user.id}`),
-                fetch(`${API_BASE_URL}/wallet/my-transactions?userId=${user.id}&limit=500`),
-            ]);
-            const withdrawData = await withdrawRes.json();
-            const walletTxData = await walletTxRes.json();
-            const paymentWithdrawals = withdrawData.success ? (withdrawData.data || []) : [];
-            const walletDebits = walletTxData.success
-                ? (walletTxData.data || [])
-                    .filter((tx) => {
-                        const desc = String(tx.description || '').toLowerCase();
-                        if (tx.type !== 'debit') return false;
-                        if (desc.includes('bet placed')) return false;
-                        return (
-                            desc.includes('admin') ||
-                            desc.includes('bookie') ||
-                            desc.includes('withdrawal')
-                        );
-                    })
-                    .map((tx) => ({
-                        _id: `wallet-debit-${tx._id || tx.createdAt}`,
-                        amount: Number(tx.amount) || 0,
-                        status: 'approved',
-                        createdAt: tx.createdAt,
-                        processedAt: tx.createdAt,
-                        adminRemarks: tx.description || 'Wallet debit',
-                        method: 'wallet',
-                        isWalletHistory: true,
-                    }))
-                : [];
-
-            const merged = [...paymentWithdrawals, ...walletDebits].sort(
-                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-            );
-            if (withdrawData.success || walletTxData.success) {
-                setWithdrawals(merged);
-            }
-        } catch (err) {
-            console.error('Failed to fetch withdrawals:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const getStatusBadge = (status) => {
         const styles = {
@@ -83,112 +28,52 @@ const WithdrawFundHistory = () => {
         });
     };
 
-    const filteredWithdrawals = filter === 'all' 
-        ? withdrawals 
-        : withdrawals.filter(w => w.status === filter);
+    const filteredWithdrawals = filter === 'all'
+        ? withdrawals
+        : withdrawals.filter((w) => w.status === filter);
 
     const stats = {
         total: withdrawals.length,
-        pending: withdrawals.filter(w => w.status === 'pending').length,
-        approved: withdrawals.filter(w => w.status === 'approved').length,
-        rejected: withdrawals.filter(w => w.status === 'rejected').length,
+        pending: withdrawals.filter((w) => w.status === 'pending').length,
+        approved: withdrawals.filter((w) => w.status === 'approved').length,
+        rejected: withdrawals.filter((w) => w.status === 'rejected').length,
     };
 
     const totalWithdrawn = withdrawals
-        .filter(w => w.status === 'approved')
+        .filter((w) => w.status === 'approved')
         .reduce((sum, w) => sum + w.amount, 0);
 
     return (
         <div className="space-y-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]">
-            {loading ? (
-                <>
-                    <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/30 rounded-2xl p-5 border border-purple-500/30 skeleton-shimmer">
-                        <div className="h-4 w-36 bg-white/10 rounded mb-2" />
-                        <div className="h-8 w-40 bg-white/10 rounded" />
-                    </div>
-                    <div className="grid grid-cols-4 gap-3">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="p-3 rounded-xl bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 skeleton-shimmer">
-                                <div className="h-6 w-8 bg-white/10 rounded mx-auto mb-2" />
-                                <div className="h-3 w-12 bg-white/10 rounded mx-auto" />
-                            </div>
-                        ))}
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="bg-gray-50 dark:bg-[#1a1a1a] rounded-xl p-3 sm:p-4 border border-gray-200 dark:border-white/10 skeleton-shimmer">
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                    <div className="h-8 w-8 rounded-full bg-white/10" />
-                                    <div className="h-5 w-16 rounded-full bg-white/10" />
-                                </div>
-                                <div className="h-5 w-20 bg-white/10 rounded" />
-                                <div className="h-3 w-24 bg-white/10 rounded mt-1" />
-                            </div>
-                        ))}
-                    </div>
-                </>
-            ) : (
-                <>
-            {/* Total Withdrawn */}
             <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/30 rounded-2xl p-5 border border-purple-500/30">
                 <p className="text-gray-400 text-sm">{t('funds.totalWithdrawn')}</p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">₹{totalWithdrawn.toLocaleString()}</p>
             </div>
 
-            {/* Stats */}
             <div className="grid grid-cols-4 gap-3">
-                <div 
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFilter('all')}
-                    onKeyDown={(e) => e.key === 'Enter' && setFilter('all')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'all' ? 'bg-blue-600/30 border border-blue-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
-                    }`}
-                >
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">{stats.total}</p>
-                    <p className="text-xs text-gray-400">{t('funds.total')}</p>
-                </div>
-                <div 
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFilter('pending')}
-                    onKeyDown={(e) => e.key === 'Enter' && setFilter('pending')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'pending' ? 'bg-yellow-600/30 border border-yellow-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
-                    }`}
-                >
-                    <p className="text-lg font-bold text-yellow-400">{stats.pending}</p>
-                    <p className="text-xs text-gray-400">{t('funds.pending')}</p>
-                </div>
-                <div 
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFilter('approved')}
-                    onKeyDown={(e) => e.key === 'Enter' && setFilter('approved')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'approved' ? 'bg-green-600/30 border border-green-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
-                    }`}
-                >
-                    <p className="text-lg font-bold text-green-400">{stats.approved}</p>
-                    <p className="text-xs text-gray-400">{t('funds.approved')}</p>
-                </div>
-                <div 
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setFilter('rejected')}
-                    onKeyDown={(e) => e.key === 'Enter' && setFilter('rejected')}
-                    className={`p-3 rounded-xl text-center cursor-pointer transition-colors touch-manipulation ${
-                        filter === 'rejected' ? 'bg-red-600/30 border border-red-500' : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
-                    }`}
-                >
-                    <p className="text-lg font-bold text-red-400">{stats.rejected}</p>
-                    <p className="text-xs text-gray-400">{t('funds.rejected')}</p>
-                </div>
+                {[
+                    { key: 'all', label: t('funds.total'), value: stats.total, active: 'bg-blue-600/30 border border-blue-500', valueClass: 'text-gray-900 dark:text-white' },
+                    { key: 'pending', label: t('funds.pending'), value: stats.pending, active: 'bg-yellow-600/30 border border-yellow-500', valueClass: 'text-yellow-400' },
+                    { key: 'approved', label: t('funds.approved'), value: stats.approved, active: 'bg-green-600/30 border border-green-500', valueClass: 'text-green-400' },
+                    { key: 'rejected', label: t('funds.rejected'), value: stats.rejected, active: 'bg-red-600/30 border border-red-500', valueClass: 'text-red-400' },
+                ].map(({ key, label, value, active, valueClass }) => (
+                    <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFilter(key)}
+                        className={`p-3 rounded-xl text-center transition-colors touch-manipulation ${
+                            filter === key ? active : 'bg-gray-50 dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10'
+                        }`}
+                    >
+                        <p className={`text-lg font-bold ${valueClass}`}>{value}</p>
+                        <p className="text-xs text-gray-400">{label}</p>
+                    </button>
+                ))}
             </div>
 
-            {/* List */}
-            {filteredWithdrawals.length === 0 ? (
+            {isFetching && withdrawals.length === 0 ? (
+                <p className="text-center text-sm text-gray-500 py-8">{t('common.loading', { defaultValue: 'Loading...' })}</p>
+            ) : filteredWithdrawals.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 dark:bg-[#1a1a1a] rounded-xl border border-gray-200 dark:border-white/10">
                     <svg className="w-16 h-16 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -196,6 +81,7 @@ const WithdrawFundHistory = () => {
                     <p className="text-gray-400">{t('funds.noWithdrawalHistoryFound')}</p>
                     {filter !== 'all' && (
                         <button
+                            type="button"
                             onClick={() => setFilter('all')}
                             className="mt-2 text-blue-400 text-sm hover:text-blue-300"
                         >
@@ -213,7 +99,7 @@ const WithdrawFundHistory = () => {
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
                                     <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${
-                                        withdrawal.status === 'approved' ? 'bg-green-600/20' : 
+                                        withdrawal.status === 'approved' ? 'bg-green-600/20' :
                                         withdrawal.status === 'rejected' ? 'bg-red-600/20' : 'bg-yellow-600/20'
                                     }`}>
                                         {withdrawal.status === 'approved' ? (
@@ -240,7 +126,6 @@ const WithdrawFundHistory = () => {
                                 </div>
                             </div>
 
-                            {/* Bank Details */}
                             {withdrawal.bankDetailId && (
                                 <div className="mt-2 pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
                                     <p className="text-gray-400 text-[10px] sm:text-xs break-all">
@@ -259,7 +144,6 @@ const WithdrawFundHistory = () => {
                                 </div>
                             )}
 
-                            {/* Admin Remarks */}
                             {(withdrawal.adminRemarks || withdrawal.processedAt) && (
                                 <div className="mt-2 pt-2 border-t border-gray-200 dark:border-white/5 space-y-1">
                                     {withdrawal.adminRemarks && (
@@ -277,8 +161,6 @@ const WithdrawFundHistory = () => {
                         </div>
                     ))}
                 </div>
-            )}
-                </>
             )}
         </div>
     );
