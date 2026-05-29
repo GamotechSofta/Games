@@ -77,6 +77,7 @@ function MarketCard({ market }) {
 
   const resultValue = market.result || '***-**-***';
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
+  const bannerImageSrc = isDarkMode ? '/marketCard.jpg' : '/marketCard-light.webp';
   const theme = isDarkMode
     ? {
         cardBg: '#141a24',
@@ -236,7 +237,7 @@ function MarketCard({ market }) {
         {/* Banner */}
         <div style={{ position: 'relative', height: 106, overflow: 'hidden' }}>
           <img
-            src="/marketCard.jpg"
+            src={bannerImageSrc}
             alt=""
             loading="lazy"
             aria-hidden
@@ -278,9 +279,13 @@ function MarketCard({ market }) {
               top: 7,
               right: 8,
               borderRadius: 999,
-              border: isOpen ? '1px solid rgba(52,211,153,0.5)' : '1px solid rgba(248,113,113,0.45)',
-              background: isOpen ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.22)',
-              color: isOpen ? '#86efac' : '#fecaca',
+              border: isDarkMode
+                ? (isOpen ? '1px solid rgba(52,211,153,0.5)' : '1px solid rgba(248,113,113,0.45)')
+                : '1px solid rgba(239,68,68,0.55)',
+              background: isDarkMode
+                ? (isOpen ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.22)')
+                : '#ef4444',
+              color: isDarkMode ? (isOpen ? '#86efac' : '#fecaca') : '#ffffff',
               fontSize: 8,
               fontWeight: 800,
               letterSpacing: '0.08em',
@@ -297,12 +302,17 @@ function MarketCard({ market }) {
           {/* Market name */}
           <div
             style={{
-              fontSize: 13,
-              fontWeight: 800,
-              letterSpacing: '0.04em',
+              fontSize: 18,
+              fontWeight: 900,
+              letterSpacing: '0.02em',
               color: theme.nameColor,
               textTransform: 'uppercase',
-              marginBottom: 3,
+              textAlign: 'center',
+              fontFamily: "'Inter', 'Segoe UI', sans-serif",
+              lineHeight: 1,
+              marginBottom: 5,
+              whiteSpace: 'nowrap',
+              width: '100%',
             }}
           >
             {displayName}
@@ -311,13 +321,14 @@ function MarketCard({ market }) {
           {/* Result */}
           <div
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: 24,
-              fontWeight: 900,
+              fontFamily: "'Inter', 'Segoe UI', sans-serif",
+              fontSize: 20,
+              fontWeight: 800,
               color: theme.resultColor,
-              letterSpacing: '0.04em',
+              letterSpacing: '0.08em',
               lineHeight: 1,
-              marginBottom: 8,
+              textAlign: 'center',
+              marginBottom: 6,
             }}
           >
             {resultValue}
@@ -328,7 +339,7 @@ function MarketCard({ market }) {
             style={{
               background: theme.timeBarBg,
               borderRadius: 14,
-              padding: '11px 12px',
+              padding: '7px 10px',
             }}
           >
             <div
@@ -408,7 +419,7 @@ function MarketCard({ market }) {
           </div>
 
           {/* Bottom action row */}
-          <div style={{ textAlign: 'center', paddingTop: 5 }}>
+          <div style={{ textAlign: 'center', paddingTop: 2 }}>
             <button
               type="button"
               onClick={(e) => {
