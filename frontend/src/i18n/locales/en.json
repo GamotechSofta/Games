@@ -517,6 +517,10 @@
   },
   "gameRate": {
     "title": "Game Rates",
+    "subtitle": "Payout rate per ₹1 bet",
+    "srNo": "Sr No",
+    "gameColumn": "Game",
+    "rateColumn": "Rate (1 =)",
     "singleDigit": "Single Digit",
     "singleDigitBulk": "Single Digit Bulk",
     "jodi": "Jodi",

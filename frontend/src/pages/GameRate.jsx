@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getRatesCurrent } from '../api/bets';
+import {
+  backBtn,
+  bidAccent,
+  bidSurface,
+  pageShell,
+  textMuted,
+} from '../styles/appTheme';
+
+const rateRedClass = 'font-bold tabular-nums text-red-600 dark:text-red-500';
+const rateHeaderRedClass =
+  'font-bold text-xs uppercase tracking-wider text-red-600 dark:text-red-500 !text-red-600 dark:!text-red-500';
 
 const getGameLabels = (t) => [
   { key: 'single', label: t('gameRate.singleDigit') },
@@ -59,55 +70,102 @@ const GameRate = () => {
   }));
 
   return (
-    <div className="w-full text-gray-900 dark:text-white">
-      <div className="mx-auto w-full max-w-xl px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-6 sm:pt-5 md:px-8">
-        <div className="flex items-center gap-3 pt-4 pb-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="min-w-[44px] min-h-[44px] rounded-xl bg-white/5 border border-gray-200 dark:border-white/10 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
-            aria-label={t('common.back')}
-          >
+    <div className={`${pageShell} min-h-screen`}>
+      <div className="mx-auto w-full max-w-2xl px-4 sm:px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:pt-6">
+        <div className="flex items-center gap-3 mb-5 sm:mb-6">
+          <button type="button" onClick={() => navigate(-1)} className={backBtn} aria-label={t('common.back')}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t('header.updateRate')}</h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Payout rate per 1 unit bet (1 =)</p>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              {t('header.updateRate')}
+            </h1>
+            <p className={`text-xs sm:text-sm mt-0.5 ${textMuted}`}>
+              {t('gameRate.subtitle', { defaultValue: 'Payout rate per ₹1 bet' })}
+            </p>
           </div>
         </div>
 
         {error && (
-          <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">{error}</div>
+          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-sm">
+            {error}
+          </div>
         )}
 
-        {loading ? (
-          <div className="mt-6 flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-2 border-amber-500/50 border-t-amber-500 rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="mt-5 overflow-x-auto">
-              <table className="w-full border-collapse text-sm sm:text-base">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-white/10 bg-white/60 dark:bg-white/[0.04]">
-                    <th className="text-left py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Sr No</th>
-                    <th className="text-left py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Game</th>
-                    <th className="text-right py-3 px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">Rate (1 =)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row) => (
-                    <tr key={row.game} className="border-b border-gray-200 dark:border-white/5 last:border-b-0 hover:bg-white/[0.03]">
-                      <td className="py-3 px-4 text-gray-400">{row.srNo}</td>
-                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-white">{row.game}</td>
-                      <td className="py-3 px-4 text-right font-semibold text-[#d4af37]">{row.rate}</td>
+        <div className={`rounded-2xl overflow-hidden shadow-sm ${bidSurface}`}>
+          <div className="h-0.5 bg-gradient-to-r from-red-700 to-red-600" />
+
+          {loading ? (
+            <div className="p-6 space-y-3 skeleton-shimmer">
+              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-gray-200 dark:bg-white/10 shrink-0" />
+                  <div className="h-10 flex-1 rounded-lg bg-gray-200 dark:bg-white/10" />
+                  <div className="h-10 w-16 rounded-lg bg-gray-200 dark:bg-white/10 shrink-0" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Desktop / tablet table */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-red-200 dark:border-white/20 bg-gray-50 dark:bg-white/10">
+                      <th className="text-left py-3.5 px-4 font-bold text-xs uppercase tracking-wider text-red-700 dark:text-gray-200">
+                        {t('gameRate.srNo', { defaultValue: 'Sr No' })}
+                      </th>
+                      <th className="text-left py-3.5 px-4 font-bold text-xs uppercase tracking-wider text-red-700 dark:text-gray-200">
+                        {t('gameRate.gameColumn', { defaultValue: 'Game' })}
+                      </th>
+                      <th className={`text-right py-3.5 px-4 ${rateHeaderRedClass}`}>
+                        {t('gameRate.rateColumn', { defaultValue: 'Rate (1 =)' })}
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-          </div>
-        )}
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr
+                        key={row.game}
+                        className={`border-b border-red-100 dark:border-white/10 last:border-b-0 transition-colors hover:bg-red-50/50 dark:hover:bg-white/[0.04] ${
+                          idx % 2 === 1 ? 'bg-gray-50/80 dark:bg-white/[0.02]' : 'bg-white dark:bg-transparent'
+                        }`}
+                      >
+                        <td className={`py-3.5 px-4 text-sm ${textMuted}`}>{row.srNo}</td>
+                        <td className="py-3.5 px-4 font-medium text-gray-900 dark:text-white">{row.game}</td>
+                        <td className={`py-3.5 px-4 text-right text-base ${rateRedClass}`}>
+                          {row.rate}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile card list */}
+              <div className="sm:hidden divide-y divide-red-100 dark:divide-white/10">
+                {rows.map((row) => (
+                  <div
+                    key={row.game}
+                    className="flex items-center gap-3 px-4 py-3.5 bg-white dark:bg-transparent active:bg-red-50/60 dark:active:bg-white/[0.04]"
+                  >
+                    <span
+                      className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold border border-red-200 dark:border-white/20 bg-gray-50 dark:bg-white/10 ${bidAccent}`}
+                    >
+                      {row.srNo}
+                    </span>
+                    <span className="flex-1 min-w-0 font-medium text-sm text-gray-900 dark:text-white truncate">
+                      {row.game}
+                    </span>
+                    <span className={`shrink-0 text-base ${rateRedClass}`}>{row.rate}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
