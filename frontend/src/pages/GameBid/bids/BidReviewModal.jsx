@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from '../BettingWindowContext';
-import { getStoredWalletBalance } from '../../../utils/walletBalance';
-
-const formatMoney = (v) => {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return '-';
-  return n.toFixed(1);
-};
+import { formatWalletAmount, getStoredWalletBalance } from '../../../utils/walletBalance';
 
 const formatDateTitle = (marketTitle, dateText, fallback) => {
   const m = (marketTitle || '').toString().trim();
@@ -237,11 +231,11 @@ const BidReviewModal = ({
                     </div>
                     <div className="p-3 sm:p-4 text-center border-r border-gray-200 dark:border-white/20">
                       <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceBeforeDeduction')}</div>
-                      <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{formatMoney(before)}</div>
+                      <div className="text-gray-900 dark:text-white font-bold text-base sm:text-lg leading-tight">{formatWalletAmount(before)}</div>
                     </div>
                     <div className="p-3 sm:p-4 text-center">
                       <div className="text-gray-700 dark:text-gray-400 text-[11px] sm:text-sm">{t('gameBid.walletBalanceAfterDeduction')}</div>
-                      <div className={`font-bold text-base sm:text-lg leading-tight ${after < 0 ? 'text-gray-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>{formatMoney(after)}</div>
+                      <div className={`font-bold text-base sm:text-lg leading-tight ${after < 0 ? 'text-gray-700 dark:text-red-300' : 'text-gray-900 dark:text-white'}`}>{formatWalletAmount(after)}</div>
                     </div>
                   </div>
                 </div>
@@ -257,7 +251,7 @@ const BidReviewModal = ({
               {/* Insufficient balance warning */}
               {insufficientBalance && (
                 <div className="mx-3 sm:mx-4 mt-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/50 text-amber-900 dark:text-amber-200 text-sm shrink-0">
-                  {t('gameBid.insufficientBalanceFull', { amount: amount.toLocaleString('en-IN'), before: before.toLocaleString('en-IN') })}
+                  {t('gameBid.insufficientBalanceFull', { amount: formatWalletAmount(amount), before: formatWalletAmount(before) })}
                 </div>
               )}
 

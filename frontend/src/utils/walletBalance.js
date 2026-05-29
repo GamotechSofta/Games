@@ -21,6 +21,16 @@ export function getStoredWalletBalance() {
   }
 }
 
+/** Same display as AppHeader / SubHeader wallet (en-IN, no decimals). */
+export function formatWalletAmount(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '-';
+  return new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(Math.round(n));
+}
+
 /** Persist balance on user object (all legacy keys kept in sync). */
 export function applyBalanceToStoredUser(newBalance) {
   const n = Number(newBalance);

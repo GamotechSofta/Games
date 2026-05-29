@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
-import { getStoredWalletBalance } from '../../utils/walletBalance';
+import { formatWalletAmount, getStoredWalletBalance } from '../../utils/walletBalance';
 
 const BidLayout = ({
     market,
@@ -154,7 +154,7 @@ const BidLayout = ({
                             className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
                         />
                         <span className="font-bold text-gray-900 dark:text-white text-[11px] sm:text-sm">
-                            {wallet.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 })}
+                            {formatWalletAmount(wallet)}
                         </span>
                     </div>
                 ) : (
