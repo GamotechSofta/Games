@@ -6,16 +6,17 @@ dotenv.config();
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 
 const MONGO_OPTIONS = {
+  maxPoolSize: 20,
+  minPoolSize: 2,
   serverSelectionTimeoutMS: 10000,
   connectTimeoutMS: 10000,
-  socketTimeoutMS: 15000,
-  maxPoolSize: 20,
+  socketTimeoutMS: 45000,
+  maxIdleTimeMS: 60000,
 };
 
 const connectDB = async () => {
   if (!MONGODB_URI) {
-<<<<<<< Updated upstream
-    console.error("Error connecting to MongoDB: MONGODB_URI is not set");
+    console.error("Error connecting to MongoDB: MONGODB_URI (or MONGO_URI) is not set");
     process.exit(1);
   }
 
@@ -28,20 +29,6 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(MONGODB_URI, MONGO_OPTIONS);
-=======
-    console.error("Error connecting to MongoDB: MONGODB_URI (or MONGO_URI) is not set");
-    process.exit(1);
-  }
-
-  try {
-    const conn = await mongoose.connect(MONGODB_URI, {
-      maxPoolSize: 20,
-      minPoolSize: 2,
-      serverSelectionTimeoutMS: 8000,
-      socketTimeoutMS: 45000,
-      maxIdleTimeMS: 60000,
-    });
->>>>>>> Stashed changes
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     try {
       const { getRatesMap } = await import("../models/rate/rate.js");
