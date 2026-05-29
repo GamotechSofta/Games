@@ -21,7 +21,7 @@ const Games = () => {
           </svg>
         </button>
         <h1 className={`text-xl font-bold ${textPrimary}`}>
-          {t('markets.casinoGames', { defaultValue: 'Casino Games' })}
+          {t('markets.casinoGames', { defaultValue: 'All Casino Games' })}
         </h1>
       </div>
 

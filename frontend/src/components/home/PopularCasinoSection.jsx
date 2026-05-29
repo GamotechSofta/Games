@@ -70,7 +70,8 @@ const POPULAR_CASINO_TILES = [
   },
   {
     id: 'all-games',
-    label: 'All Games',
+    labelKey: 'markets.casinoGames',
+    label: 'All Casino Games',
     path: '/games',
     borderClass: 'border-[#946125]/70',
     shellClass: 'bg-[linear-gradient(180deg,#2a1a0f_0%,#15100b_100%)]',
@@ -174,7 +175,7 @@ export default function PopularCasinoSection({ onSelect }) {
   return (
     <div className="mb-5">
       <h2 className="mb-2 text-[13px] font-semibold text-gray-900 dark:text-white">
-        {t('markets.casinoGames', { defaultValue: 'Casino Games' })}
+        {t('markets.casinoGames', { defaultValue: 'All Casino Games' })}
       </h2>
       <div className="scrollbar-hidden flex gap-3.5 overflow-x-auto pb-1 md:flex md:flex-nowrap md:gap-3 md:overflow-visible">
         {POPULAR_CASINO_TILES.map((tile) => (
