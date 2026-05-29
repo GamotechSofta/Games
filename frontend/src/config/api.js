@@ -1,4 +1,4 @@
-import { clearUserAuth } from '../utils/auth';
+import { clearUserAuth, getUserToken } from '../utils/auth';
 
 // API Configuration – set VITE_API_BASE_URL in Render (or .env) for production.
 // Must resolve to .../api/v1 (backend mounts routes under /api/v1).
@@ -50,14 +50,9 @@ export function getSocketUrl() {
 }
 
 export function getAuthHeaders() {
-  try {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const token = user?.token;
-    if (!token || token === 'cookie-auth') return {};
-    return { Authorization: `Bearer ${token}` };
-  } catch {
-    return {};
-  }
+  const token = getUserToken();
+  if (!token || token === 'cookie-auth') return {};
+  return { Authorization: `Bearer ${token}` };
 }
 
 export async function fetchWithAuth(url, options = {}) {

@@ -4,9 +4,8 @@ import { loginWithPassword, signupUser } from '../services/otpAuthApi';
 import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import aakdaLogo from '../config/logo';
-import { prefetchHomeBootstrap } from '../api/prefetchHome';
-import { prefetchMyBetsBootstrap } from '../api/prefetchBets';
-import { prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
+import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
+import { setUserAuth } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -82,17 +81,15 @@ const Login = () => {
       }
       if (!data.success) return setError(data.message || 'Request failed');
 
-      localStorage.setItem('user', JSON.stringify(data.data || {}));
-      if (data.token) localStorage.setItem('userToken', data.token);
-      void prefetchHomeBootstrap();
-      void prefetchMyBetsBootstrap();
-      void prefetchSpecialMarketGroups();
-      window.dispatchEvent(new Event('userLogin'));
+      setUserAuth({ user: data.data || {}, token: data.token });
       showToast(data.message || 'Authentication successful', 'success');
-        navigate('/');
-    } catch {
-      setError('Network error');
-      showToast('Authentication failed', 'error');
+      void import('../pages/Home');
+      navigate('/', { replace: true });
+      schedulePostLoginPrefetch();
+    } catch (err) {
+      const message = err?.response?.data?.message || 'Network error. Please try again.';
+      setError(message);
+      showToast(message, 'error');
     } finally {
       setLoading(false);
     }

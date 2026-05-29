@@ -21,7 +21,10 @@ otpApi.interceptors.request.use((config) => {
 otpApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error?.response?.status === 401) {
+    const status = error?.response?.status;
+    const url = String(error?.config?.url || '');
+    const isAuthAttempt = url.includes('/users/login') || url.includes('/users/signup');
+    if (status === 401 && !isAuthAttempt) {
       clearUserAuth();
     }
     return Promise.reject(error);

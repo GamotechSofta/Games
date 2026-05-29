@@ -1,7 +1,5 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { prefetchHomeBootstrap } from '../api/prefetchHome';
-import { prefetchMyBetsBootstrap } from '../api/prefetchBets';
-import { prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
+import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
@@ -145,9 +143,7 @@ const Layout = ({ children }) => {
 
   useEffect(() => {
     if (localStorage.getItem('user')) {
-      void prefetchHomeBootstrap();
-      void prefetchMyBetsBootstrap();
-      void prefetchSpecialMarketGroups();
+      schedulePostLoginPrefetch();
     }
   }, []);
 
@@ -155,11 +151,6 @@ const Layout = ({ children }) => {
     const check = () => {
       const loggedIn = !!localStorage.getItem('user');
       setHasUser(loggedIn);
-      if (loggedIn) {
-        void prefetchHomeBootstrap();
-        void prefetchMyBetsBootstrap();
-        void prefetchSpecialMarketGroups();
-      }
     };
     window.addEventListener('userLogin', check);
     window.addEventListener('userLogout', check);
