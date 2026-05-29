@@ -62,4 +62,3 @@ export const getHomeBootstrap = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message || 'Failed to fetch home bootstrap' });
     }
 };
-

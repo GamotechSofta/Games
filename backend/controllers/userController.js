@@ -5,13 +5,10 @@ import bcrypt from 'bcryptjs';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
-<<<<<<< Updated upstream
-import { generateUserToken } from '../utils/jwt.js';
-=======
-import { isMongoTimeoutError, DB_QUERY_MS } from '../utils/mongoErrors.js';
->>>>>>> Stashed changes
+import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const DB_QUERY_MS = 12000;
 
 const addWalletBalanceToUsers = async (users) => {
     if (!users || users.length === 0) return users;
@@ -50,13 +47,20 @@ export const userLogin = async (req, res) => {
         const userSelect = '+password +loginDevices +failedLoginAttempts +accountLockedUntil';
         const findOpts = { maxTimeMS: DB_QUERY_MS };
 
-        const loginFilters = [];
-        if (normalizedPhone.length >= 10) loginFilters.push({ phone: normalizedPhone });
-        if (username) loginFilters.push({ username: String(username).trim() });
+        const userQuery = normalizedPhone.length >= 10
+            ? { phone: normalizedPhone }
+            : username
+                ? { username: String(username).trim() }
+                : null;
 
-        const user = loginFilters.length > 0
-            ? await User.findOne({ $or: loginFilters }).select(userSelect).maxTimeMS(DB_QUERY_MS).lean()
-            : null;
+        if (!userQuery) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone number (or username) and password are required',
+            });
+        }
+
+        const user = await User.findOne(userQuery).select(userSelect).maxTimeMS(DB_QUERY_MS).lean();
         
         if (!user) {
             return res.status(401).json({
@@ -100,7 +104,6 @@ export const userLogin = async (req, res) => {
                         accountLockedUntil: shouldLock ? new Date(Date.now() + (15 * 60 * 1000)) : null,
                     },
                 },
-                findOpts,
             ).catch(() => {});
             return res.status(401).json({
                 success: false,
@@ -143,16 +146,24 @@ export const userLogin = async (req, res) => {
             update.loginDevices = loginDevices;
         }
 
-<<<<<<< Updated upstream
-        const walletPromise = Wallet.findOne({ userId: user._id }).select('balance').maxTimeMS(DB_QUERY_MS).lean();
-        const bookiePromise = user.referredBy
-            ? Admin.findById(user.referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
-            : Promise.resolve(null);
-=======
         User.updateOne({ _id: user._id }, { $set: update }, findOpts).catch(() => {});
->>>>>>> Stashed changes
 
-        const [wallet, bookie] = await Promise.all([walletPromise, bookiePromise]);
+        void logActivity({
+            action: 'player_login',
+            performedBy: user.username,
+            performedByType: 'user',
+            targetType: 'user',
+            targetId: user._id.toString(),
+            details: `Player "${user.username}" logged in (frontend)`,
+            ip: getClientIp(req),
+        }).catch(() => {});
+
+        const [wallet, bookie] = await Promise.all([
+            Wallet.findOne({ userId: user._id }).select('balance').maxTimeMS(DB_QUERY_MS).lean(),
+            user.referredBy
+                ? Admin.findById(user.referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
+                : Promise.resolve(null),
+        ]);
         const balance = wallet?.balance ?? 0;
 
         const data = {
@@ -169,32 +180,14 @@ export const userLogin = async (req, res) => {
             data.bookieTheme = bookie?.uiTheme || { themeId: 'default' };
         }
 
-        const token = generateUserToken({ id: user._id, phone: user.phone || normalizedPhone });
-
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            token,
             data,
         });
-
-        void User.updateOne({ _id: user._id }, { $set: update }, findOpts).catch(() => {});
-        void logActivity({
-            action: 'player_login',
-            performedBy: user.username,
-            performedByType: 'user',
-            targetType: 'user',
-            targetId: user._id.toString(),
-            details: `Player "${user.username}" logged in (frontend)`,
-            ip: clientIp,
-        }).catch(() => {});
     } catch (error) {
         if (isMongoTimeoutError(error)) {
-            return res.status(503).json({
-                success: false,
-                message: 'Database is slow or unreachable. Please try again.',
-                code: 'DB_TIMEOUT',
-            });
+            return mongoTimeoutResponse(res);
         }
         res.status(500).json({ success: false, message: error.message });
     }
@@ -308,17 +301,24 @@ export const userSignup = async (req, res) => {
         const user = await User.collection.insertOne(userDoc);
         const userId = user.insertedId;
 
-        const walletPromise = Wallet.collection.insertOne({
+        await logActivity({
+            action: 'player_signup',
+            performedBy: username,
+            performedByType: 'user',
+            targetType: 'user',
+            targetId: userId.toString(),
+            details: `Player "${username}" signed up (${source === 'bookie' ? 'via bookie link' : 'direct frontend'})`,
+            meta: { email: userDoc.email, source },
+            ip: getClientIp(req),
+        });
+
+        // Create wallet for user
+        await Wallet.collection.insertOne({
             userId,
             balance: 0,
-            createdAt: now,
-            updatedAt: now,
+            createdAt: new Date(),
+            updatedAt: new Date(),
         });
-        const bookiePromise = referredBy
-            ? Admin.findById(referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
-            : Promise.resolve(null);
-
-        const [, bookie] = await Promise.all([walletPromise, bookiePromise]);
 
         const signupData = {
             id: userId,
@@ -331,28 +331,14 @@ export const userSignup = async (req, res) => {
         };
         if (referredBy) {
             signupData.referredBy = referredBy;
+            const bookie = await Admin.findById(referredBy).select('uiTheme').lean();
             signupData.bookieTheme = bookie?.uiTheme || { themeId: 'default' };
         }
-
-        const token = generateUserToken({ id: userId, phone: trimmedPhone });
-
         res.status(201).json({
             success: true,
             message: 'User created successfully',
-            token,
             data: signupData,
         });
-
-        void logActivity({
-            action: 'player_signup',
-            performedBy: username,
-            performedByType: 'user',
-            targetType: 'user',
-            targetId: userId.toString(),
-            details: `Player "${username}" signed up (${source === 'bookie' ? 'via bookie link' : 'direct frontend'})`,
-            meta: { email: userDoc.email, source },
-            ip: clientIp,
-        }).catch(() => {});
     } catch (error) {
         if (error.code === 11000) {
             return res.status(409).json({

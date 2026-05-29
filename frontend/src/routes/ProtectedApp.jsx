@@ -1,9 +1,5 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-<<<<<<< Updated upstream
 import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
-=======
-import { prefetchPlayerSessionData } from '../api/prefetchSession';
->>>>>>> Stashed changes
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
@@ -146,24 +142,12 @@ const Layout = ({ children }) => {
   const hideBottomNavOnMobile = false;
 
   useEffect(() => {
-<<<<<<< Updated upstream
-    if (localStorage.getItem('user')) {
-      schedulePostLoginPrefetch();
-    }
-  }, []);
-
-  useEffect(() => {
-    const check = () => {
+    const check = (event) => {
       const loggedIn = !!localStorage.getItem('user');
       setHasUser(loggedIn);
-=======
-    const check = () => {
-      const loggedIn = !!localStorage.getItem('user');
-      setHasUser(loggedIn);
-      if (loggedIn) {
-        void prefetchPlayerSessionData();
+      if (loggedIn && event?.type === 'userLogin') {
+        schedulePostLoginPrefetch();
       }
->>>>>>> Stashed changes
     };
     check();
     window.addEventListener('userLogin', check);

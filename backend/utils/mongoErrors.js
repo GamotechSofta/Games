@@ -1,4 +1,3 @@
-/** Shared MongoDB timeout / connectivity detection for API handlers. */
 export function isMongoTimeoutError(error) {
     const name = error?.name || '';
     const message = String(error?.message || '');
@@ -12,4 +11,10 @@ export function isMongoTimeoutError(error) {
     );
 }
 
-export const DB_QUERY_MS = Number.parseInt(process.env.DB_QUERY_MAX_MS || '12000', 10) || 12000;
+export function mongoTimeoutResponse(res, message = 'Database is slow or unreachable. Please try again.') {
+    return res.status(503).json({
+        success: false,
+        message,
+        code: 'DB_TIMEOUT',
+    });
+}

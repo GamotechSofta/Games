@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
-import connectDB from './config/db_Connection.js';
+import connectDB, { isDbReady } from './config/db_Connection.js';
 import marketRoutes from './routes/market/marketRoutes.js';
 import adminRoutes from './routes/admin/adminRoutes.js';
 import bookieRoutes from './routes/bookie/bookieRoutes.js';
@@ -36,7 +36,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3010;
-let dbReady = false;
 
 const isProd = String(process.env.NODE_ENV || '').toLowerCase() === 'production';
 const signatureEnabled = String(process.env.GAP_SIGNATURE_ENABLED || 'false').toLowerCase() === 'true';
@@ -91,7 +90,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve downloadable files (e.g. APK) from public folder at /downloads
 const publicDir = path.join(__dirname, 'public');
 app.use('/downloads', express.static(publicDir));
-// Optional: force download for APK (Content-Disposition) so browsers don't open it
 app.get('/downloads/myapp.apk', (req, res) => {
   const filePath = path.join(publicDir, 'myapp.apk');
   res.download(filePath, 'myapp.apk', (err) => {
@@ -104,27 +102,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    return res.status(200).json({
-        success: true,
-        status: dbReady ? 'ok' : 'starting',
+    const ready = isDbReady();
+    return res.status(ready ? 200 : 503).json({
+        success: ready,
+        status: ready ? 'ok' : 'degraded',
         service: 'games-backend',
-        dbReady,
+        dbReady: ready,
         timestamp: new Date().toISOString(),
     });
 });
 
-app.use('/api', (req, res, next) => {
-    if (!dbReady) {
-        return res.status(503).json({
-            success: false,
-            message: 'Database connection is not ready. Please retry in a moment.',
-            code: 'DB_NOT_READY',
-        });
-    }
-    next();
-});
-
-// Temporary: verify real client IP behind Render proxy
 app.get('/test-ip', (req, res) => {
     if (isProd) {
         return res.status(404).json({
@@ -139,7 +126,6 @@ app.get('/test-ip', (req, res) => {
     });
 });
 
-// Test endpoint: manually trigger market reset (for testing/debugging)
 app.get('/test-reset', async (req, res) => {
     if (isProd) {
         return res.status(404).json({
@@ -149,35 +135,33 @@ app.get('/test-reset', async (req, res) => {
     }
     const now = new Date();
     const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    
+
     try {
-        console.log('═══════════════════════════════════════════════════════════');
-        console.log('[TEST] 🧪 Manual Market Reset Triggered');
-        console.log('[TEST] UTC Time:', now.toISOString());
-        console.log('[TEST] IST Time:', istTime);
-        console.log('═══════════════════════════════════════════════════════════');
-        
         await ensureResultsResetForNewDay(Market);
-        
-        console.log('[TEST] ✅ Manual reset completed successfully');
-        console.log('═══════════════════════════════════════════════════════════\n');
-        
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Market reset executed successfully',
             timestamp: now.toISOString(),
             istTime: istTime
         });
     } catch (error) {
-        console.error('[TEST] ❌ Manual reset failed:', error.message);
-        console.error('[TEST] Error stack:', error.stack);
-        console.log('═══════════════════════════════════════════════════════════\n');
-        
-        res.status(500).json({ 
+        res.status(500).json({
             success: false,
-            message: error.message 
+            message: error.message
         });
     }
+});
+
+// Reject API traffic until MongoDB is connected (prevents buffering timeouts / crashes).
+app.use('/api', (req, res, next) => {
+    if (!isDbReady()) {
+        return res.status(503).json({
+            success: false,
+            message: 'Database connection is not ready. Please retry in a moment.',
+            code: 'DB_NOT_READY',
+        });
+    }
+    next();
 });
 
 app.use('/api/v1/markets', marketRoutes);
@@ -187,12 +171,11 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/bets', betRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/wallet', walletRoutes);
-// GAP partner callbacks (signed POST): /api/wallet/balance|debit|credit|rollback ; lookup GET /api/wallet/transaction/:id
 app.use('/api/wallet', gapWalletRoutes);
 app.use('/api/game', gameRoutes);
-app.use('/api/v1/game', gameRoutes); // POST /api/v1/game/launch — same handlers as /api/game/launch
+app.use('/api/v1/game', gameRoutes);
 app.use('/api/admin/game', adminGameRoutes);
-app.use('/api/v1/admin/game', adminGameRoutes); // compatibility alias for admin panel
+app.use('/api/v1/admin/game', adminGameRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/help-desk', helpDeskRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
@@ -203,7 +186,6 @@ app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
 
-// Global error handler: ensure API always returns JSON (no HTML 500)
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     if (!res.headersSent) {
@@ -214,35 +196,24 @@ app.use((err, req, res, next) => {
     }
 });
 
-// Cron job: Reset market results at midnight IST (00:00 IST = 18:30 UTC previous day)
-// Runs every day at 00:00 IST to clear opening/closing numbers for fresh day
 cron.schedule('30 18 * * *', async () => {
     const now = new Date();
     const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    console.log('═══════════════════════════════════════════════════════════');
-    console.log('[CRON] 🕐 Midnight Market Reset Job Started');
-    console.log('[CRON] UTC Time:', now.toISOString());
-    console.log('[CRON] IST Time:', istTime);
-    console.log('═══════════════════════════════════════════════════════════');
-    
+    console.log('[CRON] Midnight Market Reset Job Started', istTime);
+
     try {
         await ensureResultsResetForNewDay(Market);
-        console.log('[CRON] ✅ Market reset job completed successfully');
+        console.log('[CRON] Market reset job completed');
     } catch (error) {
-        console.error('[CRON] ❌ Market reset job failed:', error.message);
-        console.error('[CRON] Error stack:', error.stack);
+        console.error('[CRON] Market reset job failed:', error.message);
     }
-    
-    console.log('═══════════════════════════════════════════════════════════\n');
 }, {
     timezone: 'UTC'
 });
 
-
 async function startServer() {
     try {
         await connectDB();
-        dbReady = true;
 
         const httpServer = http.createServer(app);
         initPlayerSocket(httpServer, { isProd });

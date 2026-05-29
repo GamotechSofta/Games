@@ -5,11 +5,7 @@ import i18n, { ensureLocaleLoaded } from './i18n/config'
 import App from './App.jsx'
 import { applyThemeToDocument, getStoredTheme } from './context/ThemeContext'
 import { queryClient } from './queryClient'
-<<<<<<< Updated upstream
 import { schedulePostLoginPrefetch } from './api/postLoginPrefetch'
-=======
-import { prefetchPlayerSessionData } from './api/prefetchSession'
->>>>>>> Stashed changes
 
 applyThemeToDocument(getStoredTheme())
 
@@ -42,11 +38,7 @@ function bootstrap() {
   }
 
   if (localStorage.getItem('user')) {
-<<<<<<< Updated upstream
     schedulePostLoginPrefetch()
-=======
-    void prefetchPlayerSessionData()
->>>>>>> Stashed changes
   }
 
   scheduleCriticalChunkPrefetch()

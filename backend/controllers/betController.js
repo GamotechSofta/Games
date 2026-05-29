@@ -9,7 +9,9 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
-import { isMongoTimeoutError, DB_QUERY_MS } from '../utils/mongoErrors.js';
+import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
+
+const DB_QUERY_MS = 12000;
 
 const VALID_BET_TYPES = [
     'single',
@@ -168,15 +170,21 @@ export const placeBet = async (req, res) => {
         );
 
         if (!wallet) {
-            const existingWallet = await Wallet.findOne({ userId }).select('balance').maxTimeMS(DB_QUERY_MS).lean();
-            if (!existingWallet) {
-                await Wallet.create([{ userId, balance: 0 }]);
+            const existing = await Wallet.findOne({ userId }).select('balance').maxTimeMS(DB_QUERY_MS).lean();
+            if (!existing) {
+                if (totalAmount > 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `Insufficient balance. Required: ₹${totalAmount}, Available: ₹0`,
+                    });
+                }
+                wallet = await Wallet.create({ userId, balance: 0 });
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: `Insufficient balance. Required: ₹${totalAmount}, Available: ₹${existing.balance ?? 0}`,
+                });
             }
-            const available = existingWallet?.balance ?? 0;
-            return res.status(400).json({
-                success: false,
-                message: `Insufficient balance. Required: ₹${totalAmount}, Available: ₹${available}`,
-            });
         }
 
         // Validate scheduledDate if provided
@@ -185,18 +193,17 @@ export const placeBet = async (req, res) => {
         if (scheduledDate) {
             scheduledDateObj = new Date(scheduledDate);
             if (isNaN(scheduledDateObj.getTime())) {
-                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
+                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid scheduledDate format',
                 });
             }
-            // Ensure scheduled date is in the future
             const now = new Date();
             now.setHours(0, 0, 0, 0);
             scheduledDateObj.setHours(0, 0, 0, 0);
             if (scheduledDateObj < now) {
-                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
+                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
                 return res.status(400).json({
                     success: false,
                     message: 'Scheduled date must be today or in the future',
@@ -226,7 +233,7 @@ export const placeBet = async (req, res) => {
                 createdBets.push(bet);
             }
         } catch (createErr) {
-            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
+            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
             throw createErr;
         }
 
@@ -261,7 +268,7 @@ export const placeBet = async (req, res) => {
                 );
             }
         } catch (txErr) {
-            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } });
+            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
             throw txErr;
         }
 
@@ -277,18 +284,14 @@ export const placeBet = async (req, res) => {
             },
         });
     } catch (error) {
-        if (isMongoTimeoutError(error)) {
-            return res.status(503).json({
-                success: false,
-                message: 'Database is slow or unreachable. Please try again.',
-                code: 'DB_TIMEOUT',
-            });
-        }
         if (error.name === 'CastError') {
             return res.status(400).json({ success: false, message: 'Invalid id format for user or market' });
         }
         if (error.name === 'ValidationError') {
             return res.status(400).json({ success: false, message: error.message || 'Validation failed' });
+        }
+        if (isMongoTimeoutError(error)) {
+            return mongoTimeoutResponse(res, 'Bet could not be placed — database is slow. Please try again.');
         }
         console.error('[placeBet]', error.message || error);
         res.status(500).json({ success: false, message: error.message || 'Failed to place bet' });

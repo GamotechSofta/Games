@@ -1,15 +1,17 @@
-/** Map axios/fetch errors to user-visible messages. */
-export function getApiErrorMessage(error, fallback = 'Request failed') {
-  const data = error?.response?.data;
-  if (data?.message) return data.message;
+/**
+ * Map axios/fetch errors to user-visible messages (login, bet place, etc.).
+ */
+export function getApiErrorMessage(err, fallback = 'Something went wrong. Please try again.') {
+  const data = err?.response?.data;
   if (data?.code === 'DB_TIMEOUT' || data?.code === 'DB_NOT_READY') {
-    return data.message || 'Server database is slow. Please try again.';
+    return data.message || 'Server is busy. Please wait a moment and try again.';
   }
-  if (error?.code === 'ECONNABORTED') {
-    return 'Request timed out. Server or database may be slow — please retry.';
+  if (data?.message) return String(data.message);
+  if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
+    return 'Request timed out. Please check your connection and try again.';
   }
-  if (!error?.response) {
-    return 'Cannot reach server. Check your connection and try again.';
+  if (!err?.response) {
+    return 'Cannot reach server. Check your internet or try again.';
   }
   return fallback;
 }
