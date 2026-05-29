@@ -27,7 +27,16 @@ export const isTokenExpired = (token) => {
 };
 
 export const setUserAuth = ({ user, token }) => {
-  if (user) localStorage.setItem('user', JSON.stringify(user));
+  if (user) {
+    const stored = { ...user };
+    const bal = Number(stored.balance ?? stored.walletBalance ?? stored.wallet);
+    if (Number.isFinite(bal)) {
+      stored.balance = bal;
+      stored.walletBalance = bal;
+      stored.wallet = bal;
+    }
+    localStorage.setItem('user', JSON.stringify(stored));
+  }
   if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
   window.dispatchEvent(new Event('userLogin'));
 };

@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loginWithPassword, signupUser } from '../services/otpAuthApi';
 import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import aakdaLogo from '../config/logo';
-import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
 import { setUserAuth } from '../utils/auth';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
 
@@ -26,6 +25,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast, showToast, hideToast } = useToast();
+
+  useEffect(() => {
+    void import('../pages/Home');
+    void import('../components/DesktopDashboardLayout');
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -83,10 +87,8 @@ const Login = () => {
       if (!data.success) return setError(data.message || 'Request failed');
 
       setUserAuth({ user: data.data || {}, token: data.token });
-      showToast(data.message || 'Authentication successful', 'success');
-      void import('../pages/Home');
       navigate('/', { replace: true });
-      schedulePostLoginPrefetch();
+      showToast(data.message || 'Authentication successful', 'success');
     } catch (err) {
       const message = getApiErrorMessage(err, 'Authentication failed');
       setError(message);

@@ -4,7 +4,7 @@ import { clearUserAuth, getUserToken } from '../utils/auth';
 
 const otpApi = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 45000,
+  timeout: 20000,
   headers: {
     'Content-Type': 'application/json',
   },

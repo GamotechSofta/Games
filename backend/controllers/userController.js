@@ -44,7 +44,8 @@ export const userLogin = async (req, res) => {
         // Normalize phone to digits only so lookup matches stored value (e.g. admin-created users store 10 digits)
         const normalizedPhone = phone ? String(phone).replace(/\D/g, '').slice(0, 10) : '';
 
-        const userSelect = '+password +loginDevices +failedLoginAttempts +accountLockedUntil';
+        const userSelect =
+            '_id username email phone role isActive isBlocked createdAt referredBy +password +loginDevices +failedLoginAttempts +accountLockedUntil';
         const findOpts = { maxTimeMS: DB_QUERY_MS };
 
         const userQuery = normalizedPhone.length >= 10
@@ -92,8 +93,14 @@ export const userLogin = async (req, res) => {
             });
         }
 
+        const walletPromise = Wallet.findOne({ userId: user._id })
+            .select('balance')
+            .maxTimeMS(DB_QUERY_MS)
+            .lean();
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+            walletPromise.catch(() => {});
             const attempts = Number(user.failedLoginAttempts || 0) + 1;
             const shouldLock = attempts >= 5;
             User.updateOne(
@@ -158,12 +165,7 @@ export const userLogin = async (req, res) => {
             ip: getClientIp(req),
         }).catch(() => {});
 
-        const [wallet, bookie] = await Promise.all([
-            Wallet.findOne({ userId: user._id }).select('balance').maxTimeMS(DB_QUERY_MS).lean(),
-            user.referredBy
-                ? Admin.findById(user.referredBy).select('uiTheme').maxTimeMS(DB_QUERY_MS).lean()
-                : Promise.resolve(null),
-        ]);
+        const wallet = await walletPromise;
         const balance = wallet?.balance ?? 0;
 
         const data = {
@@ -172,12 +174,12 @@ export const userLogin = async (req, res) => {
             email: user.email,
             phone: user.phone || '',
             role: user.role,
-            balance: balance,
+            balance,
+            walletBalance: balance,
             createdAt: user.createdAt || null,
         };
         if (user.referredBy) {
             data.referredBy = user.referredBy;
-            data.bookieTheme = bookie?.uiTheme || { themeId: 'default' };
         }
 
         res.status(200).json({
