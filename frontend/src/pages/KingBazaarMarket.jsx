@@ -53,17 +53,20 @@ const formatTime12 = (time24) => {
   return `${h12}:${min} ${ampm}`;
 };
 
-// King Bazaar: Format jodi result "65" to "6 5" for display
+// King Bazaar: Format jodi result "65" to "6 5"; placeholders → "* *"
 const formatKingBazaarJodi = (jodi) => {
   const s = (jodi || '').toString().trim();
+  if (!s || s === '**' || s === '*-*' || s === '***-**-***' || /^[\*\-\s]+$/.test(s)) {
+    return '* *';
+  }
   if (s.length === 2 && /^\d{2}$/.test(s)) {
-    return s.split('').join(' '); // "65" -> "6 5"
+    return s.split('').join(' ');
   }
-  if (s.includes('-')) {
-    // Handle partial result like "*-5" or "6-*"
-    return s.split('').join(' ').replace(/-/g, ' ');
+  const partial = s.match(/^(\d|\*)\s*[-–]\s*(\d|\*)$/);
+  if (partial) {
+    return `${partial[1]} ${partial[2]}`;
   }
-  return '* *'; // Default when no result
+  return '* *';
 };
 
 const getTodayIST = (now = new Date()) =>
@@ -197,11 +200,11 @@ const KingBazaarMarket = () => {
 
           <div className="hidden md:flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-white/70">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400/90 shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400/90 dark:shadow-[0_0_14px_rgba(52,211,153,0.35)]" />
               {t('kingBazaarMarket.open')}
             </div>
             <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-white/70">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-400/90 shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 dark:bg-rose-400/90 dark:shadow-[0_0_14px_rgba(251,113,133,0.28)]" />
               {t('kingBazaarMarket.closed')}
             </div>
           </div>
@@ -287,8 +290,10 @@ const KingBazaarMarket = () => {
                     )}
                   </div>
                   <div className="flex-1 flex justify-center min-w-0">
-                    <div className="bg-gray-900 dark:bg-black rounded-full px-2.5 min-[375px]:px-3 sm:px-4 md:px-6 py-1.5 min-[375px]:py-2 sm:py-2.5 md:py-3 border border-gray-700 dark:border-white/10">
-                      <p className="text-white text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap">{pill}</p>
+                    <div className="flex items-center justify-center rounded-full border bg-slate-100 border-slate-200 dark:bg-black dark:border-white/10 min-w-[4.25rem] min-[375px]:min-w-[4.75rem] sm:min-w-[5.25rem] md:min-w-[5.75rem] h-9 min-[375px]:h-10 sm:h-11 md:h-12 px-3 sm:px-4">
+                      <p className="text-sm min-[375px]:text-base sm:text-lg md:text-xl font-bold whitespace-nowrap text-red-600 dark:text-red-400 text-center tabular-nums">
+                        {pill}
+                      </p>
                     </div>
                   </div>
                   <button
