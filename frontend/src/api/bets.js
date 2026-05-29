@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '../config/api';
 import { redirectToLoginIf401 } from '../utils/auth';
 import { createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
+import { applyBalanceToStoredUser } from '../utils/walletBalance';
 
 const runSharedRequest = createSharedFetcher();
 
@@ -27,9 +28,8 @@ function isValidObjectId(id) {
  */
 export function updateUserBalance(newBalance) {
   try {
+    applyBalanceToStoredUser(newBalance);
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    user.balance = newBalance;
-    localStorage.setItem('user', JSON.stringify(user));
     const userId = user?.id || user?._id;
     if (userId) {
       setSessionCache(`wallet.balance.${userId}`, { success: true, data: { balance: newBalance } }, 30 * 1000);
@@ -98,7 +98,9 @@ export async function placeBet(marketId, bets, scheduledDate) {
     body: JSON.stringify(payload),
   });
 
-  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+  if (redirectToLoginIf401(response)) {
+    return { success: false, message: 'Session expired' };
+  }
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -107,6 +109,9 @@ export async function placeBet(marketId, bets, scheduledDate) {
       message: data.message || 'Failed to place bet',
       code: data.code,
     };
+  }
+  if (data?.data?.newBalance != null) {
+    updateUserBalance(data.data.newBalance);
   }
   return data;
 }

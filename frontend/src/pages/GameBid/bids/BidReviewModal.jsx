@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from '../BettingWindowContext';
+import { getStoredWalletBalance } from '../../../utils/walletBalance';
 
 const formatMoney = (v) => {
   const n = Number(v);
@@ -53,18 +54,31 @@ const BidReviewModal = ({
   const [stage, setStage] = useState('review'); // 'review' | 'success'
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [liveBalance, setLiveBalance] = useState(() => getStoredWalletBalance());
 
   useEffect(() => {
     if (open) {
       setStage('review');
       setSubmitError('');
+      setLiveBalance(getStoredWalletBalance());
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || stage !== 'review') return;
+    const refresh = () => setLiveBalance(getStoredWalletBalance());
+    window.addEventListener('balanceUpdated', refresh);
+    window.addEventListener('userLogin', refresh);
+    return () => {
+      window.removeEventListener('balanceUpdated', refresh);
+      window.removeEventListener('userLogin', refresh);
+    };
+  }, [open, stage]);
 
   // Keep showing success popup even if parent sets open=false after submit.
   if (!open && stage !== 'success') return null;
 
-  const before = Number(walletBefore) || 0;
+  const before = open ? liveBalance : (Number(walletBefore) || getStoredWalletBalance());
   const amount = Number(totalAmount) || 0;
   const after = before - amount;
   const insufficientBalance = after < 0;
@@ -86,7 +100,9 @@ const BidReviewModal = ({
       const fn = onSubmit?.();
       if (fn && typeof fn.then === 'function') await fn;
 
-      // Persist bet history (only after successful submit)
+      // Show success immediately; local history write must not block UI.
+      setStage('success');
+
       try {
         const u = JSON.parse(localStorage.getItem('user') || 'null');
         const userId =
@@ -112,8 +128,6 @@ const BidReviewModal = ({
       } catch (e) {
         // ignore storage errors
       }
-
-      setStage('success');
     } catch (e) {
       setSubmitError(e?.message || t('betHistory.betFailed'));
     } finally {

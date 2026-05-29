@@ -71,7 +71,10 @@ export const placeBet = async (req, res) => {
 
         const [user, market] = await Promise.all([
             User.findById(userId).select('isActive').maxTimeMS(DB_QUERY_MS).lean(),
-            Market.findById(marketId).maxTimeMS(DB_QUERY_MS).lean(),
+            Market.findById(marketId)
+                .select('marketName marketType openingNumber closingTime startingTime betClosureTime')
+                .maxTimeMS(DB_QUERY_MS)
+                .lean(),
         ]);
 
         if (!user) {
@@ -163,6 +166,29 @@ export const placeBet = async (req, res) => {
             sanitized.push({ betType, betNumber, amount, betOn });
         }
 
+        // Validate scheduled date before touching wallet (avoids debit + refund round-trips).
+        let scheduledDateObj = null;
+        let isScheduled = false;
+        if (scheduledDate) {
+            scheduledDateObj = new Date(scheduledDate);
+            if (isNaN(scheduledDateObj.getTime())) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid scheduledDate format',
+                });
+            }
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            scheduledDateObj.setHours(0, 0, 0, 0);
+            if (scheduledDateObj < now) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Scheduled date must be today or in the future',
+                });
+            }
+            isScheduled = true;
+        }
+
         let wallet = await Wallet.findOneAndUpdate(
             { userId, balance: { $gte: totalAmount } },
             { $inc: { balance: -totalAmount } },
@@ -187,55 +213,30 @@ export const placeBet = async (req, res) => {
             }
         }
 
-        // Validate scheduledDate if provided
-        let scheduledDateObj = null;
-        let isScheduled = false;
-        if (scheduledDate) {
-            scheduledDateObj = new Date(scheduledDate);
-            if (isNaN(scheduledDateObj.getTime())) {
-                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid scheduledDate format',
-                });
-            }
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-            scheduledDateObj.setHours(0, 0, 0, 0);
-            if (scheduledDateObj < now) {
-                await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
-                return res.status(400).json({
-                    success: false,
-                    message: 'Scheduled date must be today or in the future',
-                });
-            }
-            isScheduled = true;
-        }
+        const betDocs = sanitized.map(({ betType, betNumber, amount, betOn }) => ({
+            userId,
+            marketId,
+            betOn,
+            betType,
+            betNumber,
+            amount,
+            status: 'pending',
+            payout: 0,
+            scheduledDate: scheduledDateObj,
+            isScheduled: isScheduled,
+        }));
 
-        const betIds = [];
-        const createdBets = [];
+        let inserted;
         try {
-            const betDocs = sanitized.map(({ betType, betNumber, amount, betOn }) => ({
-                userId,
-                marketId,
-                betOn,
-                betType,
-                betNumber,
-                amount,
-                status: 'pending',
-                payout: 0,
-                scheduledDate: scheduledDateObj,
-                isScheduled: isScheduled,
-            }));
-            const inserted = await Bet.insertMany(betDocs, { ordered: true });
-            for (const bet of inserted) {
-                betIds.push(bet._id);
-                createdBets.push(bet);
-            }
+            inserted = await Bet.insertMany(betDocs, { ordered: false });
         } catch (createErr) {
             await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
             throw createErr;
         }
+
+        const betIds = inserted.map((b) => b._id);
+        const newBalance = Number(wallet.balance ?? 0);
+        const marketName = market.marketName || 'Market';
 
         const labelForType = (t) => {
             const s = String(t || '').toLowerCase();
@@ -255,30 +256,27 @@ export const placeBet = async (req, res) => {
             return 'Bet';
         };
 
-        try {
-            if (createdBets.length > 0) {
-                await WalletTransaction.insertMany(
-                    createdBets.map((b) => ({
-                        userId,
-                        type: 'debit',
-                        amount: Number(b.amount) || 0,
-                        description: `Bet placed – ${market.marketName} (${labelForType(b.betType)} ${String(b.betNumber || '').trim()})`,
-                        referenceId: b._id.toString(),
-                    }))
-                );
-            }
-        } catch (txErr) {
-            await Wallet.updateOne({ userId }, { $inc: { balance: totalAmount } }).catch(() => {});
-            throw txErr;
+        // Respond immediately — passbook rows + socket can finish after response (saves ~1 DB RTT).
+        if (inserted.length > 0) {
+            const txDocs = inserted.map((b) => ({
+                userId,
+                type: 'debit',
+                amount: Number(b.amount) || 0,
+                description: `Bet placed – ${marketName} (${labelForType(b.betType)} ${String(b.betNumber || '').trim()})`,
+                referenceId: b._id.toString(),
+            }));
+            WalletTransaction.insertMany(txDocs, { ordered: false }).catch((err) => {
+                console.error('[placeBet] WalletTransaction.insertMany failed:', err?.message || err);
+            });
         }
 
-        notifyPlayerWalletBalance(userId, 'bet_placed').catch(() => {});
+        notifyPlayerWalletBalance(userId, 'bet_placed', newBalance).catch(() => {});
 
         res.status(201).json({
             success: true,
             message: 'Bet placed successfully',
             data: {
-                newBalance: wallet.balance,
+                newBalance,
                 betIds,
                 totalAmount,
             },

@@ -3,24 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
 import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
-
-const getWalletFromStorage = () => {
-    try {
-        const u = JSON.parse(localStorage.getItem('user') || 'null');
-        const val =
-            u?.wallet ||
-            u?.balance ||
-            u?.points ||
-            u?.walletAmount ||
-            u?.wallet_amount ||
-            u?.amount ||
-            0;
-        const n = Number(val);
-        return Number.isFinite(n) ? n : 0;
-    } catch (e) {
-        return 0;
-    }
-};
+import { getStoredWalletBalance } from '../../utils/walletBalance';
 
 const BidLayout = ({
     market,
@@ -61,7 +44,7 @@ const BidLayout = ({
     const { allowed: bettingAllowed, closeOnly: bettingCloseOnly } = useBettingWindow();
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
     const [wallet, setWallet] = useState(() =>
-        Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getWalletFromStorage()
+        Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getStoredWalletBalance()
     );
 
     const marketStatus = market?.status;
@@ -91,7 +74,7 @@ const BidLayout = ({
                 setWallet(propWallet);
                 return;
             }
-            setWallet(getWalletFromStorage());
+            setWallet(getStoredWalletBalance());
         };
         const onBalanceUpdated = (e) => {
             const next = Number(e?.detail?.balance);
