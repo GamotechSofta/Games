@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { loginWithPassword, sendOtp, signupUser, verifyOtp } from '../services/otpAuthApi';
+import { loginWithPassword, signupUser } from '../services/otpAuthApi';
 import Toast from '../components/common/Toast';
 import { useToast } from '../hooks/useToast';
 import aakdaLogo from '../config/logo';
@@ -11,7 +11,6 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const refParam = searchParams.get('ref');
   const [isLogin, setIsLogin] = useState(!refParam);
-  const [loginMode, setLoginMode] = useState('password');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -22,13 +21,8 @@ const Login = () => {
   const [isAbove18, setIsAbove18] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpLoading, setOtpLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [signupOtp, setSignupOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [signupOtpSent, setSignupOtpSent] = useState(false);
   const { toast, showToast, hideToast } = useToast();
 
   const handleChange = (e) => {
@@ -53,30 +47,6 @@ const Login = () => {
     }
   };
 
-  const handleSendOtp = async (isSignup = false) => {
-    setError('');
-    if (!/^[6-9]\d{9}$/.test(formData.phone)) {
-      setError('Please enter valid 10-digit phone number');
-      return;
-    }
-    setOtpLoading(true);
-    try {
-      const data = await sendOtp(formData.phone);
-      if (!data.success) {
-        setError(data.message || 'Failed to send OTP');
-        return;
-      }
-      if (isSignup) setSignupOtpSent(true);
-      else setOtpSent(true);
-      showToast(data.message || 'OTP sent successfully', 'success');
-    } catch {
-      setError('Network error');
-      showToast('Failed to send OTP', 'error');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -85,15 +55,11 @@ const Login = () => {
     if (!/^[6-9]\d{9}$/.test(formData.phone)) return setError('Please enter valid phone number');
 
     if (isLogin) {
-      if (loginMode === 'password' && !formData.password) return setError('Password is required');
-      if (loginMode === 'otp' && !otpSent) return setError('Please send OTP first');
-      if (loginMode === 'otp' && !/^\d{4,6}$/.test(otp)) return setError('Enter valid OTP');
+      if (!formData.password) return setError('Password is required');
     } else {
       if (!formData.firstName || !formData.lastName || !formData.password || !formData.confirmPassword) {
         return setError('All fields are required');
       }
-      if (!signupOtpSent) return setError('Please send OTP first');
-      if (!/^\d{4,6}$/.test(signupOtp)) return setError('Enter signup OTP');
       if (formData.password !== formData.confirmPassword) return setError('Passwords do not match');
     }
 
@@ -101,11 +67,7 @@ const Login = () => {
     try {
       let data;
       if (isLogin) {
-        if (loginMode === 'otp') {
-          data = await verifyOtp(formData.phone, otp);
-        } else {
-          data = await loginWithPassword({ phone: formData.phone, password: formData.password, deviceId: getDeviceId() });
-        }
+        data = await loginWithPassword({ phone: formData.phone, password: formData.password, deviceId: getDeviceId() });
       } else {
         data = await signupUser({
           firstName: formData.firstName,
@@ -170,59 +132,20 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-3">
 
-                {isLogin && (
-                  <>
-                <div className="grid grid-cols-2 gap-1 rounded-[10px] border border-[#1e2b41] bg-[#0b1322] p-1">
-                  <button type="button" onClick={() => setLoginMode('password')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'password' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>Password</button>
-                  <button type="button" onClick={() => setLoginMode('otp')} className={`rounded-md py-2 text-xs font-semibold ${loginMode === 'otp' ? 'bg-red-600 text-white' : 'text-[#8fa0b7]'}`}>OTP</button>
+            {isLogin && (
+              <>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#d5deea]">Phone Number *</label>
+                  <input name="phone" value={formData.phone} onChange={handleChange} maxLength={10} placeholder="10-digit phone number" className={inputClass} />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-[#d5deea]">Phone Number *</label>
-                  {loginMode === 'password' ? (
-                    <input name="phone" value={formData.phone} onChange={handleChange} maxLength={10} placeholder="10-digit phone number" className={inputClass} />
-                  ) : (
-                    <div className="flex gap-2">
-                      <input
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        maxLength={10}
-                        placeholder="10-digit phone number"
-                        className={inputClass}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleSendOtp(false)}
-                        disabled={otpLoading}
-                        className="rounded-[10px] bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
-                      >
-                        {otpLoading ? '...' : (otpSent ? 'Resend' : 'Send')}
-                      </button>
-                    </div>
-                  )}
+                  <label className="mb-1 block text-xs font-medium text-[#d5deea]">Password *</label>
+                  <div className="relative">
+                    <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" className={`${inputClass} pr-12`} />
+                    <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8fa0b7]">{showPassword ? 'Hide' : 'Show'}</button>
                   </div>
-
-                {loginMode === 'password' ? (
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-[#d5deea]">Password *</label>
-                    <div className="relative">
-                      <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" className={`${inputClass} pr-12`} />
-                      <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8fa0b7]">{showPassword ? 'Hide' : 'Show'}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-[#d5deea]">OTP *</label>
-                    <input
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="Enter OTP"
-                      disabled={!otpSent}
-                      className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-60`}
-                    />
-                  </div>
-                )}
+                </div>
               </>
               )}
 
@@ -235,33 +158,15 @@ const Login = () => {
 
                 <div>
                   <label className="mb-1 block text-xs font-medium text-[#d5deea]">Phone Number *</label>
-                  <div className="flex gap-2">
-                    <input
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      maxLength={10}
-                      placeholder="10-digit phone number"
-                      className={inputClass}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSendOtp(true)}
-                      disabled={otpLoading}
-                      className="rounded-[10px] bg-red-600 px-3 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-60"
-                    >
-                      {otpLoading ? '...' : (signupOtpSent ? 'Resend' : 'Send')}
-                    </button>
-                  </div>
+                  <input
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    maxLength={10}
+                    placeholder="10-digit phone number"
+                    className={inputClass}
+                  />
                 </div>
-
-                    <input
-                  value={signupOtp}
-                  onChange={(e) => setSignupOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="Signup OTP"
-                  disabled={!signupOtpSent}
-                  className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-60`}
-                />
 
                 <div className="relative">
                   <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="Create Password" className={`${inputClass} pr-12`} />
@@ -283,24 +188,9 @@ const Login = () => {
                 </label>
 
             <button type="submit" disabled={loading || !isAbove18} className="w-full rounded-[10px] bg-gradient-to-r from-[#d7001f] to-[#ff1744] py-3 text-sm font-bold tracking-wide text-white hover:brightness-110 disabled:opacity-60">
-              {loading ? 'Please wait...' : isLogin ? (loginMode === 'otp' ? 'VERIFY OTP' : 'SIGN IN') : 'SIGN UP'}
+              {loading ? 'Please wait...' : isLogin ? 'SIGN IN' : 'SIGN UP'}
             </button>
-
-            {isLogin && (
-              <>
-                <div className="relative py-1 text-center text-xs text-[#5d6b80] before:absolute before:left-0 before:top-1/2 before:h-px before:w-[45%] before:bg-[#22324a] after:absolute after:right-0 after:top-1/2 after:h-px after:w-[45%] after:bg-[#22324a]">
-                  or
-              </div>
-              <button
-                  type="button"
-                  onClick={() => setLoginMode((prev) => (prev === 'otp' ? 'password' : 'otp'))}
-                  className="w-full rounded-[10px] border border-[#2a3a52] bg-transparent py-3 text-sm font-semibold text-white hover:border-red-500"
-                >
-                  {loginMode === 'otp' ? 'Login with Password' : 'Login with OTP'}
-                </button>
-              </>
-            )}
-            </form>
+          </form>
 
         </div>
       </div>

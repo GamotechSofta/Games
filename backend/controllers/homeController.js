@@ -44,7 +44,7 @@ export const getHomeBootstrap = async (req, res) => {
         if (userId) {
             const [walletDoc, userDoc] = await Promise.all([
                 Wallet.findOne({ userId }).select('balance').lean(),
-                User.findById(userId).select('balance').lean(),
+                User.findById(userId).select('+balance').lean(),
             ]);
 
             const balance = walletDoc?.balance ?? userDoc?.balance;

@@ -28,16 +28,6 @@ otpApi.interceptors.response.use(
   },
 );
 
-export const sendOtp = async (phone) => {
-  const response = await otpApi.post('/users/otp/send', { phone });
-  return response.data;
-};
-
-export const verifyOtp = async (phone, otp) => {
-  const response = await otpApi.post('/users/otp/verify', { phone, otp });
-  return response.data;
-};
-
 export const fetchMyProfile = async (token) => {
   const response = await otpApi.get('/users/me', token ? {
     headers: { Authorization: `Bearer ${token}` },

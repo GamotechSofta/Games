@@ -1,6 +1,6 @@
 import express from 'express';
 import { createUser, userLogin, userSignup, userHeartbeat, getUsers, getSingleUser, togglePlayerStatus, deletePlayer, clearLoginDevices, changePlayerPassword } from '../../controllers/userController.js';
-import { getMyProfile, sendOtp, verifyOtp } from '../../controllers/otpAuthController.js';
+import { getMyProfile } from '../../controllers/userProfileController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 import { verifyUserAuth } from '../../middleware/userAuth.js';
 
@@ -10,8 +10,6 @@ const router = express.Router();
 router.post('/login', userLogin);
 router.post('/signup', userSignup);
 router.post('/heartbeat', userHeartbeat);
-router.post('/otp/send', sendOtp);
-router.post('/otp/verify', verifyOtp);
 router.get('/me', verifyUserAuth, getMyProfile);
 
 // Admin/Bookie routes

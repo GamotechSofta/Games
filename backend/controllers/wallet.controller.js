@@ -33,7 +33,7 @@ const audit = (req, route, status, meta = {}) => {
  * Backward-compatible fallback: if wallet is missing, seed from legacy User.balance.
  */
 const getOrCreateWalletForUser = async (userId, session = null) => {
-    const userQuery = User.findById(userId).select('_id balance');
+    const userQuery = User.findById(userId).select('_id +balance');
     const user = session ? await userQuery.session(session) : await userQuery;
     if (!user) return { user: null, wallet: null };
 

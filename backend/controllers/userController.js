@@ -43,9 +43,11 @@ export const userLogin = async (req, res) => {
         const normalizedPhone = phone ? String(phone).replace(/\D/g, '').slice(0, 10) : '';
 
         // Try to find user by phone first, then by username
-        let user = normalizedPhone.length >= 10 ? await User.findOne({ phone: normalizedPhone }) : null;
+        let user = normalizedPhone.length >= 10
+            ? await User.findOne({ phone: normalizedPhone }).select('+password +loginDevices +failedLoginAttempts +accountLockedUntil')
+            : null;
         if (!user && username) {
-            user = await User.findOne({ username: String(username).trim() });
+            user = await User.findOne({ username: String(username).trim() }).select('+password +loginDevices +failedLoginAttempts +accountLockedUntil');
         }
         
         if (!user) {
@@ -55,7 +57,7 @@ export const userLogin = async (req, res) => {
             });
         }
 
-        if (!user.isActive) {
+        if (!user.isActive || user.isBlocked) {
             return res.status(403).json({
                 success: false,
                 message: 'Your account has been suspended. Please contact admin for assistance.',
@@ -63,8 +65,27 @@ export const userLogin = async (req, res) => {
             });
         }
 
+        if (user.accountLockedUntil && new Date(user.accountLockedUntil).getTime() > Date.now()) {
+            return res.status(423).json({
+                success: false,
+                message: 'Account temporarily locked. Try again in a few minutes.',
+                code: 'ACCOUNT_LOCKED',
+            });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
+            const attempts = Number(user.failedLoginAttempts || 0) + 1;
+            const shouldLock = attempts >= 5;
+            await User.updateOne(
+                { _id: user._id },
+                {
+                    $set: {
+                        failedLoginAttempts: shouldLock ? 0 : attempts,
+                        accountLockedUntil: shouldLock ? new Date(Date.now() + (15 * 60 * 1000)) : null,
+                    },
+                }
+            );
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials',
@@ -74,27 +95,31 @@ export const userLogin = async (req, res) => {
         const clientIp = getClientIp(req);
         const rawDeviceId = req.body != null && 'deviceId' in req.body ? req.body.deviceId : deviceId;
         const trimmedDeviceId = (rawDeviceId != null && String(rawDeviceId).trim()) ? String(rawDeviceId).trim() : '';
+        user.lastActiveAt = new Date();
+        user.lastLoginAt = new Date();
+        user.lastLoginIp = clientIp || null;
+        user.failedLoginAttempts = 0;
+        user.accountLockedUntil = null;
         const update = {
             lastActiveAt: new Date(),
+            lastLoginAt: new Date(),
             lastLoginIp: clientIp || undefined,
+            failedLoginAttempts: 0,
+            accountLockedUntil: null,
             ...(trimmedDeviceId ? { lastLoginDeviceId: trimmedDeviceId } : {}),
         };
-        await User.updateOne({ _id: user._id }, { $set: update });
 
         if (trimmedDeviceId) {
-            const doc = await User.findById(user._id).select('loginDevices').lean();
-            const loginDevices = Array.isArray(doc?.loginDevices) ? [...doc.loginDevices] : [];
-            const now = new Date();
-            const idx = loginDevices.findIndex((d) => String(d.deviceId) === trimmedDeviceId);
-            if (idx >= 0) {
-                loginDevices[idx].lastLoginAt = now;
-            } else {
-                loginDevices.push({ deviceId: trimmedDeviceId, firstLoginAt: now, lastLoginAt: now });
-            }
-            await User.updateOne({ _id: user._id }, { $set: { loginDevices } });
+            user.updateDevice({
+                deviceId: trimmedDeviceId,
+                ip: clientIp || null,
+                userAgent: req.headers['user-agent'] || null,
+            });
+            update.loginDevices = user.loginDevices;
         }
+        await User.updateOne({ _id: user._id }, { $set: update });
 
-        await logActivity({
+        void logActivity({
             action: 'player_login',
             performedBy: user.username,
             performedByType: 'user',
@@ -102,11 +127,13 @@ export const userLogin = async (req, res) => {
             targetId: user._id.toString(),
             details: `Player "${user.username}" logged in (frontend)`,
             ip: getClientIp(req),
-        });
+        }).catch(() => {});
 
-        // Get wallet balance
-        const wallet = await Wallet.findOne({ userId: user._id });
-        const balance = wallet ? wallet.balance : 0;
+        const [wallet, bookie] = await Promise.all([
+            Wallet.findOne({ userId: user._id }).select('balance').lean(),
+            user.referredBy ? Admin.findById(user.referredBy).select('uiTheme').lean() : Promise.resolve(null),
+        ]);
+        const balance = wallet?.balance ?? 0;
 
         const data = {
             id: user._id,
@@ -119,7 +146,6 @@ export const userLogin = async (req, res) => {
         };
         if (user.referredBy) {
             data.referredBy = user.referredBy;
-            const bookie = await Admin.findById(user.referredBy).select('uiTheme').lean();
             data.bookieTheme = bookie?.uiTheme || { themeId: 'default' };
         }
 
@@ -474,7 +500,7 @@ export const getUsers = async (req, res) => {
         }
 
         let users = await User.find(query)
-            .select('username email phone role isActive source referredBy lastActiveAt lastLoginIp lastLoginDeviceId loginDevices createdAt')
+            .select('username email phone role isActive source referredBy lastActiveAt createdAt +lastLoginIp +lastLoginDeviceId +loginDevices')
             .populate('referredBy', 'username')
             .sort(filter === 'bookie' ? { referredBy: 1, createdAt: -1 } : { createdAt: -1 })
             .limit(500)
@@ -508,7 +534,7 @@ export const getSingleUser = async (req, res) => {
         const bookieUserIds = await getBookieUserIds(req.admin);
 
         const user = await User.findById(id)
-            .select('username email phone role isActive source referredBy lastActiveAt lastLoginIp lastLoginDeviceId loginDevices createdAt')
+            .select('username email phone role isActive source referredBy lastActiveAt createdAt +lastLoginIp +lastLoginDeviceId +loginDevices')
             .populate('referredBy', 'username')
             .lean();
 

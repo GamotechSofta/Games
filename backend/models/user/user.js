@@ -1,94 +1,297 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
+const loginDeviceSchema = new mongoose.Schema(
+  {
+    deviceId: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    firstLoginAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    lastLoginAt: {
+      type: Date,
+      default: Date.now,
+    },
+
+    ipAddress: {
+      type: String,
+      default: null,
+    },
+
+    userAgent: {
+      type: String,
+      default: null,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const userSchema = new mongoose.Schema(
+  {
     username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
+      type: String,
+      trim: true,
+      minlength: 3,
+      maxlength: 30,
+      unique: true,
+      sparse: true,
+      index: true,
     },
+
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
+      type: String,
+      trim: true,
+      lowercase: true,
+      sparse: true,
+      unique: true,
+      index: true,
+      match:
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-    },
+
     phone: {
-        type: String,
-        trim: true,
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      trim: true,
+      match: /^[0-9]{10}$/,
     },
+
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+      select: false,
+    },
+
     role: {
-        type: String,
-        enum: ['user', 'bookie'],
-        default: 'user',
+      type: String,
+      enum: ["user", "bookie"],
+      default: "user",
+      index: true,
     },
-    // Legacy/deprecated: wallet source of truth is Wallet.balance.
-    // Keep only for backward compatibility/migration safety.
-    balance: {
-        type: Number,
-        default: 0,
-        min: 0,
-    },
-    isActive: {
-        type: Boolean,
-        default: true,
-    },
-    /** Super admin's user: direct frontend signup or created by super admin. Bookie's user: created by bookie or came via bookie link. */
+
     source: {
-        type: String,
-        enum: ['super_admin', 'bookie'],
-        default: 'super_admin',
+      type: String,
+      enum: ["super_admin", "bookie"],
+      default: "super_admin",
+      index: true,
     },
+
     referredBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Admin',
-        default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
+      index: true,
     },
-    /** Last active timestamp – used to compute online/offline status (online if within 5 min) */
+
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+
+    isBlocked: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     lastActiveAt: {
-        type: Date,
-        default: null,
+      type: Date,
+      default: null,
+      index: true,
     },
-    /** Last login IP address (set on player login) */
+
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+
     lastLoginIp: {
-        type: String,
-        default: null,
+      type: String,
+      default: null,
+      select: false,
     },
-    /** Device ID from which user last logged in (sent by frontend) */
+
     lastLoginDeviceId: {
-        type: String,
-        default: null,
+      type: String,
+      default: null,
+      select: false,
     },
-    /** List of devices used to log in: { deviceId, firstLoginAt, lastLoginAt } */
-    loginDevices: [{
-        deviceId: { type: String, required: true },
-        firstLoginAt: { type: Date, required: true },
-        lastLoginAt: { type: Date, required: true },
-    }],
-}, {
+
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+
+    accountLockedUntil: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+
+    loginDevices: {
+      type: [loginDeviceSchema],
+      default: [],
+      select: false,
+    },
+
+    balance: {
+      type: Number,
+      default: 0,
+      min: 0,
+      select: false,
+    },
+  },
+  {
     timestamps: true,
+
+    toJSON: {
+      virtuals: true,
+
+      transform(doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+      },
+    },
+
+    toObject: {
+      virtuals: true,
+    },
+  }
+);
+
+
+
+
+
+userSchema.virtual("isOnline").get(function () {
+  if (!this.lastActiveAt) return false;
+
+  return (
+    Date.now() -
+      new Date(this.lastActiveAt).getTime() <
+    5 * 60 * 1000
+  );
 });
 
-// Hash password before saving
-userSchema.pre('save', async function () {
-    if (!this.isModified('password')) {
-        return;
+
+
+
+
+
+userSchema.pre(
+  "save",
+  async function (next) {
+    try {
+      if (!this.isModified("password")) {
+        return next();
+      }
+
+      const salt =
+        await bcrypt.genSalt(12);
+
+      this.password =
+        await bcrypt.hash(
+          this.password,
+          salt
+        );
+
+      next();
+    } catch (err) {
+      next(err);
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+  }
+);
+
+
+
+
+
+
+userSchema.methods.comparePassword =
+  async function (
+    candidatePassword
+  ) {
+    return bcrypt.compare(
+      candidatePassword,
+      this.password
+    );
+  };
+
+
+
+
+
+
+userSchema.methods.updateDevice =
+  function ({
+    deviceId,
+    ip,
+    userAgent,
+  }) {
+    const existing =
+      this.loginDevices.find(
+        (d) =>
+          d.deviceId === deviceId
+      );
+
+    if (existing) {
+      existing.lastLoginAt =
+        new Date();
+
+      existing.ipAddress = ip;
+
+      existing.userAgent =
+        userAgent;
+    } else {
+      this.loginDevices.push({
+        deviceId,
+
+        ipAddress: ip,
+
+        userAgent,
+
+        firstLoginAt:
+          new Date(),
+
+        lastLoginAt:
+          new Date(),
+      });
+    }
+  };
+
+
+
+
+
+
+userSchema.index({
+  role: 1,
+  isActive: 1,
 });
 
-// Method to compare password
-userSchema.methods.comparePassword = async function (candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password);
-};
+userSchema.index({
+  createdAt: -1,
+});
 
-const User = mongoose.model('User', userSchema);
+const User =
+  mongoose.models.User ||
+  mongoose.model(
+    "User",
+    userSchema
+  );
+
 export default User;

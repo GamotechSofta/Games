@@ -57,7 +57,7 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [, setTick] = React.useState(0);
-  const { markets, loading, refetch } = useMainMarkets({ limit: 100 });
+  const { markets, loading, error, refetch } = useMainMarkets({ limit: 100 });
 
   const getMarketDisplayName = useCallback(
     (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
@@ -78,7 +78,12 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
 
   useRefreshOnMarketReset(refetch);
 
+  const normalizedViewMode = String(viewMode || '').trim().toLowerCase();
   const allMarkets = filteredMarkets;
+  const visibleMarkets =
+    normalizedViewMode === 'popular'
+      ? allMarkets.filter((market) => market.showInPopular)
+      : allMarkets;
 
   const gridSkeleton = (
     <div className={ALL_MARKETS_GRID_CLASS}>
@@ -97,7 +102,27 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
     );
   }
 
-  if (!markets.length) {
+  if (error && !markets.length) {
+    return (
+      <div
+        id="market-sections"
+        className="text-center py-12 bg-white dark:bg-[#161616] rounded-xl border border-gray-200 dark:border-white/[0.08]"
+      >
+        <p className="text-gray-500 dark:text-[#b0b0b0]">
+          {error || t('common.somethingWentWrong', { defaultValue: 'Something went wrong' })}
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-white/[0.2] dark:text-gray-200 dark:hover:bg-white/[0.04]"
+        >
+          {t('common.retry', { defaultValue: 'Retry' })}
+        </button>
+      </div>
+    );
+  }
+
+  if (!visibleMarkets.length) {
     return (
       <div
         id="market-sections"
@@ -141,10 +166,10 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   return (
     <div id="market-sections">
       <MarketRow
-        titleKey="dashboard.allMarkets"
+          titleKey={normalizedViewMode === 'popular' ? 'dashboard.popularMarkets' : 'dashboard.allMarkets'}
         icon={MdLocalFireDepartment}
         section="popular"
-        markets={allMarkets}
+          markets={visibleMarkets}
         showAction={false}
         layout="grid"
       />

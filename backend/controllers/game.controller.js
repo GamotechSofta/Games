@@ -49,7 +49,7 @@ export const launchGame = async (req, res) => {
             });
         }
 
-        const user = await User.findById(userId).select('_id balance').lean();
+        const user = await User.findById(userId).select('_id +balance').lean();
         if (!user) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'User not found' } });
             return res.status(404).json({
