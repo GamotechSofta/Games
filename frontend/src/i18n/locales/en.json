@@ -197,7 +197,7 @@
     "sendRequestFromSupport": "Send a request from Support and it will show here.",
     "askForHelp": "Ask for help",
     "replyFromSupport": "Reply from support",
-    "statusOpen": "Pending",
+    "statusOpen": "Open",
     "statusInProgress": "In progress",
     "statusResolved": "Resolved",
     "statusClosed": "Closed",
