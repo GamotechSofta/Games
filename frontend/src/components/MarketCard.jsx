@@ -247,8 +247,8 @@ function MarketCard({ market }) {
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: 48,
-            padding: '10px',
-            background: theme.timeBarBg,
+            
+            background: 'transparent',
           }}
         >
           <h3
@@ -411,12 +411,10 @@ function MarketCard({ market }) {
               textTransform: 'uppercase',
               color: '#ffffff',
               background: isDarkMode ? '#15803d' : '#22c55e',
-              borderTop: isDarkMode
-                ? '1px solid #22c55e'
-                : '1px solid rgba(21,128,61,0.4)',
+              
             }}
           >
-            <PlayIcon color="#ffffff" size={18} />
+            {/* <PlayIcon color="#ffffff" size={18} /> */}
             <span>{openLabel}</span>
           </div>
         )}
