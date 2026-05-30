@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   fetchSpecialSlotsThunk,
@@ -34,10 +34,15 @@ export function useSpecialMarketSlots({
     return () => clearInterval(id);
   }, [dispatch, marketType, group, marketLabel, canFetch]);
 
+  const refetch = useCallback(() => {
+    if (!canFetch) return undefined;
+    return dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
+  }, [dispatch, marketType, group, marketLabel, canFetch]);
+
   return {
-    items: query.data || [],
-    loading: query.isPending && !(query.data?.length),
-    refetch: query.refetch,
+    items,
+    loading: loading && items.length === 0,
+    refetch,
   };
 }
 

@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '../../config/api';
 import {
   buildKingDemoSlots,
@@ -105,18 +105,53 @@ const specialSlotsSlice = createSlice({
 
 export const { clearSpecialSlots } = specialSlotsSlice.actions;
 
-export const selectSpecialSlots = (marketType, groupKey) => (state) => {
-  const key = slotCacheKey(marketType, groupKey);
-  return state.specialSlots.byKey[key]?.items || [];
-};
+const EMPTY_ITEMS = [];
+const DEFAULT_BUCKET = Object.freeze({
+  items: EMPTY_ITEMS,
+  status: 'idle',
+  error: null,
+  lastFetchedAt: null,
+});
 
-export const selectSpecialSlotsStatus = (marketType, groupKey) => (state) => {
+const slotsSelectorCache = new Map();
+const statusSelectorCache = new Map();
+
+function getSlotsSelector(marketType, groupKey) {
   const key = slotCacheKey(marketType, groupKey);
-  const bucket = state.specialSlots.byKey[key] || emptyBucket();
-  return {
-    loading: bucket.status === 'loading' || bucket.status === 'idle',
-    error: bucket.error,
-  };
-};
+  if (!slotsSelectorCache.has(key)) {
+    slotsSelectorCache.set(
+      key,
+      createSelector(
+        (state) => state.specialSlots.byKey[key]?.items,
+        (items) => items ?? EMPTY_ITEMS,
+      ),
+    );
+  }
+  return slotsSelectorCache.get(key);
+}
+
+function getStatusSelector(marketType, groupKey) {
+  const key = slotCacheKey(marketType, groupKey);
+  if (!statusSelectorCache.has(key)) {
+    statusSelectorCache.set(
+      key,
+      createSelector(
+        (state) => state.specialSlots.byKey[key],
+        (bucket) => {
+          const b = bucket || DEFAULT_BUCKET;
+          return {
+            loading: b.status === 'loading' || b.status === 'idle',
+            error: b.error,
+          };
+        },
+      ),
+    );
+  }
+  return statusSelectorCache.get(key);
+}
+
+export const selectSpecialSlots = (marketType, groupKey) => getSlotsSelector(marketType, groupKey);
+
+export const selectSpecialSlotsStatus = (marketType, groupKey) => getStatusSelector(marketType, groupKey);
 
 export default specialSlotsSlice.reducer;

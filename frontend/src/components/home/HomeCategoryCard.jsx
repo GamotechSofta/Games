@@ -53,7 +53,7 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
     >
       <GoldFrame>
         <div
-          className="relative flex min-h-[44px] w-full items-center gap-1.5 px-2 py-1.5 min-[375px]:min-h-[48px] min-[375px]:gap-2 sm:min-h-[58px] sm:gap-2.5 sm:px-2.5 sm:py-2.5 md:min-h-[62px] md:px-3 md:py-2.5 lg:min-h-[66px]"
+          className="relative flex min-h-[44px] w-full items-center gap-1 px-1.5 py-1.5 min-[375px]:min-h-[48px] min-[375px]:gap-1.5 min-[375px]:px-2 sm:min-h-[58px] sm:gap-2.5 sm:px-2.5 sm:py-2.5 md:min-h-[62px] md:px-3 md:py-2.5 lg:min-h-[66px]"
           style={
             theme.cardBgImage
               ? {
@@ -103,7 +103,7 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
 
           {/* Icon */}
           {theme.iconImage ? (
-            <span className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center min-[375px]:h-10 min-[375px]:w-10 sm:h-12 sm:w-12 md:h-[52px] md:w-[52px]">
+            <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center min-[375px]:h-9 min-[375px]:w-9 sm:h-12 sm:w-12 md:h-[52px] md:w-[52px]">
               <img
                 src={theme.iconImage}
                 alt=""
@@ -128,9 +128,9 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
             </span>
           )}
 
-          {/* Label */}
+          {/* Label — no truncate on mobile; scale text so "King Bazaar" fits in 2-col grid */}
           <span
-            className="relative z-10 min-w-0 flex-1 truncate text-[10px] font-bold uppercase tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)] min-[375px]:text-[11px] sm:text-[13px] md:text-sm lg:text-[15px]"
+            className="relative z-10 min-w-0 flex-1 whitespace-normal leading-[1.15] line-clamp-2 text-[9px] font-bold uppercase tracking-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)] min-[360px]:text-[10px] min-[375px]:text-[11px] min-[375px]:tracking-wide sm:text-[13px] md:text-sm lg:text-[15px]"
             style={{ color: theme.labelColor }}
           >
             {label}
@@ -138,7 +138,7 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
 
           {/* Chevron */}
           <span
-            className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border sm:h-7 sm:w-7"
+            className="relative z-10 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border min-[375px]:h-5 min-[375px]:w-5 sm:h-7 sm:w-7"
             style={{
               background: theme.chevronBg,
               borderColor: theme.chevronBorder,
