@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit';
 import { fetchMainMarkets } from '../../api/mainMarkets';
 
 const STALE_MS = 60 * 1000;
@@ -74,14 +74,19 @@ export const selectMainMarkets = (popularOnly = false) => (state) => {
   return state.markets.byFilter[key].items;
 };
 
-export const selectMainMarketsStatus = (popularOnly = false) => (state) => {
-  const key = popularOnly ? 'popular' : 'all';
-  const bucket = state.markets.byFilter[key];
-  return {
-    loading: bucket.status === 'loading' || bucket.status === 'idle',
-    error: bucket.error,
-    status: bucket.status,
-  };
-};
+const selectAllMarketsBucket = (state) => state.markets.byFilter.all;
+const selectPopularMarketsBucket = (state) => state.markets.byFilter.popular;
+
+const marketsStatusFromBucket = (bucket) => ({
+  loading: bucket.status === 'loading' || bucket.status === 'idle',
+  error: bucket.error,
+  status: bucket.status,
+});
+
+const allMarketsStatusSelector = createSelector(selectAllMarketsBucket, marketsStatusFromBucket);
+const popularMarketsStatusSelector = createSelector(selectPopularMarketsBucket, marketsStatusFromBucket);
+
+export const selectMainMarketsStatus = (popularOnly = false) =>
+  popularOnly ? popularMarketsStatusSelector : allMarketsStatusSelector;
 
 export default marketsSlice.reducer;

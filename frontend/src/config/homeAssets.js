@@ -11,8 +11,22 @@ export const HOME_QUICK_LINKS = {
   kingBazaar: home('king-bazaar-card'),
 };
 
+/** Casino home category card assets. */
+export const CASINO_BUTTON_BG = '/images/home/casino-button-bg.webp';
+export const CASINO_ICON = '/images/home/casino-icon.webp';
+
+/** Markets home category card assets. */
+export const MARKETS_BUTTON_BG = '/images/home/markets-button-bg.webp';
+export const MARKETS_ICON = '/images/home/markets-icon.webp';
+
 /** King Bazaar home category card background (full-bleed inside gold frame). */
 export const KING_BAZAAR_BUTTON_BG = '/images/home/king-bazaar-button-bg.png';
+
+/** Starline home category card background (full-bleed inside gold frame). */
+export const STARLINE_BUTTON_BG = '/images/home/starline-button-bg.webp';
+
+/** Starline icon on home category card. */
+export const STARLINE_ICON = '/images/home/starline-icon.webp';
 
 /** King Bazaar circular icon on home category card. */
 export const KING_BAZAAR_ICON = '/images/home/king-bazaar-icon.png';

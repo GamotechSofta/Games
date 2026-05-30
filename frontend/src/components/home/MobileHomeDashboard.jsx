@@ -7,6 +7,7 @@ import {
 } from 'react-icons/md';
 import ResponsiveCloudinaryImage from '../ResponsiveCloudinaryImage';
 import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './HomeCategoryCard';
+import { MarketsCategoryIcon } from './homeCategoryIcons';
 import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
@@ -164,7 +165,7 @@ export default function MobileHomeDashboard() {
 
         <div>
           <SectionHeader
-            icon={MarketsIcon}
+            icon={MarketsCategoryIcon}
             iconClassName="text-[#f59e0b]"
             title={t('dashboard.allMarkets', { defaultValue: 'All Markets' })}
           />

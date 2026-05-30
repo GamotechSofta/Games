@@ -1,6 +1,15 @@
 import React, { memo } from 'react';
 import { HiMiniChevronRight } from 'react-icons/hi2';
-import { KING_BAZAAR_BUTTON_BG, KING_BAZAAR_ICON } from '../../config/homeAssets';
+import {
+  CASINO_BUTTON_BG,
+  CASINO_ICON,
+  KING_BAZAAR_BUTTON_BG,
+  KING_BAZAAR_ICON,
+  MARKETS_BUTTON_BG,
+  MARKETS_ICON,
+  STARLINE_BUTTON_BG,
+  STARLINE_ICON,
+} from '../../config/homeAssets';
 import {
   CasinoCategoryIcon,
   MarketsCategoryIcon,
@@ -14,7 +23,7 @@ import {
 function GoldFrame({ children }) {
   return (
     <div
-      className="relative h-full w-full rounded-[11px] p-[1.5px] shadow-[0_2px_10px_rgba(0,0,0,0.4)] sm:rounded-[15px] sm:p-[2px] sm:shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
+      className="relative h-full w-full rounded-[11px] px-[1.5px] pt-[1.5px] pb-[0.5px] shadow-[0_2px_10px_rgba(0,0,0,0.4)] sm:rounded-[15px] sm:px-[2px] sm:pt-[2px] sm:pb-[1px] sm:shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
       style={{
         background:
           'linear-gradient(145deg, #f7e7a8 0%, #d4af37 18%, #8b6914 42%, #e8c96a 68%, #f0d78c 88%, #c9a227 100%)',
@@ -145,70 +154,39 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
   );
 }
 
+const KING_STYLE_CHEVRON = {
+  chevronBg: 'rgba(120, 53, 15, 0.55)',
+  chevronBorder: 'rgba(253, 230, 138, 0.45)',
+  chevronColor: '#fffbeb',
+  chevronGlow: '0 0 10px rgba(245, 158, 11, 0.4)',
+};
+
+/** Shared premium gold-card UI (all four home category tiles). */
+const PREMIUM_GOLD_CARD_STYLE = {
+  labelColor: '#ffffff',
+  ...KING_STYLE_CHEVRON,
+};
+
 export const HOME_CATEGORY_THEMES = {
   casino: {
-    cardBg:
-      'linear-gradient(90deg, #0f0618 0%, #1f0f32 28%, #4a1f78 50%, #1f0f32 72%, #0f0618 100%)',
-    flare: 'rgba(168, 85, 247, 0.22)',
-    flareStrong: 'rgba(196, 132, 252, 0.38)',
-    iconBg: 'radial-gradient(circle at 32% 28%, #e9d5ff 0%, #9333ea 42%, #4c1d95 100%)',
-    iconBorder: 'rgba(216, 180, 254, 0.75)',
-    iconGlow: '0 0 16px rgba(168, 85, 247, 0.75), 0 0 32px rgba(124, 58, 237, 0.45)',
-    iconColor: '#ffffff',
-    labelColor: '#ffffff',
-    chevronBg: 'rgba(88, 28, 135, 0.55)',
-    chevronBorder: 'rgba(216, 180, 254, 0.45)',
-    chevronColor: '#f3e8ff',
-    chevronGlow: '0 0 10px rgba(168, 85, 247, 0.35)',
+    ...PREMIUM_GOLD_CARD_STYLE,
+    cardBgImage: CASINO_BUTTON_BG,
+    iconImage: CASINO_ICON,
   },
   markets: {
-    cardBg:
-      'linear-gradient(90deg, #140608 0%, #3a0f14 28%, #7a1a22 50%, #3a0f14 72%, #140608 100%)',
-    flare: 'rgba(248, 113, 113, 0.2)',
-    flareStrong: 'rgba(252, 165, 165, 0.34)',
-    iconBg: 'radial-gradient(circle at 32% 28%, #fecaca 0%, #dc2626 45%, #7f1d1d 100%)',
-    iconBorder: 'rgba(252, 165, 165, 0.7)',
-    iconGlow: '0 0 16px rgba(239, 68, 68, 0.7), 0 0 30px rgba(185, 28, 28, 0.45)',
-    iconColor: '#ffffff',
-    labelColor: '#ffffff',
-    chevronBg: 'rgba(127, 29, 29, 0.55)',
-    chevronBorder: 'rgba(252, 165, 165, 0.4)',
-    chevronColor: '#fee2e2',
-    chevronGlow: '0 0 10px rgba(239, 68, 68, 0.35)',
+    ...PREMIUM_GOLD_CARD_STYLE,
+    cardBgImage: MARKETS_BUTTON_BG,
+    iconImage: MARKETS_ICON,
   },
   starline: {
-    cardBg:
-      'linear-gradient(90deg, #1a1204 0%, #3d2c08 28%, #8b6914 50%, #3d2c08 72%, #1a1204 100%)',
-    flare: 'rgba(250, 204, 21, 0.22)',
-    flareStrong: 'rgba(253, 224, 71, 0.38)',
-    waveOverlay:
-      'repeating-linear-gradient(105deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 2px, transparent 2px, transparent 10px)',
-    iconBg: 'radial-gradient(circle at 32% 28%, #fef08a 0%, #eab308 42%, #854d0e 100%)',
-    iconBorder: 'rgba(253, 224, 71, 0.75)',
-    iconGlow: '0 0 16px rgba(234, 179, 8, 0.75), 0 0 32px rgba(180, 83, 9, 0.45)',
-    iconColor: '#422006',
-    labelColor: '#ffffff',
-    chevronBg: 'rgba(113, 63, 18, 0.55)',
-    chevronBorder: 'rgba(253, 224, 71, 0.42)',
-    chevronColor: '#fef9c3',
-    chevronGlow: '0 0 10px rgba(234, 179, 8, 0.35)',
+    ...PREMIUM_GOLD_CARD_STYLE,
+    cardBgImage: STARLINE_BUTTON_BG,
+    iconImage: STARLINE_ICON,
   },
   kingBazaar: {
+    ...PREMIUM_GOLD_CARD_STYLE,
     cardBgImage: KING_BAZAAR_BUTTON_BG,
     iconImage: KING_BAZAAR_ICON,
-    cardBg:
-      'linear-gradient(90deg, #1a1004 0%, #3d2608 28%, #b8860b 50%, #3d2608 72%, #1a1004 100%)',
-    flare: 'rgba(251, 191, 36, 0.24)',
-    flareStrong: 'rgba(252, 211, 77, 0.42)',
-    iconBg: '#0a0806',
-    iconBorder: 'rgba(253, 230, 138, 0.8)',
-    iconGlow: '0 0 18px rgba(245, 158, 11, 0.8), 0 0 34px rgba(180, 83, 9, 0.5)',
-    iconColor: '#422006',
-    labelColor: '#ffffff',
-    chevronBg: 'rgba(120, 53, 15, 0.55)',
-    chevronBorder: 'rgba(253, 230, 138, 0.45)',
-    chevronColor: '#fffbeb',
-    chevronGlow: '0 0 10px rgba(245, 158, 11, 0.4)',
   },
 };
 
