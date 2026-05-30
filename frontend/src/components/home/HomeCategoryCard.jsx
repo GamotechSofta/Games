@@ -43,6 +43,38 @@ function GoldFrame({ children }) {
   );
 }
 
+function CategoryCardLabel({ label }) {
+  return (
+    <span className="inline-flex max-w-full flex-col items-center justify-center gap-[2px] min-[375px]:gap-0.5 sm:gap-1">
+      <span
+        className="line-clamp-2 max-w-full text-center text-[8px] font-bold uppercase leading-[1.1] tracking-[0.12em] text-white min-[360px]:text-[9px] min-[375px]:text-[10px] sm:text-xs sm:tracking-[0.14em] md:text-sm lg:text-[15px]"
+        style={{
+          fontFamily: "'Cinzel', 'Times New Roman', Georgia, serif",
+          textShadow: '0 1px 2px rgba(0,0,0,0.75), 0 2px 6px rgba(0,0,0,0.45)',
+        }}
+      >
+        {label}
+      </span>
+      <span className="flex items-center justify-center gap-[2px] min-[375px]:gap-[3px]" aria-hidden>
+        <span
+          className="h-px w-3 bg-gradient-to-r from-transparent to-[#d4af37] min-[375px]:w-4 sm:w-5"
+          style={{ boxShadow: '0 0 4px rgba(212,175,55,0.45)' }}
+        />
+        <span className="h-[2px] w-[2px] rotate-45 bg-[#f5e6a8] min-[375px]:h-[3px] min-[375px]:w-[3px]" />
+        <span
+          className="h-[4px] w-[4px] rotate-45 border border-[#f5e6a8] bg-transparent min-[375px]:h-[5px] min-[375px]:w-[5px]"
+          style={{ boxShadow: '0 0 5px rgba(245,230,138,0.55)' }}
+        />
+        <span className="h-[2px] w-[2px] rotate-45 bg-[#f5e6a8] min-[375px]:h-[3px] min-[375px]:w-[3px]" />
+        <span
+          className="h-px w-3 bg-gradient-to-l from-transparent to-[#d4af37] min-[375px]:w-4 sm:w-5"
+          style={{ boxShadow: '0 0 4px rgba(212,175,55,0.45)' }}
+        />
+      </span>
+    </span>
+  );
+}
+
 function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
   return (
     <button
@@ -53,7 +85,7 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
     >
       <GoldFrame>
         <div
-          className="relative flex min-h-[44px] w-full items-center gap-1 px-1.5 py-1.5 min-[375px]:min-h-[48px] min-[375px]:gap-1.5 min-[375px]:px-2 sm:min-h-[58px] sm:gap-2.5 sm:px-2.5 sm:py-2.5 md:min-h-[62px] md:px-3 md:py-2.5 lg:min-h-[66px]"
+          className="relative flex min-h-[44px] w-full items-center justify-between gap-1 px-1.5 py-1.5 min-[375px]:min-h-[48px] min-[375px]:gap-1.5 min-[375px]:px-2 sm:min-h-[58px] sm:gap-2.5 sm:px-2.5 sm:py-2.5 md:min-h-[62px] md:px-3 md:py-2.5 lg:min-h-[66px]"
           style={
             theme.cardBgImage
               ? {
@@ -128,12 +160,9 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
             </span>
           )}
 
-          {/* Label — no truncate on mobile; scale text so "King Bazaar" fits in 2-col grid */}
-          <span
-            className="relative z-10 min-w-0 flex-1 whitespace-normal leading-[1.15] line-clamp-2 text-[9px] font-bold uppercase tracking-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)] min-[360px]:text-[10px] min-[375px]:text-[11px] min-[375px]:tracking-wide sm:text-[13px] md:text-sm lg:text-[15px]"
-            style={{ color: theme.labelColor }}
-          >
-            {label}
+          {/* Label — centered premium gold serif + diamond ornament */}
+          <span className="pointer-events-none absolute inset-y-0 left-9 right-7 z-10 flex items-center justify-center min-[375px]:left-10 min-[375px]:right-8 sm:left-14 sm:right-10">
+            <CategoryCardLabel label={label} />
           </span>
 
           {/* Chevron */}
