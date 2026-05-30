@@ -11,6 +11,12 @@ export const HOME_QUICK_LINKS = {
   kingBazaar: home('king-bazaar-card'),
 };
 
+/** King Bazaar home category card background (full-bleed inside gold frame). */
+export const KING_BAZAAR_BUTTON_BG = '/images/home/king-bazaar-button-bg.png';
+
+/** King Bazaar circular icon on home category card. */
+export const KING_BAZAAR_ICON = '/images/home/king-bazaar-icon.png';
+
 export const POPULAR_MARKET_CARD = {
   closed: home('popular-markets-table'),
   open: home('popular-markets-table-open'),
