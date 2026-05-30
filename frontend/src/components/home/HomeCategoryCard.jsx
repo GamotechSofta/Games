@@ -1,6 +1,11 @@
 import React, { memo } from 'react';
 import { HiMiniChevronRight } from 'react-icons/hi2';
-import { KING_BAZAAR_BUTTON_BG, KING_BAZAAR_ICON } from '../../config/homeAssets';
+import {
+  CasinoCategoryIcon,
+  MarketsCategoryIcon,
+  StarlineCategoryIcon,
+  KingBazaarCategoryIcon,
+} from './homeCategoryIcons';
 
 /**
  * Premium home category tile — gold frame, gradient fill, glowing icon (CSS only).
@@ -39,80 +44,48 @@ function HomeCategoryCard({ label, Icon, theme, onClick, active }) {
       <GoldFrame>
         <div
           className="relative flex min-h-[44px] w-full items-center gap-1.5 px-2 py-1.5 min-[375px]:min-h-[48px] min-[375px]:gap-2 sm:min-h-[58px] sm:gap-2.5 sm:px-2.5 sm:py-2.5 md:min-h-[62px] md:px-3 md:py-2.5 lg:min-h-[66px]"
-          style={
-            theme.cardBgImage
-              ? {
-                  backgroundColor: '#050505',
-                  backgroundImage: `url(${theme.cardBgImage})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }
-              : { background: theme.cardBg }
-          }
+          style={{ background: theme.cardBg }}
         >
-          {theme.cardBgImage ? (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-90"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${theme.flare} 42%, ${theme.flareStrong || theme.flare} 50%, ${theme.flare} 58%, transparent 100%)`,
+            }}
+            aria-hidden
+          />
+          {theme.waveOverlay ? (
             <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/45 via-black/20 to-black/45"
+              className="pointer-events-none absolute inset-0 opacity-[0.14]"
+              style={{
+                backgroundImage: theme.waveOverlay,
+                backgroundSize: '120% 100%',
+              }}
               aria-hidden
             />
-          ) : (
-            <>
-              {/* Horizontal light flare */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-90"
-                style={{
-                  background: `linear-gradient(90deg, transparent 0%, ${theme.flare} 42%, ${theme.flareStrong || theme.flare} 50%, ${theme.flare} 58%, transparent 100%)`,
-                }}
-                aria-hidden
-              />
-              {theme.waveOverlay ? (
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-[0.14]"
-                  style={{
-                    backgroundImage: theme.waveOverlay,
-                    backgroundSize: '120% 100%',
-                  }}
-                  aria-hidden
-                />
-              ) : null}
-              <div
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 38%, rgba(0,0,0,0.28) 100%)',
-                }}
-                aria-hidden
-              />
-            </>
-          )}
+          ) : null}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 38%, rgba(0,0,0,0.28) 100%)',
+            }}
+            aria-hidden
+          />
 
           {/* Icon */}
-          {theme.iconImage ? (
-            <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center min-[375px]:h-9 min-[375px]:w-9 sm:h-11 sm:w-11 md:h-12 md:w-12">
-              <img
-                src={theme.iconImage}
-                alt=""
-                className="h-full w-full object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.45)]"
-                loading="lazy"
-                decoding="async"
-              />
-            </span>
-          ) : (
-            <span
-              className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border min-[375px]:h-8 min-[375px]:w-8 sm:h-10 sm:w-10 sm:border-2 md:h-11 md:w-11"
-              style={{
-                background: theme.iconBg,
-                borderColor: theme.iconBorder,
-                boxShadow: theme.iconGlow,
-              }}
-            >
-              <Icon
-                className="h-3.5 w-3.5 min-[375px]:h-4 min-[375px]:w-4 sm:h-5 sm:w-5 md:h-[22px] md:w-[22px]"
-                style={{ color: theme.iconColor }}
-              />
-            </span>
-          )}
+          <span
+            className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border min-[375px]:h-8 min-[375px]:w-8 sm:h-10 sm:w-10 sm:border-2 md:h-11 md:w-11"
+            style={{
+              background: theme.iconBg,
+              borderColor: theme.iconBorder,
+              boxShadow: theme.iconGlow,
+            }}
+          >
+            <Icon
+              className="h-3.5 w-3.5 min-[375px]:h-4 min-[375px]:w-4 sm:h-5 sm:w-5 md:h-[22px] md:w-[22px]"
+              style={{ color: theme.iconColor }}
+            />
+          </span>
 
           {/* Label */}
           <span
@@ -189,12 +162,12 @@ export const HOME_CATEGORY_THEMES = {
     chevronGlow: '0 0 10px rgba(234, 179, 8, 0.35)',
   },
   kingBazaar: {
-    cardBgImage: KING_BAZAAR_BUTTON_BG,
-    iconImage: KING_BAZAAR_ICON,
     cardBg:
       'linear-gradient(90deg, #1a1004 0%, #3d2608 28%, #b8860b 50%, #3d2608 72%, #1a1004 100%)',
     flare: 'rgba(251, 191, 36, 0.24)',
     flareStrong: 'rgba(252, 211, 77, 0.42)',
+    waveOverlay:
+      'repeating-linear-gradient(105deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 2px, transparent 2px, transparent 10px)',
     iconBg: 'radial-gradient(circle at 32% 28%, #fde68a 0%, #f59e0b 40%, #92400e 100%)',
     iconBorder: 'rgba(253, 230, 138, 0.8)',
     iconGlow: '0 0 18px rgba(245, 158, 11, 0.8), 0 0 34px rgba(180, 83, 9, 0.5)',
@@ -205,6 +178,27 @@ export const HOME_CATEGORY_THEMES = {
     chevronColor: '#fffbeb',
     chevronGlow: '0 0 10px rgba(245, 158, 11, 0.4)',
   },
+};
+
+function KingBazaarIconBadge({ className = '', style }) {
+  return (
+    <span className="flex flex-col items-center justify-center leading-none">
+      <KingBazaarCategoryIcon className={`${className} !h-3 !w-3 min-[375px]:!h-3.5 min-[375px]:!w-3.5 sm:!h-4 sm:!w-4`} style={style} />
+      <span
+        className="mt-0.5 text-[6px] font-black tracking-wide min-[375px]:text-[7px] sm:text-[8px]"
+        style={{ color: style?.color }}
+      >
+        KB
+      </span>
+    </span>
+  );
+}
+
+export const HOME_CATEGORY_ICONS = {
+  casino: CasinoCategoryIcon,
+  markets: MarketsCategoryIcon,
+  starline: StarlineCategoryIcon,
+  kingBazaar: KingBazaarIconBadge,
 };
 
 export default memo(HomeCategoryCard);

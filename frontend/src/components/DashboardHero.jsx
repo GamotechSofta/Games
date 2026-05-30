@@ -5,15 +5,14 @@ import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from '../api
 import { useTranslation } from 'react-i18next';
 import { HiOutlineMagnifyingGlass, HiOutlineAdjustmentsHorizontal, HiOutlineXMark } from 'react-icons/hi2';
 import { HOME_BANNERS } from '../config/banners';
-import { HOME_QUICK_LINKS } from '../config/homeAssets';
-import OptimizedImage from './OptimizedImage';
 import ResponsiveCloudinaryImage from './ResponsiveCloudinaryImage';
+import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './home/HomeCategoryCard';
 
 const CATEGORIES = [
-  { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning', image: HOME_QUICK_LINKS.casino },
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets', image: HOME_QUICK_LINKS.markets },
-  { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard', image: HOME_QUICK_LINKS.starline },
-  { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market', image: HOME_QUICK_LINKS.kingBazaar },
+  { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
+  { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
+  { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
 ];
 
 const panelClass =
@@ -144,21 +143,14 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
             : categoryPathActive(cat, location.pathname, location.search);
 
           return (
-            <button
+            <HomeCategoryCard
               key={cat.id}
-              type="button"
+              label={t(cat.labelKey)}
+              Icon={HOME_CATEGORY_ICONS[cat.id]}
+              theme={HOME_CATEGORY_THEMES[cat.id]}
               onClick={() => handleCategory(cat)}
-              className="group relative mx-auto block w-full max-w-[235px] min-w-0 overflow-hidden rounded-[18px] text-left transition hover:-translate-y-0.5"
-              aria-current={active ? 'page' : undefined}
-            >
-              <OptimizedImage
-                webp={cat.image.webp}
-                png={cat.image.png}
-                alt={t(cat.labelKey)}
-                loading="lazy"
-                className="block h-auto w-full rounded-[18px] object-contain"
-              />
-            </button>
+              active={active}
+            />
           );
         })}
       </div>

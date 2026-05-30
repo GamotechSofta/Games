@@ -2,11 +2,12 @@ import React from 'react';
 
 export function MarketsCategoryIcon({ className = '', style }) {
   return (
-    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9">
-      <path d="M5 18V11" strokeLinecap="round" />
-      <path d="M12 18V7" strokeLinecap="round" />
-      <path d="M19 18V4" strokeLinecap="round" />
-      <path d="M4 19.5h16" strokeLinecap="round" />
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M5 17V12" strokeLinecap="round" />
+      <path d="M12 17V8" strokeLinecap="round" />
+      <path d="M19 17V5" strokeLinecap="round" />
+      <path d="M4 18.5h16" strokeLinecap="round" />
+      <path d="M14 7l2.5-2.5M14 7l2 2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -22,12 +23,18 @@ export function StarlineCategoryIcon({ className = '', style }) {
 export function CasinoCategoryIcon({ className = '', style }) {
   return (
     <svg className={className} style={style} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="5.2" stroke="currentColor" strokeWidth="1.2" opacity="0.85" />
       <path
-        d="M12 6.2c-1.55 0-2.7 1.05-2.7 2.45 0 1.05.7 1.75 1.85 2.05l.85.22v1.1h1.8v-1.1l.85-.22c1.15-.3 1.85-1 1.85-2.05 0-1.4-1.15-2.45-2.7-2.45zm0 7.8c-1.05 0-1.75.45-1.75 1.05 0 .62.7 1.05 1.75 1.05s1.75-.43 1.75-1.05c0-.6-.7-1.05-1.75-1.05z"
+        d="M12 8.2c-1.2 0-2 .75-2 1.65 0 .85.65 1.4 1.65 1.6.55.1.95.45.95.95v.35h1.2v-.35c0-.5.4-.85.95-.95 1-.2 1.65-.75 1.65-1.6 0-.9-.8-1.65-2-1.65z"
         fill="currentColor"
       />
-      <path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12H3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path
+        d="M12 3.8v1.6M12 18.6v1.6M20.2 12h-1.6M5.8 12H4.2M17.7 6.3l-1.1 1.1M7.4 16.6l-1.1 1.1M17.7 17.7l-1.1-1.1M7.4 7.4l-1.1-1.1"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
