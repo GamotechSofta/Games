@@ -19,27 +19,8 @@ const TriplePanaBulkBid = ({ market, title }) => {
     const pointsInputRef = useRef(null);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        return new Date().toISOString().split('T')[0];
-    });
-
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {
-            // Ignore errors
-        }
-        setSelectedDate(newDate);
-    };
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -96,7 +77,7 @@ const TriplePanaBulkBid = ({ market, title }) => {
         setInputNumber('');
         setInputPoints('');
         const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
+        handleDateChange(today);
         try {
             localStorage.removeItem('betSelectedDate');
         } catch (e) {

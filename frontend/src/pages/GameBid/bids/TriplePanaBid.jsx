@@ -4,6 +4,8 @@ import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { bidClearBtn } from '../../../styles/appTheme';
+import { BidDesktopStats } from '../BidInlineStats';
 
 const isValidTriplePana = (n) => {
     const s = (n ?? '').toString().trim();
@@ -115,8 +117,6 @@ const TriplePanaBid = ({ market, title }) => {
 
     const handleDeleteBid = (id) => setBids((prev) => prev.filter((b) => b.id !== id));
     const fieldLabelClass = 'text-gray-900 dark:text-gray-200';
-    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center';
-    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
     const valueInputClass = 'no-spinner w-full bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-gray-200 dark:focus:ring-white/10 focus:border-gray-500 dark:focus:border-white/35 focus:outline-none';
     const listHeaderClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1';
     const listRowClass = 'grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 bg-white dark:bg-[#202329] rounded-lg border border-gray-200 dark:border-white/20 text-sm';
@@ -247,21 +247,6 @@ const TriplePanaBid = ({ market, title }) => {
     };
     const isPanaInvalid = !!inputNumber && inputNumber.length === 3 && !isValidTriplePana(inputNumber);
 
-    const modeTabs = (
-        <div className="space-y-2 md:space-y-3">
-            <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-                <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                    <div className={statValueClass}>{displayCount}</div>
-                </div>
-                <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                    <div className={statValueClass}>{displayBetAmount}</div>
-                </div>
-            </div>
-        </div>
-    );
-
     const easyBidsList = (
         <>
             <div className={listHeaderClass}>
@@ -350,9 +335,10 @@ const TriplePanaBid = ({ market, title }) => {
             totalPoints={displayBetAmount}
             showDateSession={true}
             showSessionOnMobile
+            showInlineStats
+            extraHeader={<BidDesktopStats count={displayCount} amount={displayBetAmount} />}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            extraHeader={null}
             session={session}
             setSession={setSession}
             hideFooter
@@ -369,7 +355,6 @@ const TriplePanaBid = ({ market, title }) => {
                         <>
                             <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start">
                                 <div>
-                                    {modeTabs}
                                     <div className="flex flex-col gap-3 mt-2 mb-4 px-1">
                                         <div className="flex flex-row items-center gap-2">
                                             <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Pana:</label>
@@ -400,7 +385,7 @@ const TriplePanaBid = ({ market, title }) => {
                                                 <button
                                                     type="button"
                                                     onClick={handleFormClearEasy}
-                                                    className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-medium hover:border-gray-400 dark:hover:border-white/35 active:scale-95"
+                                                    className={`px-4 min-h-[40px] rounded-xl text-sm ${bidClearBtn}`}
                                                 >
                                                     Clear
                                                 </button>
@@ -436,7 +421,6 @@ const TriplePanaBid = ({ market, title }) => {
                         </>
                     ) : (
                         <>
-                            {modeTabs}
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
                                 {tripleNumbers.map((num) => (
                                     <div key={num} className="flex items-center gap-2">

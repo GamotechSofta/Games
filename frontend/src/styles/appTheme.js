@@ -62,34 +62,109 @@ export const iconBtn =
 /** Circular back control — border included in size so it is not clipped in flex rows */
 export const backBtn = `min-w-[44px] min-h-[44px] w-11 h-11 box-border flex shrink-0 items-center justify-center touch-manipulation transition-transform active:scale-95 select-none ${iconBtn}`;
 
-/** Game bid flow */
+/** Game bid flow — red accent theme */
 export const bidPageShell =
-  'game-bid-page min-h-screen min-h-ios-screen bg-[#f3f4f6] text-gray-900 font-sans w-full max-w-full overflow-x-hidden dark:bg-[#121316] dark:text-white';
+  'game-bid-page flex flex-col flex-1 min-h-0 h-full bg-[#f3f4f6] text-gray-900 font-sans w-full max-w-full overflow-hidden dark:bg-[#121316] dark:text-white';
 
 export const bidHeader =
-  'bg-white/95 border-b border-red-200 dark:bg-[#1b1d22] dark:border-white/20';
+  'bid-header-bar bg-white/95 backdrop-blur-md border-b border-red-200 dark:bg-[#1b1d22]/95 dark:border-white/20';
 
 export const bidSurface =
-  'bg-white border border-red-200 dark:bg-[#202329] dark:border-white/20';
+  'bid-surface bg-white border border-red-200 dark:bg-[#202329] dark:border-white/20';
 
 export const bidInput =
-  'bg-white border border-red-200 text-gray-900 placeholder:text-gray-400 dark:bg-[#202329] dark:border-white/20 dark:text-white dark:placeholder:text-gray-500';
+  'bid-input bg-white border border-red-200 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-200/50 dark:bg-[#202329] dark:border-white/20 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-red-400 dark:focus:ring-red-500/20';
 
 export const bidBtnGhost =
   'bg-gray-50 border border-red-200 hover:bg-gray-100 text-red-700 dark:bg-white/10 dark:hover:bg-white/15 dark:text-gray-200 dark:border-white/20 dark:hover:border-white/35';
 
-/** Gold accent text — readable on white (light) and dark panels */
+/** Game bid accent text */
+export const bidGameAccent = 'bid-accent text-red-700 dark:text-red-300';
+export const bidGameAccentBold = 'bid-accent font-bold text-red-700 dark:text-red-300';
+
+/** Shared accent — profile, support, game rate */
 export const bidAccent = 'text-red-700 dark:text-red-300';
 export const bidAccentBold = 'font-bold text-red-700 dark:text-red-300';
 export const bidLabel = 'text-gray-600 dark:text-gray-300';
 export const bidLabelStrong = 'text-gray-800 dark:text-gray-100';
-export const bidFieldLabel = 'text-gray-800 dark:text-gray-200';
-export const bidCountLabel = 'text-[11px] text-gray-600 dark:text-gray-300 font-medium';
+export const bidFieldLabel = 'text-base sm:text-lg text-gray-800 dark:text-gray-200 font-medium';
+export const bidCountLabel = 'text-xs sm:text-sm text-gray-600 dark:text-gray-300 font-medium';
 export const bidStatLabel =
-  'text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider';
-export const bidEmptyHint = 'text-gray-500 dark:text-gray-400';
-export const bidTypeText = 'text-sm text-gray-600 dark:text-gray-300';
+  'text-xs sm:text-sm text-gray-600 dark:text-gray-300 uppercase tracking-wider';
+export const bidEmptyHint = 'text-base text-gray-500 dark:text-gray-400';
+export const bidTypeText = 'text-base sm:text-lg text-gray-600 dark:text-gray-300';
 export const bidTableHeader =
-  'bg-gray-50 text-red-700 dark:bg-white/10 dark:text-gray-200';
-export const bidStatValue = 'font-bold text-red-700 dark:text-red-300';
-export const bidRowBg = 'bg-white dark:bg-[#2a1d21]';
+  'bid-table-header bg-gray-50 text-red-700 font-semibold text-sm sm:text-base dark:bg-white/10 dark:text-gray-200';
+export const bidStatValue = 'bid-stat-value font-bold text-base sm:text-lg text-red-700 dark:text-red-300';
+export const bidRowBg = 'bid-row bg-white dark:bg-[#2a1d21]';
+
+/** Flat meta strip — date / session / stats (no individual boxes) */
+export const bidMetaStrip =
+  'bid-meta-strip border-b border-gray-200/45 dark:border-white/10 pb-3 pt-1';
+
+export const bidMetaGrid = 'bid-meta-grid grid grid-cols-2';
+
+export const bidMetaCell =
+  'relative z-[1] flex flex-col items-center justify-center min-h-[52px] py-2 px-2 text-center';
+
+/** Desktop inline stats row with animated vertical divider */
+export const bidMetaInlineRow = 'bid-meta-inline-row inline-flex items-stretch';
+
+export const bidMetaLabel =
+  'bid-meta-label text-xs sm:text-sm text-gray-600 dark:text-white/75 font-semibold';
+
+export const bidMetaValue =
+  'bid-meta-value font-bold text-base sm:text-lg text-gray-900 dark:text-white';
+
+export const bidDateDisplay =
+  'bid-date-display inline-flex items-center justify-center gap-1.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white';
+
+/** Scheduled bet hint — flat label inside date cell (no pill/box) */
+export const bidScheduledLabel =
+  'text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white/70 leading-none mb-1';
+
+export const bidSessionSelect =
+  'w-full appearance-none bg-transparent border-0 text-sm sm:text-base font-bold text-gray-900 dark:text-white text-center focus:outline-none py-0.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed';
+
+/** Stat summary — inline (no box) */
+export const bidStatCard = `${bidMetaCell}`;
+
+/** Inline stat row for extraHeader / mobile headers */
+export const bidStatInlineGrid = `${bidMetaGrid} w-full`;
+
+export const bidStatInlineCell = bidMetaCell;
+
+/** Primary action buttons (add bet, digit pickers) */
+export const bidPrimaryBtn =
+  'bid-primary-btn bg-gradient-to-br from-red-700 to-red-600 text-white border border-red-300 dark:border-white/20 shadow-[0_4px_14px_rgba(185,28,28,0.35)] hover:from-red-600 hover:to-red-500 active:scale-[0.97] transition-all';
+
+/** Submit / confirm CTA — original bright green */
+export const bidSubmitBtn =
+  'bid-submit-btn bg-gradient-to-r from-emerald-600 to-green-500 text-white text-base sm:text-lg font-bold shadow-lg dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98] transition-all';
+
+/** Selected tab / toggle pill */
+export const bidSelectedPill =
+  'bid-selected-pill bg-gradient-to-r from-red-700 to-red-600 text-white border-2 border-red-300 dark:border-white/20';
+
+/** Unselected tab / toggle pill */
+export const bidUnselectedPill =
+  'bid-unselected-pill bg-white text-gray-800 border-2 border-gray-200 hover:border-red-300 dark:bg-[#202329] dark:text-white dark:border-white/20 dark:hover:border-white/35';
+
+/** Clear / reset — solid red fill (clears points + bet list) */
+export const bidClearBtn =
+  'bid-clear-btn bg-red-600 text-white font-semibold border border-red-700 shadow-[0_2px_10px_rgba(220,38,38,0.4)] hover:bg-red-700 active:scale-95 transition-all dark:bg-red-700 dark:border-red-600 dark:hover:bg-red-600';
+
+/** Taller clear button paired with points input box */
+export const bidClearBtnLg =
+  `${bidClearBtn} min-h-[44px] h-11 sm:min-h-[48px] sm:h-12 px-4 sm:px-5 text-base sm:text-lg font-bold rounded-xl shrink-0`;
+
+/** Points entry block */
+export const bidPointsSection =
+  'bid-points-section space-y-5 sm:space-y-6 py-4 sm:py-5 border-b border-red-100/60 dark:border-white/10';
+
+export const bidPointsLabel =
+  'text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 tracking-wide leading-tight';
+
+/** Boxed points input */
+export const bidPointsInput =
+  'bid-points-input no-spinner flex-1 min-w-0 rounded-xl border border-red-200 bg-white text-base sm:text-lg font-semibold text-gray-900 placeholder:text-gray-400 text-center focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200/50 px-4 py-2.5 min-h-[44px] h-11 sm:min-h-[48px] sm:h-12 transition-colors dark:bg-[#202329] dark:border-white/20 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-red-400 dark:focus:ring-red-500/20';

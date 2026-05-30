@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import { QuickPointsInline } from './QuickPointsRow';
+import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { bidClearBtn } from '../../../styles/appTheme';
+import { BidDesktopStats } from '../BidInlineStats';
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -193,9 +195,7 @@ const JodiBulkBid = ({ market, title }) => {
 
     const totalPoints = useMemo(() => rows.reduce((sum, b) => sum + Number(b.points || 0), 0), [rows]);
     const canSubmit = rows.length > 0;
-    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center';
-    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
-    const clearBtnClass = 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/20 text-gray-700 dark:text-red-200 bg-white dark:bg-[#202329] hover:border-gray-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0';
+    const clearBtnClass = `${bidClearBtn} px-3 py-1.5 rounded-md text-xs sm:text-sm shrink-0 h-8 sm:h-10 flex items-center justify-center`;
     const panelClass = 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202329] md:border md:border-gray-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
     const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-1';
     const desktopGridClass = 'hidden md:block rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-2';
@@ -304,7 +304,7 @@ const JodiBulkBid = ({ market, title }) => {
         });
     };
 
-    const clearAll = () => {
+    const handleFormClear = () => {
         setCells(() => {
             const init = {};
             for (const r of DIGITS) for (const c of DIGITS) init[`${r}${c}`] = '';
@@ -313,6 +313,10 @@ const JodiBulkBid = ({ market, title }) => {
         setRowBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
         setColBulk(Object.fromEntries(DIGITS.map((d) => [d, ''])));
         setSelectedQuickPoint(null);
+    };
+
+    const clearAll = () => {
+        handleFormClear();
         // Reset scheduled date to today after bet is placed
         const today = new Date().toISOString().split('T')[0];
         setSelectedDate(today);
@@ -368,6 +372,8 @@ const JodiBulkBid = ({ market, title }) => {
             displayDate={displayDate}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            showInlineStats
+            extraHeader={<BidDesktopStats count={rows.length} amount={totalPoints} />}
             sessionRightSlot={
                 <button
                     type="button"
@@ -392,63 +398,22 @@ const JodiBulkBid = ({ market, title }) => {
                         {warning}
                     </div>
                 )}
-                <div className="grid grid-cols-2 gap-1.5 md:hidden px-1 mb-3">
-                    <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                        <div className={statValueClass}>{rows.length}</div>
-                    </div>
-                    <div className={statCardClass.replace('px-3 py-2', 'px-2 py-1.5 md:px-3 md:py-2')}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                        <div className={statValueClass}>{totalPoints}</div>
-                    </div>
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 md:mb-3 min-w-0 px-0.5">
+                    <QuickPointsRow
+                        className="flex-1 min-w-0"
+                        stackedLabel
+                        labelClassName="shrink-0 w-11 sm:w-14 text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-100 leading-tight"
+                        value={selectedQuickPoint}
+                        onSelect={(pts) =>
+                            setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
+                        }
+                        size="sm"
+                    />
+                    <button type="button" onClick={handleFormClear} className={clearBtnClass}>
+                        Clear
+                    </button>
                 </div>
-
-                <div className="hidden md:flex md:items-center md:gap-2 mb-3 px-1">
-                    <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap flex-1">
-                        <QuickPointsInline
-                            stackedLabel
-                            selectedValue={selectedQuickPoint}
-                            onSelect={(pts) =>
-                                setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
-                            }
-                        />
-                        <button
-                            type="button"
-                            onClick={clearAll}
-                            className={clearBtnClass.replace('text-xs sm:text-sm', 'text-sm')}
-                        >
-                            Clear
-                        </button>
-                    </div>
-                    <div className={`${statCardClass} min-w-[110px]`}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                        <div className={statValueClass}>{rows.length}</div>
-                    </div>
-                    <div className={`${statCardClass} min-w-[130px]`}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                        <div className={statValueClass}>{totalPoints}</div>
-                    </div>
-                </div>
-
                 <div className={panelClass}>
-                    <div className="mb-2 md:hidden">
-                        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hidden whitespace-nowrap">
-                            <QuickPointsInline
-                                stackedLabel
-                                selectedValue={selectedQuickPoint}
-                                onSelect={(pts) =>
-                                    setSelectedQuickPoint((prev) => (prev === pts ? null : pts))
-                                }
-                            />
-                            <button
-                                type="button"
-                                onClick={clearAll}
-                                className={clearBtnClass}
-                            >
-                                Clear
-                            </button>
-                        </div>
-                    </div>
                     <div className={mobileGridClass}>
                         <div
                             className="grid w-full gap-x-1 gap-y-1 sm:gap-x-2 sm:gap-y-1.5"

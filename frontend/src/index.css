@@ -233,12 +233,7 @@ html.theme-light #root {
   color: #9ca3af;
 }
 
-/* Game bid: gold accent text on light surfaces */
-.theme-light .game-bid-page .text-amber-800 {
-  color: #92400e;
-}
-
-/* Game bid — light theme: muted grays must stay readable on #fff6f7 */
+/* Game bid — light theme: muted grays readable on page bg */
 .theme-light .game-bid-page :is(.text-gray-300, .text-gray-400) {
   color: #4b5563;
 }
@@ -247,7 +242,7 @@ html.theme-light #root {
   color: #374151;
 }
 
-/* Game bid — dark theme: primary and muted text on #1a1114 */
+/* Game bid — dark theme: primary and muted text */
 .theme-dark .game-bid-page .text-gray-900 {
   color: #ffffff;
 }
@@ -264,9 +259,692 @@ html.theme-light #root {
   color: #f3f4f6;
 }
 
-/* Red accent labels/values: white in dark, keep red tones in light */
-.theme-dark .game-bid-page :is([class*="text-red-"]) {
-  color: #f9fafb;
+/* Bid routes — no transform wrapper (transform breaks position:fixed/sticky) */
+.bid-route-shell {
+  animation: none;
+  transform: none;
+  will-change: auto;
+}
+
+/* Game bid — sticky top header (scroll stays in content area) */
+.game-bid-page .bid-header-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  flex-shrink: 0;
+}
+
+/* Meta strip — white/neutral text (no red accent) */
+.theme-dark .game-bid-page .bid-meta-strip :is(.bid-meta-value, .bid-date-display, .bid-meta-label) {
+  color: #ffffff;
+}
+
+.theme-dark .game-bid-page .bid-meta-strip .bid-meta-label {
+  opacity: 0.75;
+}
+
+/* Red accent stats & labels in dark mode (footer/header wallet — not meta strip) */
+.theme-dark .game-bid-page :is(.bid-accent, .bid-stat-value, .text-red-700, .text-red-800) {
+  color: #fca5a5;
+}
+
+.theme-dark .game-bid-page .bid-table-header {
+  color: #fecaca;
+}
+
+.theme-dark .game-bid-page :is(.text-red-500, .text-red-600, .hover\:text-red-600) {
+  color: #f87171;
+}
+
+/* Game bid — button polish */
+@layer components {
+  .game-bid-page .bid-primary-btn,
+  .game-bid-page [class*="from-red-700"][class*="to-red-600"],
+  .game-bid-page [class*="from-red-700"][class*="to-red-500"] {
+    box-shadow:
+      0 4px 14px rgba(185, 28, 28, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .game-bid-page .bid-primary-btn:not(:disabled):hover,
+  .game-bid-page [class*="from-red-700"]:not(:disabled):not(.opacity-50):hover {
+    box-shadow:
+      0 6px 18px rgba(185, 28, 28, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  .game-bid-page .bid-clear-btn {
+    background-color: #dc2626;
+  }
+
+  .theme-dark .game-bid-page .bid-clear-btn {
+    background-color: #b91c1c;
+  }
+
+  .game-bid-page .bid-clear-btn:hover {
+    background-color: #b91c1c;
+  }
+
+  .theme-dark .game-bid-page .bid-clear-btn:hover {
+    background-color: #dc2626;
+  }
+
+  .game-bid-page .bid-input:focus {
+    outline: none;
+  }
+
+  .game-bid-page .bid-points-input:focus {
+    outline: none;
+  }
+
+  /* —— Meta grid — static light dividers (no red, no motion) —— */
+  .game-bid-page .bid-meta-grid {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .game-bid-page .bid-meta-grid::before,
+  .game-bid-page .bid-meta-grid::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Vertical center line */
+  .game-bid-page .bid-meta-grid::before {
+    top: 0.4rem;
+    bottom: 0.4rem;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.12) 15%,
+      rgba(255, 255, 255, 0.28) 50%,
+      rgba(255, 255, 255, 0.12) 85%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.06);
+  }
+
+  /* Horizontal center line */
+  .game-bid-page .bid-meta-grid::after {
+    left: 0.65rem;
+    right: 0.65rem;
+    top: 50%;
+    height: 1px;
+    transform: translateY(-50%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.12) 15%,
+      rgba(255, 255, 255, 0.28) 50%,
+      rgba(255, 255, 255, 0.12) 85%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.06);
+  }
+
+  .theme-dark .game-bid-page .bid-meta-grid::before,
+  .theme-dark .game-bid-page .bid-meta-grid::after {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 15%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.08) 85%,
+      transparent 100%
+    );
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+  }
+
+  .theme-dark .game-bid-page .bid-meta-grid::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 15%,
+      rgba(255, 255, 255, 0.22) 50%,
+      rgba(255, 255, 255, 0.08) 85%,
+      transparent 100%
+    );
+  }
+
+  .theme-light .game-bid-page .bid-meta-grid::before,
+  .theme-light .game-bid-page .bid-meta-grid::after {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(148, 163, 184, 0.15) 15%,
+      rgba(100, 116, 139, 0.35) 50%,
+      rgba(148, 163, 184, 0.15) 85%,
+      transparent 100%
+    );
+    box-shadow: none;
+  }
+
+  .theme-light .game-bid-page .bid-meta-grid::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(148, 163, 184, 0.15) 15%,
+      rgba(100, 116, 139, 0.35) 50%,
+      rgba(148, 163, 184, 0.15) 85%,
+      transparent 100%
+    );
+  }
+
+  /* Desktop inline stats — static vertical divider */
+  .game-bid-page .bid-meta-inline-row {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .game-bid-page .bid-meta-inline-row::before {
+    content: '';
+    position: absolute;
+    top: 0.15rem;
+    bottom: 0.15rem;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 20%,
+      rgba(255, 255, 255, 0.25) 50%,
+      rgba(255, 255, 255, 0.1) 80%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.06);
+  }
+
+  .theme-dark .game-bid-page .bid-meta-inline-row::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 20%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.08) 80%,
+      transparent 100%
+    );
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+  }
+
+  .theme-light .game-bid-page .bid-meta-inline-row::before {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(148, 163, 184, 0.12) 20%,
+      rgba(100, 116, 139, 0.3) 50%,
+      rgba(148, 163, 184, 0.12) 80%,
+      transparent 100%
+    );
+    box-shadow: none;
+  }
+
+  /* —— Flat digit keypad (no circles) —— */
+  @keyframes bid-dial-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bid-dial-flash {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.14);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes bid-dial-pts {
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    70% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes bid-dial-underline {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes bid-stack-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bid-stack-head {
+    from {
+      opacity: 0;
+      letter-spacing: 0.2em;
+    }
+    to {
+      opacity: 1;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  .game-bid-page .bid-dial-pad {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.15rem 0;
+    --bid-pink-top: #fca5a5;
+    --bid-pink-mid: #ef4444;
+    --bid-pink-bot: #dc2626;
+    --bid-pink-glow: rgba(220, 38, 38, 0.32);
+    --bid-pink-inset: rgba(127, 29, 29, 0.38);
+    --bid-key-border: rgba(127, 29, 29, 0.52);
+    --bid-key-border-off: rgba(127, 29, 29, 0.36);
+    --bid-key-border-picked: rgba(69, 10, 10, 0.72);
+  }
+
+  .theme-dark .game-bid-page .bid-dial-pad {
+    --bid-pink-top: #f87171;
+    --bid-pink-mid: #ef4444;
+    --bid-pink-bot: #b91c1c;
+    --bid-pink-glow: rgba(185, 28, 28, 0.38);
+    --bid-pink-inset: rgba(69, 10, 10, 0.45);
+    --bid-key-border: rgba(255, 255, 255, 0.14);
+    --bid-key-border-off: rgba(255, 255, 255, 0.1);
+    --bid-key-border-picked: rgba(255, 255, 255, 0.28);
+  }
+
+  .game-bid-page .bid-dial-pad__row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.28rem;
+  }
+
+  .game-bid-page .bid-dial-pad--lg .bid-dial-pad__row {
+    gap: 0.45rem;
+  }
+
+  .game-bid-page .bid-dial-key {
+    --dial-i: 0;
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    animation: bid-dial-in 0.45s ease-out backwards;
+    animation-delay: calc(var(--dial-i) * 40ms);
+  }
+
+  .game-bid-page .bid-dial-key__box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 0.625rem;
+    border: 1px solid transparent;
+    overflow: hidden;
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1),
+      filter 0.2s ease;
+  }
+
+  /* All digits — vibrant pink (screenshot) */
+  .game-bid-page .bid-dial-key .bid-dial-key__box {
+    border-style: solid;
+    border-width: 1.5px;
+    border-color: var(--bid-key-border);
+    background: linear-gradient(
+      180deg,
+      var(--bid-pink-top) 0%,
+      var(--bid-pink-mid) 48%,
+      var(--bid-pink-bot) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.38),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 3px 10px var(--bid-pink-glow);
+  }
+
+  .game-bid-page .bid-dial-key .bid-dial-key__num {
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+    opacity: 1;
+  }
+
+  /* Disabled — same pink, slightly muted */
+  .game-bid-page .bid-dial-key--off .bid-dial-key__box {
+    border-color: var(--bid-key-border-off);
+    filter: saturate(0.82) brightness(0.9);
+    opacity: 0.72;
+  }
+
+  /* Selected — brighter pink */
+  .game-bid-page .bid-dial-key--picked .bid-dial-key__box {
+    border-color: var(--bid-key-border-picked);
+    filter: brightness(1.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(255, 255, 255, 0.28),
+      0 6px 16px var(--bid-pink-glow);
+  }
+
+  .game-bid-page .bid-dial-key--picked .bid-dial-key__num {
+    font-weight: 900;
+  }
+
+  .game-bid-page .bid-dial-key__num {
+    position: relative;
+    z-index: 1;
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .game-bid-page .bid-dial-pad--sm .bid-dial-key__num {
+    font-size: 1.15rem;
+  }
+
+  .game-bid-page .bid-dial-pad--lg .bid-dial-key__num {
+    font-size: 1.65rem;
+  }
+
+  .game-bid-page .bid-dial-pad--live .bid-dial-key--on:not(.bid-dial-key--picked):not(:disabled):hover .bid-dial-key__box {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 5px 14px var(--bid-pink-glow);
+  }
+
+  .game-bid-page .bid-dial-pad--live .bid-dial-key--picked:not(:disabled):hover .bid-dial-key__box {
+    filter: brightness(1.14);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(255, 255, 255, 0.32),
+      0 6px 18px var(--bid-pink-glow);
+  }
+
+  .game-bid-page .bid-dial-key--on:not(:disabled):active .bid-dial-key__box {
+    transform: scale(0.94);
+  }
+
+  .game-bid-page .bid-dial-key--flash .bid-dial-key__num {
+    animation: bid-dial-flash 0.4s cubic-bezier(0.34, 1.5, 0.64, 1);
+  }
+
+  .game-bid-page .bid-dial-key--off {
+    cursor: not-allowed;
+  }
+
+  .game-bid-page .bid-dial-key__pts {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.2rem;
+    z-index: 2;
+    min-width: 1.15rem;
+    height: 1.15rem;
+    padding: 0 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.3rem;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+    animation: bid-dial-pts 0.3s ease-out;
+  }
+
+  /* —— Stack list —— */
+  .game-bid-page .bid-stack {
+    padding-top: 0.5rem;
+    --bid-pink-top: #fca5a5;
+    --bid-pink-mid: #ef4444;
+    --bid-pink-bot: #dc2626;
+    --bid-pink-glow: rgba(220, 38, 38, 0.28);
+    --bid-key-border: rgba(127, 29, 29, 0.52);
+  }
+
+  .theme-dark .game-bid-page .bid-stack {
+    --bid-pink-top: #f87171;
+    --bid-pink-mid: #ef4444;
+    --bid-pink-bot: #b91c1c;
+    --bid-pink-glow: rgba(185, 28, 28, 0.32);
+    --bid-key-border: rgba(255, 255, 255, 0.12);
+  }
+
+  .game-bid-page .bid-stack__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .game-bid-page .bid-stack__title {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6b7280;
+    animation: bid-stack-head 0.5s ease-out;
+  }
+
+  .theme-dark .game-bid-page .bid-stack__title {
+    color: #9ca3af;
+  }
+
+  .game-bid-page .bid-stack__count {
+    font-size: 0.625rem;
+    font-weight: 800;
+    padding: 0.15rem 0.45rem;
+    border-radius: 9999px;
+    color: #b91c1c;
+    background: rgba(254, 226, 226, 0.85);
+  }
+
+  .theme-dark .game-bid-page .bid-stack__count {
+    color: #fecaca;
+    background: rgba(127, 29, 29, 0.45);
+  }
+
+  .game-bid-page .bid-stack__empty {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    padding: 1.25rem 0.5rem;
+    border-top: 1px dashed rgba(239, 68, 68, 0.2);
+  }
+
+  .theme-dark .game-bid-page .bid-stack__empty {
+    color: #6b7280;
+    border-top-color: rgba(248, 113, 113, 0.15);
+  }
+
+  .game-bid-page .bid-stack__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .game-bid-page .bid-stack__item {
+    --stack-i: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(239, 68, 68, 0.12);
+    animation: bid-stack-in 0.45s cubic-bezier(0.34, 1.2, 0.64, 1) backwards;
+    animation-delay: calc(var(--stack-i) * 40ms);
+  }
+
+  .theme-dark .game-bid-page .bid-stack__item {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .game-bid-page .bid-stack__item:last-child {
+    border-bottom: none;
+  }
+
+  .game-bid-page .bid-stack__digit {
+    flex-shrink: 0;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #fff;
+    border-radius: 0.5rem;
+    border: 1.5px solid var(--bid-key-border);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+
+  .game-bid-page .bid-stack__digit {
+    background: linear-gradient(
+      180deg,
+      var(--bid-pink-top, #fca5a5) 0%,
+      var(--bid-pink-mid, #ef4444) 50%,
+      var(--bid-pink-bot, #dc2626) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 2px 6px var(--bid-pink-glow, rgba(220, 38, 38, 0.28));
+  }
+
+  .game-bid-page .bid-stack__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .game-bid-page .bid-stack__field {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .game-bid-page .bid-stack__label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  .game-bid-page .bid-stack__input {
+    flex: 1;
+    min-width: 3.5rem;
+    max-width: 5.5rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-radius: 0.5rem;
+  }
+
+  .game-bid-page .bid-stack__type {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    color: #b91c1c;
+    background: rgba(254, 242, 242, 0.9);
+    letter-spacing: 0.03em;
+  }
+
+  .theme-dark .game-bid-page .bid-stack__type {
+    color: #fecaca;
+    background: rgba(69, 10, 10, 0.5);
+  }
+
+  .game-bid-page .bid-stack__remove {
+    flex-shrink: 0;
+    padding: 0.35rem;
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    opacity: 0.7;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .game-bid-page .bid-stack__remove:hover {
+    opacity: 1;
+  }
+
+  .game-bid-page .bid-stack__remove:active {
+    transform: scale(0.88);
+  }
+
+  .game-bid-page .bid-stack--desktop .bid-stack__item {
+    padding: 0.75rem 0.25rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .game-bid-page .bid-dial-key,
+    .game-bid-page .bid-dial-key__pts,
+    .game-bid-page .bid-stack__item,
+    .game-bid-page .bid-stack__title {
+      animation: none;
+    }
+  }
 }
 
 /* Desktop dashboard: Inter + filled icon typography */

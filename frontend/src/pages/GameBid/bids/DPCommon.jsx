@@ -9,28 +9,13 @@ import { generateDPCommon, validateDigit } from './dpCommonGenerator';
 const DPCommon = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
-            }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
-    });
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
     const [digitInput, setDigitInput] = useState('');
     const [pointsInput, setPointsInput] = useState('');
     const [generatedRows, setGeneratedRows] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [reviewRows, setReviewRows] = useState([]);
-
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {}
-        setSelectedDate(newDate);
-    };
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -159,7 +144,7 @@ const DPCommon = ({ market, title }) => {
         setReviewRows([]);
         clearLocal();
         const todayStr = new Date().toISOString().split('T')[0];
-        setSelectedDate(todayStr);
+        handleDateChange(todayStr);
         try {
             localStorage.setItem('betSelectedDate', todayStr);
         } catch (e) {}

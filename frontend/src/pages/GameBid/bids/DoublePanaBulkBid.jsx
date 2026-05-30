@@ -4,6 +4,7 @@ import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { BidDesktopStats } from '../BidInlineStats';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 const validatePana = (n) => {
@@ -192,8 +193,6 @@ const DoublePanaBulkBid = ({ market, title }) => {
         () => reviewRows.reduce((sum, b) => sum + Number(b.points || 0), 0),
         [reviewRows]
     );
-    const statCardClass = 'rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center';
-    const statValueClass = 'text-base font-bold text-gray-700 dark:text-red-300 leading-tight';
     const greenSubmitClass = (enabled) =>
         enabled
             ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
@@ -238,6 +237,8 @@ const DoublePanaBulkBid = ({ market, title }) => {
             showSessionOnMobile
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            showInlineStats
+            extraHeader={<BidDesktopStats count={specialCount} amount={selectedTotalPoints} />}
             sessionRightSlot={
                 <button
                     type="button"
@@ -253,7 +254,6 @@ const DoublePanaBulkBid = ({ market, title }) => {
                 </button>
             }
             walletBalance={walletBefore}
-            extraHeader={null}
             hideFooter
             contentPaddingClass="pb-28 md:pb-8"
         >
@@ -263,17 +263,6 @@ const DoublePanaBulkBid = ({ market, title }) => {
                         {warning}
                     </div>
                 )}
-
-                <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1 mb-3">
-                    <div className={statCardClass}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                        <div className={statValueClass}>{specialCount}</div>
-                    </div>
-                    <div className={statCardClass}>
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                        <div className={statValueClass}>{selectedTotalPoints}</div>
-                    </div>
-                </div>
 
                 {/* Same UI as SinglePanaBulkBid */}
                 <div className="space-y-7 md:space-y-0 md:grid md:grid-cols-4 md:gap-x-5 md:gap-y-10 md:items-start">

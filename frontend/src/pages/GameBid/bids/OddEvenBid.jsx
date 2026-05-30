@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { BidDesktopStats } from '../BidInlineStats';
+import BidPointsPanel from './BidPointsPanel';
 
 const ODD_DIGITS = [1, 3, 5, 7, 9];
 const EVEN_DIGITS = [0, 2, 4, 6, 8];
@@ -15,25 +16,10 @@ const OddEvenBid = ({ market, title }) => {
     const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
-            }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
-    });
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
 
     const digits = choice === 'odd' ? ODD_DIGITS : EVEN_DIGITS;
-
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {}
-        setSelectedDate(newDate);
-    };
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -41,11 +27,15 @@ const OddEvenBid = ({ market, title }) => {
         showWarning._t = window.setTimeout(() => setWarning(''), 2200);
     };
 
-    const clearAll = () => {
+    const handleFormClear = () => {
         setBids([]);
         setInputPoints('');
+    };
+
+    const clearAll = () => {
+        handleFormClear();
         const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
+        handleDateChange(today);
         try {
             localStorage.removeItem('betSelectedDate');
         } catch (e) {}
@@ -136,33 +126,6 @@ const OddEvenBid = ({ market, title }) => {
         setBids((prev) => prev.filter((b) => b.id !== id));
     };
 
-    const dateRowStats = (
-        <>
-            <div className="w-full basis-full min-w-0 shrink-0 md:hidden px-3 py-1">
-                <div className="grid grid-cols-2 gap-1.5">
-                    <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 text-center">
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                        <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{bids.length}</div>
-                    </div>
-                    <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 text-center">
-                        <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                        <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{totalPoints}</div>
-                    </div>
-                </div>
-            </div>
-            <div className="hidden md:flex items-center gap-2 shrink-0">
-                <div className="rounded-full border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] h-[44px] px-3 flex items-center gap-1.5">
-                    <span className="text-[10px] text-gray-500 uppercase leading-none">Bets</span>
-                    <span className="text-sm font-bold text-gray-700 dark:text-red-300">{bids.length}</span>
-                </div>
-                <div className="rounded-full border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] h-[44px] px-3 flex items-center gap-1.5">
-                    <span className="text-[10px] text-gray-500 uppercase leading-none">Points</span>
-                    <span className="text-sm font-bold text-gray-700 dark:text-red-300">{totalPoints}</span>
-                </div>
-            </div>
-        </>
-    );
-
     const leftColumn = (
         <div className="space-y-4">
             {warning && (
@@ -186,30 +149,14 @@ const OddEvenBid = ({ market, title }) => {
                     Even
                 </button>
             </div>
-            <div className="flex items-center gap-3">
-                <label className="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0">Enter Points:</label>
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Point"
-                        value={inputPoints}
-                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full h-10 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-full focus:outline-none focus:border-gray-500 dark:focus:border-white/35 px-4 text-sm font-semibold text-center min-w-0"
-                    />
-                    <button
-                        type="button"
-                        onClick={clearAll}
-                        className="h-10 px-4 rounded-lg border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-semibold hover:border-gray-400 dark:hover:border-white/35 active:scale-95 shrink-0"
-                    >
-                        Clear
-                    </button>
-                </div>
-            </div>
-            <QuickPointsRow
-                value={inputPoints}
-                onSelect={(pts) => setInputPoints(String(pts))}
-                labelClassName="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0"
+            <BidPointsPanel
+                className="border-b-0"
+                pointsValue={inputPoints}
+                onPointsChange={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))}
+                onClear={handleFormClear}
+                onQuickSelect={(pts) => setInputPoints(String(pts))}
+                enterLabel="Enter Points"
+                placeholder="Point"
             />
             <div className="flex gap-3">
                 <button
@@ -294,14 +241,15 @@ const OddEvenBid = ({ market, title }) => {
             totalPoints={totalPoints}
             showDateSession={true}
             showSessionOnMobile={true}
-            extraHeader={null}
+            showInlineStats
+            extraHeader={<BidDesktopStats count={bids.length} amount={totalPoints} />}
             session={session}
             setSession={setSession}
-            sessionRightSlot={dateRowStats}
             hideFooter
             walletBalance={walletBefore}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            displayDate={displayDate}
             contentPaddingClass="pb-28 md:pb-6"
         >
             <div className="px-3 sm:px-4 py-4 sm:py-2 md:max-w-3xl md:mx-auto md:items-start">

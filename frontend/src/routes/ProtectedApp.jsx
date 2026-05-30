@@ -218,7 +218,9 @@ const Layout = ({ children }) => {
   }
 
   const isBidPage = location.pathname.includes('game-bid') || location.pathname === '/bidoptions';
+  const isGameBidPage = location.pathname === '/game-bid';
   const isBetsPage = location.pathname === '/bids';
+  const isGameBidMobileShell = isGameBidPage && !isDesktop;
   const isHistoryPage = location.pathname === '/bet-history' || location.pathname === '/market-result-history';
   const mobileBottomPad = location.pathname === '/profile'
     ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
@@ -246,22 +248,30 @@ const Layout = ({ children }) => {
         )
       )}
       <div
-        className="content-fade-in"
-        style={{ animationDuration: '180ms' }}
+        className={
+          isGameBidMobileShell
+            ? 'bid-route-shell flex flex-col h-[calc(100dvh-4rem-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-4rem-env(safe-area-inset-bottom,0px))] overflow-hidden pt-[env(safe-area-inset-top,0px)]'
+            : isBidPage
+              ? 'bid-route-shell'
+              : 'content-fade-in'
+        }
+        style={isGameBidMobileShell ? undefined : { animationDuration: '180ms' }}
       >
         <div
-        className={
-          hideTopNavMobileOnly
-            ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
-            : hideTopNavOnMobile
-              ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
-              : isBidPage
-                ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
-                : (isBetsPage || isHistoryPage)
-                  ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
-                  : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
-        }
-      >
+          className={
+            isGameBidMobileShell
+              ? 'flex flex-col flex-1 min-h-0 h-full pt-0'
+              : hideTopNavMobileOnly
+                ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
+                : hideTopNavOnMobile
+                  ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
+                  : isBidPage
+                    ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
+                    : (isBetsPage || isHistoryPage)
+                      ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
+                      : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
+          }
+        >
           {children}
         </div>
       </div>

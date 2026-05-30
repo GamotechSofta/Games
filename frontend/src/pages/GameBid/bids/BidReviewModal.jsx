@@ -142,7 +142,7 @@ const BidReviewModal = ({
       {/* Modal - centered, above mobile navbar */}
       <div className="relative w-full max-w-md sm:max-w-lg mx-auto flex-shrink-0">
         {stage === 'success' ? (
-          <div className="bg-white dark:bg-[#202329] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-gray-200 dark:border-white/20">
+            <div className="bg-white dark:bg-[#202329] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-gray-200 dark:border-white/20">
             <style>{`
               @keyframes successPop {
                 0% { transform: scale(0.6); opacity: 0; }
@@ -193,7 +193,7 @@ const BidReviewModal = ({
             </div>
           </div>
         ) : (
-          <div
+            <div
             className="bg-white dark:bg-[#202329] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.55)] overflow-hidden border border-gray-200 dark:border-white/20 max-h-[min(90svh,720px)] sm:max-h-[calc(100vh-48px)] flex flex-col"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0px)' }}
           >
@@ -289,7 +289,7 @@ const BidReviewModal = ({
                 type="button"
                 onClick={handleSubmitClick}
                 disabled={submitting || cannotSubmit}
-                className="bg-gradient-to-r from-emerald-600 to-green-500 text-[#083b22] dark:text-white font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:from-emerald-500 hover:to-green-400 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="bid-submit-btn bg-gradient-to-r from-emerald-600 to-green-500 text-white text-base sm:text-lg font-bold py-3 rounded-xl sm:rounded-2xl shadow-md active:scale-[0.99] transition-transform hover:from-emerald-500 hover:to-green-400 disabled:opacity-50 flex items-center justify-center gap-2 dark:border dark:border-white/20"
               >
                 {submitting ? (
                   <>

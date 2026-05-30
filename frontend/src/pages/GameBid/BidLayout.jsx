@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
-import { bidPageShell, bidHeader, bidInput, bidBtnGhost } from '../../styles/appTheme';
+import { bidPageShell, bidHeader, bidGameAccentBold, bidStatValue, bidStatLabel, bidMetaValue, bidStatCard, bidSubmitBtn, bidMetaStrip, bidMetaGrid, bidMetaCell, bidMetaLabel, bidDateDisplay, bidSessionSelect, bidScheduledLabel } from '../../styles/appTheme';
 import { formatWalletAmount, getStoredWalletBalance } from '../../utils/walletBalance';
 import { getBetDisplayDate } from '../../utils/scheduledBetDate';
 
@@ -35,6 +35,9 @@ const BidLayout = ({
     showWalletBalance = true,
     onSubmit = () => {},
     showFooterStats = true,
+    /** Show count + points in the same flat grid as date/session (mobile-friendly) */
+    showInlineStats = false,
+    inlineStatsLabels = { count: 'Count', amount: 'Bet Amount' },
     submitLabel = 'Submit Bets',
     contentPaddingClass,
 }) => {
@@ -47,6 +50,8 @@ const BidLayout = ({
     const todayDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
     const scheduledDisplayDate =
         displayDate || (scheduleForTomorrow ? getBetDisplayDate(true, null) : null);
+    const metaDisplayDate = scheduledDisplayDate || todayDate;
+    const isScheduledBet = Boolean(scheduledDisplayDate && scheduledDisplayDate !== todayDate);
     const [wallet, setWallet] = useState(() =>
         Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getStoredWalletBalance()
     );
@@ -114,9 +119,9 @@ const BidLayout = ({
 
     return (
         <div className={bidPageShell}>
-            {/* Header - iOS safe area padding */}
+            {/* Header — stays pinned while bid content scrolls */}
             <div
-                className={`${bidHeader} py-2 flex items-center justify-between gap-2 sticky top-0 z-10`}
+                className={`${bidHeader} py-2 flex items-center justify-between gap-2 shrink-0`}
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 <button
@@ -140,24 +145,32 @@ const BidLayout = ({
                           };
                       navigate('/bidoptions', { state });
                     }}
-                    className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-colors touch-manipulation ${bidBtnGhost}`}
+                    className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-colors touch-manipulation bg-gray-100 border border-gray-200 text-red-500 dark:bg-white/10 dark:border-white/15 dark:text-red-300`}
                     aria-label={t('common.back')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <h1 className="text-xs sm:text-base md:text-lg font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 text-gray-900 dark:text-white min-w-0">
-                    {market?.gameName ? `${market.gameName} - ${title}` : title}
+                <h1 className="text-sm sm:text-lg md:text-xl font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 min-w-0">
+                    {market?.gameName ? (
+                        <>
+                            <span className="text-gray-900 dark:text-white">{market.gameName}</span>
+                            <span className="text-gray-900 dark:text-white"> - </span>
+                            <span className={bidGameAccentBold}>{title}</span>
+                        </>
+                    ) : (
+                        <span className="text-gray-900 dark:text-white">{title}</span>
+                    )}
                 </h1>
                 {showWalletBalance ? (
                     <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
                         <img
                             src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
                             alt="Wallet"
-                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0"
+                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 drop-shadow-sm"
                         />
-                        <span className="font-bold text-gray-900 dark:text-white text-[11px] sm:text-sm">
+                        <span className={bidStatValue}>
                             {formatWalletAmount(wallet)}
                         </span>
                     </div>
@@ -166,76 +179,77 @@ const BidLayout = ({
                 )}
             </div>
 
-            {extraHeader}
-
-            {showDateSession && (
-                <div
-                    className={`pb-4 pt-2 flex flex-row ${slotBetweenDateSession ? 'flex-nowrap overflow-x-auto' : 'flex-wrap overflow-hidden'} gap-2 sm:gap-3 ${dateSessionGridClassName}`}
-                    style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
-                >
-                    {/* Date display: tomorrow when scheduling, else today */}
-                    <div className="flex flex-row items-center gap-2 flex-1 min-w-0 shrink overflow-hidden">
-                        <div className="relative flex-1 min-w-0">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                                <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                value={scheduledDisplayDate || todayDate}
-                                readOnly
-                                className={`w-full pl-9 sm:pl-10 pr-3 py-2.5 min-h-[44px] h-[44px] rounded-full text-xs sm:text-sm font-bold text-center focus:outline-none cursor-default truncate ${bidInput} ${dateSessionControlClassName}`}
-                            />
-                        </div>
-                        {scheduledDisplayDate && scheduledDisplayDate !== todayDate && (
-                            <span className="shrink-0 px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-medium bg-gray-50 text-red-700 border border-red-200 dark:bg-gray-950/35 dark:text-red-200 dark:border-red-900/60">
-                                {t('gameBid.scheduled')}
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Optional slot between date and session (e.g. Half Sangam flip) */}
-                    {slotBetweenDateSession && (
-                        <div className="shrink-0">
-                            {slotBetweenDateSession}
-                        </div>
-                    )}
-                    
-                    {/* Session Select - visible when flip slot present (one row), else hidden on mobile */}
-                    <div className={`relative flex-1 min-w-0 ${slotBetweenDateSession || showSessionOnMobile ? 'block' : 'hidden md:block'}`}>
-                        <select
-                            value={session}
-                            onChange={(e) => setSession(e.target.value)}
-                            disabled={lockSessionSelect || isRunning}
-                            className={`w-full appearance-none font-bold text-xs sm:text-sm py-2.5 min-h-[44px] h-[44px] px-4 pr-8 rounded-full text-center focus:outline-none focus:border-[#d4af37] ${bidInput} ${(lockSessionSelect || isRunning) ? 'opacity-80 cursor-not-allowed' : ''} ${dateSessionControlClassName}`}
-                        >
-                            {sessionOptions.map((opt) => (
-                                <option key={opt} value={opt}>
-                                    {opt === 'OPEN' ? t('gameBid.open') : opt === 'CLOSE' ? t('gameBid.close') : opt}
-                                </option>
-                            ))}
-                        </select>
-                        {!hideSessionSelectCaret && (
-                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </div>
-                        )}
-                    </div>
-
-                    {sessionRightSlot}
-                </div>
-            )}
-
             <div
                 ref={contentRef}
-                className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
+                className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
                     contentPaddingClass ?? (hideFooter ? 'pb-6' : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
                 }`}
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
+                {extraHeader ? <div>{extraHeader}</div> : null}
+
+                {showDateSession && (
+                    <div className={`${bidMetaStrip} md:hidden`}>
+                        <div className={`${bidMetaGrid} ${dateSessionGridClassName}`}>
+                            <div className={`${bidMetaCell} ${dateSessionControlClassName}`}>
+                                {isScheduledBet && (
+                                    <span className={bidScheduledLabel}>{t('gameBid.scheduled')}</span>
+                                )}
+                                <div className={bidDateDisplay}>
+                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span className="truncate">{metaDisplayDate}</span>
+                                </div>
+                            </div>
+
+                            <div className={`${bidMetaCell} relative ${slotBetweenDateSession || showSessionOnMobile ? '' : 'hidden md:flex'} ${dateSessionControlClassName}`}>
+                                {slotBetweenDateSession && (
+                                    <div className="absolute left-1/2 top-1 -translate-x-1/2 z-10">{slotBetweenDateSession}</div>
+                                )}
+                                <div className={`relative w-full ${slotBetweenDateSession ? 'mt-6' : ''}`}>
+                                    <select
+                                        value={session}
+                                        onChange={(e) => setSession(e.target.value)}
+                                        disabled={lockSessionSelect || isRunning}
+                                        className={`${bidSessionSelect} ${(lockSessionSelect || isRunning) ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    >
+                                        {sessionOptions.map((opt) => (
+                                            <option key={opt} value={opt}>
+                                                {opt === 'OPEN' ? t('gameBid.open') : opt === 'CLOSE' ? t('gameBid.close') : opt}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {!hideSessionSelectCaret && (
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-gray-500 dark:text-white/60">
+                                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {showInlineStats && (
+                                <>
+                                    <div className={`${bidMetaCell}${extraHeader ? ' md:hidden' : ''}`}>
+                                        <div className={bidMetaLabel}>{inlineStatsLabels.count}</div>
+                                        <div className={`leading-tight ${bidMetaValue}`}>{bidsCount}</div>
+                                    </div>
+                                    <div className={`${bidMetaCell}${extraHeader ? ' md:hidden' : ''}`}>
+                                        <div className={bidMetaLabel}>{inlineStatsLabels.amount}</div>
+                                        <div className={`leading-tight ${bidMetaValue}`}>{totalPoints}</div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {sessionRightSlot && (
+                            <div className="mt-2 flex flex-wrap items-center justify-end gap-2">{sessionRightSlot}</div>
+                        )}
+                    </div>
+                )}
+
                 {children}
             </div>
 
@@ -259,13 +273,13 @@ const BidLayout = ({
                     >
                         {showFooterStats && (
                             <div className="flex items-center gap-6 sm:gap-8 shrink-0">
-                                <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('gameBid.bets')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{bidsCount}</div>
+                                <div className={`text-center min-w-[3.5rem] ${bidStatCard}`}>
+                                    <div className={`${bidStatLabel} normal-case`}>{t('gameBid.bets')}</div>
+                                    <div className={bidStatValue}>{bidsCount}</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 uppercase tracking-wider">{t('gameBid.points')}</div>
-                                    <div className="text-base sm:text-lg font-bold text-red-700 dark:text-red-300">{totalPoints}</div>
+                                <div className={`text-center min-w-[3.5rem] ${bidStatCard}`}>
+                                    <div className={`${bidStatLabel} normal-case`}>{t('gameBid.points')}</div>
+                                    <div className={bidStatValue}>{totalPoints}</div>
                                 </div>
                             </div>
                         )}
@@ -273,10 +287,8 @@ const BidLayout = ({
                             type="button"
                             onClick={onSubmit}
                             disabled={!bidsCount || !bettingAllowed}
-                            className={`flex-1 w-full sm:w-auto sm:min-w-[140px] font-bold py-3 px-6 rounded-xl shadow-lg transition-all text-sm sm:text-base ${
-                                bidsCount && bettingAllowed
-                                    ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
-                                    : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
+                            className={`flex-1 w-full sm:w-auto sm:min-w-[140px] py-3 px-6 rounded-xl ${bidSubmitBtn} ${
+                                bidsCount && bettingAllowed ? '' : 'opacity-50 cursor-not-allowed'
                             }`}
                         >
                             {submitLabel === 'Submit Bets' ? t('gameBid.submitBets') : submitLabel === 'Submit Bet' ? t('gameBid.submitBet') : submitLabel}

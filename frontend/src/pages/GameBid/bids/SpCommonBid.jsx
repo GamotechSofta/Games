@@ -1,37 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import QuickPointsRow from './QuickPointsRow';
 import { useBettingWindow } from '../BettingWindowContext';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { BidDesktopStats } from '../BidInlineStats';
+import BidPointsPanel from './BidPointsPanel';
 import { generateSPCommon } from './spCommonGenerator';
 
 const SpCommonBid = ({ market, title }) => {
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [warning, setWarning] = useState('');
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
-            }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
-    });
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
     const [selectedDigits, setSelectedDigits] = useState([]);
     const [pointsInput, setPointsInput] = useState('');
     const [generatedRows, setGeneratedRows] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [reviewRows, setReviewRows] = useState([]);
-
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {}
-        setSelectedDate(newDate);
-    };
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -185,7 +171,7 @@ const SpCommonBid = ({ market, title }) => {
         setReviewRows([]);
         clearLocal();
         const todayStr = new Date().toISOString().split('T')[0];
-        setSelectedDate(todayStr);
+        handleDateChange(todayStr);
         try {
             localStorage.setItem('betSelectedDate', todayStr);
         } catch (e) {}
@@ -223,6 +209,7 @@ const SpCommonBid = ({ market, title }) => {
             setSession={setSession}
             showDateSession
             showSessionOnMobile
+            showInlineStats
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
             hideFooter
@@ -230,35 +217,7 @@ const SpCommonBid = ({ market, title }) => {
             contentPaddingClass="pb-10"
             dateSessionGridClassName="!pb-1"
             dateSessionControlClassName="!min-h-[36px] !h-[36px] !py-1.5 !text-[11px] sm:!text-xs"
-            extraHeader={
-                <>
-                    <div className="md:hidden w-full px-3 py-1">
-                        <div className="grid grid-cols-2 gap-1.5 md:gap-2">
-                            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{bidsCount}</div>
-                            </div>
-                            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{totalPoints}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="hidden md:flex pr-12 pl-1 pb-0 justify-end w-full">
-                        <div className="inline-flex items-center gap-2 md:gap-4">
-                            <div className="text-center">
-                                <div className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400">Count</div>
-                                <div className="text-xs md:text-base font-bold text-gray-700 dark:text-red-300">{bidsCount}</div>
-                            </div>
-                            <div className="w-px h-6 md:h-8 bg-gray-200 dark:bg-white/20" />
-                            <div className="text-center">
-                                <div className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400">Bet Amount</div>
-                                <div className="text-xs md:text-base font-bold text-gray-700 dark:text-red-300">{totalPoints}</div>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            }
+            extraHeader={<BidDesktopStats count={bidsCount} amount={totalPoints} />}
         >
             <div className="px-3 sm:px-4 pt-0 pb-2 min-h-0">
                 {warning && (
@@ -304,25 +263,12 @@ const SpCommonBid = ({ market, title }) => {
                                 />
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-200">Enter Points</label>
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                value={pointsInput}
-                                onChange={(e) => setPointsInput((e.target.value ?? '').replace(/\D/g, '').slice(0, 6))}
-                                placeholder="Points"
-                                className="flex-1 min-w-0 min-h-[40px] h-10 sm:h-11 bg-white dark:bg-[#202329] border border-gray-200 dark:border-white/20 rounded-lg px-3 text-sm sm:text-base font-semibold text-gray-900 dark:text-white"
-                            />
-                            <button
-                                type="button"
-                                onClick={clearLocal}
-                                className="min-h-[40px] h-10 px-4 rounded-md text-[11px] sm:text-xs font-semibold border border-gray-200 dark:border-white/20 text-gray-700 dark:text-red-200 bg-white dark:bg-[#202329] hover:bg-gray-50 dark:hover:bg-[#1b1d22] active:scale-[0.98] transition-all shrink-0"
-                            >
-                                Clear
-                            </button>
-                        </div>
-                        <QuickPointsRow value={pointsInput} onSelect={(pts) => setPointsInput(String(pts))} />
+                        <BidPointsPanel
+                            pointsValue={pointsInput}
+                            onPointsChange={(v) => setPointsInput((v ?? '').replace(/\D/g, '').slice(0, 6))}
+                            onClear={clearLocal}
+                            onQuickSelect={(pts) => setPointsInput(String(pts))}
+                        />
                         <div className="flex gap-3">
                             <button
                                 type="button"

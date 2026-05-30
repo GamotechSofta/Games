@@ -5,6 +5,8 @@ import QuickPointsRow from './QuickPointsRow';
 import { isValidAnyPana } from './panaRules';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { bidClearBtn } from '../../../styles/appTheme';
+import { BidDesktopStats } from '../BidInlineStats';
 
 const sanitizeDigits = (v, maxLen) => (v ?? '').toString().replace(/\D/g, '').slice(0, maxLen);
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -21,28 +23,13 @@ const HalfSangamBid = ({ market, title }) => {
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [warning, setWarning] = useState('');
     const [easyFormKey, setEasyFormKey] = useState(0);
-    const [selectedDate, setSelectedDate] = useState(() => {
-        try {
-            const savedDate = localStorage.getItem('betSelectedDate');
-            if (savedDate) {
-                const today = new Date().toISOString().split('T')[0];
-                if (savedDate > today) return savedDate;
-            }
-        } catch (e) {}
-        return new Date().toISOString().split('T')[0];
-    });
+    const { selectedDate, setSelectedDate: handleDateChange, scheduledDateForApi, reviewDateText, displayDate } =
+        useScheduledBetDate();
 
     const [specialFlipped, setSpecialFlipped] = useState(false);
     const [specialPana, setSpecialPana] = useState('');
     const [specialAnkPts, setSpecialAnkPts] = useState(emptyAnkPts);
     const [specialPanaInvalid, setSpecialPanaInvalid] = useState(false);
-
-    const handleDateChange = (newDate) => {
-        try {
-            localStorage.setItem('betSelectedDate', newDate);
-        } catch (e) {}
-        setSelectedDate(newDate);
-    };
 
     const showWarning = (msg) => {
         setWarning(msg);
@@ -93,7 +80,7 @@ const HalfSangamBid = ({ market, title }) => {
         setSpecialAnkPts(emptyAnkPts());
         setSpecialPanaInvalid(false);
         const today = new Date().toISOString().split('T')[0];
-        setSelectedDate(today);
+        handleDateChange(today);
         try {
             localStorage.removeItem('betSelectedDate');
         } catch (e) {}
@@ -167,20 +154,6 @@ const HalfSangamBid = ({ market, title }) => {
         setSpecialPanaInvalid(false);
     };
 
-    // Count / Bet Amount cards only (EASY MODE / SPECIAL MODE removed as requested)
-    const modeTabs = (
-        <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{bids.length}</div>
-            </div>
-            <div className="rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                <div className="text-base font-bold text-gray-700 dark:text-red-300 leading-tight">{totalPoints}</div>
-            </div>
-        </div>
-    );
-
     const easyBidsList = (
         <>
             <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
@@ -229,8 +202,11 @@ const HalfSangamBid = ({ market, title }) => {
             totalPoints={totalPoints}
             showDateSession={true}
             showSessionOnMobile
+            showInlineStats
+            extraHeader={<BidDesktopStats count={bids.length} amount={totalPoints} />}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
+            displayDate={displayDate}
             session={session}
             setSession={setSession}
             hideFooter
@@ -247,7 +223,6 @@ const HalfSangamBid = ({ market, title }) => {
 
                     <div className="md:grid md:grid-cols-2 md:gap-6 md:items-start">
                         <div>
-                            {modeTabs}
                             <HalfSangamEasyForm
                                 key={easyFormKey}
                                 flipped={flipped}
@@ -456,7 +431,7 @@ function HalfSangamEasyForm({
                     <button
                         type="button"
                         onClick={onClearAll}
-                        className="px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 text-sm font-medium hover:border-gray-400 dark:hover:border-white/35 active:scale-95"
+                        className={`px-4 min-h-[40px] rounded-xl text-sm ${bidClearBtn}`}
                     >
                         Clear
                     </button>

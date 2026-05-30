@@ -1,12 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
-import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
-import { bidStatValue, bidLabelStrong, bidTableHeader, bidRowBg } from '../../../styles/appTheme';
+import { useBettingWindow } from '../BettingWindowContext';
+import { bidStatValue, bidStatCard, bidInput, bidSubmitBtn, bidFieldLabel, bidCountLabel } from '../../../styles/appTheme';
+import BidPointsPanel from './BidPointsPanel';
+import BidDigitKeypad from './BidDigitKeypad';
+import BidBidsList from './BidBidsList';
 
 const SingleDigitBid = ({ market, title }) => {
+    const { t } = useTranslation();
+    const { allowed: bettingAllowed } = useBettingWindow();
     const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
     const [inputPoints, setInputPoints] = useState('');
     const [bids, setBids] = useState([]);
@@ -30,7 +36,10 @@ const SingleDigitBid = ({ market, title }) => {
         // Do not accumulate on repeated taps; set exact quick value.
         setInputPoints(String(pts));
     };
-    const handleClearPoints = () => setInputPoints('');
+    const handleFormClear = () => {
+        setBids([]);
+        setInputPoints('');
+    };
 
     const handleDigitClick = (num) => {
         const pts = Number(inputPoints);
@@ -144,72 +153,6 @@ const SingleDigitBid = ({ market, title }) => {
         if (result.data?.newBalance != null) updateUserBalance(result.data.newBalance);
     };
 
-    const submitBtnClass = (enabled) =>
-        enabled
-            ? 'w-full bg-gradient-to-r from-red-700 to-red-600 text-white font-bold py-3.5 min-h-[48px] rounded-lg shadow-md hover:from-red-600 hover:to-red-500 transition-all active:scale-[0.98]'
-            : 'w-full bg-gray-100 text-gray-400 dark:bg-white/10 dark:text-gray-500 font-bold py-3.5 min-h-[48px] rounded-lg shadow-md opacity-50 cursor-not-allowed';
-    const fieldLabelClass = 'text-gray-900 dark:text-gray-200';
-
-    const mobileModeHeader = (
-        <div className="grid grid-cols-2 gap-1.5 md:gap-2 px-1">
-            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Count</div>
-                <div className={`text-base leading-tight ${bidStatValue}`}>{bulkBidsCount}</div>
-            </div>
-            <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-2 py-1.5 md:px-3 md:py-2 text-center">
-                <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Bet Amount</div>
-                <div className={`text-base leading-tight ${bidStatValue}`}>{bulkTotalPoints}</div>
-            </div>
-        </div>
-    );
-
-    const mobileBidsList = (
-        <>
-            <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-red-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
-                <div>Pana</div>
-                <div>Point</div>
-                <div>Type</div>
-                <div>Delete</div>
-            </div>
-            <div className="h-px bg-gray-200 dark:bg-white/20 w-full mb-2" />
-            <div className="space-y-2">
-                {rows.map((bid) => (
-                    <div
-                        key={bid.id}
-                        className={`grid grid-cols-4 gap-1 sm:gap-2 text-center items-center py-2.5 px-2 rounded-lg border border-red-200 dark:border-white/20 text-sm ${bidRowBg}`}
-                    >
-                        <div className="font-bold text-gray-900 dark:text-white">{bid.number}</div>
-                        <div className="px-0.5 min-w-0">
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                value={bid.points}
-                                onChange={(e) => updateRowPoints(bid.id, e.target.value)}
-                                className="w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-center font-bold text-gray-900 dark:text-gray-200 focus:border-red-500 dark:focus:border-white/35 text-sm focus:outline-none"
-                            />
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-300">{bid.type}</div>
-                        <div className="flex justify-center">
-                            <button
-                                type="button"
-                                onClick={() => removeRow(bid.id)}
-                                className="p-2 text-red-500 hover:text-red-600 active:scale-95"
-                                aria-label="Delete"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </>
-    );
 
     return (
         <BidLayout
@@ -219,100 +162,69 @@ const SingleDigitBid = ({ market, title }) => {
             totalPoints={bulkTotalPoints}
             showDateSession={true}
             showSessionOnMobile
+            showInlineStats
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
             session={session}
             setSession={setSession}
             onSubmit={() => setIsReviewOpen(true)}
-            hideFooter={false}
+            hideFooter
             showFooterStats={false}
             submitLabel="Submit Bet"
-            contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32"
+            contentPaddingClass="pb-4 md:pb-8"
             walletBalance={walletBefore}
             showWalletBalance={false}
         >
             <div className="px-3 sm:px-4 py-2 w-full max-w-full overflow-x-hidden">
                 {warning && (
-                    <div className="mb-3 bg-gray-50 border border-red-200 text-red-800 dark:bg-gray-900/40 dark:border-red-500/60 dark:text-red-200 rounded-xl px-4 py-3 text-sm md:mb-4">
+                    <div className="mb-3 bg-gray-50 border border-red-200 text-red-800 dark:bg-gray-900/40 dark:border-red-500/60 dark:text-red-200 rounded-xl px-4 py-3 text-base md:mb-4">
                         {warning}
                     </div>
                 )}
 
                 {/* Mobile: match Single Pana special layout (screenshot) */}
                 <div className="md:hidden space-y-3">
-                    {mobileModeHeader}
-                    <div className="flex flex-col gap-3 px-1">
-                        <div className="flex flex-row items-center gap-2">
-                            <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
-                            <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    value={inputPoints}
-                                    onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    placeholder="Points"
-                                    className="no-spinner w-full bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-400 rounded-xl py-2.5 min-h-[40px] px-4 text-left text-sm focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleClearPoints}
-                                    className="px-4 min-h-[40px] rounded-xl border-2 border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-red-700 dark:text-gray-200 text-sm font-semibold hover:border-red-400 dark:hover:border-white/35 active:scale-95"
-                                >
-                                    Clear
-                                </button>
-                            </div>
-                        </div>
-                        <QuickPointsRow
-                            value={inputPoints}
-                            onSelect={handleQuickPointClick}
-                            labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
-                        />
-                    </div>
-                    <div className="grid grid-cols-5 gap-2 w-full px-1">
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                            <button
-                                key={num}
-                                type="button"
-                                disabled={!hasInputPoints}
-                                onClick={() => hasInputPoints && handleDigitClick(num)}
-                                className={`relative aspect-square min-h-[44px] sm:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none border border-red-300 dark:border-white/20 ${
-                                    hasInputPoints
-                                        ? 'text-white bg-gradient-to-br from-red-700 to-red-600 cursor-pointer hover:border-red-400 dark:hover:border-white/35'
-                                        : 'text-white bg-gradient-to-br from-red-700 to-red-600 opacity-50 cursor-not-allowed'
-                                }`}
-                                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                            >
-                                {num}
-                                {pointsByDigit[num] > 0 && (
-                                    <span className="absolute top-0.5 right-0.5 bg-white dark:bg-[#17191d] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 flex items-center justify-center shadow-md">
-                                        {pointsByDigit[num] > 999 ? '999+' : pointsByDigit[num]}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="mt-2 px-1">{mobileBidsList}</div>
+                    <BidPointsPanel
+                        className="px-1 border-b-0"
+                        pointsValue={inputPoints}
+                        onPointsChange={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))}
+                        onClear={handleFormClear}
+                        onQuickSelect={handleQuickPointClick}
+                    />
+                    <BidDigitKeypad
+                        className="mx-1"
+                        size="lg"
+                        disabled={!hasInputPoints}
+                        pointsByDigit={pointsByDigit}
+                        onDigitClick={handleDigitClick}
+                    />
+                    <BidBidsList
+                        className="mt-3 px-1"
+                        rows={rows}
+                        onUpdatePoints={updateRowPoints}
+                        onRemove={removeRow}
+                    />
                 </div>
 
                 <div className="hidden md:grid md:grid-cols-2 md:gap-6 md:items-start w-full">
                     <div className="w-full min-w-0 md:flex md:justify-start md:items-center">
                         <div className="flex flex-col gap-2 mb-1 md:mb-0 w-full md:max-w-sm">
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Date:</label>
+                                <label className={`${bidFieldLabel} shrink-0 w-20`}>Date:</label>
                                 <div className="relative flex-1 min-w-0">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                     </div>
-                                    <input type="text" value={todayDate} readOnly className="w-full pl-9 py-2 min-h-[36px] bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 rounded-full text-xs font-bold text-center text-gray-900 dark:text-white focus:outline-none focus:border-red-500 dark:focus:border-white/35" />
+                                    <input type="text" value={todayDate} readOnly className={`w-full pl-9 py-2 min-h-[36px] rounded-full text-sm font-bold text-center focus:outline-none ${bidInput}`} />
                                 </div>
                             </div>
                             <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Type:</label>
+                                <label className={`${bidFieldLabel} shrink-0 w-20`}>Type:</label>
                                 <select
                                     value={session}
                                     onChange={(e) => setSession(e.target.value)}
                                     disabled={isRunning}
-                                    className={`flex-1 min-w-0 appearance-none bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white font-bold text-xs py-2 min-h-[36px] px-4 rounded-full text-center focus:outline-none focus:border-red-500 dark:focus:border-white/35 ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
+                                    className={`flex-1 min-w-0 appearance-none font-bold text-sm py-2 min-h-[36px] px-4 rounded-full text-center focus:outline-none ${bidInput} ${isRunning ? 'opacity-80 cursor-not-allowed' : ''}`}
                                 >
                                     {isRunning ? (
                                         <option value="CLOSE">CLOSE</option>
@@ -324,98 +236,59 @@ const SingleDigitBid = ({ market, title }) => {
                                     )}
                                 </select>
                             </div>
-                            <div className="flex flex-row items-center gap-2">
-                                <label className="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20">Enter Points:</label>
-                                <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        value={inputPoints}
-                                        onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        placeholder="Point"
-                                        className="no-spinner w-full bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-gray-900 dark:text-white placeholder-gray-500 rounded-full py-2 min-h-[36px] px-4 text-center text-xs focus:ring-2 focus:ring-red-200 dark:focus:ring-white/10 focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleClearPoints}
-                                        className="px-3 min-h-[36px] rounded-full border-2 border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-red-700 dark:text-gray-200 text-xs font-semibold hover:border-red-400 dark:hover:border-white/35 active:scale-95"
-                                    >
-                                        Clear
-                                    </button>
-                                </div>
-                            </div>
-                            <QuickPointsRow
-                                value={inputPoints}
-                                onSelect={handleQuickPointClick}
-                                label="Quick Points:"
-                                labelClassName="text-gray-900 dark:text-gray-200 text-xs font-medium shrink-0 w-20"
+                            <BidPointsPanel
+                                className="border-b-0 py-3"
+                                labelWidthClass="w-20"
+                                pointsValue={inputPoints}
+                                onPointsChange={(v) => setInputPoints(v.replace(/\D/g, '').slice(0, 6))}
+                                onClear={handleFormClear}
+                                onQuickSelect={handleQuickPointClick}
+                                placeholder="Point"
+                                enterLabel="Enter Points"
                             />
 
-                    {/* Desktop: 2 rows (5 columns) */}
-                    <div className="hidden md:grid grid-cols-5 gap-2 w-full max-w-[360px] mx-auto">
-                        {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                            <button
-                                key={num}
-                                type="button"
-                                disabled={!hasInputPoints}
-                                onClick={() => hasInputPoints && handleDigitClick(num)}
-                                className={`relative aspect-square min-h-[40px] bg-gradient-to-br from-red-700 to-red-600 border border-red-300 dark:border-white/20 text-white rounded-lg font-bold text-sm flex items-center justify-center transition-all active:scale-90 shadow-md select-none ${
-                                    hasInputPoints ? 'hover:border-red-400 dark:hover:border-white/35 cursor-pointer' : 'opacity-50 cursor-not-allowed'
-                                }`}
-                            >
-                                {num}
-                                {pointsByDigit[num] > 0 && (
-                                    <span className="absolute top-0.5 right-1 text-[10px] font-bold text-red-100">
-                                        {pointsByDigit[num] > 999 ? '999+' : pointsByDigit[num]}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
+                    <BidDigitKeypad
+                        className="hidden md:block w-full max-w-[360px] mx-auto"
+                        size="sm"
+                        disabled={!hasInputPoints}
+                        pointsByDigit={pointsByDigit}
+                        onDigitClick={handleDigitClick}
+                    />
                     <div className="hidden md:grid mt-3 grid-cols-2 gap-2 w-full max-w-[320px] mx-auto">
-                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center">
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Count</div>
-                            <div className={`text-base leading-tight ${bidStatValue}`}>{bulkBidsCount}</div>
+                        <div className={bidStatCard}>
+                            <div className={bidCountLabel}>Count</div>
+                            <div className={`leading-tight ${bidStatValue}`}>{bulkBidsCount}</div>
                         </div>
-                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center">
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">Bet Amount</div>
-                            <div className={`text-base leading-tight ${bidStatValue}`}>{bulkTotalPoints}</div>
+                        <div className={bidStatCard}>
+                            <div className={bidCountLabel}>Bet Amount</div>
+                            <div className={`leading-tight ${bidStatValue}`}>{bulkTotalPoints}</div>
                         </div>
                     </div>
                         </div>
                     </div>
                     <div className="w-full min-w-0 md:flex md:justify-start md:items-start">
-                        <div className="rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] overflow-hidden w-full">
-                            <div className="grid grid-cols-4 bg-gray-50 dark:bg-white/10 text-[11px] font-semibold text-red-700 dark:text-gray-200">
-                                <div className="px-2 py-1.5">Pana</div>
-                                <div className="px-2 py-1.5 text-center">Point</div>
-                                <div className="px-2 py-1.5 text-center">Type</div>
-                                <div className="px-2 py-1.5 text-center">Delete</div>
-                            </div>
-                            {rows.map((row) => (
-                                <div key={row.id} className="grid grid-cols-4 border-t border-red-200 dark:border-white/20 text-xs items-center">
-                                    <div className="px-2 py-1.5 font-semibold text-gray-900 dark:text-white">{row.number}</div>
-                                    <div className="px-1 py-1">
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            value={row.points}
-                                            onChange={(e) => updateRowPoints(row.id, e.target.value)}
-                                            className="w-full h-7 rounded border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-center font-semibold text-gray-900 dark:text-white focus:border-red-500 dark:focus:border-white/35 focus:outline-none"
-                                        />
-                                    </div>
-                                    <div className="px-2 py-1.5 text-center text-gray-600 dark:text-gray-300">{row.type}</div>
-                                    <div className="px-2 py-1.5 text-center">
-                                        <button type="button" onClick={() => removeRow(row.id)} className="text-red-500 hover:text-red-600" aria-label="Delete">
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <BidBidsList
+                            variant="desktop"
+                            rows={rows}
+                            onUpdatePoints={updateRowPoints}
+                            onRemove={removeRow}
+                        />
                     </div>
+                </div>
+
+                <div
+                    className="mt-5 px-1 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:mt-6 md:pb-8 md:max-w-md md:mx-auto w-full"
+                >
+                    <button
+                        type="button"
+                        onClick={() => setIsReviewOpen(true)}
+                        disabled={!bulkBidsCount || !bettingAllowed}
+                        className={`w-full min-h-[50px] py-3.5 px-6 rounded-xl ${bidSubmitBtn} ${
+                            bulkBidsCount && bettingAllowed ? '' : 'opacity-50 cursor-not-allowed'
+                        }`}
+                    >
+                        {t('gameBid.submitBet')}
+                    </button>
                 </div>
             </div>
 

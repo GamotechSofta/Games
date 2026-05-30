@@ -4,6 +4,8 @@ import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import { bidClearBtn } from '../../../styles/appTheme';
+import { BidDesktopStats } from '../BidInlineStats';
 
 const EasyModeBid = ({
     market,
@@ -432,18 +434,8 @@ const EasyModeBid = ({
     const compactInputClass = isRedBidTheme
         ? 'w-full h-8 rounded-lg border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-center font-bold text-gray-900 dark:text-gray-200 text-sm focus:outline-none focus:border-red-500 dark:focus:border-white/35'
         : 'w-full h-8 rounded-lg border border-gray-200 dark:border-white/10 text-center font-bold text-amber-800 dark:text-[#f2c14e] text-sm focus:outline-none focus:border-[#d4af37]';
-    const clearBtnClass = isRedBidTheme
-        ? 'px-4 min-h-[40px] rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] text-red-700 dark:text-gray-200 text-sm font-medium hover:border-red-400 dark:hover:border-white/35 active:scale-95'
-        : 'px-4 min-h-[40px] rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] text-amber-800 dark:text-[#f2c14e] text-sm font-medium hover:border-[#d4af37] active:scale-95';
-    const smallClearBtnClass = isRedBidTheme
-        ? 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200 bg-white dark:bg-[#202329] hover:border-red-400 dark:hover:border-white/35 active:scale-[0.98] transition-all shrink-0'
-        : 'ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e] bg-white dark:bg-[#202124] hover:bg-white/10 active:scale-[0.98] transition-all shrink-0';
-    const statCardClass = isRedBidTheme
-        ? 'rounded-xl border border-red-200 dark:border-white/20 bg-white dark:bg-[#202329] px-3 py-2 text-center'
-        : 'rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] px-3 py-2 text-center';
-    const statValueClass = isRedBidTheme
-        ? 'text-base font-bold text-red-700 dark:text-gray-200 leading-tight'
-        : 'text-base font-bold text-amber-800 dark:text-[#f2c14e] leading-tight';
+    const clearBtnClass = `${bidClearBtn} px-4 min-h-[40px] rounded-xl text-sm`;
+    const smallClearBtnClass = `${bidClearBtn} ml-1 px-3 py-1.5 rounded-md text-xs sm:text-sm shrink-0`;
     const tabActiveClass = isRedBidTheme
         ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-700 dark:border-white/20'
         : 'bg-[#d4af37] text-[#4b3608] border-[#d4af37]';
@@ -527,16 +519,6 @@ const EasyModeBid = ({
                 >
                     SPECIAL MODE
                 </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-                <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Count</div>
-                    <div className={statValueClass}>{specialLiveStats.count}</div>
-                </div>
-                <div className={statCardClass}>
-                    <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">Bet Amount</div>
-                    <div className={statValueClass}>{specialLiveStats.total}</div>
-                </div>
             </div>
             {specialModeType === 'jodi' && activeTab === 'special' && (
                 <div className="flex flex-row items-center gap-2">
@@ -708,7 +690,8 @@ const EasyModeBid = ({
             }}
             showDateSession={true}
             showSessionOnMobile={true}
-            extraHeader={null}
+            showInlineStats
+            extraHeader={<BidDesktopStats count={specialLiveStats.count} amount={specialLiveStats.total} />}
             displayDate={displayDate}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
