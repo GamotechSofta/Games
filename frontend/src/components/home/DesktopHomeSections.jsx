@@ -8,7 +8,6 @@ import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
-import PopularCasinoSection from './PopularCasinoSection';
 
 function MarketRow({
   titleKey,
@@ -142,8 +141,6 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   return (
     <div id="market-sections" className="mx-auto w-full max-w-[1440px] space-y-1 px-4 lg:px-6 xl:px-8">
-      <PopularCasinoSection onSelect={(path) => navigate(path)} />
-
       {loading ? (
         <MarketRowSkeleton />
       ) : (

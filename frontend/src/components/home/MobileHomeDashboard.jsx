@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, memo, useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight } from 'react-icons/hi2';
@@ -13,8 +13,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
-
-const PopularCasinoSection = lazy(() => import('./PopularCasinoSection'));
 
 const MOBILE_HOME_BANNERS = [
   {
@@ -130,10 +128,6 @@ export default function MobileHomeDashboard() {
             />
           ))}
         </div>
-
-        <Suspense fallback={<div className="h-[176px] rounded-[15px] bg-white/70 dark:bg-white/10 animate-pulse" aria-hidden />}>
-          <PopularCasinoSection onSelect={(path) => navigate(path)} />
-        </Suspense>
 
         {(loading || popularMarkets.length > 0) && (
           <div>
