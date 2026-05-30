@@ -23,7 +23,7 @@ import {
 function GoldFrame({ children }) {
   return (
     <div
-      className="relative h-full w-full rounded-[11px] px-[1.5px] pt-[1.5px] pb-[0.5px] shadow-[0_2px_10px_rgba(0,0,0,0.4)] sm:rounded-[15px] sm:px-[2px] sm:pt-[2px] sm:pb-[1px] sm:shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
+      className="relative h-full w-full rounded-[11px] p-[1.5px] shadow-[0_2px_10px_rgba(0,0,0,0.4)] sm:rounded-[15px] sm:p-[2px] sm:shadow-[0_4px_18px_rgba(0,0,0,0.45)]"
       style={{
         background:
           'linear-gradient(145deg, #f7e7a8 0%, #d4af37 18%, #8b6914 42%, #e8c96a 68%, #f0d78c 88%, #c9a227 100%)',
