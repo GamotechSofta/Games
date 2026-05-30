@@ -1,8 +1,8 @@
 import { queryClient } from '../queryClient';
-import { fetchPaymentConfig, paymentConfigQueryKey } from '../hooks/usePaymentConfig';
 import { fetchBankAccounts, bankAccountsQueryKey } from '../hooks/useBankAccounts';
 import { fetchDepositHistory, depositHistoryQueryKey } from '../hooks/useDepositHistory';
 import { fetchWithdrawalHistory, withdrawalHistoryQueryKey } from '../hooks/useWithdrawalHistory';
+import { prefetchPaymentConfigStore } from '../store/prefetch';
 
 function readUserId() {
   try {
@@ -14,11 +14,7 @@ function readUserId() {
 }
 
 export function prefetchPaymentConfig() {
-  return queryClient.prefetchQuery({
-    queryKey: paymentConfigQueryKey(),
-    queryFn: fetchPaymentConfig,
-    staleTime: 5 * 60 * 1000,
-  });
+  return prefetchPaymentConfigStore();
 }
 
 export function prefetchBankAccounts() {

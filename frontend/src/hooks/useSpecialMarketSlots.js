@@ -1,40 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
-import { API_BASE_URL } from '../config/api';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
-  buildKingDemoSlots,
-  mapKingBazaarSlot,
-  mapStarlineSlot,
-} from '../utils/specialMarketSlots';
+  fetchSpecialSlotsThunk,
+  selectSpecialSlots,
+  selectSpecialSlotsStatus,
+} from '../store/slices/specialSlotsSlice';
 
-const STALE_MS = 30 * 1000;
 const REFRESH_MS = 60 * 1000;
-
-function buildMarketsUrl(marketType, groupKey) {
-  const params = new URLSearchParams({ marketType, fields: 'home' });
-  const group = (groupKey || '').toString().trim().toLowerCase();
-  if (marketType === 'startline' && group) {
-    params.set('starlineGroup', group);
-  }
-  if (marketType === 'king' && group) {
-    params.set('kingBazaarGroup', group);
-  }
-  return `${API_BASE_URL}/markets/get-markets?${params.toString()}`;
-}
-
-async function fetchSpecialSlots(marketType, groupKey, marketLabel) {
-  const res = await fetch(buildMarketsUrl(marketType, groupKey));
-  const data = await res.json();
-  const list = Array.isArray(data?.data) ? data.data : [];
-  const mapper = marketType === 'king' ? mapKingBazaarSlot : mapStarlineSlot;
-  const mapped = list
-    .map((m) => mapper(m, marketLabel))
-    .sort((a, b) => String(a.startingTime || '').localeCompare(String(b.startingTime || '')));
-
-  if (marketType === 'king' && mapped.length === 0 && groupKey) {
-    return buildKingDemoSlots(marketLabel);
-  }
-  return mapped;
-}
 
 /**
  * Cached time slots for one Starline or King Bazaar group.
@@ -46,21 +18,21 @@ export function useSpecialMarketSlots({
   marketLabel = '',
   enabled = true,
 } = {}) {
+  const dispatch = useAppDispatch();
   const group = (groupKey || '').toString().trim().toLowerCase();
-  const needsGroup = true;
-  const canFetch = Boolean(enabled && marketType && (!needsGroup || group));
+  const canFetch = Boolean(enabled && marketType && group);
 
-  const query = useQuery({
-    queryKey: ['specialMarketSlots', marketType, group],
-    enabled: canFetch,
-    queryFn: () => fetchSpecialSlots(marketType, group, marketLabel),
-    staleTime: STALE_MS,
-    gcTime: 10 * 60 * 1000,
-    placeholderData: (previous) => previous,
-    refetchOnWindowFocus: false,
-    refetchInterval: REFRESH_MS,
-    retry: 1,
-  });
+  const items = useAppSelector(selectSpecialSlots(marketType, group));
+  const { loading } = useAppSelector(selectSpecialSlotsStatus(marketType, group));
+
+  useEffect(() => {
+    if (!canFetch) return undefined;
+    void dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
+    const id = setInterval(() => {
+      void dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
+    }, REFRESH_MS);
+    return () => clearInterval(id);
+  }, [dispatch, marketType, group, marketLabel, canFetch]);
 
   return {
     items: query.data || [],

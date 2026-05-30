@@ -1,13 +1,9 @@
 import { queryClient } from '../queryClient';
 import { getBalance } from './bets';
-import { fetchMainMarkets, mainMarketsQueryKey } from '../hooks/useMainMarkets';
+import { prefetchMainMarketsStore } from '../store/prefetch';
 
 export function prefetchMainMarkets() {
-  return queryClient.prefetchQuery({
-    queryKey: mainMarketsQueryKey(false),
-    queryFn: () => fetchMainMarkets(false),
-    staleTime: 60 * 1000,
-  });
+  return prefetchMainMarketsStore(false);
 }
 
 export function prefetchWalletBalance() {

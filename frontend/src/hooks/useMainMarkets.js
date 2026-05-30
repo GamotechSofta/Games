@@ -1,40 +1,40 @@
-import { useQuery } from '@tanstack/react-query';
-import { API_BASE_URL } from '../config/api';
-import { transformMarkets } from '../utils/homeTransforms';
+import { useEffect } from 'react';
+import { fetchMainMarkets } from '../api/mainMarkets';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import {
+  fetchMainMarketsThunk,
+  selectMainMarkets,
+  selectMainMarketsStatus,
+} from '../store/slices/marketsSlice';
 
-export async function fetchMainMarkets(popularOnly = false) {
-  const params = new URLSearchParams({
-    marketType: 'main',
-    fields: 'home',
-  });
-  if (popularOnly) params.set('popularOnly', 'true');
-  const response = await fetch(`${API_BASE_URL}/markets/get-markets?${params.toString()}`);
-  const data = await response.json();
-  if (!response.ok || !data?.success) {
-    throw new Error(data?.message || 'Failed to load markets');
-  }
-  return transformMarkets(data.data);
-}
+export { fetchMainMarkets } from '../api/mainMarkets';
 
-/** Shared query key for markets list (prefetch + hooks). */
+/** @deprecated React Query key — kept for any legacy prefetch callers */
 export function mainMarketsQueryKey(popularOnly = false) {
   return ['mainMarkets', popularOnly];
 }
 
 export default function useMainMarkets({ refreshMs = 0, popularOnly = false } = {}) {
-  const marketsQuery = useQuery({
-    queryKey: mainMarketsQueryKey(popularOnly),
-    queryFn: () => fetchMainMarkets(popularOnly),
-    staleTime: 60 * 1000,
-    refetchInterval: refreshMs > 0 ? refreshMs : false,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+  const dispatch = useAppDispatch();
+  const markets = useAppSelector(selectMainMarkets(popularOnly));
+  const { loading, error } = useAppSelector(selectMainMarketsStatus(popularOnly));
+
+  useEffect(() => {
+    void dispatch(fetchMainMarketsThunk(popularOnly));
+  }, [dispatch, popularOnly]);
+
+  useEffect(() => {
+    if (!refreshMs || refreshMs <= 0) return undefined;
+    const id = setInterval(() => {
+      void dispatch(fetchMainMarketsThunk(popularOnly));
+    }, refreshMs);
+    return () => clearInterval(id);
+  }, [dispatch, popularOnly, refreshMs]);
 
   return {
-    markets: marketsQuery.data || [],
-    loading: marketsQuery.isLoading,
-    error: marketsQuery.error?.message || '',
-    refetch: () => marketsQuery.refetch(),
+    markets,
+    loading,
+    error: error || '',
+    refetch: () => dispatch(fetchMainMarketsThunk(popularOnly)),
   };
 }

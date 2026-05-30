@@ -12,6 +12,15 @@ const toMarketNameKey = (name) => {
     .replace(/^\w/, (c) => c.toLowerCase());
 };
 
+function PlayIcon({ color = '#22c55e', size = 20 }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: size, height: size, display: 'block', flexShrink: 0 }}>
+      <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="1.8" fill="none" />
+      <path d="M10 8.2v7.6l6.2-3.8L10 8.2z" fill={color} />
+    </svg>
+  );
+}
+
 function ClockIcon({ color = 'rgba(255,255,255,0.8)', size = 18 }) {
   return (
     <svg
@@ -55,7 +64,6 @@ function MarketCard({ market }) {
   }, []);
 
   const isOpen = market.status === 'open' || market.status === 'running';
-  const isLive = market.status === 'running';
   const isClosed = market.status === 'closed';
 
   const handleClick = () => {
@@ -74,10 +82,11 @@ function MarketCard({ market }) {
   const displayName = t(`markets.names.${toMarketNameKey(market.gameName)}`, {
     defaultValue: market.gameName,
   });
+  const tomorrowLabel = t('markets.runningForTomorrow', { defaultValue: 'Running For Tomorrow' });
+  const openLabel = t('markets.marketIsOpen', { defaultValue: 'MARKET IS OPEN' });
 
   const resultValue = market.result || '***-**-***';
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
-  const bannerImageSrc = '/marketCard.jpg';
   const theme = isDarkMode
     ? {
         cardBg: '#141a24',
@@ -89,7 +98,6 @@ function MarketCard({ market }) {
         timeText: '#ffffff',
         timeLabel: '#d7dbe3',
         iconColor: '#b9beca',
-        overlayGradient: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,22,0.65) 100%)',
         modalBg: '#14161d',
         modalBorder: '1px solid rgba(255,255,255,0.1)',
         modalText: '#fff',
@@ -105,7 +113,6 @@ function MarketCard({ market }) {
         timeText: '#0f172a',
         timeLabel: '#475569',
         iconColor: '#334155',
-        overlayGradient: 'none',
         modalBg: '#ffffff',
         modalBorder: '1px solid rgba(15,23,42,0.12)',
         modalText: '#0f172a',
@@ -131,7 +138,6 @@ function MarketCard({ market }) {
           width: '100%',
           maxWidth: 340,
           borderRadius: 16,
-          border: '1px solid rgba(255,255,255,0.1)',
           background: theme.modalBg,
           color: theme.modalText,
           border: theme.modalBorder,
@@ -234,90 +240,42 @@ function MarketCard({ market }) {
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {/* Banner */}
-        <div style={{ position: 'relative', height: 106, overflow: 'hidden' }}>
-          <img
-            src={bannerImageSrc}
-            alt=""
-            loading="lazy"
-            aria-hidden
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-          />
-          {/* Gradient overlay */}
-          <div
+        {/* Header — market name */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 48,
+            padding: '10px',
+            background: theme.timeBarBg,
+          }}
+        >
+          <h3
             style={{
-              position: 'absolute',
-              inset: 0,
-              background: theme.overlayGradient,
-            }}
-          />
-          {/* Live badge */}
-          {isLive && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 10,
-                left: 10,
-                background: 'rgba(220,50,50,0.92)',
-                color: '#fff',
-                fontSize: 9,
-                fontWeight: 800,
-                letterSpacing: '0.08em',
-                padding: '2px 7px',
-                borderRadius: 20,
-                border: '1px solid rgba(255,100,100,0.4)',
-                textTransform: 'uppercase',
-              }}
-            >
-              LIVE
-            </div>
-          )}
-          {/* Status chip */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 7,
-              right: 8,
-              borderRadius: 999,
-              border: isDarkMode
-                ? (isOpen ? '1px solid rgba(52,211,153,0.5)' : '1px solid rgba(248,113,113,0.45)')
-                : (isOpen ? '1px solid rgba(34,197,94,0.55)' : '1px solid rgba(239,68,68,0.55)'),
-              background: isDarkMode
-                ? (isOpen ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.22)')
-                : (isOpen ? '#22c55e' : '#ef4444'),
-              color: isDarkMode ? (isOpen ? '#86efac' : '#fecaca') : '#ffffff',
-              fontSize: 8,
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              padding: '3px 8px',
-            }}
-          >
-            {isOpen ? t('markets.statusOpen', { defaultValue: 'Open' }) : t('markets.statusClosed', { defaultValue: 'Closed' })}
-          </div>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: '9px 10px 10px' }}>
-          {/* Market name */}
-          <div
-            style={{
-              fontSize: 18,
+              margin: 0,
+              fontSize: 14,
               fontWeight: 900,
-              letterSpacing: '0.02em',
+              letterSpacing: '0.03em',
               color: theme.nameColor,
               textTransform: 'uppercase',
               textAlign: 'center',
               fontFamily: "'Inter', 'Segoe UI', sans-serif",
-              lineHeight: 1,
-              marginBottom: 5,
-              whiteSpace: 'nowrap',
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
               width: '100%',
             }}
           >
             {displayName}
-          </div>
+          </h3>
+        </div>
 
+        {/* Body */}
+        <div style={{ padding: '9px 10px 10px' }}>
           {/* Result */}
           <div
             style={{
@@ -328,7 +286,7 @@ function MarketCard({ market }) {
               letterSpacing: '0.08em',
               lineHeight: 1,
               textAlign: 'center',
-              marginBottom: 6,
+              marginBottom: 8,
             }}
           >
             {resultValue}
@@ -417,42 +375,51 @@ function MarketCard({ market }) {
             </div>
 
           </div>
-
-          {/* Bottom action row */}
-          <div style={{ textAlign: 'center', paddingTop: 2 }}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (isOpen) handleClick();
-                else setShowClosedModal(true);
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                fontSize: 10,
-                fontWeight: 700,
-                color: isDarkMode
-                  ? (isClosed ? 'rgba(248, 113, 113, 0.72)' : '#6ee7b7')
-                  : (isClosed ? '#ef4444' : '#22c55e'),
-                letterSpacing: '0.03em',
-                animation: isClosed
-                  ? `marketTomorrowBlink ${isDarkMode ? '1.15s' : '1.1s'} ease-in-out infinite`
-                  : 'none',
-                textShadow: 'none',
-                filter: 'none',
-                outline: 'none',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              {isClosed
-                ? t('markets.runningForTomorrow', { defaultValue: 'Running For Tomorrow' })
-                : t('markets.tapToPlay', { defaultValue: 'Tap to Play' })}
-            </button>
-          </div>
         </div>
+
+        {/* Footer strip — bottom of card */}
+        {isClosed ? (
+          <div
+            style={{
+              padding: '8px 10px',
+              textAlign: 'center',
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              background: isDarkMode ? 'rgba(220,38,38,0.85)' : '#ef4444',
+              borderTop: isDarkMode
+                ? '1px solid rgba(248,113,113,0.25)'
+                : '1px solid rgba(185,28,28,0.35)',
+              animation: `marketTomorrowBlink ${isDarkMode ? '1.15s' : '1.1s'} ease-in-out infinite`,
+            }}
+          >
+            {tomorrowLabel}
+          </div>
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '8px 10px',
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              background: isDarkMode ? '#15803d' : '#22c55e',
+              borderTop: isDarkMode
+                ? '1px solid #22c55e'
+                : '1px solid rgba(21,128,61,0.4)',
+            }}
+          >
+            <PlayIcon color="#ffffff" size={18} />
+            <span>{openLabel}</span>
+          </div>
+        )}
       </div>
 
       {typeof document !== 'undefined' && closedModal
