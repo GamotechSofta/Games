@@ -81,6 +81,19 @@ app.use(cors(getCorsOptions({ isProd })));
 app.use(compression({ threshold: 1024 }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use((req, res, next) => {
+    console.log(`[START] ${req.method} ${req.originalUrl}`);
+
+    const start = Date.now();
+
+    res.on('finish', () => {
+        console.log(
+            `[END] ${req.method} ${req.originalUrl} ${Date.now() - start}ms`
+        );
+    });
+
+    next();
+});
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
