@@ -55,20 +55,21 @@ function computeDisplayResult(openingNumber, closingNumber) {
  */
 async function saveYesterdaySnapshotsToHistory(Market) {
     const yesterdayKey = getYesterdayIST();
-    const marketsWithResults = await Market.find({
+    const cursor = Market.find({
         $or: [
             { openingNumber: { $nin: [null, ''] } },
             { closingNumber: { $nin: [null, ''] } },
         ],
     })
         .select('marketName openingNumber closingNumber')
-        .lean();
+        .lean()
+        .cursor();
 
-    if (marketsWithResults.length === 0) return;
-
-    const ops = marketsWithResults.map((m) => {
+    const BATCH_SIZE = 200;
+    let ops = [];
+    for await (const m of cursor) {
         const displayResult = computeDisplayResult(m.openingNumber, m.closingNumber);
-        return {
+        ops.push({
             updateOne: {
                 filter: { marketId: m._id, dateKey: yesterdayKey },
                 update: {
@@ -81,10 +82,15 @@ async function saveYesterdaySnapshotsToHistory(Market) {
                 },
                 upsert: true,
             },
-        };
-    });
-
-    await MarketResult.bulkWrite(ops, { ordered: false });
+        });
+        if (ops.length >= BATCH_SIZE) {
+            await MarketResult.bulkWrite(ops, { ordered: false });
+            ops = [];
+        }
+    }
+    if (ops.length > 0) {
+        await MarketResult.bulkWrite(ops, { ordered: false });
+    }
 }
 
 /**
@@ -125,6 +131,7 @@ async function saveLastResetDateToDB(dateKey) {
 /** In-memory cache: we already ran the check for this IST date. Avoids running on every market API request. */
 let lastCheckedDateIST = null;
 let resetCheckInFlight = null;
+let ensureResetInFlight = null;
 
 /**
  * Fire-and-forget market reset check for read APIs — never block the HTTP response.
@@ -153,12 +160,15 @@ export function scheduleMarketResetCheck(Market) {
  * @param {Model} Market - Mongoose Market model
  */
 export async function ensureResultsResetForNewDay(Market) {
+    if (ensureResetInFlight) {
+        await ensureResetInFlight;
+        return;
+    }
+    ensureResetInFlight = (async () => {
     const today = getTodayIST();
 
     // Already ran for today (either skipped or performed reset) — no DB, no logs
-    if (lastCheckedDateIST === today) {
-        return;
-    }
+    if (lastCheckedDateIST === today) return;
 
     // Get last reset date from database (persists across server restarts)
     const lastResetDate = await getLastResetDateFromDB();
@@ -195,4 +205,10 @@ export async function ensureResultsResetForNewDay(Market) {
     lastCheckedDateIST = today;
 
     console.log(`[resultReset] Completed reset for ${today}: ${result.modifiedCount} markets cleared`);
+    })();
+    try {
+        await ensureResetInFlight;
+    } finally {
+        ensureResetInFlight = null;
+    }
 }

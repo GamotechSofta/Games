@@ -5,13 +5,14 @@ import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import multer from 'multer';
 import path from 'path';
 import { uploadToCloudinary } from '../config/cloudinary.js';
+import pLimit from 'p-limit';
 
 // Configure multer with memory storage for Cloudinary uploads
 const storage = multer.memoryStorage();
 
 export const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024, files: 5 }, // 5MB/file, max 5 files
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif/;
         const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -26,13 +27,20 @@ export const upload = multer({
 export const createTicket = async (req, res) => {
     try {
         const { userId, subject, description } = req.body;
+        if (!userId || !subject || !description) {
+            return res.status(400).json({
+                success: false,
+                message: 'userId, subject and description are required',
+            });
+        }
 
         // Upload screenshots to Cloudinary
         let screenshots = [];
         if (req.files && req.files.length > 0) {
             try {
-                const uploadPromises = req.files.map(file =>
-                    uploadToCloudinary(file.buffer, 'help-desk')
+                const uploadLimiter = pLimit(2);
+                const uploadPromises = req.files.map((file) =>
+                    uploadLimiter(() => uploadToCloudinary(file.buffer, 'help-desk'))
                 );
                 const results = await Promise.all(uploadPromises);
                 screenshots = results.map(result => result.secure_url);
@@ -42,13 +50,6 @@ export const createTicket = async (req, res) => {
                     message: 'Failed to upload screenshots. Please try again.',
                 });
             }
-        }
-
-        if (!userId || !subject || !description) {
-            return res.status(400).json({
-                success: false,
-                message: 'userId, subject and description are required',
-            });
         }
 
         const ticket = new HelpDesk({
@@ -129,8 +130,12 @@ export const getMyTickets = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
+        const parsedLimit = Number.parseInt(String(req.query.limit || 50), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 100) : 50;
         const tickets = await HelpDesk.find({ userId })
+            .select('subject description status screenshots adminResponse createdAt updatedAt')
             .sort({ createdAt: -1 })
+            .limit(limit)
             .lean();
         res.status(200).json({ success: true, data: tickets });
     } catch (error) {

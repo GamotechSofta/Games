@@ -79,8 +79,8 @@ app.set('trust proxy', 1);
 
 app.use(cors(getCorsOptions({ isProd })));
 app.use(compression({ threshold: 1024 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -212,6 +212,9 @@ async function startServer() {
         await connectDB();
 
         const httpServer = http.createServer(app);
+        httpServer.requestTimeout = 120000;
+        httpServer.headersTimeout = 65000;
+        httpServer.keepAliveTimeout = 60000;
         initPlayerSocket(httpServer, { isProd });
         httpServer.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);

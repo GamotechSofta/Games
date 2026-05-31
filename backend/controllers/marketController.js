@@ -36,6 +36,9 @@ function runBackgroundMarketResetCheck() {
 import { getRatesMap } from '../models/rate/rate.js';
 import bcrypt from 'bcryptjs';
 
+const MARKET_LIST_FIELDS =
+    'marketName startingTime closingTime showInPopular marketType betClosureTime openingNumber closingNumber winNumber starlineGroup kingBazaarGroup';
+
 /** Last digit of sum of 3 digits (0–9). e.g. "156" → "2" */
 function digitFromPatti(threeDigitStr) {
     const s = String(threeDigitStr || '').trim();
@@ -229,7 +232,6 @@ export const seedStartlineMarkets = async (req, res) => {
  */
 export const getMarkets = async (req, res) => {
     try {
-        runBackgroundMarketResetCheck();
         const marketTypeFilter = (req.query.marketType || '').toString().toLowerCase();
         const starlineGroupFilter = (req.query.starlineGroup || req.query.starline_group || '')
             .toString()
@@ -245,7 +247,7 @@ export const getMarkets = async (req, res) => {
         const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
         const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
             ? Math.min(parsedLimit, 100)
-            : null;
+            : 100;
 
         const filter = {};
         if (marketTypeFilter === 'main') {
@@ -270,19 +272,14 @@ export const getMarkets = async (req, res) => {
             marketTypeFilter === 'starline' ||
             marketTypeFilter === 'king';
 
-        let query = Market.find(filter).sort({ startingTime: 1 });
-        if (fieldsPreset === 'home' || isSpecialType) {
-            query = query.select(
-                'marketName startingTime closingTime showInPopular marketType betClosureTime openingNumber closingNumber winNumber starlineGroup kingBazaarGroup'
-            );
-        }
-        if (limit) {
-            query = query.limit(limit);
-        }
+        let query = Market.find(filter)
+            .select(MARKET_LIST_FIELDS)
+            .sort({ startingTime: 1 })
+            .limit(limit);
 
         const markets = await query.lean();
         const data = attachDisplayResults(markets);
-        if (fieldsPreset === 'home' || limit || isSpecialType) {
+        if (fieldsPreset === 'home' || isSpecialType || limit <= 100) {
             res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=30');
         }
         res.status(200).json({ success: true, data });

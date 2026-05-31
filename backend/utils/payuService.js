@@ -32,6 +32,17 @@ const HOSTED_PAYMENT_URL = getHostedPaymentUrl();
 
 let cachedToken = null;
 let tokenExpiry = 0;
+const PAYU_FETCH_TIMEOUT_MS = 10000;
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = PAYU_FETCH_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
 
 /**
  * Get OAuth access token (cached until near expiry).
@@ -51,7 +62,7 @@ async function getPayUToken() {
         grant_type: 'client_credentials',
         scope: 'create_payment_links read_payment_links',
     });
-    const res = await fetch(`${ACCOUNTS_BASE}/oauth/token`, {
+    const res = await fetchWithTimeout(`${ACCOUNTS_BASE}/oauth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -94,7 +105,7 @@ async function createPaymentLink(opts) {
     if (failureURL) payload.failureURL = failureURL;
     if (invoiceNumber) payload.invoiceNumber = String(invoiceNumber);
 
-    const res = await fetch(`${ONEAPI_BASE}/payment-links/`, {
+    const res = await fetchWithTimeout(`${ONEAPI_BASE}/payment-links/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -140,7 +151,7 @@ async function getPaymentLinkTransactions(invoiceId) {
     const dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
     const url = `${ONEAPI_BASE}/payment-links/${encodeURIComponent(invoiceId)}/txns?dateFrom=${dateFrom}&dateTo=${dateTo}`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -191,8 +202,6 @@ export const generateHostedHash = (params) => {
                 udf4,
                 udf5,
             });
-            const hashStr = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${udf1}|${udf2}|${udf3}|${udf4}|${udf5}||||||${salt}`;
-            console.log('FINAL HASH STRING (PayU SDK):', hashStr);
             return hash.toLowerCase();
         } catch (e) {
             console.warn('PayU SDK hash failed, using fallback:', e.message);
@@ -201,7 +210,6 @@ export const generateHostedHash = (params) => {
 
     const hashString =
         `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${udf1}|${udf2}|${udf3}|${udf4}|${udf5}||||||${salt}`.trim();
-    console.log('FINAL HASH STRING:', hashString);
     const hash = crypto
         .createHash('sha512')
         .update(hashString)
@@ -249,8 +257,6 @@ function buildHostedCheckoutForm(opts) {
         liveModeWarned = true;
         console.warn('[PayU] LIVE mode: using', hostedUrl, '- Ensure PAYU_KEY and PAYU_SALT are Production credentials from PayU Dashboard (Integration → Live). Test credentials will cause errors.');
     }
-    console.log('PAYU_KEY length:', rawKey.length, '(expected ~6–20; if larger, check .env for space/newline)');
-    console.log('PAYU_SALT length:', rawSalt.length, '(expected ~16–32; if larger, check .env for space/newline)');
     const key = safe(rawKey);
     const salt = rawSalt;
     if (!key || !salt) {
@@ -286,8 +292,6 @@ function buildHostedCheckoutForm(opts) {
         udf4: '',
         udf5: '',
     };
-
-    console.log('FINAL FORM DATA:', formData);
 
     return { formActionUrl: hostedUrl, formData };
 }

@@ -27,8 +27,8 @@ pipeline {
                 sh '''
                 cd /var/www/Aakda/Games/backend
 
-                pm2 reload games-backend --update-env || \
-                pm2 start index.js --name games-backend
+                pm2 reload ecosystem.config.cjs --only games-backend --update-env || \
+                pm2 start ecosystem.config.cjs --only games-backend
 
                 sleep 10
 

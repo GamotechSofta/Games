@@ -685,6 +685,11 @@ export const getPayments = async (req, res) => {
         const query = {};
         const isPanelUser = ['super_admin', 'bookie', 'specific_admin'].includes(req.admin?.role);
         const panelView = view || 'payu_log';
+        const parsedLimit = Number.parseInt(String(req.query.limit || 100), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 200) : 100;
+        const parsedPage = Number.parseInt(String(req.query.page || 1), 10);
+        const page = Number.isFinite(parsedPage) ? Math.max(parsedPage, 1) : 1;
+        const skip = (page - 1) * limit;
 
         if (req.admin?.role === 'bookie') {
             // Bookie: show payments from their users (bookieId match OR userId match for old payments)
@@ -723,13 +728,19 @@ export const getPayments = async (req, res) => {
             .populate('bankDetailId', 'accountHolderName bankName accountNumber upiId ifscCode')
             .populate('processedBy', 'username role')
             .sort({ createdAt: -1 })
-            .limit(1000)
+            .skip(skip)
+            .limit(limit)
             .lean();
 
         res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({
             success: true,
             data: payments.map((p) => toClientPayment(p)),
+            pagination: {
+                page,
+                limit,
+                count: payments.length,
+            },
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

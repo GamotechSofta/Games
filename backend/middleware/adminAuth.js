@@ -3,6 +3,21 @@ import { verifyToken } from '../utils/jwt.js';
 
 const adminJwtCache = new Map();
 const ADMIN_JWT_CACHE_TTL_MS = 30 * 1000;
+const ADMIN_JWT_CACHE_MAX_ENTRIES = 500;
+
+function pruneAdminJwtCache(now = Date.now()) {
+    for (const [key, value] of adminJwtCache.entries()) {
+        if (!value?.at || now - value.at >= ADMIN_JWT_CACHE_TTL_MS) {
+            adminJwtCache.delete(key);
+        }
+    }
+    if (adminJwtCache.size <= ADMIN_JWT_CACHE_MAX_ENTRIES) return;
+    const entries = [...adminJwtCache.entries()].sort((a, b) => (a[1]?.at || 0) - (b[1]?.at || 0));
+    const overflow = adminJwtCache.size - ADMIN_JWT_CACHE_MAX_ENTRIES;
+    for (let i = 0; i < overflow; i += 1) {
+        adminJwtCache.delete(entries[i][0]);
+    }
+}
 
 /**
  * Middleware to verify admin/bookie authentication.
@@ -23,6 +38,7 @@ export const verifyAdmin = async (req, res, next) => {
             const decoded = verifyToken(token);
             if (decoded) {
                 const cacheKey = String(decoded.id);
+                pruneAdminJwtCache();
                 const cached = adminJwtCache.get(cacheKey);
                 if (cached && Date.now() - cached.at < ADMIN_JWT_CACHE_TTL_MS) {
                     req.admin = cached.admin;
