@@ -70,8 +70,6 @@ function validateEnvConfig() {
     }
 }
 
-console.log("Hello World!!");
-
 validateEnvConfig();
 logCorsConfig({ isProd });
 
@@ -81,19 +79,6 @@ app.use(cors(getCorsOptions({ isProd })));
 app.use(compression({ threshold: 1024 }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
-app.use((req, res, next) => {
-    console.log(`[START] ${req.method} ${req.originalUrl}`);
-
-    const start = Date.now();
-
-    res.on('finish', () => {
-        console.log(
-            `[END] ${req.method} ${req.originalUrl} ${Date.now() - start}ms`
-        );
-    });
-
-    next();
-});
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -206,13 +191,8 @@ app.use((err, req, res, next) => {
 });
 
 cron.schedule('30 18 * * *', async () => {
-    const now = new Date();
-    const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    console.log('[CRON] Midnight Market Reset Job Started', istTime);
-
     try {
         await ensureResultsResetForNewDay(Market);
-        console.log('[CRON] Market reset job completed');
     } catch (error) {
         console.error('[CRON] Market reset job failed:', error.message);
     }
