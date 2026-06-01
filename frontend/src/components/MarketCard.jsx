@@ -218,10 +218,13 @@ function MarketCard({ market }) {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.35; }
         }
+        .market-tomorrow-label-text {
+          animation: marketTomorrowBlink 1.1s ease-in-out infinite;
+        }
         .market-card-time-bar {
           width: 100%;
           box-sizing: border-box;
-          padding: 8px 6px;
+          padding: 8px;
           border-radius: 14px;
         }
         .market-card-time-grid {
@@ -286,6 +289,7 @@ function MarketCard({ market }) {
             alignItems: 'center',
             justifyContent: 'center',
             minHeight: 40,
+            padding: '4px 8px 0',
             background: 'transparent',
           }}
         >
@@ -312,8 +316,8 @@ function MarketCard({ market }) {
           </h3>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: '5px 8px 6px' }}>
+        {/* Body — same horizontal padding as header / footer */}
+        <div style={{ padding: '0 8px 6px' }}>
           {/* Result */}
           <div
             style={{
@@ -324,7 +328,7 @@ function MarketCard({ market }) {
               letterSpacing: '0.08em',
               lineHeight: 1,
               textAlign: 'center',
-              marginBottom: 4,
+              marginBottom: 6,
             }}
           >
             {resultValue}
@@ -363,11 +367,11 @@ function MarketCard({ market }) {
           </div>
         </div>
 
-        {/* Footer strip — bottom of card */}
+        {/* Running for tomorrow — red bg static; text blinks only */}
         {isClosed ? (
           <div
             style={{
-              padding: '7px 10px',
+              padding: '7px 8px',
               textAlign: 'center',
               fontSize: 9,
               fontWeight: 800,
@@ -381,10 +385,9 @@ function MarketCard({ market }) {
               borderTop: isDarkMode
                 ? '1px solid rgba(248,113,113,0.25)'
                 : '1px solid rgba(185,28,28,0.35)',
-              animation: `marketTomorrowBlink ${isDarkMode ? '1.15s' : '1.1s'} ease-in-out infinite`,
             }}
           >
-            {tomorrowLabel}
+            <span className="market-tomorrow-label-text">{tomorrowLabel}</span>
           </div>
         ) : (
           <div
@@ -393,7 +396,7 @@ function MarketCard({ market }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              padding: '7px 10px',
+              padding: '7px 8px',
               fontSize: 10,
               fontWeight: 800,
               letterSpacing: '0.06em',
