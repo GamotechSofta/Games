@@ -11,6 +11,9 @@ import {
   bidInput,
   bidSurface,
   pageShell,
+  mobilePageHeaderBlock,
+  mobilePageHeaderRow,
+  mobilePageTopPad,
   surface,
   textMuted,
 } from '../../styles/appTheme';
@@ -126,9 +129,9 @@ const SupportNew = () => {
   };
 
   return (
-    <div className={`${pageShell} px-4 sm:px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}>
-      <div className="max-w-lg mx-auto pt-4 sm:pt-6">
-        <div className="flex items-center gap-3 mb-5 sm:mb-6 relative z-10">
+    <div className={`${pageShell} w-full ${mobilePageTopPad} px-4 sm:px-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}>
+      <div className="max-w-lg mx-auto w-full">
+        <div className={`${mobilePageHeaderRow} ${mobilePageHeaderBlock} relative z-10`}>
           <button type="button" onClick={handleBack} className={backBtn} aria-label="Back">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

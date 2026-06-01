@@ -7,6 +7,14 @@
 export const pageShell =
   'min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white';
 
+/** Mobile spacing below AppHeader — match My Bets (`Bids.jsx`) */
+export const mobilePageTopPad =
+  'pt-3 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] md:pt-4';
+
+export const mobilePageHeaderRow = 'flex items-center gap-3 px-1 py-2 shrink-0';
+
+export const mobilePageHeaderBlock = 'mb-2 md:mb-4';
+
 /** Profile / passbook alt dark bg */
 export const pageShellAlt =
   'min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#0a0a0b] dark:text-white';
@@ -60,7 +68,7 @@ export const iconBtn =
   'rounded-full bg-gray-100 border border-gray-900/20 text-gray-800 hover:border-gray-900/30 hover:bg-gray-200 dark:bg-white/10 dark:border-white/25 dark:text-white dark:hover:border-white/35 dark:hover:bg-white/15';
 
 /** Circular back control — border included in size so it is not clipped in flex rows */
-export const backBtn = `min-w-[44px] min-h-[44px] w-11 h-11 box-border flex shrink-0 items-center justify-center touch-manipulation transition-transform active:scale-95 select-none ${iconBtn}`;
+export const backBtn = `min-w-[36px] min-h-[36px] w-9 h-9 box-border flex shrink-0 items-center justify-center touch-manipulation transition-transform active:scale-95 select-none [&_svg]:w-4 [&_svg]:h-4 [&_svg]:shrink-0 ${iconBtn}`;
 
 /** Game bid flow — red accent theme */
 export const bidPageShell =

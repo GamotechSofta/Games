@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ResponsiveSidebarLayout from '../components/ResponsiveSidebarLayout';
 import { useBreakpoint } from '../hooks/useBreakpoint';
+import { backBtn } from '../styles/appTheme';
 import FundsSidebar from './funds/FundsSidebar';
 import FundsContentArea from './funds/FundsContentArea';
 
@@ -181,13 +182,13 @@ const Funds = () => {
 
   return (
     <div className="w-full text-gray-900 dark:text-white">
-      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-4 sm:px-4 sm:pt-5 lg:px-6 xl:px-8">
-        <div className="mb-4 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
-          <div className="flex items-center gap-3 pt-4 md:pt-0">
+      <div className="mx-auto w-full max-w-[1440px] px-3 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] pt-3 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 md:pt-4 lg:px-6 xl:px-8">
+        <div className="mb-2 shrink-0 md:mb-4 md:grid md:grid-cols-[360px_1fr] md:gap-6 md:items-center">
+          <div className="flex items-center gap-3 px-1 py-2 md:px-0 md:py-0">
             <button
               type="button"
               onClick={handleBack}
-              className="min-w-[44px] min-h-[44px] rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-gray-800 dark:text-white hover:bg-white/15 active:scale-95 transition touch-manipulation"
+              className={backBtn}
               aria-label={t('common.back')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

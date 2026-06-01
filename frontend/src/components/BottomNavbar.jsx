@@ -50,7 +50,7 @@ const MAIN_MENU_NAV = [
 
 const ACCOUNT_MENU_NAV = [
   { id: 'my-bets', labelKey: 'navigation.myBets', path: '/bids', icon: HiClipboardList },
-  { id: 'funds', labelKey: 'navigation.funds', path: '/funds', icon: HiCash },
+  { id: 'funds', labelKey: 'navigation.funds', path: '/funds?tab=add-fund', icon: HiCash },
   { id: 'game-rate', labelKey: 'header.updateRate', path: '/game-rate', icon: HiChartBar },
   { id: 'logout', labelKey: 'header.logout', action: 'logout', icon: HiLogout },
 ];
@@ -119,7 +119,7 @@ const BottomNavbar = () => {
     { id: 'home', label: t('navigation.home'), path: '/', Icon: HiOutlineHome },
     { id: 'my-bids', label: t('navigation.myBets'), path: '/bids', Icon: MdOutlineReceiptLong },
     { id: 'support', label: t('sidebar.support', { defaultValue: 'Support' }), path: '/support', Icon: HiChatAlt2 },
-    { id: 'add-funds', label: t('funds.addFund', { defaultValue: 'Add Funds' }), path: '/funds?tab=add-fund', Icon: MdOutlineAccountBalanceWallet },
+    { id: 'add-funds', label: t('funds.addFund', { defaultValue: 'Add Funds' }), path: '/funds', Icon: MdOutlineAccountBalanceWallet },
     { id: 'menu', label: t('navigation.menu', { defaultValue: 'Menu' }), path: '/profile', Icon: HiOutlineSquares2X2 },
   ];
 

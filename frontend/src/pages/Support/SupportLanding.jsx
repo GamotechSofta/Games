@@ -41,7 +41,7 @@ const SupportLanding = () => {
   return (
     <div className={`${pageShell} px-3 sm:px-6 md:px-8 pb-[calc(6rem+env(safe-area-inset-bottom,0px))]`}>
       <div className="w-full max-w-lg mx-auto">
-        <div className="flex items-center gap-3 pt-4 pb-2">
+        <div className="flex items-center gap-3 pt-0 pb-2">
           <button
             type="button"
             onClick={() => navigate('/')}

@@ -14,7 +14,6 @@ import {
 } from '../utils/mobileInstallBanner';
 import AppHeader from '../components/AppHeader';
 import BottomNavbar from '../components/BottomNavbar';
-import SubHeader from '../components/SubHeader';
 import Home from '../pages/Home';
 import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
@@ -122,23 +121,12 @@ const Layout = ({ children }) => {
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
   const activePanel = getActivePanelFromLocation(location.pathname, location.search);
-  const isDashboardShellPage = location.pathname === '/' || location.pathname === '/markets';
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
   const showDesktopDashboardNav =
     location.pathname === '/' ||
     location.pathname === '/markets' ||
     (location.pathname === '/games' && (activePanel === 'casino' || activePanel === 'skills'));
 
-  const hideTopNavMobileOnly =
-    location.pathname === '/bids' ||
-    location.pathname === '/bet-history' ||
-    location.pathname === '/starline-bet-history' ||
-    location.pathname === '/king-bazaar-bet-history' ||
-    location.pathname === '/market-result-history';
-  const hideTopNavOnMobile =
-    !isDesktop &&
-    (['/funds', '/profile', '/bidoptions', '/game-bid', '/games'].includes(location.pathname) ||
-      location.pathname.startsWith('/support'));
   const hideBottomNavOnMobile =
     location.pathname === '/game-bid' || location.pathname === '/games';
 
@@ -205,85 +193,51 @@ const Layout = ({ children }) => {
     );
   }
 
-  if (isDashboardShellPage) {
+  if (!isDesktop) {
     const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
+    const isGameBidPage = location.pathname === '/game-bid';
+    const isGameBidMobileShell = isGameBidPage;
+    const showMobileHeader = !isGameBidMobileShell;
+    const mobileContentTop = showMobileHeader
+      ? getMobileDashboardContentTop(hasPromoBanner)
+      : undefined;
+    const mobileBottomPad =
+      hideBottomNavOnMobile
+        ? 'pb-[env(safe-area-inset-bottom,0px)]'
+        : location.pathname === '/profile'
+          ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
+          : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
+
     return (
-      <div className="min-h-screen min-h-ios-screen w-full bg-[#f5f5f7] pb-[calc(4rem+env(safe-area-inset-bottom,0px))] dark:bg-[#141415]">
-        <AppHeader />
-        <div className="content-fade-in" style={{ paddingTop: getMobileDashboardContentTop(hasPromoBanner) }}>
-          {children}
+      <div
+        className={
+          hideBottomNavOnMobile
+            ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
+            : `min-h-screen min-h-ios-screen ${mobileBottomPad} md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black`
+        }
+      >
+        {showMobileHeader && <AppHeader />}
+        <div
+          className={
+            isGameBidMobileShell
+              ? 'bid-route-shell flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden pt-[env(safe-area-inset-top,0px)]'
+              : 'content-fade-in'
+          }
+          style={isGameBidMobileShell ? undefined : { animationDuration: '180ms' }}
+        >
+          <div
+            className={isGameBidMobileShell ? 'flex flex-col flex-1 min-h-0 h-full pt-0' : undefined}
+            style={!isGameBidMobileShell && mobileContentTop ? { paddingTop: mobileContentTop } : undefined}
+          >
+            {children}
+          </div>
         </div>
-        <BottomNavbar />
+        {!hideBottomNavOnMobile && <BottomNavbar />}
       </div>
     );
   }
 
-  const isBidPage = location.pathname.includes('game-bid') || location.pathname === '/bidoptions';
-  const isGameBidPage = location.pathname === '/game-bid';
-  const isBetsPage = location.pathname === '/bids';
-  const isGameBidMobileShell = isGameBidPage && !isDesktop;
-  const isHistoryPage = location.pathname === '/bet-history' || location.pathname === '/market-result-history';
-  const mobileBottomPad =
-    hideBottomNavOnMobile
-      ? 'pb-[env(safe-area-inset-bottom,0px)]'
-      : location.pathname === '/profile'
-        ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
-        : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
-
-  return (
-    <div
-      className={
-        hideBottomNavOnMobile
-          ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
-          : `min-h-screen min-h-ios-screen ${mobileBottomPad} md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black`
-      }
-    >
-      {hideTopNavMobileOnly ? (
-        <div className="hidden md:block">
-          <AppHeader />
-          <SubHeader />
-        </div>
-      ) : (
-        !hideTopNavOnMobile && (
-          <>
-            <AppHeader />
-            <SubHeader />
-          </>
-        )
-      )}
-      <div
-        className={
-          isGameBidMobileShell
-            ? 'bid-route-shell flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden pt-[env(safe-area-inset-top,0px)]'
-            : isBidPage
-              ? 'bid-route-shell'
-              : 'content-fade-in'
-        }
-        style={isGameBidMobileShell ? undefined : { animationDuration: '180ms' }}
-      >
-        <div
-          className={
-            isGameBidMobileShell
-              ? 'flex flex-col flex-1 min-h-0 h-full pt-0'
-              : hideTopNavMobileOnly
-                ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))] md:pt-[calc(84px+env(safe-area-inset-top,0px))]'
-                : hideTopNavOnMobile
-                  ? 'pt-[calc(0.5rem+env(safe-area-inset-top,0px))]'
-                  : isBidPage
-                    ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(90px+env(safe-area-inset-top,0px))]'
-                    : (isBetsPage || isHistoryPage)
-                      ? 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(100px+env(safe-area-inset-top,0px))]'
-                      : 'pt-[calc(84px+env(safe-area-inset-top,0px))] sm:pt-[calc(88px+env(safe-area-inset-top,0px))] md:pt-[calc(92px+env(safe-area-inset-top,0px))]'
-          }
-        >
-          {children}
-        </div>
-      </div>
-      {!hideBottomNavOnMobile && (
-        <BottomNavbar />
-      )}
-    </div>
-  );
+  return null;
 };
 
 export default function ProtectedApp() {

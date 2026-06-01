@@ -93,8 +93,8 @@ const AppHeader = () => {
           xl:pl-[max(1.5rem,env(safe-area-inset-left))] xl:pr-[max(1.5rem,env(safe-area-inset-right))]
           ${
             isDashboardRoute
-              ? 'py-1 sm:py-1.5 pt-[max(0.375rem,calc(0.15rem+env(safe-area-inset-top,0px)))] sm:pt-[max(0.45rem,calc(0.25rem+env(safe-area-inset-top,0px)))]'
-              : 'py-1.5 sm:py-2 md:py-2 pt-[max(0.5rem,calc(0.25rem+env(safe-area-inset-top,0px)))] sm:pt-[max(0.5rem,calc(0.375rem+env(safe-area-inset-top,0px)))] md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]'
+              ? 'py-1 sm:py-1.5 pt-[max(0.375rem,calc(0.15rem+env(safe-area-inset-top,0px)))] sm:pt-[max(0.45rem,calc(0.25rem+env(safe-area-inset-top,0px)))] md:py-2 md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]'
+              : 'py-1 sm:py-1.5 pt-[max(0.375rem,calc(0.15rem+env(safe-area-inset-top,0px)))] sm:pt-[max(0.45rem,calc(0.25rem+env(safe-area-inset-top,0px)))] md:py-2 md:pt-[max(0.5rem,calc(0.5rem+env(safe-area-inset-top,0px)))]'
           }`}
       >
         <div className="flex flex-col gap-1.5">
@@ -104,51 +104,51 @@ const AppHeader = () => {
             </Suspense>
           )}
 
-          {isDashboardRoute ? (
-            <div className="flex items-center gap-2.5 min-w-0 md:hidden">
+          {/* Mobile — same navbar as home (logo + download + wallet) on all pages */}
+          <div className="flex items-center gap-2.5 min-w-0 md:hidden">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="min-w-0 shrink-0 rounded-xl p-0.5 transition-transform duration-200 active:scale-[0.98]"
+              aria-label="Aakda home"
+            >
+              <img
+                src={aakdaLogo}
+                alt="Aakda"
+                className="h-8 w-auto max-w-[126px] object-contain"
+              />
+            </button>
+
+            <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => navigate('/')}
-                className="min-w-0 shrink-0 rounded-xl p-0.5 transition-transform duration-200 active:scale-[0.98]"
-                aria-label="Aakda home"
+                onClick={triggerApkDownload}
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
+                aria-label={t('header.downloadApp')}
+                title={t('header.downloadApp')}
               >
-                <img
-                  src={aakdaLogo}
-                  alt="Aakda"
-                  className="h-8 w-auto max-w-[126px] object-contain"
-                />
+                <svg className="h-4 w-4 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
               </button>
 
-              <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={triggerApkDownload}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e]"
-                  aria-label={t('header.downloadApp')}
-                  title={t('header.downloadApp')}
-                >
-                  <svg className="h-4 w-4 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </button>
-
-
-                <button
-                  type="button"
-                  onClick={() => navigate('/funds?tab=add-fund')}
-                  className="flex min-w-0 max-w-[148px] items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
-                >
-                  <span className="flex min-w-0 items-center gap-1 truncate text-[13px] font-semibold leading-none text-gray-900 dark:text-white">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e60000] text-xs font-bold text-white">
-                      ₹
-                    </span>
-                    {formattedBalance}
+              <button
+                type="button"
+                onClick={() => navigate('/funds')}
+                className="flex min-w-0 max-w-[148px] items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 py-1 pl-2.5 pr-1 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#1d1e20] dark:hover:bg-[#2a2b2e] dark:shadow-none"
+              >
+                <span className="flex min-w-0 items-center gap-1 truncate text-[13px] font-semibold leading-none text-gray-900 dark:text-white">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#e60000] text-xs font-bold text-white">
+                    ₹
                   </span>
-                </button>
-              </div>
+                  {formattedBalance}
+                </span>
+              </button>
             </div>
-          ) : (
-            <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0">
+          </div>
+
+          {/* Desktop / tablet */}
+          <div className="hidden md:flex items-center justify-between gap-1 sm:gap-2 md:gap-3 min-w-0 w-full">
               <div className="flex items-center min-w-0 shrink-0">
                 <Link
                   to="/"
@@ -187,7 +187,7 @@ const AppHeader = () => {
 
 
                 <button
-                  onClick={() => navigate('/funds?tab=add-fund')}
+                  onClick={() => navigate('/funds')}
                   className={`hidden md:flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1.5 lg:px-3 lg:py-2 transition-colors min-w-0 ${
                     isLight
                       ? 'bg-gray-50 border-gray-200 hover:bg-gray-100'
@@ -236,7 +236,6 @@ const AppHeader = () => {
                 </button>
               </div>
             </div>
-          )}
         </div>
       </div>
     </>
