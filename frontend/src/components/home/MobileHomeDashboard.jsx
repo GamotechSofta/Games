@@ -20,14 +20,16 @@ const MOBILE_HOME_BANNERS = [
     alt: 'Black Orange Gaming Banner',
   },
   {
-    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1771503014/Black_Gold_Modern_Casino_Night_Party_Facebook_Cover_1545_x_900_px_1080_x_547_px_1_ooz3sj.png'),
-    alt: 'Black Gold Casino Night Banner',
+    src: optimizeCloudinaryUrl(
+      'https://res.cloudinary.com/dnyp5jknp/image/upload/v1780301569/ChatGPT_Image_Jun_1_2026_01_15_32_PM_1_sp17tb.png',
+    ),
+    alt: 'Play and Win Real Money — Casino Banner',
   },
 ];
 
 const QUICK_LINKS = [
   { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/games?category=highEarning' },
   { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
   { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
 ];

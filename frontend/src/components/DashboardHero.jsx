@@ -10,7 +10,7 @@ import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './h
 
 const CATEGORIES = [
   { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/games?category=highEarning' },
   { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
   { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
 ];
