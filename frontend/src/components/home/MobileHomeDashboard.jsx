@@ -19,12 +19,6 @@ const MOBILE_HOME_BANNERS = [
     src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1780306728/ChatGPT_Image_Jun_1_2026_03_07_07_PM_2_htgyfn.png'),
     alt: 'Black Orange Gaming Banner',
   },
-  {
-    src: optimizeCloudinaryUrl(
-      'https://res.cloudinary.com/dnyp5jknp/image/upload/v1780306442/ChatGPT_Image_Jun_1_2026_03_03_08_PM_1_xjinq7.png',
-    ),
-    alt: 'Play and Win Real Money — Casino Banner',
-  },
 ];
 
 const QUICK_LINKS = [
