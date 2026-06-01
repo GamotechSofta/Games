@@ -21,7 +21,7 @@ const MOBILE_HOME_BANNERS = [
   },
   {
     src: optimizeCloudinaryUrl(
-      'https://res.cloudinary.com/dnyp5jknp/image/upload/v1780301569/ChatGPT_Image_Jun_1_2026_01_15_32_PM_1_sp17tb.png',
+      'https://res.cloudinary.com/dnyp5jknp/image/upload/v1780305926/ChatGPT_Image_Jun_1_2026_02_55_07_PM_ker5ps.png',
     ),
     alt: 'Play and Win Real Money — Casino Banner',
   },
