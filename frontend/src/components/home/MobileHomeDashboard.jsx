@@ -16,7 +16,7 @@ import MarketCard from '../MarketCard';
 
 const MOBILE_HOME_BANNERS = [
   {
-    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1771501969/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1080_x_547_px_npbht7.png'),
+    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1780306728/ChatGPT_Image_Jun_1_2026_03_07_07_PM_2_htgyfn.png'),
     alt: 'Black Orange Gaming Banner',
   },
   {
