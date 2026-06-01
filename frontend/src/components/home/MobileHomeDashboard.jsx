@@ -39,6 +39,10 @@ const MARKET_CARD_SKELETON_BASE_CLASS =
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 md:grid-cols-5 md:gap-3';
 
+/** Popular Markets on mobile: 2 rows, horizontal scroll — ~2.25 columns visible (peek on next). */
+const POPULAR_MARKETS_MOBILE_SCROLL_CLASS =
+  'scrollbar-hidden grid grid-flow-col grid-rows-2 auto-cols-[calc((100%-0.78125rem)/2.25)] gap-x-2.5 gap-y-2.5 overflow-x-auto pb-1 min-[375px]:gap-x-2.5 min-[375px]:gap-y-2.5';
+
 const toMarketNameKey = (name) =>
   (name || '')
     .toString()
@@ -139,7 +143,7 @@ export default function MobileHomeDashboard() {
               onAction={() => navigate('/markets')}
             />
             {loading ? (
-              <div className={ALL_MARKETS_GRID_CLASS}>
+              <div className={POPULAR_MARKETS_MOBILE_SCROLL_CLASS}>
                 {[1, 2, 3, 4, 5, 6].map((item) => (
                   <div
                     key={item}
@@ -148,9 +152,11 @@ export default function MobileHomeDashboard() {
                 ))}
               </div>
             ) : (
-              <div className={ALL_MARKETS_GRID_CLASS}>
+              <div className={POPULAR_MARKETS_MOBILE_SCROLL_CLASS}>
                 {popularMarkets.map((market) => (
-                  <MarketCard key={market.id} market={market} />
+                  <div key={market.id} className="min-w-0 w-full">
+                    <MarketCard market={market} />
+                  </div>
                 ))}
               </div>
             )}

@@ -218,6 +218,45 @@ function MarketCard({ market }) {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.35; }
         }
+        .market-card-time-bar {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 8px 6px;
+          border-radius: 14px;
+        }
+        .market-card-time-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
+          align-items: center;
+          gap: 3px;
+          width: 100%;
+          min-width: 0;
+        }
+        .market-card-time-col {
+          container-type: inline-size;
+          min-width: 0;
+          text-align: center;
+        }
+        .market-card-time-value {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 800;
+          white-space: nowrap;
+          line-height: 1.15;
+          letter-spacing: 0;
+          font-size: 9px;
+          font-size: clamp(7px, 19cqi, 11px);
+          overflow: visible;
+          text-overflow: clip;
+        }
+        .market-card-time-label {
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-top: 2px;
+          line-height: 1.1;
+          font-size: 8px;
+          font-size: clamp(6px, 14cqi, 9px);
+        }
       `}</style>
       {/* Card */}
       <div
@@ -246,22 +285,21 @@ function MarketCard({ market }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: 48,
-            
+            minHeight: 40,
             background: 'transparent',
           }}
         >
           <h3
             style={{
               margin: 0,
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 900,
               letterSpacing: '0.03em',
               color: theme.nameColor,
               textTransform: 'uppercase',
               textAlign: 'center',
               fontFamily: "'Inter', 'Segoe UI', sans-serif",
-              lineHeight: 1.2,
+              lineHeight: 1.15,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
@@ -275,105 +313,53 @@ function MarketCard({ market }) {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '9px 10px 10px' }}>
+        <div style={{ padding: '5px 8px 6px' }}>
           {/* Result */}
           <div
             style={{
               fontFamily: "'Inter', 'Segoe UI', sans-serif",
-              fontSize: 20,
+              fontSize: 17,
               fontWeight: 800,
               color: theme.resultColor,
               letterSpacing: '0.08em',
               lineHeight: 1,
               textAlign: 'center',
-              marginBottom: 8,
+              marginBottom: 4,
             }}
           >
             {resultValue}
           </div>
 
-          {/* Time bar */}
+          {/* Time bar — font scales per column; full time always visible (no ellipsis) */}
           <div
+            className="market-card-time-bar"
             style={{
               background: theme.timeBarBg,
-              borderRadius: 14,
-              padding: '7px 10px',
             }}
           >
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isDarkMode ? '1fr 24px 1fr' : 'minmax(0,1fr) 20px minmax(0,1fr)',
-                alignItems: 'center',
-                gap: isDarkMode ? 10 : 4,
-                marginBottom: 0,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {/* Open */}
-              <div style={{ textAlign: 'center', minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color: theme.timeText,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.1,
-                  }}
-                >
+            <div className="market-card-time-grid">
+              <div className="market-card-time-col">
+                <div className="market-card-time-value" style={{ color: theme.timeText }}>
                   {market.startingTime ? openTime : '--'}
                 </div>
-                <div
-                  style={{
-                    fontSize: isDarkMode ? 8 : 9,
-                    fontWeight: 700,
-                    color: theme.timeLabel,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    marginTop: 1,
-                  }}
-                >
+                <div className="market-card-time-label" style={{ color: theme.timeLabel }}>
                   OPEN
                 </div>
               </div>
 
-              {/* Clock icon */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <ClockIcon color={theme.iconColor} size={isDarkMode ? 22 : 18} />
+              <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+                <ClockIcon color={theme.iconColor} size={18} />
               </div>
 
-              {/* Close */}
-              <div style={{ textAlign: 'center', minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color: theme.timeText,
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.1,
-                  }}
-                >
+              <div className="market-card-time-col">
+                <div className="market-card-time-value" style={{ color: theme.timeText }}>
                   {market.closingTime ? closeTime : '--'}
                 </div>
-                <div
-                  style={{
-                    fontSize: isDarkMode ? 8 : 9,
-                    fontWeight: 700,
-                    color: theme.timeLabel,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    marginTop: 1,
-                  }}
-                >
+                <div className="market-card-time-label" style={{ color: theme.timeLabel }}>
                   CLOSE
                 </div>
               </div>
             </div>
-
           </div>
         </div>
 
@@ -381,12 +367,15 @@ function MarketCard({ market }) {
         {isClosed ? (
           <div
             style={{
-              padding: '8px 10px',
+              padding: '7px 10px',
               textAlign: 'center',
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: 800,
-              letterSpacing: '0.05em',
+              letterSpacing: '0.03em',
               textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
               color: '#ffffff',
               background: isDarkMode ? 'rgba(220,38,38,0.85)' : '#ef4444',
               borderTop: isDarkMode
@@ -404,7 +393,7 @@ function MarketCard({ market }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              padding: '8px 10px',
+              padding: '7px 10px',
               fontSize: 10,
               fontWeight: 800,
               letterSpacing: '0.06em',
