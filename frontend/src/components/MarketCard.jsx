@@ -90,8 +90,8 @@ function MarketCard({ market }) {
   const theme = isDarkMode
     ? {
         cardBg: '#141a24',
-        cardBorder: 'rgba(255,255,255,0.08)',
-        cardBorderHover: 'rgba(255,255,255,0.18)',
+        cardBorder: 'rgba(212, 175, 55, 0.38)',
+        cardBorderHover: 'rgba(212, 175, 55, 0.55)',
         nameColor: '#ffffff',
         resultColor: '#ef4444',
         timeBarBg: '#3f424d',
@@ -105,8 +105,8 @@ function MarketCard({ market }) {
       }
     : {
         cardBg: '#ffffff',
-        cardBorder: 'rgba(15,23,42,0.12)',
-        cardBorderHover: 'rgba(15,23,42,0.12)',
+        cardBorder: 'rgba(15, 23, 42, 0.22)',
+        cardBorderHover: 'rgba(212, 175, 55, 0.45)',
         nameColor: '#0f172a',
         resultColor: '#ef4444',
         timeBarBg: '#f1f5f9',
@@ -273,13 +273,21 @@ function MarketCard({ market }) {
           borderRadius: 16,
           overflow: 'hidden',
           background: theme.cardBg,
-          border: `1px solid ${theme.cardBorder}`,
+          border: `1.5px solid ${theme.cardBorder}`,
           cursor: 'pointer',
           fontFamily: "'Barlow', sans-serif",
-          transition: 'border-color 0.2s ease',
-          boxShadow: 'none',
+          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+          boxShadow: isDarkMode
+            ? 'inset 0 1px 0 rgba(255,255,255,0.06)'
+            : '0 1px 4px rgba(15, 23, 42, 0.08)',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = theme.cardBorderHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = theme.cardBorder;
         }}
       >
         {/* Header — market name */}
