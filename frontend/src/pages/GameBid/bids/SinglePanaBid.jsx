@@ -41,7 +41,6 @@ const SinglePanaBid = (props) => (
         validSinglePanas={Array.from(VALID_SINGLE_PANAS)}
         showBidsList
         openReviewOnAdd={false}
-        showInlineSubmit
         showModeTabs
         desktopSplit
     />

@@ -158,26 +158,13 @@ const OddEvenBid = ({ market, title }) => {
                 enterLabel="Enter Points"
                 placeholder="Point"
             />
-            <div className="flex gap-3">
-                <button
-                    onClick={handleAddBid}
-                    className="flex-1 bg-gradient-to-r from-red-700 to-red-600 text-white font-bold h-10 rounded-lg shadow-md hover:from-red-600 hover:to-red-500 transition-all active:scale-[0.98] text-xs dark:border dark:border-white/20"
-                >
-                    Add
-                </button>
-                <button
-                    type="button"
-                    onClick={handleOpenSubmit}
-                    disabled={!bids.length}
-                    className={`flex-1 font-bold h-10 rounded-lg shadow-md transition-all text-xs ${
-                        bids.length
-                            ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white hover:from-emerald-500 hover:to-green-400 active:scale-[0.98] dark:border dark:border-white/20'
-                            : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white opacity-50 cursor-not-allowed dark:border dark:border-white/20'
-                    }`}
-                >
-                    Submit
-                </button>
-            </div>
+            <button
+                type="button"
+                onClick={handleAddBid}
+                className="w-full bg-gradient-to-r from-red-700 to-red-600 text-white font-bold h-10 rounded-lg shadow-md hover:from-red-600 hover:to-red-500 transition-all active:scale-[0.98] text-xs dark:border dark:border-white/20"
+            >
+                Add
+            </button>
             <div>
                 <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-gray-700 dark:text-red-200 font-bold text-xs sm:text-sm mb-2 px-1">
                     <div>Ank</div>
@@ -245,7 +232,9 @@ const OddEvenBid = ({ market, title }) => {
             extraHeader={<BidDesktopStats count={bids.length} amount={totalPoints} />}
             session={session}
             setSession={setSession}
-            hideFooter
+            hideFooter={false}
+            onSubmit={handleOpenSubmit}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}

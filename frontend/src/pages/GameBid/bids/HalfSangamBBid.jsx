@@ -172,7 +172,9 @@ const HalfSangamBBid = ({ market, title }) => {
             sessionOptionsOverride={['OPEN']}
             lockSessionSelect
             hideSessionSelectCaret
-            hideFooter
+            hideFooter={false}
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -241,16 +243,6 @@ const HalfSangamBBid = ({ market, title }) => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
-                            <button
-                                type="button"
-                                onClick={openReview}
-                                disabled={!bids.length}
-                                className={submitBtnClass(!!bids.length)}
-                            >
-                                Submit Bet
-                            </button>
-                        </div>
                     </div>
 
                     {/* Right: list */}

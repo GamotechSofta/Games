@@ -139,7 +139,8 @@ const Layout = ({ children }) => {
     !isDesktop &&
     (['/funds', '/profile', '/bidoptions', '/game-bid', '/games'].includes(location.pathname) ||
       location.pathname.startsWith('/support'));
-  const hideBottomNavOnMobile = false;
+  const hideBottomNavOnMobile =
+    location.pathname === '/game-bid' || location.pathname === '/games';
 
   useEffect(() => {
     const check = (event) => {
@@ -222,9 +223,12 @@ const Layout = ({ children }) => {
   const isBetsPage = location.pathname === '/bids';
   const isGameBidMobileShell = isGameBidPage && !isDesktop;
   const isHistoryPage = location.pathname === '/bet-history' || location.pathname === '/market-result-history';
-  const mobileBottomPad = location.pathname === '/profile'
-    ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
-    : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
+  const mobileBottomPad =
+    hideBottomNavOnMobile
+      ? 'pb-[env(safe-area-inset-bottom,0px)]'
+      : location.pathname === '/profile'
+        ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
+        : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
 
   return (
     <div
@@ -250,7 +254,7 @@ const Layout = ({ children }) => {
       <div
         className={
           isGameBidMobileShell
-            ? 'bid-route-shell flex flex-col h-[calc(100dvh-4rem-env(safe-area-inset-bottom,0px))] max-h-[calc(100dvh-4rem-env(safe-area-inset-bottom,0px))] overflow-hidden pt-[env(safe-area-inset-top,0px)]'
+            ? 'bid-route-shell flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden pt-[env(safe-area-inset-top,0px)]'
             : isBidPage
               ? 'bid-route-shell'
               : 'content-fade-in'

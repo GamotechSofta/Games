@@ -168,12 +168,11 @@ const SingleDigitBid = ({ market, title }) => {
             session={session}
             setSession={setSession}
             onSubmit={() => setIsReviewOpen(true)}
-            hideFooter
+            hideFooter={false}
             showFooterStats={false}
             submitLabel="Submit Bet"
             contentPaddingClass="pb-4 md:pb-8"
             walletBalance={walletBefore}
-            showWalletBalance={false}
         >
             <div className="px-3 sm:px-4 py-2 w-full max-w-full overflow-x-hidden">
                 {warning && (
@@ -276,20 +275,6 @@ const SingleDigitBid = ({ market, title }) => {
                     </div>
                 </div>
 
-                <div
-                    className="mt-5 px-1 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:mt-6 md:pb-8 md:max-w-md md:mx-auto w-full"
-                >
-                    <button
-                        type="button"
-                        onClick={() => setIsReviewOpen(true)}
-                        disabled={!bulkBidsCount || !bettingAllowed}
-                        className={`w-full min-h-[50px] py-3.5 px-6 rounded-xl ${bidSubmitBtn} ${
-                            bulkBidsCount && bettingAllowed ? '' : 'opacity-50 cursor-not-allowed'
-                        }`}
-                    >
-                        {t('gameBid.submitBet')}
-                    </button>
-                </div>
             </div>
 
             <BidReviewModal

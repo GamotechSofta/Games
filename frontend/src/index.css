@@ -337,102 +337,11 @@ html.theme-light #root {
     outline: none;
   }
 
-  /* —— Meta grid — static light dividers (no red, no motion) —— */
-  .game-bid-page .bid-meta-grid {
-    position: relative;
-    isolation: isolate;
-  }
-
+  /* Meta grid — date / session row (no crosshair dividers) */
   .game-bid-page .bid-meta-grid::before,
   .game-bid-page .bid-meta-grid::after {
-    content: '';
-    position: absolute;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Vertical center line */
-  .game-bid-page .bid-meta-grid::before {
-    top: 0.4rem;
-    bottom: 0.4rem;
-    left: 50%;
-    width: 1px;
-    transform: translateX(-50%);
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.12) 15%,
-      rgba(255, 255, 255, 0.28) 50%,
-      rgba(255, 255, 255, 0.12) 85%,
-      transparent 100%
-    );
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.06);
-  }
-
-  /* Horizontal center line */
-  .game-bid-page .bid-meta-grid::after {
-    left: 0.65rem;
-    right: 0.65rem;
-    top: 50%;
-    height: 1px;
-    transform: translateY(-50%);
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.12) 15%,
-      rgba(255, 255, 255, 0.28) 50%,
-      rgba(255, 255, 255, 0.12) 85%,
-      transparent 100%
-    );
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.06);
-  }
-
-  .theme-dark .game-bid-page .bid-meta-grid::before,
-  .theme-dark .game-bid-page .bid-meta-grid::after {
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.08) 15%,
-      rgba(255, 255, 255, 0.22) 50%,
-      rgba(255, 255, 255, 0.08) 85%,
-      transparent 100%
-    );
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
-  }
-
-  .theme-dark .game-bid-page .bid-meta-grid::after {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.08) 15%,
-      rgba(255, 255, 255, 0.22) 50%,
-      rgba(255, 255, 255, 0.08) 85%,
-      transparent 100%
-    );
-  }
-
-  .theme-light .game-bid-page .bid-meta-grid::before,
-  .theme-light .game-bid-page .bid-meta-grid::after {
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      rgba(148, 163, 184, 0.15) 15%,
-      rgba(100, 116, 139, 0.35) 50%,
-      rgba(148, 163, 184, 0.15) 85%,
-      transparent 100%
-    );
-    box-shadow: none;
-  }
-
-  .theme-light .game-bid-page .bid-meta-grid::after {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(148, 163, 184, 0.15) 15%,
-      rgba(100, 116, 139, 0.35) 50%,
-      rgba(148, 163, 184, 0.15) 85%,
-      transparent 100%
-    );
+    display: none;
+    content: none;
   }
 
   /* Desktop inline stats — static vertical divider */

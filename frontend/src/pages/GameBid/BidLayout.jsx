@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useBettingWindow } from './BettingWindowContext';
-import { bidPageShell, bidHeader, bidGameAccentBold, bidStatValue, bidStatLabel, bidMetaValue, bidStatCard, bidSubmitBtn, bidMetaStrip, bidMetaGrid, bidMetaCell, bidMetaLabel, bidDateDisplay, bidSessionSelect, bidScheduledLabel } from '../../styles/appTheme';
+import { bidPageShell, bidHeader, bidGameAccentBold, bidStatValue, bidStatLabel, bidMetaValue, bidStatCard, bidSubmitBtn, bidContentStack, bidMetaGrid, bidDateSessionCell, bidMetaLabel, bidDateDisplay, bidSessionSelect, bidScheduledLabel } from '../../styles/appTheme';
 import { formatWalletAmount, getStoredWalletBalance } from '../../utils/walletBalance';
 import { getBetDisplayDate } from '../../utils/scheduledBetDate';
+import BidSubmitBar from './BidSubmitBar';
 
 const BidLayout = ({
     market,
@@ -31,15 +32,16 @@ const BidLayout = ({
     displayDate = null,
     footerRightOnDesktop = false,
     hideFooter = false,
+    /** Show fixed BETS / POINTS / Submit bar on mobile (above safe area, not under navbar) */
+    showMobileSubmitBar = true,
     walletBalance,
     showWalletBalance = true,
     onSubmit = () => {},
     showFooterStats = true,
-    /** Show count + points in the same flat grid as date/session (mobile-friendly) */
-    showInlineStats = false,
-    inlineStatsLabels = { count: 'Count', amount: 'Bet Amount' },
     submitLabel = 'Submit Bets',
     contentPaddingClass,
+    /** Wider grid layouts (e.g. Jodi Bulk) — safe-area only, no extra side inset */
+    compactContent = false,
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -121,7 +123,7 @@ const BidLayout = ({
         <div className={bidPageShell}>
             {/* Header — stays pinned while bid content scrolls */}
             <div
-                className={`${bidHeader} py-2 flex items-center justify-between gap-2 shrink-0`}
+                className={`${bidHeader} py-2 flex items-center gap-2 shrink-0`}
                 style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 <button
@@ -145,14 +147,14 @@ const BidLayout = ({
                           };
                       navigate('/bidoptions', { state });
                     }}
-                    className={`p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-colors touch-manipulation bg-gray-100 border border-gray-200 text-red-500 dark:bg-white/10 dark:border-white/15 dark:text-red-300`}
+                    className={`shrink-0 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full active:scale-95 transition-colors touch-manipulation bg-gray-100 border border-gray-200 text-red-500 dark:bg-white/10 dark:border-white/15 dark:text-red-300`}
                     aria-label={t('common.back')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
                 </button>
-                <h1 className="text-sm sm:text-lg md:text-xl font-bold uppercase tracking-wide truncate flex-1 text-center mx-1 min-w-0">
+                <h1 className="flex-1 min-w-0 text-center text-sm sm:text-lg md:text-xl font-bold uppercase tracking-wide truncate px-1">
                     {market?.gameName ? (
                         <>
                             <span className="text-gray-900 dark:text-white">{market.gameName}</span>
@@ -164,13 +166,17 @@ const BidLayout = ({
                     )}
                 </h1>
                 {showWalletBalance ? (
-                    <div className="shrink-0 px-2 py-1.5 flex items-center gap-2">
-                        <img
-                            src="https://res.cloudinary.com/dnyp5jknp/image/upload/v1771394532/wallet_n1oyef.png"
-                            alt="Wallet"
-                            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 drop-shadow-sm"
-                        />
-                        <span className={bidStatValue}>
+                    <div
+                        className="ml-auto flex shrink-0 items-center gap-1.5"
+                        aria-label={t('gameBid.walletBalance', { defaultValue: 'Wallet balance' })}
+                    >
+                        <span
+                            className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg bg-[#e60000] text-xs sm:text-sm font-bold text-white shadow-sm"
+                            aria-hidden
+                        >
+                            ₹
+                        </span>
+                        <span className="text-sm sm:text-base font-bold tabular-nums whitespace-nowrap text-gray-900 dark:text-white">
                             {formatWalletAmount(wallet)}
                         </span>
                     </div>
@@ -182,28 +188,45 @@ const BidLayout = ({
             <div
                 ref={contentRef}
                 className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
-                    contentPaddingClass ?? (hideFooter ? 'pb-6' : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
+                    contentPaddingClass ??
+                    (showMobileSubmitBar
+                        ? 'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-32'
+                        : hideFooter
+                          ? 'pb-6'
+                          : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
                 }`}
-                style={{ paddingLeft: 'max(0.75rem, env(safe-area-inset-left))', paddingRight: 'max(0.75rem, env(safe-area-inset-right))' }}
             >
                 {extraHeader ? <div>{extraHeader}</div> : null}
 
+                <div
+                    className={bidContentStack}
+                    style={{
+                        paddingLeft: compactContent
+                            ? 'env(safe-area-inset-left, 0px)'
+                            : 'max(0.75rem, env(safe-area-inset-left))',
+                        paddingRight: compactContent
+                            ? 'env(safe-area-inset-right, 0px)'
+                            : 'max(0.75rem, env(safe-area-inset-right))',
+                    }}
+                >
                 {showDateSession && (
-                    <div className={`${bidMetaStrip} md:hidden`}>
-                        <div className={`${bidMetaGrid} ${dateSessionGridClassName}`}>
-                            <div className={`${bidMetaCell} ${dateSessionControlClassName}`}>
+                    <>
+                        <div className={`${bidMetaGrid} md:hidden ${dateSessionGridClassName}`}>
+                            <div className={`${bidDateSessionCell} ${dateSessionControlClassName}`}>
                                 {isScheduledBet && (
                                     <span className={bidScheduledLabel}>{t('gameBid.scheduled')}</span>
                                 )}
                                 <div className={bidDateDisplay}>
-                                    <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-700 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <svg className="h-3.5 w-3.5 text-gray-700 dark:text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                     <span className="truncate">{metaDisplayDate}</span>
                                 </div>
                             </div>
 
-                            <div className={`${bidMetaCell} relative ${slotBetweenDateSession || showSessionOnMobile ? '' : 'hidden md:flex'} ${dateSessionControlClassName}`}>
+                            <div
+                                className={`${bidDateSessionCell} relative ${slotBetweenDateSession || showSessionOnMobile ? '' : 'hidden md:flex'} ${dateSessionControlClassName}`}
+                            >
                                 {slotBetweenDateSession && (
                                     <div className="absolute left-1/2 top-1 -translate-x-1/2 z-10">{slotBetweenDateSession}</div>
                                 )}
@@ -221,7 +244,7 @@ const BidLayout = ({
                                         ))}
                                     </select>
                                     {!hideSessionSelectCaret && (
-                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1 text-gray-500 dark:text-white/60">
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-0.5 text-gray-500 dark:text-white/60">
                                             <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                             </svg>
@@ -229,34 +252,40 @@ const BidLayout = ({
                                     )}
                                 </div>
                             </div>
-
-                            {showInlineStats && (
-                                <>
-                                    <div className={`${bidMetaCell}${extraHeader ? ' md:hidden' : ''}`}>
-                                        <div className={bidMetaLabel}>{inlineStatsLabels.count}</div>
-                                        <div className={`leading-tight ${bidMetaValue}`}>{bidsCount}</div>
-                                    </div>
-                                    <div className={`${bidMetaCell}${extraHeader ? ' md:hidden' : ''}`}>
-                                        <div className={bidMetaLabel}>{inlineStatsLabels.amount}</div>
-                                        <div className={`leading-tight ${bidMetaValue}`}>{totalPoints}</div>
-                                    </div>
-                                </>
-                            )}
                         </div>
 
                         {sessionRightSlot && (
-                            <div className="mt-2 flex flex-wrap items-center justify-end gap-2">{sessionRightSlot}</div>
+                            <div className="flex flex-wrap items-center justify-end gap-2">{sessionRightSlot}</div>
                         )}
-                    </div>
+                    </>
                 )}
 
                 {children}
+                </div>
             </div>
 
-            {/* Footer - Card centered in right 50% on desktop (hidden when submit card is in content) - iOS safe area */}
+            {/* Mobile: fixed submit bar at bottom (not under bottom navbar) */}
+            {showMobileSubmitBar && (
+                <div
+                    className="md:hidden fixed inset-x-0 bottom-0 z-40 w-full"
+                    style={{
+                        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+                    }}
+                >
+                    <BidSubmitBar
+                        betsCount={bidsCount}
+                        totalPoints={totalPoints}
+                        onSubmit={onSubmit}
+                        disabled={!bidsCount || !bettingAllowed}
+                        submitLabel={submitLabel}
+                    />
+                </div>
+            )}
+
+            {/* Desktop footer */}
             {!hideFooter && (
             <div
-                className="fixed bottom-[calc(80px+env(safe-area-inset-bottom,0px))] left-0 right-0 md:bottom-0 z-10 py-3 md:grid md:grid-cols-2 md:gap-0"
+                className="hidden md:block fixed bottom-0 left-0 right-0 z-10 py-3 md:grid md:grid-cols-2 md:gap-0"
                 style={{
                     paddingLeft: 'max(0.75rem, env(safe-area-inset-left))',
                     paddingRight: 'max(0.75rem, env(safe-area-inset-right))',

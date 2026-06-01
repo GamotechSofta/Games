@@ -197,7 +197,7 @@ const JodiBulkBid = ({ market, title }) => {
     const canSubmit = rows.length > 0;
     const clearBtnClass = `${bidClearBtn} px-3 py-1.5 rounded-md text-xs sm:text-sm shrink-0 h-8 sm:h-10 flex items-center justify-center`;
     const panelClass = 'bg-transparent border-0 rounded-none p-0 md:bg-white dark:bg-[#202329] md:border md:border-gray-200 dark:border-white/20 md:rounded-2xl md:p-3 overflow-hidden w-full pt-5';
-    const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-1';
+    const mobileGridClass = 'md:hidden overflow-x-hidden rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-0.5';
     const desktopGridClass = 'hidden md:block rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] p-2';
     const blockLabelClass = 'h-6 sm:h-7 flex items-center justify-center text-gray-700 dark:text-red-200 font-extrabold text-[11px] sm:text-sm tracking-wide';
     const blockLabelDesktopClass = 'h-8 flex items-center justify-center text-gray-700 dark:text-red-200 font-extrabold text-xs tracking-wide';
@@ -368,37 +368,26 @@ const JodiBulkBid = ({ market, title }) => {
             hideSessionSelectCaret
             // Desktop only: make date ~1/3 width and keep controls same height
             dateSessionGridClassName="md:grid-cols-[1fr_2fr]"
-            dateSessionControlClassName="md:min-h-[52px] md:text-base"
+            dateSessionControlClassName="md:min-h-[36px] md:h-9 md:max-h-9"
             displayDate={displayDate}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
             showInlineStats
             extraHeader={<BidDesktopStats count={rows.length} amount={totalPoints} />}
-            sessionRightSlot={
-                <button
-                    type="button"
-                    onClick={handleSubmitBet}
-                    disabled={!canSubmit}
-                    className={`hidden md:inline-flex items-center justify-center font-bold text-base min-h-[52px] min-w-[280px] px-7 rounded-full shadow-lg transition-all whitespace-nowrap ${
-                        canSubmit
-                            ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
-                            : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
-                    }`}
-                >
-                    Submit Bet
-                </button>
-            }
+            onSubmit={handleSubmitBet}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
-            hideFooter
+            hideFooter={false}
+            compactContent
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
-            <div className="px-2 sm:px-4 md:px-1 py-1 md:py-1 w-full">
+            <div className="w-full py-1 md:py-1">
                 {warning && (
                     <div className="mb-3 bg-gray-50 border-2 border-red-300 text-gray-600 rounded-xl px-4 py-3 text-sm">
                         {warning}
                     </div>
                 )}
-                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 md:mb-3 min-w-0 px-0.5">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-2 md:mb-3 min-w-0">
                     <QuickPointsRow
                         className="flex-1 min-w-0"
                         stackedLabel
@@ -627,24 +616,6 @@ const JodiBulkBid = ({ market, title }) => {
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* Sticky Submit Bet button above mobile navbar */}
-            <div className="fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3 sm:px-4 md:hidden">
-                <div className="flex">
-                    <button
-                        type="button"
-                        onClick={handleSubmitBet}
-                        disabled={!canSubmit}
-                        className={`w-full font-bold text-base py-4 min-h-[56px] rounded-xl shadow-lg transition-all ${
-                            canSubmit
-                                ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400 active:scale-[0.98]'
-                                : 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 opacity-50 cursor-not-allowed'
-                        }`}
-                    >
-                        Submit Bet
-                    </button>
                 </div>
             </div>
 

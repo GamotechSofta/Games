@@ -4,7 +4,7 @@ import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
-import { bidClearBtn } from '../../../styles/appTheme';
+import { bidClearBtn, bidTwoColGrid, bidSegmentControl } from '../../../styles/appTheme';
 import { BidDesktopStats } from '../BidInlineStats';
 
 const EasyModeBid = ({
@@ -495,12 +495,12 @@ const EasyModeBid = ({
     };
 
     const modeHeader = showModeTabs ? (
-        <div className="space-y-2 md:space-y-3">
-            <div className="grid grid-cols-2 gap-2 md:gap-3">
+        <div className="space-y-2">
+            <div className={bidTwoColGrid}>
                 <button
                     type="button"
                     onClick={() => setActiveTab('easy')}
-                    className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
+                    className={`${bidSegmentControl} ${
                         activeTab === 'easy'
                             ? tabActiveClass
                             : tabInactiveClass
@@ -511,7 +511,7 @@ const EasyModeBid = ({
                 <button
                     type="button"
                     onClick={() => setActiveTab('special')}
-                    className={`min-h-[40px] py-2 md:min-h-[44px] md:py-3 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors ${
+                    className={`${bidSegmentControl} ${
                         activeTab === 'special'
                             ? tabActiveClass
                             : tabInactiveClass
@@ -682,9 +682,14 @@ const EasyModeBid = ({
             sessionOptionsOverride={lockSessionToOpen ? ['OPEN'] : null}
             lockSessionSelect={lockSessionToOpen}
             hideSessionSelectCaret={lockSessionToOpen}
-            hideFooter={!showFooterSubmit}
+            hideFooter={false}
             walletBalance={walletBefore}
+            submitLabel="Submit Bet"
             onSubmit={() => {
+                if (showModeTabs && activeTab === 'special' && (specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana')) {
+                    handleSubmitFromSpecial();
+                    return;
+                }
                 setReviewRows(bids);
                 setIsReviewOpen(true);
             }}
@@ -696,8 +701,8 @@ const EasyModeBid = ({
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
         >
-            <div className="px-3 sm:px-4 py-2 sm:py-2 md:py-2 md:max-w-7xl md:mx-auto">
-                {showModeTabs && !desktopSplit && <div className="mb-2 md:mb-4">{modeHeader}</div>}
+            <div className="md:max-w-7xl md:mx-auto space-y-2">
+                {showModeTabs && !desktopSplit && modeHeader}
                 {warning && (
                     <div className={`fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md ${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e]'}`}>
                         {warning}
@@ -708,7 +713,7 @@ const EasyModeBid = ({
                     <>
                         {specialModeType === 'jodi' ? (
                             <>
-                                {showModeTabs && desktopSplit && <div className="mb-4">{modeHeader}</div>}
+                                {showModeTabs && desktopSplit && modeHeader}
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 xl:grid-rows-10 xl:grid-flow-col xl:gap-2">
                                     {jodiNumbers.map((num) => {
                                         const ptsVal = Number(specialInputs[num]) || 0;
@@ -747,34 +752,12 @@ const EasyModeBid = ({
                                         );
                                     })}
                                 </div>
-                                {/* Mobile: sticky Submit button for special mode */}
-                                {showInlineSubmit && (
-                                    <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3">
-                                        {(() => {
-                                            const enabled = bids.length > 0 || Object.values(specialInputs).some((v) => Number(v) > 0);
-                                            const disabled = bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0);
-                                            return (
-                                                <button
-                                                    type="button"
-                                                    disabled={disabled}
-                                                    onClick={handleSubmitFromSpecial}
-                                                    className={submitBtnClass(enabled)}
-                                                >
-                                                    Submit Bet
-                                                </button>
-                                            );
-                                        })()}
-                                    </div>
-                                )}
-                                {showInlineSubmit && (
-                                    <div className="md:hidden h-15" aria-hidden="true" />
-                                )}
                             </>
                         ) : (specialModeType === 'doublePana' || specialModeType === 'singlePana') && validPanasForSumMode.length > 0 ? (
                             <>
                                 <div className={desktopSplit ? 'md:grid md:grid-cols-2 md:gap-6 md:items-start' : ''}>
                                     <div>
-                                        {showModeTabs && desktopSplit && <div className="mb-4">{modeHeader}</div>}
+                                        {showModeTabs && desktopSplit && modeHeader}
 
                                         <div className="flex flex-col gap-3 mb-4">
                                             <div className="flex flex-row items-center gap-2">
@@ -849,52 +832,12 @@ const EasyModeBid = ({
                                                     })}
                                                 </div>
                                             </div>
-                                            {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
-                                                <div className="flex items-center">
-                                                    <button
-                                                        type="button"
-                                                        disabled={
-                                                            (specialModeType === 'jodi' || specialModeType === 'doublePana')
-                                                                ? bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0)
-                                                                : !bids.length
-                                                        }
-                                                        onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                                        className={`py-3 px-6 ${isPanaSumRedTheme ? 'bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 hover:from-emerald-500 hover:to-green-400' : 'bg-[#d4af37] text-[#4b3608] hover:bg-[#e5c04a]'} font-bold rounded-xl shadow-md transition-all active:scale-[0.98] ${
-                                                            (specialModeType === 'jodi' || specialModeType === 'doublePana')
-                                                                ? (bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0))
-                                                                    ? 'opacity-50 cursor-not-allowed'
-                                                                    : ''
-                                                                : !bids.length
-                                                                    ? 'opacity-50 cursor-not-allowed'
-                                                                    : ''
-                                                        }`}
-                                                    >
-                                                        Submit Bet
-                                                    </button>
-                                                </div>
-                                            )}
                                         </div>
 
                                         {/* Mobile: keep list below on small screens */}
                                         {desktopSplit && <div className="md:hidden mt-4">{bidsList}</div>}
                                         {!desktopSplit && bidsList}
 
-                                        {/* Mobile: sticky submit for Single/Double Pana special mode */}
-                                        {showInlineSubmit && (specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
-                                            <>
-                                                <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3 mb-3">
-                                                    <button
-                                                        type="button"
-                                                        disabled={!bids.length}
-                                                        onClick={handleSubmitFromSpecial}
-                                                        className={submitBtnClass(!!bids.length)}
-                                                    >
-                                                        Submit Bet
-                                                    </button>
-                                                </div>
-                                                <div className="md:hidden h-16" aria-hidden="true" />
-                                            </>
-                                        )}
                                     </div>
 
                                     {/* Desktop: list on right side */}
@@ -908,44 +851,18 @@ const EasyModeBid = ({
                             </div>
                         )}
 
-                        {showInlineSubmit && (
-                            <>
-                                {/* Desktop/Tablet inline submit */}
-                                <div className="hidden md:block mt-4">
-                                    {(() => {
-                                        const enabled =
-                                            (specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana')
-                                                ? bids.length > 0 || Object.values(specialInputs).some((v) => Number(v) > 0)
-                                                : bids.length > 0;
-                                        return (
-                                    <button
-                                        type="button"
-                                        disabled={
-                                            (specialModeType === 'jodi' || specialModeType === 'doublePana')
-                                                ? bids.length === 0 && !Object.values(specialInputs).some((v) => Number(v) > 0)
-                                                : !bids.length
-                                        }
-                                        onClick={(specialModeType === 'jodi' || specialModeType === 'doublePana' || specialModeType === 'singlePana') ? handleSubmitFromSpecial : () => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                        className={submitBtnClass(enabled)}
-                                    >
-                                        Submit Bet
-                                    </button>
-                                        );
-                                    })()}
-                                </div>
-                            </>
-                        )}
                     </>
                 ) : (
                     <>
                         <div className={desktopSplit ? 'md:grid md:grid-cols-2 md:gap-6 md:items-start' : ''}>
                             <div>
-                                {showModeTabs && desktopSplit && <div className="mb-4">{modeHeader}</div>}
+                                {showModeTabs && desktopSplit && modeHeader}
 
-                <div className="flex flex-col gap-3 mb-4">
+                <div className="flex flex-col gap-3 mb-4 mt-7">
                     {(specialModeType === 'singlePana' || specialModeType === 'doublePana' || specialModeType === 'jodi') ? (
                         <>
                             <QuickPointsRow
+                                className={showModeTabs && !desktopSplit ? 'pt-3' : ''}
                                 value={inputPoints}
                                 onSelect={handleQuickPointClick}
                                 labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
@@ -1033,17 +950,6 @@ const EasyModeBid = ({
                         />
                     )}
                 </div>
-
-                                <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
-                                    <button
-                                        type="button"
-                                        disabled={!bids.length}
-                                        onClick={() => { setReviewRows(bids); setIsReviewOpen(true); }}
-                                        className={submitBtnClass(!!bids.length)}
-                                    >
-                                        Submit Bet
-                                    </button>
-                                </div>
 
                                 {/* Mobile: keep list below on small screens */}
                                 {desktopSplit && <div className="md:hidden">{bidsList}</div>}

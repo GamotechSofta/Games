@@ -202,22 +202,10 @@ const SinglePanaBulkBid = ({ market, title }) => {
             setSelectedDate={handleDateChange}
             showInlineStats
             extraHeader={<BidDesktopStats count={specialCount} amount={selectedTotalPoints} />}
-            sessionRightSlot={
-                <button
-                    type="button"
-                    onClick={openReview}
-                    disabled={!canSubmit}
-                    className={`hidden md:inline-flex items-center justify-center font-bold min-h-[44px] min-w-[220px] px-6 rounded-full shadow-lg transition-all whitespace-nowrap ${
-                        canSubmit
-                            ? greenSubmitClass(true)
-                            : greenSubmitClass(false)
-                    }`}
-                >
-                    Submit Bet
-                </button>
-            }
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
-            hideFooter
+            hideFooter={false}
             contentPaddingClass="pb-28 md:pb-8"
         >
             <div className="px-3 sm:px-6 py-3">
@@ -372,13 +360,6 @@ const SinglePanaBulkBid = ({ market, title }) => {
                         );
                     })}
                 </div>
-            </div>
-
-            {/* Submit Bet: match Jodi Special Mode (mobile sticky, desktop inline) */}
-            <div className="md:hidden fixed left-0 right-0 bottom-[calc(env(safe-area-inset-bottom,0px)+92px)] z-40 px-3">
-                <button type="button" onClick={openReview} disabled={!canSubmit} className={submitBtnClass(canSubmit)}>
-                    Submit Bet
-                </button>
             </div>
 
             <BidReviewModal

@@ -210,7 +210,9 @@ const TriplePanaBulkBid = ({ market, title }) => {
             setSelectedDate={handleDateChange}
             session={session}
             setSession={setSession}
-            hideFooter
+            hideFooter={false}
+            onSubmit={() => bids.length && setIsReviewOpen(true)}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
         >
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:max-w-7xl md:mx-auto md:items-start">
@@ -273,11 +275,6 @@ const TriplePanaBulkBid = ({ market, title }) => {
                                     onSelect={handleQuickPointClick}
                                     labelClassName="text-gray-800 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
                                 />
-                            </div>
-                            <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 md:grid-cols-1">
-                                <button type="button" disabled={!bids.length} onClick={() => bids.length && setIsReviewOpen(true)} className={submitBtnClass(!!bids.length)}>
-                                    Submit Bet
-                                </button>
                             </div>
                             <div className="md:hidden">{bidsList}</div>
                         </div>

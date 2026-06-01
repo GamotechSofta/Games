@@ -341,7 +341,9 @@ const TriplePanaBid = ({ market, title }) => {
             setSelectedDate={handleDateChange}
             session={session}
             setSession={setSession}
-            hideFooter
+            hideFooter={false}
+            onSubmit={() => (activeTab === 'easy' ? handleSubmitReviewEasy() : handleSubmitReviewSpecial())}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
         >
             <div className="px-3 sm:px-4 py-2 sm:py-2 md:max-w-7xl md:mx-auto md:items-start">
@@ -397,23 +399,6 @@ const TriplePanaBid = ({ market, title }) => {
                                             labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                                         />
                                     </div>
-                                    <div className="mb-5 sm:mb-6">
-                                        <button
-                                            type="button"
-                                            onClick={handleSubmitReviewEasy}
-                                            disabled={
-                                                !bids.length &&
-                                                !(isValidTriplePana((inputNumber ?? '').toString().trim()) && Number(inputPoints) > 0)
-                                            }
-                                            className={submitBtnClass(
-                                                !!bids.length ||
-                                                    (isValidTriplePana((inputNumber ?? '').toString().trim()) &&
-                                                        Number(inputPoints) > 0)
-                                            )}
-                                        >
-                                            Submit Bet
-                                        </button>
-                                    </div>
                                     <div className="md:hidden">{easyBidsList}</div>
                                 </div>
                                 <div className="hidden md:block">{easyBidsList}</div>
@@ -442,18 +427,6 @@ const TriplePanaBid = ({ market, title }) => {
                                         />
                                     </div>
                                 ))}
-                            </div>
-                            <div className="mb-5 sm:mb-6">
-                                <button
-                                    type="button"
-                                    onClick={handleSubmitReviewSpecial}
-                                    disabled={!bids.length && !Object.values(specialInputs).some((v) => Number(v) > 0)}
-                                    className={submitBtnClass(
-                                        !!bids.length || Object.values(specialInputs).some((v) => Number(v) > 0)
-                                    )}
-                                >
-                                    Submit Bet
-                                </button>
                             </div>
                         </>
                     )}

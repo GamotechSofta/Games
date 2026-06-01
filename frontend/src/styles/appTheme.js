@@ -98,14 +98,27 @@ export const bidTableHeader =
 export const bidStatValue = 'bid-stat-value font-bold text-base sm:text-lg text-red-700 dark:text-red-300';
 export const bidRowBg = 'bid-row bg-white dark:bg-[#2a1d21]';
 
-/** Flat meta strip — date / session / stats (no individual boxes) */
-export const bidMetaStrip =
-  'bid-meta-strip border-b border-gray-200/45 dark:border-white/10 pb-3 pt-1';
+/** Game-bid scroll content — equal 8px padding/gap (horizontal via safe-area in BidLayout) */
+export const bidContentStack = 'bid-content-stack py-2 space-y-2';
 
-export const bidMetaGrid = 'bid-meta-grid grid grid-cols-2';
+/** 2-column row (date/session, Easy/Special) — equal gap */
+export const bidTwoColGrid = 'bid-meta-grid bid-two-col-grid grid grid-cols-2 gap-2';
 
+export const bidMetaStrip = 'bid-meta-strip';
+export const bidMetaGrid = bidTwoColGrid;
+
+/** Flat stat / layout cell (no border) */
 export const bidMetaCell =
-  'relative z-[1] flex flex-col items-center justify-center min-h-[52px] py-2 px-2 text-center';
+  'relative z-[1] flex flex-col items-center justify-center text-center';
+
+/** Shared segment height/padding — date, session, Easy/Special tabs */
+export const bidSegmentControl =
+  'min-h-[40px] py-2 px-1 rounded-lg font-bold text-sm shadow-sm border-2 active:scale-[0.98] transition-colors';
+
+/** Date & open/close cells */
+export const bidDateSessionCell =
+  'bid-date-session-cell relative z-[1] flex flex-col items-center justify-center text-center border-gray-200 dark:border-white/20 bg-white dark:bg-[#202329] ' +
+  bidSegmentControl;
 
 /** Desktop inline stats row with animated vertical divider */
 export const bidMetaInlineRow = 'bid-meta-inline-row inline-flex items-stretch';
@@ -117,14 +130,14 @@ export const bidMetaValue =
   'bid-meta-value font-bold text-base sm:text-lg text-gray-900 dark:text-white';
 
 export const bidDateDisplay =
-  'bid-date-display inline-flex items-center justify-center gap-1.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white';
+  'bid-date-display inline-flex max-w-full items-center justify-center gap-1 text-sm font-bold text-gray-900 dark:text-white leading-none';
 
 /** Scheduled bet hint — flat label inside date cell (no pill/box) */
 export const bidScheduledLabel =
-  'text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-white/70 leading-none mb-1';
+  'text-[9px] font-semibold uppercase tracking-wide text-gray-600 dark:text-white/70 leading-none mb-0.5';
 
 export const bidSessionSelect =
-  'w-full appearance-none bg-transparent border-0 text-sm sm:text-base font-bold text-gray-900 dark:text-white text-center focus:outline-none py-0.5 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed';
+  'w-full appearance-none bg-transparent border-0 text-sm font-bold text-gray-900 dark:text-white text-center focus:outline-none py-0 px-0.5 pr-5 leading-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed';
 
 /** Stat summary — inline (no box) */
 export const bidStatCard = `${bidMetaCell}`;

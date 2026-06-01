@@ -11,7 +11,6 @@ const JodiBid = (props) => (
         validateInput={validateJodi}
         showBidsList
         openReviewOnAdd={false}
-        showInlineSubmit
         showModeTabs
         specialModeType="jodi"
         desktopSplit

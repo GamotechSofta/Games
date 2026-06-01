@@ -176,7 +176,9 @@ const FullSangamBid = ({ market, title }) => {
             sessionOptionsOverride={['OPEN']}
             lockSessionSelect
             hideSessionSelectCaret
-            hideFooter
+            hideFooter={false}
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -259,12 +261,6 @@ const FullSangamBid = ({ market, title }) => {
                                     onSelect={handleQuickPointClick}
                                     labelClassName="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
                                 />
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6 px-1">
-                                <button type="button" onClick={openReview} disabled={!bids.length} className={submitBtnClass(!!bids.length)}>
-                                    Submit Bet
-                                </button>
                             </div>
 
                             <div className="md:hidden">

@@ -209,11 +209,11 @@ const ChartBid = ({ market, title }) => {
             showInlineStats
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            hideFooter
+            hideFooter={false}
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             contentPaddingClass="pb-10"
-            dateSessionGridClassName="!pb-1"
-            dateSessionControlClassName="!min-h-[36px] !h-[36px] !py-1.5 !text-[11px] sm:!text-xs"
             extraHeader={<BidDesktopStats count={bidsCount} amount={totalPoints} />}
         >
             <div className="px-3 sm:px-4 pt-2 pb-2 min-h-0">
@@ -289,16 +289,6 @@ const ChartBid = ({ market, title }) => {
                                 className="w-full min-h-[40px] h-10 px-4 rounded-lg border-2 border-gray-200 dark:border-white/20 text-gray-700 dark:text-red-200 bg-white dark:bg-[#202329] font-semibold text-sm hover:border-gray-400 dark:hover:border-white/35"
                             >
                                 Reset
-                            </button>
-                            <button
-                                type="button"
-                                onClick={openReview}
-                                disabled={!bidsCount || !bettingAllowed}
-                                className={`flex-1 bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-semibold text-sm sm:text-base py-2.5 min-h-[40px] h-10 rounded-lg shadow-lg hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98] ${
-                                    !bidsCount || !bettingAllowed ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                            >
-                                Submit Bet {bidsCount > 0 && `(${bidsCount})`}
                             </button>
                         </div>
                     </div>

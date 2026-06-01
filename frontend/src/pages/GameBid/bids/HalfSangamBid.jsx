@@ -209,7 +209,9 @@ const HalfSangamBid = ({ market, title }) => {
             displayDate={displayDate}
             session={session}
             setSession={setSession}
-            hideFooter
+            hideFooter={false}
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -232,9 +234,6 @@ const HalfSangamBid = ({ market, title }) => {
                                 mergeBidRow={mergeBidRow}
                                 showWarning={showWarning}
                                 onClearAll={handleFormClearEasy}
-                                onSubmitClick={openReview}
-                                submitBtnClass={submitBtnClass}
-                                bidsLength={bids.length}
                             />
                             <div className="md:hidden mt-4">{easyBidsList}</div>
                         </div>
@@ -267,9 +266,6 @@ function HalfSangamEasyForm({
     mergeBidRow,
     showWarning,
     onClearAll,
-    onSubmitClick,
-    submitBtnClass,
-    bidsLength,
 }) {
     const [first, setFirst] = useState('');
     const [second, setSecond] = useState('');
@@ -442,11 +438,6 @@ function HalfSangamEasyForm({
                 onSelect={handleQuickPointClick}
                     labelClassName="text-gray-900 dark:text-gray-200 text-sm font-medium shrink-0 w-28"
             />
-            <div className="grid grid-cols-1 gap-3 mb-5 sm:mb-6">
-                <button type="button" disabled={!bidsLength} onClick={onSubmitClick} className={submitBtnClass(!!bidsLength)}>
-                    Submit Bet
-                </button>
-            </div>
         </div>
     );
 }

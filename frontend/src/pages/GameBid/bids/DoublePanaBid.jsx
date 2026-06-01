@@ -57,7 +57,6 @@ const DoublePanaBid = (props) => (
         validateInput={validatePana}
         showBidsList
         openReviewOnAdd={false}
-        showInlineSubmit
         showModeTabs
         desktopSplit
         specialModeType="doublePana"

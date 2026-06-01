@@ -214,11 +214,11 @@ const DpCommonBid = ({ market, title }) => {
             showInlineStats
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            hideFooter
+            hideFooter={false}
+            onSubmit={openReview}
+            submitLabel="Submit Bet"
             walletBalance={walletBefore}
             contentPaddingClass="pb-10"
-            dateSessionGridClassName="!pb-1"
-            dateSessionControlClassName="!min-h-[36px] !h-[36px] !py-1.5 !text-[11px] sm:!text-xs"
             extraHeader={<BidDesktopStats count={bidsCount} amount={totalPoints} />}
         >
             <div className="px-3 sm:px-4 pt-0 pb-2 min-h-0">
@@ -271,18 +271,6 @@ const DpCommonBid = ({ market, title }) => {
                             onClear={clearLocal}
                             onQuickSelect={(pts) => setPointsInput(String(pts))}
                         />
-                        <div className="flex gap-3">
-                            <button
-                                type="button"
-                                onClick={openReview}
-                                disabled={!bidsCount || !bettingAllowed}
-                                className={`flex-1 bg-gradient-to-r from-emerald-600 to-green-500 text-white dark:border dark:border-white/20 font-bold py-3.5 min-h-[48px] rounded-lg shadow-lg hover:from-emerald-500 hover:to-green-400 transition-all active:scale-[0.98] ${
-                                    !bidsCount || !bettingAllowed ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
-                            >
-                                Submit Bet {bidsCount > 0 && `(${bidsCount})`}
-                            </button>
-                        </div>
                     </div>
 
                     <div className="w-full md:w-1/2 flex-1 min-w-0">
