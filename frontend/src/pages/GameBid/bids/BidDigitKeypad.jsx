@@ -52,7 +52,7 @@ export default function BidDigitKeypad({
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => handleClick(num)}
-                                className={`bid-dial-key ${disabled ? 'bid-dial-key--off' : 'bid-dial-key--on'} ${hasBet ? 'bid-dial-key--picked' : ''} ${hasBet && subtleSelected ? 'bid-dial-key--picked-soft' : ''} ${flash === num ? 'bid-dial-key--flash' : ''}`}
+                                className={`bid-dial-key ${disabled ? 'bid-dial-key--off' : 'bid-dial-key--on'} ${hasBet ? 'bid-dial-key--picked' : ''} ${hasBet && subtleSelected ? 'bid-dial-key--picked-soft' : ''} ${flash === num ? 'bid-dial-key--flash bid-dial-key--tap-glow' : ''}`}
                                 style={{ '--dial-i': delay }}
                                 aria-label={`Digit ${num}`}
                             >
