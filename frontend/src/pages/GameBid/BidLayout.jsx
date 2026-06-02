@@ -296,7 +296,7 @@ const BidLayout = ({
             {showMobileSubmitBar && (
                 <div
                     className="md:hidden fixed inset-x-0 z-40 transition-[bottom] duration-150"
-                    style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${mobileKeyboardInset}px)` }}
+                    style={{ bottom: `${mobileKeyboardInset}px` }}
                 >
                     <BidSubmitBar
                         betsCount={bidsCount}

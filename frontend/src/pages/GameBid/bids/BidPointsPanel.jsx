@@ -24,6 +24,11 @@ export default function BidPointsPanel({
                     <input
                         type="text"
                         inputMode="numeric"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        name="bet-points"
                         value={pointsValue}
                         onChange={(e) => onPointsChange((e.target.value ?? '').replace(/\D/g, '').slice(0, maxLength))}
                         placeholder={placeholder}

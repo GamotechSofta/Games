@@ -768,6 +768,11 @@ const EasyModeBid = ({
                                                         ref={pointsInputRef}
                                                         type="text"
                                                         inputMode="numeric"
+                                                        autoComplete="off"
+                                                        autoCorrect="off"
+                                                        autoCapitalize="off"
+                                                        spellCheck={false}
+                                                        name="bet-points"
                                                         value={inputPoints}
                                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                                         placeholder="Points"
@@ -838,6 +843,11 @@ const EasyModeBid = ({
                                         ref={pointsInputRef}
                                         type="text"
                                         inputMode="numeric"
+                                        autoComplete="off"
+                                        autoCorrect="off"
+                                        autoCapitalize="off"
+                                        spellCheck={false}
+                                        name="bet-points"
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         placeholder="Points"
@@ -857,6 +867,11 @@ const EasyModeBid = ({
                                 <input
                                                     type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
                                     inputMode="numeric"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
+                                    name="bet-number"
                                     value={inputNumber}
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
@@ -874,6 +889,11 @@ const EasyModeBid = ({
                                 <input
                                                     type={maxLength === 1 || maxLength === 2 ? 'text' : 'number'}
                                     inputMode="numeric"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
+                                    name="bet-number"
                                     value={inputNumber}
                                     onChange={handleNumberInputChange}
                                     placeholder={maxLength === 1 ? 'e.g. 2' : labelKey}
@@ -890,6 +910,11 @@ const EasyModeBid = ({
                                         ref={pointsInputRef}
                                         type="text"
                                         inputMode="numeric"
+                                        autoComplete="off"
+                                        autoCorrect="off"
+                                        autoCapitalize="off"
+                                        spellCheck={false}
+                                        name="bet-points"
                                         value={inputPoints}
                                         onChange={(e) => setInputPoints(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         placeholder="Points"
