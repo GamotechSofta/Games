@@ -144,6 +144,36 @@ const AppHeader = () => {
                   {formattedBalance}
                 </span>
               </button>
+
+              <button
+                type="button"
+                onClick={handleProfileClick}
+                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
+                  isLight
+                    ? user
+                      ? 'bg-red-50 border-red-300 hover:bg-red-100'
+                      : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
+                    : user
+                      ? 'bg-[#1d1e20] border-red-500/60 hover:bg-red-500/15'
+                      : 'bg-[#1d1e20] border-white/[0.08] hover:bg-[#2a2b2e]'
+                }`}
+                title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
+                aria-label="Profile"
+              >
+                <svg
+                  className={`h-4 w-4 ${user ? 'text-[#e60000] dark:text-red-400' : isLight ? 'text-gray-700' : 'text-white'}`}
+                  fill={user ? 'currentColor' : 'none'}
+                  stroke={user ? 'none' : 'currentColor'}
+                  strokeWidth={user ? 0 : 1.5}
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -213,15 +243,15 @@ const AppHeader = () => {
                   className={`hidden md:flex w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-lg border items-center justify-center cursor-pointer active:scale-95 transition-all duration-200 touch-manipulation ${
                     isLight
                       ? user
-                        ? 'bg-amber-50 border-amber-300 hover:bg-amber-100'
+                        ? 'bg-red-50 border-red-300 hover:bg-red-100'
                         : 'bg-gray-100 border-gray-200 hover:bg-gray-200'
-                      : `bg-gradient-to-br from-gray-800 to-gray-900 ${user ? 'border-yellow-500/60 hover:bg-yellow-500/20 hover:border-yellow-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'}`
+                      : `bg-gradient-to-br from-gray-800 to-gray-900 ${user ? 'border-red-500/60 hover:bg-red-500/20 hover:border-red-500/80' : 'border-gray-700/50 hover:bg-gray-700/50'}`
                   }`}
                   title={user ? `${user.username} - ${t('common.view')} Profile` : `${t('header.signIn')} / ${t('header.signUp')}`}
                   aria-label="Profile"
                 >
                   <svg
-                    className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-yellow-500 dark:text-yellow-400' : isLight ? 'text-gray-700' : 'text-gray-900 dark:text-white'}`}
+                    className={`w-4 h-4 lg:w-5 lg:h-5 ${user ? 'text-[#e60000] dark:text-red-400' : isLight ? 'text-gray-700' : 'text-gray-900 dark:text-white'}`}
                     fill={user ? 'currentColor' : 'none'}
                     stroke={user ? 'none' : 'currentColor'}
                     strokeWidth={user ? 0 : 1.5}

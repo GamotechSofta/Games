@@ -150,6 +150,11 @@ const BottomNavbar = () => {
     setTimeout(scrollToTopSmooth, 100);
   };
 
+  const handleLogout = () => {
+    setMenuOpen(false);
+    clearUserAuth();
+  };
+
   const renderDrawerRow = (item, { isChild = false } = {}) => {
     const active = item.path ? pathMatches(location.pathname, item.path) : item.children?.some((child) => pathMatches(location.pathname, child.path));
     const Icon = item.icon;
@@ -166,8 +171,7 @@ const BottomNavbar = () => {
               return;
             }
             if (item.action === 'logout') {
-              setMenuOpen(false);
-              clearUserAuth();
+              handleLogout();
               return;
             }
             if (item.path) handleDrawerNavigate(item.path);
@@ -231,11 +235,8 @@ const BottomNavbar = () => {
             paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
           }}
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200/80 bg-white px-4 pb-4 dark:border-white/[0.08] dark:bg-[#16171a]">
-            <div className="flex min-w-0 items-center gap-3">
-              <img src={aakdaLogo} alt="Aakda" className="h-9 w-auto object-contain" />
-              <span className="truncate text-base font-semibold">{t('navigation.menu', { defaultValue: 'Menu' })}</span>
-            </div>
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200/80 bg-white px-3 pb-4 dark:border-white/[0.08] dark:bg-[#16171a]">
+            <img src={aakdaLogo} alt="Aakda" className="h-9 w-auto object-contain" />
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
@@ -247,25 +248,38 @@ const BottomNavbar = () => {
           </div>
 
           <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 pt-4">
-            <button
-              type="button"
-              onClick={() => handleDrawerNavigate(user ? '/profile' : '/login')}
-              className="mb-3 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-3 text-left transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-[#1f2024] dark:hover:bg-[#26272d]"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 dark:bg-[#2d2f35] dark:text-white">
-                {user ? (
-                  <span className="text-sm font-semibold">
-                    {(user.username || 'U').charAt(0).toUpperCase()}
-                  </span>
-                ) : (
-                  <HiUser className="h-5 w-5" />
-                )}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
-              </span>
-              <HiChevronRight className="h-4 w-4 shrink-0 opacity-60" />
-            </button>
+            <div className="mb-3 rounded-xl border border-gray-200 bg-white px-3 py-3 dark:border-white/10 dark:bg-[#1f2024]">
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 dark:bg-[#2d2f35] dark:text-white">
+                  {user ? (
+                    <span className="text-sm font-semibold">
+                      {(user.username || 'U').charAt(0).toUpperCase()}
+                    </span>
+                  ) : (
+                    <HiUser className="h-5 w-5" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center rounded-lg bg-[#e60000] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#cc0000]"
+                >
+                  {t('header.logout', { defaultValue: 'Logout' })}
+                </button>
+              </div>
+
+              <div className="mt-3">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-white/45">
+                  {t('settings.preferences', { defaultValue: 'Preferences' })}
+                </div>
+                <Suspense fallback={null}>
+                  <SidebarLocaleSettings collapsed={false} horizontal />
+                </Suspense>
+              </div>
+            </div>
 
             <div>
               <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-white/45">
@@ -295,14 +309,6 @@ const BottomNavbar = () => {
                   icon: HiChatAlt2,
                 })}
 
-                <div className="mt-4 border-t border-gray-200/80 pt-4 dark:border-white/[0.08]">
-                  <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-white/45">
-                    {t('settings.preferences', { defaultValue: 'Preferences' })}
-                  </div>
-            <Suspense fallback={null}>
-              <SidebarLocaleSettings collapsed={false} />
-            </Suspense>
-                </div>
               </div>
             </div>
           </div>

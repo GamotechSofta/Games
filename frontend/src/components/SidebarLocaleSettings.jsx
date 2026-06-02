@@ -34,7 +34,7 @@ function MenuPanel({ children, collapsed, className = '' }) {
   );
 }
 
-export default function SidebarLocaleSettings({ collapsed }) {
+export default function SidebarLocaleSettings({ collapsed, horizontal = false }) {
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const [langOpen, setLangOpen] = useState(false);
@@ -47,13 +47,13 @@ export default function SidebarLocaleSettings({ collapsed }) {
     ? 'flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-[#b0b0b0] dark:hover:bg-[#333] dark:hover:text-[#d4d4d4]'
     : 'flex w-full items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-2 text-left text-gray-800 transition-colors hover:bg-gray-200 dark:border-white/[0.08] dark:bg-[#2a2a2a] dark:text-white/80 dark:hover:bg-[#333]';
 
+  const containerClass = collapsed
+    ? 'flex flex-col items-center gap-1.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]'
+    : `border-t border-gray-200 pt-2 dark:border-white/[0.06] ${horizontal ? 'flex items-center gap-2' : 'flex flex-col gap-1.5'}`;
+
   return (
     <div
-      className={
-        collapsed
-          ? 'flex flex-col items-center gap-1.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]'
-          : 'flex flex-col gap-1.5 border-t border-gray-200 pt-2 dark:border-white/[0.06]'
-      }
+      className={containerClass}
     >
       {/* Theme — click toggles light/dark (no dropdown) */}
       <button
