@@ -57,6 +57,7 @@ const BidLayout = ({
     const [wallet, setWallet] = useState(() =>
         Number.isFinite(Number(walletBalance)) ? Number(walletBalance) : getStoredWalletBalance()
     );
+    const [mobileKeyboardInset, setMobileKeyboardInset] = useState(0);
 
     const marketStatus = market?.status;
     const isRunning = marketStatus === 'running';
@@ -102,6 +103,34 @@ const BidLayout = ({
             window.removeEventListener('storage', syncFromStorage);
         };
     }, [walletBalance]);
+
+    // Keep mobile submit bar above virtual keyboard.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const viewport = window.visualViewport;
+        if (!viewport) return;
+
+        const updateKeyboardInset = () => {
+            if (!window.matchMedia('(max-width: 767px)').matches) {
+                setMobileKeyboardInset(0);
+                return;
+            }
+            const visibleBottom = viewport.height + viewport.offsetTop;
+            const keyboardHeight = Math.max(0, window.innerHeight - visibleBottom);
+            setMobileKeyboardInset(keyboardHeight);
+        };
+
+        updateKeyboardInset();
+        viewport.addEventListener('resize', updateKeyboardInset);
+        viewport.addEventListener('scroll', updateKeyboardInset);
+        window.addEventListener('orientationchange', updateKeyboardInset);
+
+        return () => {
+            viewport.removeEventListener('resize', updateKeyboardInset);
+            viewport.removeEventListener('scroll', updateKeyboardInset);
+            window.removeEventListener('orientationchange', updateKeyboardInset);
+        };
+    }, []);
 
     // Scroll to top when route changes
     useEffect(() => {
@@ -190,7 +219,7 @@ const BidLayout = ({
                 className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
                     contentPaddingClass ??
                     (showMobileSubmitBar
-                        ? 'pb-6 md:pb-32'
+                        ? 'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-32'
                         : hideFooter
                           ? 'pb-6'
                           : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
@@ -261,19 +290,23 @@ const BidLayout = ({
                 )}
 
                 {children}
-                {showMobileSubmitBar && (
-                    <div className="mt-4 md:hidden">
-                        <BidSubmitBar
-                            betsCount={bidsCount}
-                            totalPoints={totalPoints}
-                            onSubmit={onSubmit}
-                            disabled={!bidsCount || !bettingAllowed}
-                            submitLabel={submitLabel}
-                        />
-                    </div>
-                )}
                 </div>
             </div>
+
+            {showMobileSubmitBar && (
+                <div
+                    className="md:hidden fixed inset-x-0 z-40 transition-[bottom] duration-150"
+                    style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + ${mobileKeyboardInset}px)` }}
+                >
+                    <BidSubmitBar
+                        betsCount={bidsCount}
+                        totalPoints={totalPoints}
+                        onSubmit={onSubmit}
+                        disabled={!bidsCount || !bettingAllowed}
+                        submitLabel={submitLabel}
+                    />
+                </div>
+            )}
 
             {/* Desktop footer */}
             {!hideFooter && (
