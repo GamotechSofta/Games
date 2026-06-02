@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
+import BidDigitKeypad from './BidDigitKeypad';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { bidClearBtn, bidTwoColGrid, bidSegmentControl } from '../../../styles/appTheme';
@@ -788,51 +789,14 @@ const EasyModeBid = ({
                                             />
                                         </div>
 
-                                        {/* Select Sum Keypad (Single Pana styled like Single Digit Bulk) */}
-                                        <div className="flex gap-4 mb-4">
-                                            <div className={`flex-1 rounded-xl ${(specialModeType === 'singlePana' || specialModeType === 'doublePana') ? 'p-0 bg-transparent border-0' : `${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10'} p-2`}`}>
-                                                {!(specialModeType === 'singlePana' || specialModeType === 'doublePana') && (
-                                                    <h3 className="text-sm font-bold text-amber-800 dark:text-[#f2c14e] mb-3 text-center">Select Sum</h3>
-                                                )}
-                                                <div className="grid grid-cols-5 sm:grid-cols-5 gap-1.5 sm:gap-2 md:gap-3">
-                                                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => {
-                                                        const totalPointsForSum = pointsBySum[num] || 0;
-                                                        const hasPoints = Number(inputPoints) > 0;
-                                                        return (
-                                                            <button
-                                                                key={num}
-                                                                type="button"
-                                                                disabled={!hasPoints}
-                                                                onClick={(e) => {
-                                                                    if (!hasPoints) return;
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    handleKeypadClick(num);
-                                                                }}
-                                                                className={`relative aspect-square min-h-[40px] sm:min-h-[44px] md:min-h-[48px] rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center transition-all active:scale-90 shadow-lg select-none ${
-                                                                    (specialModeType === 'singlePana' || specialModeType === 'doublePana')
-                                                                        ? `${isPanaSumRedTheme ? 'text-white bg-gradient-to-br from-red-700 to-red-600 border border-red-300 dark:border-white/20' : 'text-white bg-[#d4af37] border border-gray-200 dark:border-white/10'} ${hasPoints ? (isPanaSumRedTheme ? 'cursor-pointer hover:border-red-400 dark:hover:border-white/35' : 'cursor-pointer hover:border-[#d4af37]/50') : 'cursor-not-allowed opacity-50'}`
-                                                                        : `text-gray-900 dark:text-white bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 ${hasPoints ? 'cursor-pointer hover:border-gray-400 hover:bg-white/10 active:bg-black' : 'cursor-not-allowed opacity-50'}`
-                                                                }`}
-                                                                style={{ 
-                                                                    touchAction: 'manipulation',
-                                                                    WebkitTapHighlightColor: 'transparent',
-                                                                    userSelect: 'none',
-                                                                    WebkitUserSelect: 'none'
-                                                                }}
-                                                            >
-                                                                {num}
-                                                                {totalPointsForSum > 0 && (
-                                                                    <span className={`absolute top-0.5 right-0.5 sm:top-0.5 sm:right-0.5 text-[8px] sm:text-[9px] font-bold rounded-full min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-0.5 sm:px-1 flex items-center justify-center shadow-md ${isPanaSumRedTheme ? 'bg-white dark:bg-[#17191d] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200' : 'bg-[#d4af37] text-[#4b3608]'}`}>
-                                                                        {totalPointsForSum > 999 ? '999+' : totalPointsForSum}
-                                                                    </span>
-                                                                )}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {/* Select Sum Keypad — same UI as Single Digit */}
+                                        <BidDigitKeypad
+                                            className="mx-1 mb-4"
+                                            size="lg"
+                                            disabled={Number(inputPoints) <= 0}
+                                            pointsByDigit={pointsBySum}
+                                            onDigitClick={handleKeypadClick}
+                                        />
 
                                         {/* Mobile: keep list below on small screens */}
                                         {desktopSplit && <div className="md:hidden mt-4">{bidsList}</div>}

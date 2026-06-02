@@ -578,6 +578,22 @@ html.theme-light #root {
     font-weight: 900;
   }
 
+  /* Selected (soft) — subtle highlight for multi-select keypads */
+  .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
+    border-color: #ffffff;
+    filter: brightness(1.12) saturate(1.08);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(255, 255, 255, 0.45),
+      0 6px 14px var(--bid-pink-glow);
+  }
+
+  .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__num {
+    font-weight: 800;
+  }
+
   .game-bid-page .bid-dial-key__num {
     position: relative;
     z-index: 1;

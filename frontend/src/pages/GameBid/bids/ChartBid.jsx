@@ -6,6 +6,7 @@ import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { BidDesktopStats } from '../BidInlineStats';
 import BidPointsPanel from './BidPointsPanel';
+import BidDigitKeypad from './BidDigitKeypad';
 import { chartData, getNumbersForChartDigit } from './chartData';
 
 const CHART_OPTIONS = Object.keys(chartData);
@@ -259,27 +260,15 @@ const ChartBid = ({ market, title }) => {
 
                         <div>
                             <div className="block text-[11px] sm:text-xs font-semibold text-gray-900 dark:text-gray-200 mb-2">Select Digit</div>
-                            <div className="grid grid-cols-5 gap-2">
-                                {DIGIT_ORDER.map((d) => {
-                                    const ds = String(d);
-                                    const selected = selectedDigit === ds;
-                                    return (
-                                        <button
-                                            key={ds}
-                                            type="button"
-                                            onClick={() => setSelectedDigit(ds)}
-                                            aria-pressed={selected}
-                                            className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base transition-all active:scale-[0.98] border ${
-                                                selected
-                                                    ? 'bg-gradient-to-r from-red-700 to-red-600 text-white border-red-300 dark:border-white/20'
-                                                    : 'bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 border-gray-200 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-[#1b1d22]'
-                                            }`}
-                                        >
-                                            {d}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <BidDigitKeypad
+                                className="mx-0"
+                                size="lg"
+                                digits={DIGIT_ORDER}
+                                selectedDigits={selectedDigit ? [selectedDigit] : []}
+                                showPointsBadge={false}
+                                subtleSelected
+                                onDigitClick={(d) => setSelectedDigit(String(d))}
+                            />
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

@@ -6,6 +6,7 @@ import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { BidDesktopStats } from '../BidInlineStats';
 import BidPointsPanel from './BidPointsPanel';
+import BidDigitKeypad from './BidDigitKeypad';
 import { generateCPCommon } from './cpCommonGenerator';
 
 const CpCommonBid = ({ market, title }) => {
@@ -262,26 +263,14 @@ const CpCommonBid = ({ market, title }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-5 gap-2">
-                                {Array.from({ length: 10 }, (_, i) => i).map((d) => {
-                                    const selected = selectedDigits.includes(String(d));
-                                    return (
-                                        <button
-                                            key={d}
-                                            type="button"
-                                            onClick={() => toggleDigit(d)}
-                                            aria-pressed={selected}
-                                            className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base transition-all active:scale-[0.98] border ${
-                                                selected
-                                                    ? 'bg-gradient-to-br from-red-700 to-red-600 text-white border-red-300 dark:border-white/20'
-                                                    : 'bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 border-gray-200 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-[#1b1d22]'
-                                            }`}
-                                        >
-                                            {d}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <BidDigitKeypad
+                                className="mx-0"
+                                size="lg"
+                                selectedDigits={selectedDigits}
+                                showPointsBadge={false}
+                                subtleSelected
+                                onDigitClick={toggleDigit}
+                            />
                             <div className="flex items-center gap-2 mt-3">
                                 <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-900 dark:text-gray-200">Enter Digit</label>
                                 <input

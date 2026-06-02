@@ -190,7 +190,7 @@ const BidLayout = ({
                 className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full max-w-full ios-scroll-touch scrollbar-hidden ${
                     contentPaddingClass ??
                     (showMobileSubmitBar
-                        ? 'pb-[calc(5.75rem+env(safe-area-inset-bottom,0px))] md:pb-32'
+                        ? 'pb-6 md:pb-32'
                         : hideFooter
                           ? 'pb-6'
                           : 'pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-32')
@@ -261,26 +261,19 @@ const BidLayout = ({
                 )}
 
                 {children}
+                {showMobileSubmitBar && (
+                    <div className="mt-4 md:hidden">
+                        <BidSubmitBar
+                            betsCount={bidsCount}
+                            totalPoints={totalPoints}
+                            onSubmit={onSubmit}
+                            disabled={!bidsCount || !bettingAllowed}
+                            submitLabel={submitLabel}
+                        />
+                    </div>
+                )}
                 </div>
             </div>
-
-            {/* Mobile: fixed submit bar at bottom (not under bottom navbar) */}
-            {showMobileSubmitBar && (
-                <div
-                    className="md:hidden fixed inset-x-0 bottom-0 z-40 w-full"
-                    style={{
-                        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-                    }}
-                >
-                    <BidSubmitBar
-                        betsCount={bidsCount}
-                        totalPoints={totalPoints}
-                        onSubmit={onSubmit}
-                        disabled={!bidsCount || !bettingAllowed}
-                        submitLabel={submitLabel}
-                    />
-                </div>
-            )}
 
             {/* Desktop footer */}
             {!hideFooter && (

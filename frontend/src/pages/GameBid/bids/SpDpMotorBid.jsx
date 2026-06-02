@@ -6,6 +6,7 @@ import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
 import { BidDesktopStats } from '../BidInlineStats';
 import BidPointsPanel from './BidPointsPanel';
+import BidDigitKeypad from './BidDigitKeypad';
 import { generateSpMotorSinglePanas, sanitizeMotorDigitsUnique } from './panaRules';
 
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
@@ -298,26 +299,14 @@ const SpDpMotorBid = ({ market, title }) => {
           <div className="flex flex-col gap-3 w-full md:w-1/2 shrink-0 min-w-0">
             <div>
               <div className="block text-[11px] sm:text-xs font-semibold text-gray-500 mb-2">Select Digits</div>
-              <div className="grid grid-cols-5 gap-2 mb-3">
-                {Array.from({ length: 10 }, (_, i) => i).map((d) => {
-                  const selected = sanitizeMotorDigitsUnique(digitInput).includes(String(d));
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => toggleDigit(d)}
-                      aria-pressed={selected}
-                      className={`min-h-[40px] h-10 rounded-md font-bold text-sm sm:text-base transition-all active:scale-[0.98] border ${
-                        selected
-                          ? 'bg-gradient-to-br from-red-700 to-red-600 text-white border-red-300 dark:border-white/20'
-                          : 'bg-white dark:bg-[#202329] text-gray-700 dark:text-red-200 border-gray-200 dark:border-white/20 hover:bg-gray-50 dark:hover:bg-[#1b1d22]'
-                      }`}
-                    >
-                      {d}
-                    </button>
-                  );
-                })}
-              </div>
+              <BidDigitKeypad
+                className="mx-0 mb-3"
+                size="lg"
+                selectedDigits={sanitizeMotorDigitsUnique(digitInput).split('')}
+                showPointsBadge={false}
+                subtleSelected
+                onDigitClick={toggleDigit}
+              />
               <div className="flex items-center gap-2">
                 <label className="shrink-0 w-24 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Enter digits</label>
                 <input

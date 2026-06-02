@@ -1,10 +1,5 @@
 import React, { useCallback, useState } from 'react';
 
-const ROWS = [
-    [0, 1, 2, 3, 4],
-    [5, 6, 7, 8, 9],
-];
-
 /**
  * Digit pad — each number in a rounded square box.
  */
@@ -14,8 +9,17 @@ export default function BidDigitKeypad({
     onDigitClick,
     className = '',
     size = 'md',
+    selectedDigits = [],
+    digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    showPointsBadge = true,
+    subtleSelected = false,
 }) {
     const [flash, setFlash] = useState(null);
+    const selectedSet = new Set((selectedDigits || []).map((d) => String(d)));
+    const rows = [
+        digits.slice(0, 5),
+        digits.slice(5, 10),
+    ];
 
     const handleClick = useCallback(
         (num) => {
@@ -35,11 +39,11 @@ export default function BidDigitKeypad({
             className={`bid-dial-pad ${sizeClass} ${disabled ? '' : 'bid-dial-pad--live'} ${className}`.trim()}
             aria-label="Digit selector"
         >
-            {ROWS.map((row, rowIndex) => (
+            {rows.map((row, rowIndex) => (
                 <div key={rowIndex} className="bid-dial-pad__row">
                     {row.map((num, colIndex) => {
                         const pts = Number(pointsByDigit[num]) || 0;
-                        const hasBet = pts > 0;
+                        const hasBet = pts > 0 || selectedSet.has(String(num));
                         const delay = rowIndex * 5 + colIndex;
 
                         return (
@@ -48,14 +52,14 @@ export default function BidDigitKeypad({
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => handleClick(num)}
-                                className={`bid-dial-key ${disabled ? 'bid-dial-key--off' : 'bid-dial-key--on'} ${hasBet ? 'bid-dial-key--picked' : ''} ${flash === num ? 'bid-dial-key--flash' : ''}`}
+                                className={`bid-dial-key ${disabled ? 'bid-dial-key--off' : 'bid-dial-key--on'} ${hasBet ? 'bid-dial-key--picked' : ''} ${hasBet && subtleSelected ? 'bid-dial-key--picked-soft' : ''} ${flash === num ? 'bid-dial-key--flash' : ''}`}
                                 style={{ '--dial-i': delay }}
                                 aria-label={`Digit ${num}`}
                             >
                                 <span className="bid-dial-key__box">
                                     <span className="bid-dial-key__num">{num}</span>
                                 </span>
-                                {hasBet && (
+                                {showPointsBadge && hasBet && (
                                     <span className="bid-dial-key__pts" key={pts}>
                                         {pts > 999 ? '999+' : pts}
                                     </span>
