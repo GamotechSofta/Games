@@ -10,4 +10,5 @@ export const HOME_BANNERS = [
     src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1771338484/Black_Orange_Minimalis_Offline_Gaming_Banner_Landscape_1920_x_500_px_1_shojp0.png'),
     alt: 'Black Orange Offline Gaming Banner',
   },
+  
 ];
