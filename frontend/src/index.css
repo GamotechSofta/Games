@@ -594,6 +594,26 @@ html.theme-light #root {
     font-weight: 800;
   }
 
+  /* Theme-specific selected glow */
+  html:not(.theme-dark) .game-bid-page .bid-dial-key--picked .bid-dial-key__box,
+  html:not(.theme-dark) .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(34, 197, 94, 0.3),
+      0 8px 18px rgba(34, 197, 94, 0.35);
+  }
+
+  .theme-dark .game-bid-page .bid-dial-key--picked .bid-dial-key__box,
+  .theme-dark .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
+    border-color: rgba(245, 200, 92, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(245, 200, 92, 0.28),
+      0 8px 18px rgba(245, 200, 92, 0.38);
+  }
+
   .game-bid-page .bid-dial-key__num {
     position: relative;
     z-index: 1;
