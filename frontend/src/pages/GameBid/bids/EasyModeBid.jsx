@@ -836,7 +836,11 @@ const EasyModeBid = ({
                                 onSelect={handleQuickPointClick}
                                 labelClassName={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}
                             />
-                            <div className="flex flex-row items-center gap-2">
+                            <div
+                                className={`flex flex-row items-center gap-2 ${
+                                    specialModeType === 'singlePana' ? 'mt-3' : ''
+                                }`}
+                            >
                                 <label className={`${fieldLabelClass} text-sm font-medium shrink-0 w-28`}>Enter Points</label>
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-2">
                                     <input
