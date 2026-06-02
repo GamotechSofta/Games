@@ -578,53 +578,31 @@ html.theme-light #root {
     font-weight: 900;
   }
 
-  /* Selected (soft) — subtle highlight for multi-select keypads */
-  .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
-    border-color: #ffffff;
-    filter: brightness(1.12) saturate(1.08);
-    transform: translateY(-1px);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 -2px 0 var(--bid-pink-inset),
-      0 0 0 2px rgba(255, 255, 255, 0.45),
-      0 6px 14px var(--bid-pink-glow);
-  }
-
   .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__num {
     font-weight: 800;
   }
 
-  /* Theme-specific selected glow */
+  /* Light theme — selected + tap glow (black) */
   html:not(.theme-dark) .game-bid-page .bid-dial-key--picked .bid-dial-key__box,
-  html:not(.theme-dark) .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -2px 0 var(--bid-pink-inset),
-      0 0 0 2px rgba(0, 0, 0, 0.28),
-      0 8px 18px rgba(0, 0, 0, 0.38);
-  }
-
-  .theme-dark .game-bid-page .bid-dial-key--picked .bid-dial-key__box,
-  .theme-dark .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box {
-    border-color: rgba(255, 255, 255, 0.86);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.42),
-      inset 0 -2px 0 var(--bid-pink-inset),
-      0 0 0 2px rgba(255, 255, 255, 0.34),
-      0 8px 18px rgba(255, 255, 255, 0.28);
-  }
-
-  /* Instant feedback on tap/click */
+  html:not(.theme-dark) .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box,
   html:not(.theme-dark) .game-bid-page .bid-dial-key--tap-glow .bid-dial-key__box {
+    border-color: rgba(0, 0, 0, 0.78);
+    filter: brightness(1.18) saturate(1.12);
+    transform: translateY(-1px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.5),
       inset 0 -2px 0 var(--bid-pink-inset),
-      0 0 0 2px rgba(0, 0, 0, 0.28),
-      0 8px 18px rgba(0, 0, 0, 0.38);
+      0 0 0 2px rgba(0, 0, 0, 0.38),
+      0 10px 22px rgba(0, 0, 0, 0.42);
   }
 
+  /* Dark theme — selected + tap glow (white) */
+  .theme-dark .game-bid-page .bid-dial-key--picked .bid-dial-key__box,
+  .theme-dark .game-bid-page .bid-dial-key--picked-soft .bid-dial-key__box,
   .theme-dark .game-bid-page .bid-dial-key--tap-glow .bid-dial-key__box {
     border-color: rgba(255, 255, 255, 0.86);
+    filter: brightness(1.14) saturate(1.08);
+    transform: translateY(-1px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.42),
       inset 0 -2px 0 var(--bid-pink-inset),
@@ -660,14 +638,24 @@ html.theme-light #root {
       0 5px 14px var(--bid-pink-glow);
   }
 
-  .game-bid-page .bid-dial-pad--live .bid-dial-key--picked:not(:disabled):hover .bid-dial-key__box {
-    filter: brightness(1.14);
-    transform: translateY(-2px);
+  html:not(.theme-dark) .game-bid-page .bid-dial-pad--live .bid-dial-key--picked:not(:disabled):is(:hover, :focus-visible) .bid-dial-key__box {
+    filter: brightness(1.2) saturate(1.12);
+    transform: translateY(-1px);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.5),
       inset 0 -2px 0 var(--bid-pink-inset),
-      0 0 0 2px rgba(255, 255, 255, 0.32),
-      0 6px 18px var(--bid-pink-glow);
+      0 0 0 2px rgba(0, 0, 0, 0.38),
+      0 10px 22px rgba(0, 0, 0, 0.42);
+  }
+
+  .theme-dark .game-bid-page .bid-dial-pad--live .bid-dial-key--picked:not(:disabled):is(:hover, :focus-visible) .bid-dial-key__box {
+    filter: brightness(1.16);
+    transform: translateY(-1px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -2px 0 var(--bid-pink-inset),
+      0 0 0 2px rgba(255, 255, 255, 0.34),
+      0 8px 18px rgba(255, 255, 255, 0.28);
   }
 
   .game-bid-page .bid-dial-key--on:not(:disabled):active .bid-dial-key__box {

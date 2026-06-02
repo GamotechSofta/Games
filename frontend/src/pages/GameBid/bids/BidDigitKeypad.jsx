@@ -22,11 +22,12 @@ export default function BidDigitKeypad({
     ];
 
     const handleClick = useCallback(
-        (num) => {
+        (num, event) => {
             if (disabled) return;
             setFlash(num);
             window.setTimeout(() => setFlash((v) => (v === num ? null : v)), 420);
             onDigitClick?.(num);
+            event?.currentTarget?.blur?.();
         },
         [disabled, onDigitClick]
     );
@@ -51,7 +52,7 @@ export default function BidDigitKeypad({
                                 key={num}
                                 type="button"
                                 disabled={disabled}
-                                onClick={() => handleClick(num)}
+                                onClick={(e) => handleClick(num, e)}
                                 className={`bid-dial-key ${disabled ? 'bid-dial-key--off' : 'bid-dial-key--on'} ${hasBet ? 'bid-dial-key--picked' : ''} ${hasBet && subtleSelected ? 'bid-dial-key--picked-soft' : ''} ${flash === num ? 'bid-dial-key--flash bid-dial-key--tap-glow' : ''}`}
                                 style={{ '--dial-i': delay }}
                                 aria-label={`Digit ${num}`}
