@@ -223,7 +223,7 @@ async function startServer() {
                 } else {
                     console.warn(
                         '[ice] TURN not configured — calls fail on different internet. '
-                        + 'Set METERED_TURN_API_KEY in .env (see .env.example) and run: node scripts/checkTurnSetup.js',
+                        + 'Self-host coturn: backend/turn-server/README.md — then npm run check-turn',
                     );
                 }
             }).catch((err) => console.warn('[ice] config check failed:', err.message));

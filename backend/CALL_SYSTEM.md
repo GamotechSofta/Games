@@ -16,11 +16,14 @@
 
 Same Wi‑Fi often works with STUN only. **Different networks require TURN** (relay). Without TURN, the UI may show "connected" but **no audio**.
 
-1. Set in backend `.env` either:
-   - `METERED_TURN_API_KEY` (or `OPENRELAY_API_KEY`) from [Metered Open Relay](https://www.metered.ca/tools/openrelay/) — sign up for a free API key, or
-   - `TURN_URL`, `TURN_USERNAME`, `TURN_PASSWORD` (your coturn server; TCP/TLS variants are auto-expanded)
-2. Restart backend and confirm log: `[ice] WebRTC TURN ready`.
-3. Clients load `GET /api/v1/call/ice-config` automatically (ICE candidates are queued until SDP is applied).
+1. **Self-hosted (your infrastructure):** run **coturn** on a VPS — see `backend/turn-server/README.md`. Set in backend `.env`:
+   - `TURN_URL=turn:YOUR_VPS_IP:3478`
+   - `TURN_USERNAME` / `TURN_PASSWORD` (match `turnserver.conf`)
+   - `STUN_URLS=stun:YOUR_VPS_IP:3478` (optional; recommended)
+2. Restart backend → `npm run check-turn` → must show TURN configured.
+3. Clients load `GET /api/v1/call/ice-config` automatically.
+
+**Note:** Run coturn on **AWS EC2** (UDP 3478). The Node API on `api.aakda.in` only publishes ICE config. See `DEPLOYMENT_AAKDA.md` for AWS + Render + www.aakda.in.
 
 - Audio only: `{ audio: true, video: false }`
 

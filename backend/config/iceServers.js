@@ -2,10 +2,10 @@
  * ICE servers for WebRTC (STUN + TURN).
  * TURN relay is required when caller and callee are on different networks / strict NAT.
  *
- * Configure ONE of:
- * - METERED_TURN_API_KEY or OPENRELAY_API_KEY (fetches from Metered — recommended)
- * - ICE_SERVERS_JSON (paste full iceServers array from Metered dashboard)
- * - TURN_URL + TURN_USERNAME + TURN_PASSWORD
+ * Configure ONE of (self-hosted first):
+ * - TURN_URL + TURN_USERNAME + TURN_PASSWORD (your coturn — see backend/turn-server/README.md)
+ * - ICE_SERVERS_JSON (full iceServers array you control)
+ * - METERED_TURN_API_KEY (optional third-party; not required)
  */
 
 const DEFAULT_STUN = [
@@ -92,8 +92,22 @@ function parseIceServersJson() {
     }
 }
 
+function stunFromTurnUrl() {
+    const turnUrl = process.env.TURN_URL?.trim() || parseList(process.env.TURN_URLS)[0];
+    if (!turnUrl) return null;
+    const hostMatch = turnUrl.match(/^turns?:([^:?/]+)/i);
+    if (!hostMatch) return null;
+    const host = hostMatch[1];
+    const portMatch = turnUrl.match(/^turns?:[^:]+:\d+/i);
+    const port = portMatch ? portMatch[0].split(':').pop() : '3478';
+    return { urls: `stun:${host}:${port}` };
+}
+
 function buildStaticIceServers() {
-    const iceServers = [...buildStunEntries()];
+    const iceServers = [];
+    const ownStun = stunFromTurnUrl();
+    if (ownStun) iceServers.push(ownStun);
+    iceServers.push(...buildStunEntries());
     iceServers.push(...buildTurnEntries());
     return iceServers;
 }
@@ -147,6 +161,15 @@ export async function getIceServerConfig() {
         };
     }
 
+    const staticServers = buildStaticIceServers();
+    if (iceServersHaveTurn(staticServers)) {
+        return {
+            iceServers: staticServers,
+            turnConfigured: true,
+            source: 'self-hosted',
+        };
+    }
+
     const meteredKey = (
         process.env.METERED_TURN_API_KEY
         || process.env.OPENRELAY_API_KEY
@@ -160,22 +183,21 @@ export async function getIceServerConfig() {
                 source: 'metered',
             };
         } catch (err) {
-            console.error('[ice] Metered fetch failed, falling back to env TURN:', err.message);
+            console.error('[ice] Metered fetch failed:', err.message);
         }
     }
 
-    const iceServers = buildStaticIceServers();
-    const turnConfigured = iceServersHaveTurn(iceServers);
+    const turnConfigured = iceServersHaveTurn(staticServers);
 
     if (!turnConfigured) {
         console.warn(
             '[ice] No TURN server — calls only work on same Wi‑Fi/LAN. '
-            + 'Set METERED_TURN_API_KEY (https://www.metered.ca/tools/openrelay/) or TURN_* / ICE_SERVERS_JSON in .env',
+            + 'Self-host coturn: backend/turn-server/README.md — set TURN_URL, TURN_USERNAME, TURN_PASSWORD in .env',
         );
     }
 
     return {
-        iceServers,
+        iceServers: staticServers,
         turnConfigured,
         source: turnConfigured ? 'env-turn' : 'stun-only',
     };

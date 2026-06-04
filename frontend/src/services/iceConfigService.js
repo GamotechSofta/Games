@@ -22,7 +22,7 @@ export async function getRtcConfiguration() {
         if (!cached.turnConfigured) {
           console.error(
             '[call] Server has no TURN — calls will NOT work on different internet. '
-            + 'Admin must set METERED_TURN_API_KEY on api server and restart.',
+            + 'Admin must run self-hosted coturn and set TURN_URL / TURN_USERNAME / TURN_PASSWORD.',
           );
         }
         return cached;

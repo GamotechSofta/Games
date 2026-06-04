@@ -14,9 +14,10 @@ console.log('TURN configured:', hasTurn ? 'YES ✓' : 'NO ✗ (calls fail across
 console.log('ICE servers:', cfg.iceServers.length);
 
 if (!hasTurn) {
-    console.log('\nFix: add to .env (and production host env), then restart backend:');
-    console.log('  METERED_TURN_API_KEY=<key from https://www.metered.ca/tools/openrelay/>');
-    console.log('Or paste Metered dashboard iceServers into ICE_SERVERS_JSON=...');
+    console.log('\nFix — self-hosted (recommended):');
+    console.log('  1. Follow backend/turn-server/README.md (coturn on your VPS)');
+    console.log('  2. Add TURN_URL, TURN_USERNAME, TURN_PASSWORD to .env + production host');
+    console.log('  3. Restart backend, run npm run check-turn again');
     process.exit(1);
 }
 

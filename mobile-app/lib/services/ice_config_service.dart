@@ -42,7 +42,7 @@ class IceConfigService {
               // ignore: avoid_print
               print(
                 '[call] TURN not configured on server — cross-network calls will fail. '
-                'Set METERED_TURN_API_KEY on backend.',
+                'Self-host coturn: backend/turn-server/README.md (TURN_URL in .env).',
               );
             }
             return _cached!;

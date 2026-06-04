@@ -25,6 +25,9 @@ dist-ssr
 
 .env
 .env.local
+turn-server/turnserver.conf
+turn-server/turnserver.aakda.production.conf
+turn-server/.env
 .env.development
 .env.production
 .env.example

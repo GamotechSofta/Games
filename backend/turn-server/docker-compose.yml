@@ -1,0 +1,22 @@
+# Self-hosted TURN + STUN (coturn) — no Metered or other third-party TURN.
+# Run on a VPS with a public IP (UDP 3478 must be open in firewall).
+#
+#   cd backend/turn-server
+#   cp .env.example .env
+#   cp turnserver.conf.template turnserver.conf
+#   # edit turnserver.conf + .env
+#   docker compose up -d
+
+services:
+  coturn:
+    image: coturn/coturn:4.6.2
+    container_name: games-coturn
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./turnserver.conf:/etc/coturn/turnserver.conf:ro
+    # If you prefer port mapping instead of host network, comment network_mode and use:
+    # ports:
+    #   - "3478:3478/udp"
+    #   - "3478:3478/tcp"
+    #   - "5349:5349/tcp"

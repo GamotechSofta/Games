@@ -1,0 +1,29 @@
+# Self-hosted coturn — copy to turnserver.conf and edit.
+# Docs: backend/turn-server/README.md
+
+listening-port=3478
+tls-listening-port=5349
+
+# Your VPS public IPv4 (required if coturn is behind NAT / Docker)
+external-ip=YOUR_PUBLIC_IP
+
+realm=aakda.in
+server-name=turn.aakda.in
+
+fingerprint
+lt-cred-mech
+
+# Long-term credentials (must match backend .env TURN_USERNAME / TURN_PASSWORD)
+user=YOUR_TURN_USERNAME:YOUR_TURN_PASSWORD
+
+# Allow relay for WebRTC
+no-multicast-peers
+no-cli
+
+# Logs
+log-file=stdout
+verbose
+
+# Uncomment if clients are on strict corporate networks (TLS TURN)
+# cert=/etc/coturn/ssl/fullchain.pem
+# pkey=/etc/coturn/ssl/privkey.pem

@@ -88,7 +88,7 @@ export function TelecallerCallProvider({ children }) {
         if (!iceCfg.turnConfigured) {
             setCallError(
                 'Server has no TURN relay — calls cannot work on different internet. '
-                + 'Set METERED_TURN_API_KEY on api.aakda.in and restart backend.',
+                + 'Self-host coturn (backend/turn-server/README.md) and set TURN_URL + TURN_USERNAME + TURN_PASSWORD on api.aakda.in.',
             );
             return;
         }

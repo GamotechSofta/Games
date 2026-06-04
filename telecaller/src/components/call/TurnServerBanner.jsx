@@ -19,12 +19,15 @@ export default function TurnServerBanner() {
         <div className="mb-4 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
             <p className="font-bold">Cross-network calls disabled on server</p>
             <p className="mt-1 text-red-800">
-                The API has no TURN relay (only STUN). Calls on different internet will not carry audio.
-                Ask admin to set <code className="text-xs bg-red-100 px-1 rounded">METERED_TURN_API_KEY</code> on
+                The API has no TURN relay yet. Run your own{' '}
+                <strong>coturn</strong> server (see{' '}
+                <code className="text-xs bg-red-100 px-1 rounded">backend/turn-server/README.md</code>
+                ), then set{' '}
+                <code className="text-xs bg-red-100 px-1 rounded">TURN_URL</code>,{' '}
+                <code className="text-xs bg-red-100 px-1 rounded">TURN_USERNAME</code>,{' '}
+                <code className="text-xs bg-red-100 px-1 rounded">TURN_PASSWORD</code>
                 {' '}
-                <strong>api.aakda.in</strong>
-                {' '}
-                and restart the backend, then run <code className="text-xs bg-red-100 px-1 rounded">npm run check-turn</code>.
+                on <strong>api.aakda.in</strong> and restart the backend.
             </p>
         </div>
     );
