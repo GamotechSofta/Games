@@ -39,6 +39,11 @@ const Login = () => {
             const data = await response.json();
 
             if (data.success) {
+                const role = data.data?.role;
+                if (role === 'telecaller') {
+                    setError('Telecaller accounts use the Telecaller app, not the admin panel.');
+                    return;
+                }
                 const { token, ...adminData } = data.data;
                 localStorage.setItem('admin', JSON.stringify(adminData));
                 localStorage.setItem('adminToken', token);

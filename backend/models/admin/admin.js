@@ -16,7 +16,7 @@ const adminSchema = new mongoose.Schema({
     role: {
         type: String,
         default: 'super_admin',
-        enum: ['super_admin', 'bookie', 'specific_admin'],
+        enum: ['super_admin', 'bookie', 'specific_admin', 'telecaller'],
     },
     /** specific_admin only: list of sidebar paths this admin can access (e.g. /dashboard, /markets) */
     allowedTabs: [{
@@ -77,6 +77,27 @@ const adminSchema = new mongoose.Schema({
         type: String,
         default: null,
         select: false,
+    },
+    /** Telecaller only: encrypted login password for super admin reveal (requires secret declare password). */
+    telecallerPasswordEnc: {
+        type: String,
+        default: '',
+        select: false,
+    },
+    /** Telecaller only: players marked as called (done) in telecaller app */
+    calledPlayerIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }],
+    calledPlayersUpdatedAt: {
+        type: Date,
+        default: null,
+    },
+    /** Telecaller only: what each player said on the call (playerId -> note text) */
+    playerCallSummaries: {
+        type: Map,
+        of: String,
+        default: () => new Map(),
     },
     /** Bookie (bookie_collects) only: Security password for sensitive actions like wallet add/deduct. Optional. */
     securityPassword: {

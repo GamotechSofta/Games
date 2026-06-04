@@ -27,6 +27,7 @@ import MarketDetail from './pages/MarketDetail';
 import Settings from './pages/Settings';
 import TopWinners from './pages/TopWinners';
 import SpecificAdminManagement from './pages/SpecificAdminManagement';
+import TelecallerManagement from './pages/TelecallerManagement';
 import GameManagement from './pages/GameManagement';
 
 // Scroll to top on route change
@@ -275,6 +276,14 @@ const App = () => {
                     element={
                         <PrivateRoute>
                             <SpecificAdminManagement />
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/telecaller-management"
+                    element={
+                        <PrivateRoute>
+                            <TelecallerManagement />
                         </PrivateRoute>
                     }
                 />

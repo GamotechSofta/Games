@@ -1,5 +1,6 @@
 import Admin from '../models/admin/admin.js';
 import { verifyToken } from '../utils/jwt.js';
+import { adminHasTelecallerAccess } from '../utils/telecallerAccess.js';
 
 const adminJwtCache = new Map();
 const ADMIN_JWT_CACHE_TTL_MS = 30 * 1000;
@@ -120,6 +121,30 @@ export const verifySuperAdmin = (req, res, next) => {
         next();
     };
     verifyAdmin(req, res, checkRoleAndContinue);
+};
+
+/** Telecaller panel: super_admin, telecaller role, or specific_admin with player tab */
+export const verifyTelecaller = (req, res, next) => {
+    const afterAuth = async () => {
+        try {
+            const role = req.admin?.role;
+            const id = req.admin?._id;
+            if (!role || !id) {
+                return res.status(401).json({ success: false, message: 'Admin authentication required' });
+            }
+            const allowed = await adminHasTelecallerAccess(id, role);
+            if (!allowed) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Telecaller access not permitted for this account',
+                });
+            }
+            return next();
+        } catch (error) {
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    };
+    verifyAdmin(req, res, afterAuth);
 };
 
 /** Only bookie can access - use after verifyAdmin */

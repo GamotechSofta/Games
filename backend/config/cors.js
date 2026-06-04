@@ -9,6 +9,26 @@ function normalizeOrigin(value) {
     return String(value || '').trim().replace(/\/$/, '');
 }
 
+/** Panel / app base URLs merged into allowed origins when set in .env */
+const PANEL_BASE_URL_KEYS = [
+    'FRONTEND_BASE_URL',
+    'ADMIN_BASE_URL',
+    'BOOKIE_BASE_URL',
+    'TELECALLER_BASE_URL',
+];
+
+/** Local Vite dev servers (telecaller = 5177) — appended when CORS_ORIGINS is set */
+const LOCAL_DEV_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5175',
+    'http://localhost:5177',
+    'http://127.0.0.1:5177',
+];
+
 export function parseAllowedOrigins(env = process.env) {
     const raw = env.CORS_ORIGINS || env.CORS_ORIGIN || '';
     const fromEnv = raw
@@ -18,8 +38,17 @@ export function parseAllowedOrigins(env = process.env) {
 
     const merged = new Set(fromEnv);
 
-    const frontend = normalizeOrigin(env.FRONTEND_BASE_URL);
-    if (frontend) merged.add(frontend);
+    for (const key of PANEL_BASE_URL_KEYS) {
+        const origin = normalizeOrigin(env[key]);
+        if (origin) merged.add(origin);
+    }
+
+    const isProd = String(env.NODE_ENV || '').toLowerCase() === 'production';
+    const includeLocalDev = String(env.CORS_INCLUDE_LOCAL_DEV || '').toLowerCase() === 'true'
+        || (!isProd && fromEnv.length > 0);
+    if (includeLocalDev) {
+        for (const o of LOCAL_DEV_ORIGINS) merged.add(o);
+    }
 
     return [...merged];
 }

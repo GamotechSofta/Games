@@ -16,6 +16,13 @@ import {
     getAllSpecificAdmins,
     updateSpecificAdmin,
     deleteSpecificAdmin,
+    createTelecaller,
+    getAllTelecallers,
+    updateTelecaller,
+    deleteTelecaller,
+    toggleTelecallerStatus,
+    revealTelecallerPassword,
+    getTelecallerCallProgress,
 } from '../../controllers/adminController.js';
 import { getLogs, deleteLogs } from '../../controllers/activityLogController.js';
 import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
@@ -40,6 +47,15 @@ router.get('/specific-admins', verifyAdmin, getAllSpecificAdmins);
 router.post('/specific-admins', verifyAdmin, createSpecificAdmin);
 router.put('/specific-admins/:id', verifyAdmin, updateSpecificAdmin);
 router.delete('/specific-admins/:id', verifyAdmin, deleteSpecificAdmin);
+
+// Telecaller accounts (Super Admin only) — for telecaller panel logins
+router.get('/telecallers', verifyAdmin, getAllTelecallers);
+router.post('/telecallers', verifyAdmin, createTelecaller);
+router.put('/telecallers/:id', verifyAdmin, updateTelecaller);
+router.delete('/telecallers/:id', verifyAdmin, deleteTelecaller);
+router.patch('/telecallers/:id/toggle-status', verifyAdmin, toggleTelecallerStatus);
+router.post('/telecallers/:id/reveal-password', verifyAdmin, revealTelecallerPassword);
+router.get('/telecallers/:id/call-progress', verifyAdmin, getTelecallerCallProgress);
 
 // Bookie management routes (Super Admin only)
 router.post('/bookies', verifyAdmin, createBookie); // Create new bookie

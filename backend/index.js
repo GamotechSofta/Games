@@ -19,6 +19,7 @@ import gameRoutes, { adminGameRoutes } from './routes/game.routes.js';
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
+import telecallerRoutes from './routes/telecaller/telecallerRoutes.js';
 import { getClientIp } from './utils/activityLogger.js';
 import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
@@ -179,6 +180,7 @@ app.use('/api/v1/rates', rateRoutes);
 app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
+app.use('/api/v1/telecaller', telecallerRoutes);
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);

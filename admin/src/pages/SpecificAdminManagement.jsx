@@ -7,6 +7,7 @@ import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 const TAB_OPTIONS = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/all-users', label: 'All Players' },
+    { path: '/telecaller', label: 'Telecaller app (player activity)' },
     { path: '/markets', label: 'Markets' },
     { path: '/add-result', label: 'Add Result' },
     { path: '/update-rate', label: 'Update Rate' },

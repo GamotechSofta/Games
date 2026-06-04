@@ -25,7 +25,7 @@ function pruneBookieUsersCache(now = Date.now()) {
  */
 export const getBookieUserIds = async (admin) => {
     if (!admin) return null;
-    if (admin.role === 'super_admin' || admin.role === 'specific_admin') return null;
+    if (admin.role === 'super_admin' || admin.role === 'specific_admin' || admin.role === 'telecaller') return null;
     if (admin.role === 'bookie') {
         const cacheKey = String(admin._id);
         pruneBookieUsersCache();

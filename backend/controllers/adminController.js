@@ -1,8 +1,59 @@
 import Admin from '../models/admin/admin.js';
+import User from '../models/user/user.js';
 import bcrypt from 'bcryptjs';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { encrypt, decrypt } from '../utils/encryption.js';
 import { generateAdminToken } from '../utils/jwt.js';
+import { getTelecallerAssignablePlayerCount, mapSummariesToObject } from './telecallerController.js';
+
+const TELECALLER_PHONE_REGEX = /^[6-9]\d{9}$/;
+
+function normalizeTelecallerPhone(input) {
+    return String(input || '').replace(/\D/g, '').slice(-10);
+}
+
+function setTelecallerPasswordEnc(doc, plainPassword) {
+    if (!plainPassword || String(plainPassword).length < 6) return;
+    try {
+        doc.telecallerPasswordEnc = encrypt(String(plainPassword));
+    } catch {
+        /* ENCRYPTION_KEY missing — login hash still works; reveal unavailable */
+    }
+}
+
+async function verifySecretDeclareForRequest(req, res, { required = false } = {}) {
+    const adminWithSecret = await Admin.findById(req.admin._id).select('+secretDeclarePassword').lean();
+    if (!adminWithSecret?.secretDeclarePassword) {
+        if (required) {
+            res.status(403).json({
+                success: false,
+                message: 'Set your secret declare password in Settings before viewing telecaller passwords.',
+                code: 'SECRET_NOT_CONFIGURED',
+            });
+            return { ok: false };
+        }
+        return { ok: true };
+    }
+    const provided = (req.body?.secretDeclarePassword ?? '').toString().trim();
+    if (!provided) {
+        res.status(400).json({
+            success: false,
+            message: 'Secret declare password is required',
+            code: 'SECRET_REQUIRED',
+        });
+        return { ok: false };
+    }
+    const isValid = await bcrypt.compare(provided, adminWithSecret.secretDeclarePassword);
+    if (!isValid) {
+        res.status(403).json({
+            success: false,
+            message: 'Invalid secret declare password. Enter the correct password.',
+            code: 'INVALID_SECRET_DECLARE_PASSWORD',
+        });
+        return { ok: false };
+    }
+    return { ok: true };
+}
 
 /**
  * Admin login
@@ -19,7 +70,19 @@ export const adminLogin = async (req, res) => {
             });
         }
 
-        const admin = await Admin.findOne({ username });
+        const loginId = String(username).trim();
+        const normalizedPhone = normalizeTelecallerPhone(loginId);
+        const admin = await Admin.findOne(
+            normalizedPhone.length === 10
+                ? {
+                    $or: [
+                        { username: loginId },
+                        { username: normalizedPhone },
+                        { phone: normalizedPhone },
+                    ],
+                }
+                : { username: loginId },
+        );
         if (!admin) {
             return res.status(401).json({
                 success: false,
@@ -43,7 +106,19 @@ export const adminLogin = async (req, res) => {
             });
         }
 
-        const performedByType = admin.role === 'super_admin' ? 'super_admin' : (admin.role === 'specific_admin' ? 'specific_admin' : 'bookie');
+        if (admin.status === 'inactive') {
+            return res.status(403).json({
+                success: false,
+                message: 'This account is inactive. Contact super admin.',
+                code: 'ACCOUNT_INACTIVE',
+            });
+        }
+
+        const performedByType = admin.role === 'super_admin'
+            ? 'super_admin'
+            : (admin.role === 'specific_admin'
+                ? 'specific_admin'
+                : (admin.role === 'telecaller' ? 'telecaller' : 'bookie'));
         await logActivity({
             action: 'admin_login',
             performedBy: admin.username,
@@ -58,9 +133,13 @@ export const adminLogin = async (req, res) => {
             id: admin._id,
             username: admin.username,
             role: admin.role,
+            status: admin.status,
         };
         if (admin.role === 'specific_admin' && Array.isArray(admin.allowedTabs)) {
             data.allowedTabs = admin.allowedTabs;
+        }
+        if (admin.role === 'telecaller') {
+            data.phone = admin.phone || normalizeTelecallerPhone(admin.username) || admin.username;
         }
         const token = generateAdminToken({
             id: admin._id,
@@ -300,7 +379,7 @@ export const getAllSuperAdmins = async (req, res) => {
 
 /** Tab options that can be assigned to a specific admin */
 const SPECIFIC_ADMIN_TABS = [
-    '/dashboard', '/all-users', '/markets', '/add-result', '/update-rate', '/bet-history',
+    '/dashboard', '/all-users', '/telecaller', '/markets', '/add-result', '/update-rate', '/bet-history',
     '/reports', '/revenue', '/payment-management', '/daily-settlement', '/wallet', '/help-desk', '/logs',
 ];
 
@@ -511,6 +590,382 @@ export const deleteSpecificAdmin = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Specific admin deleted',
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Create telecaller account (telecaller panel login only).
+ * Only super_admin. Body: { phone, password } (phone: 10-digit Indian mobile)
+ */
+export const createTelecaller = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can create telecaller accounts',
+            });
+        }
+        const phone = normalizeTelecallerPhone(req.body.phone ?? req.body.username);
+        const { password } = req.body;
+        if (!phone) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mobile number is required',
+            });
+        }
+        if (!TELECALLER_PHONE_REGEX.test(phone)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Enter a valid 10-digit mobile number (starting with 6–9)',
+            });
+        }
+        if (!password || password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password is required and must be at least 6 characters',
+            });
+        }
+        const existing = await Admin.findOne({
+            $or: [{ username: phone }, { phone }],
+        });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: 'This mobile number is already registered',
+            });
+        }
+        const telecaller = new Admin({
+            username: phone,
+            phone,
+            password,
+            role: 'telecaller',
+            status: 'active',
+        });
+        setTelecallerPasswordEnc(telecaller, password);
+        await telecaller.save();
+
+        await logActivity({
+            action: 'create_telecaller',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: telecaller._id.toString(),
+            details: `Telecaller ${phone} created`,
+            ip: getClientIp(req),
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Telecaller account created',
+            data: {
+                id: telecaller._id,
+                _id: telecaller._id,
+                username: telecaller.username,
+                phone: telecaller.phone,
+                role: telecaller.role,
+                status: telecaller.status,
+                hasStoredPassword: !!(telecaller.telecallerPasswordEnc && String(telecaller.telecallerPasswordEnc).length > 0),
+            },
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({
+                success: false,
+                message: 'This mobile number is already registered',
+            });
+        }
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Get all telecaller accounts. Super admin only. */
+export const getAllTelecallers = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can view telecaller accounts',
+            });
+        }
+        const [list, totalPlayers] = await Promise.all([
+            Admin.find({ role: 'telecaller' })
+                .select('-password +telecallerPasswordEnc')
+                .sort({ createdAt: -1 })
+                .lean(),
+            getTelecallerAssignablePlayerCount(),
+        ]);
+        const data = list.map((a) => {
+            const { telecallerPasswordEnc, ...rest } = a;
+            const phone = a.phone || normalizeTelecallerPhone(a.username) || a.username;
+            const calledCount = Array.isArray(a.calledPlayerIds) ? a.calledPlayerIds.length : 0;
+            return {
+                ...rest,
+                phone,
+                hasStoredPassword: !!(telecallerPasswordEnc && String(telecallerPasswordEnc).length > 0),
+                calledCount,
+                totalPlayers,
+                calledPlayersUpdatedAt: a.calledPlayersUpdatedAt || null,
+            };
+        });
+        res.status(200).json({
+            success: true,
+            count: data.length,
+            data,
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Super admin: call progress for one telecaller (load when opening detail — no polling). */
+export const getTelecallerCallProgress = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can view telecaller call progress',
+            });
+        }
+        const { id } = req.params;
+        const telecaller = await Admin.findOne({ _id: id, role: 'telecaller' })
+            .select('username phone calledPlayerIds calledPlayersUpdatedAt playerCallSummaries')
+            .lean();
+        if (!telecaller) {
+            return res.status(404).json({
+                success: false,
+                message: 'Telecaller account not found',
+            });
+        }
+        const [playerIds, totalPlayers] = [
+            telecaller.calledPlayerIds || [],
+            await getTelecallerAssignablePlayerCount(),
+        ];
+        let players = [];
+        if (playerIds.length > 0) {
+            players = await User.find({ _id: { $in: playerIds } })
+                .select('username phone')
+                .lean();
+        }
+        const summaryMap = mapSummariesToObject(telecaller.playerCallSummaries);
+        const playerMap = Object.fromEntries(players.map((p) => [String(p._id), p]));
+        const calledPlayers = playerIds.map((pid) => {
+            const p = playerMap[String(pid)];
+            const sid = String(pid);
+            return {
+                _id: sid,
+                username: p?.username || '—',
+                phone: p?.phone || '—',
+                summary: summaryMap[sid] || '',
+                hasSummary: Boolean(summaryMap[sid]?.trim()),
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                telecallerId: String(telecaller._id),
+                phone: telecaller.phone || normalizeTelecallerPhone(telecaller.username),
+                count: calledPlayers.length,
+                totalPlayers,
+                updatedAt: telecaller.calledPlayersUpdatedAt || null,
+                calledPlayers,
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Update telecaller (password and/or status). Super admin only. */
+export const updateTelecaller = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can update telecaller accounts',
+            });
+        }
+        const { id } = req.params;
+        const { password, status } = req.body;
+        const telecaller = await Admin.findOne({ _id: id, role: 'telecaller' });
+        if (!telecaller) {
+            return res.status(404).json({
+                success: false,
+                message: 'Telecaller account not found',
+            });
+        }
+        if (password != null && String(password).length >= 6) {
+            telecaller.password = password;
+            setTelecallerPasswordEnc(telecaller, password);
+        }
+        if (status && ['active', 'inactive'].includes(status)) {
+            telecaller.status = status;
+        }
+        await telecaller.save();
+
+        await logActivity({
+            action: 'update_telecaller',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: telecaller._id.toString(),
+            details: `Telecaller "${telecaller.username}" updated`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Telecaller updated',
+            data: {
+                id: telecaller._id,
+                username: telecaller.username,
+                phone: telecaller.phone || telecaller.username,
+                role: telecaller.role,
+                status: telecaller.status,
+                hasStoredPassword: !!(telecaller.telecallerPasswordEnc && String(telecaller.telecallerPasswordEnc).length > 0),
+            },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Reveal telecaller login password. Super admin only.
+ * Body: { secretDeclarePassword? } – required if super admin has secret declare password set.
+ */
+export const revealTelecallerPassword = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can reveal telecaller passwords',
+            });
+        }
+        const secretCheck = await verifySecretDeclareForRequest(req, res, { required: true });
+        if (!secretCheck.ok) return;
+
+        const { id } = req.params;
+        const telecaller = await Admin.findOne({ _id: id, role: 'telecaller' })
+            .select('+telecallerPasswordEnc')
+            .lean();
+        if (!telecaller) {
+            return res.status(404).json({
+                success: false,
+                message: 'Telecaller account not found',
+            });
+        }
+        if (!telecaller.telecallerPasswordEnc) {
+            return res.status(404).json({
+                success: false,
+                message: 'Password is not stored for this account. Set a new password in Edit.',
+            });
+        }
+        let password = '';
+        try {
+            password = decrypt(telecaller.telecallerPasswordEnc);
+        } catch {
+            return res.status(500).json({
+                success: false,
+                message: 'Could not decrypt stored password. Check ENCRYPTION_KEY on the server.',
+            });
+        }
+        if (!password) {
+            return res.status(404).json({
+                success: false,
+                message: 'Password is not available for this account. Set a new password in Edit.',
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: { password },
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Delete telecaller account. Super admin only. */
+export const deleteTelecaller = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can delete telecaller accounts',
+            });
+        }
+        const { id } = req.params;
+        const telecaller = await Admin.findOne({ _id: id, role: 'telecaller' });
+        if (!telecaller) {
+            return res.status(404).json({
+                success: false,
+                message: 'Telecaller account not found',
+            });
+        }
+        const username = telecaller.username;
+        await Admin.deleteOne({ _id: id, role: 'telecaller' });
+
+        await logActivity({
+            action: 'delete_telecaller',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: id,
+            details: `Telecaller "${username}" deleted`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Telecaller account deleted',
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Toggle telecaller active/inactive. Super admin only. */
+export const toggleTelecallerStatus = async (req, res) => {
+    try {
+        if (req.admin?.role !== 'super_admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only Super Admin can toggle telecaller status',
+            });
+        }
+        const { id } = req.params;
+        const telecaller = await Admin.findOne({ _id: id, role: 'telecaller' });
+        if (!telecaller) {
+            return res.status(404).json({
+                success: false,
+                message: 'Telecaller account not found',
+            });
+        }
+        telecaller.status = telecaller.status === 'active' ? 'inactive' : 'active';
+        await telecaller.save();
+
+        await logActivity({
+            action: 'toggle_telecaller_status',
+            performedBy: req.admin.username,
+            performedByType: 'super_admin',
+            targetType: 'admin',
+            targetId: telecaller._id.toString(),
+            details: `Telecaller "${telecaller.username}" ${telecaller.status === 'active' ? 'activated' : 'deactivated'}`,
+            ip: getClientIp(req),
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Telecaller ${telecaller.status === 'active' ? 'activated' : 'deactivated'}`,
+            data: {
+                id: telecaller._id,
+                username: telecaller.username,
+                status: telecaller.status,
+            },
         });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });

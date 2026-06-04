@@ -19,6 +19,7 @@ import {
     FaMoneyBillWave,
     FaUserShield,
     FaGamepad,
+    FaHeadset,
 } from 'react-icons/fa';
 
 const MENU_GROUPS = [
@@ -57,6 +58,7 @@ const MENU_GROUPS = [
             { path: '/help-desk', label: 'Help Desk', icon: FaLifeRing },
             { path: '/settings', label: 'Settings', icon: FaCog },
             { path: '/specific-admin', label: 'Specific Admin', icon: FaUserShield, superAdminOnly: true },
+            { path: '/telecaller-management', label: 'Telecallers', icon: FaHeadset, superAdminOnly: true },
         ],
     },
 ];
@@ -101,7 +103,7 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
     };
 
     const isActive = (path) => {
-        if (path === '/specific-admin') return location.pathname === path;
+        if (path === '/specific-admin' || path === '/telecaller-management') return location.pathname === path;
         if (path === '/all-users' || path === '/markets') {
             return location.pathname === path || location.pathname.startsWith(`${path}/`);
         }
