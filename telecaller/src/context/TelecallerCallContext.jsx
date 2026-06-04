@@ -48,6 +48,7 @@ export function TelecallerCallProvider({ children }) {
     const pcRef = useRef(null);
     const localStreamRef = useRef(null);
     const remoteUserIdRef = useRef(null);
+    const pendingIceRef = useRef([]);
 
     const isBusy = status === CALL_STATUS.CALLING || status === CALL_STATUS.IN_CALL;
 
@@ -58,6 +59,7 @@ export function TelecallerCallProvider({ children }) {
         localStreamRef.current = null;
         stopRemoteAudio();
         remoteUserIdRef.current = null;
+        pendingIceRef.current = [];
     }, []);
 
     const endCall = useCallback(() => {
@@ -101,7 +103,7 @@ export function TelecallerCallProvider({ children }) {
                     setStatus(CALL_STATUS.IN_CALL);
                 },
                 onConnectionState: (state) => {
-                    if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+                    if (state === 'failed' || state === 'closed') {
                         endCall();
                     }
                 },
@@ -130,6 +132,10 @@ export function TelecallerCallProvider({ children }) {
             if (from !== remoteUserIdRef.current || !pcRef.current || !answer) return;
             try {
                 await applyAnswer(pcRef.current, answer);
+                for (const candidate of pendingIceRef.current) {
+                    await addIceCandidate(pcRef.current, candidate);
+                }
+                pendingIceRef.current = [];
                 setStatus(CALL_STATUS.IN_CALL);
             } catch (e) {
                 console.error('[call] answer failed', e);
@@ -150,7 +156,11 @@ export function TelecallerCallProvider({ children }) {
         };
 
         const onIce = async ({ from, candidate }) => {
-            if (from !== remoteUserIdRef.current || !pcRef.current) return;
+            if (from !== remoteUserIdRef.current || !candidate) return;
+            if (!pcRef.current) {
+                pendingIceRef.current.push(candidate);
+                return;
+            }
             try {
                 await addIceCandidate(pcRef.current, candidate);
             } catch (_) {}

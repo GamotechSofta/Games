@@ -30,29 +30,68 @@ function buildStunEntries() {
     return urls.map((u) => ({ urls: u }));
 }
 
-function buildTurnEntry() {
+/** Expand a single turn: URL into UDP + TCP + TLS variants for strict NAT / mobile networks. */
+function expandTurnUrls(baseUrls) {
+    const out = new Set();
+    for (const raw of baseUrls) {
+        const u = String(raw || '').trim();
+        if (!u) continue;
+        out.add(u);
+        if (u.startsWith('turn:') && !u.includes('transport=')) {
+            out.add(`${u}?transport=tcp`);
+        }
+        if (u.startsWith('turn:') && !u.startsWith('turns:')) {
+            const hostPart = u.replace(/^turn:/, '');
+            const [hostPort] = hostPart.split('?');
+            if (hostPort) {
+                const host = hostPort.split(':')[0];
+                const port443 = hostPort.includes(':') ? '443' : '443';
+                out.add(`turn:${host}:${port443}`);
+                out.add(`turn:${host}:${port443}?transport=tcp`);
+                out.add(`turns:${host}:${port443}?transport=tcp`);
+            }
+        }
+    }
+    return [...out];
+}
+
+function buildTurnEntries() {
     const username = process.env.TURN_USERNAME?.trim();
     const credential = (process.env.TURN_PASSWORD || process.env.TURN_CREDENTIAL || '').trim();
     const urls = parseList(process.env.TURN_URLS);
     const single = process.env.TURN_URL?.trim();
     if (single && !urls.length) urls.push(single);
 
-    if (!urls.length || !username || !credential) return null;
+    if (!urls.length || !username || !credential) return [];
 
-    // RTCPeerConnection accepts string or array for urls
-    const turnUrls = urls.length === 1 ? urls[0] : urls;
-    return {
-        urls: turnUrls,
+    const expanded = expandTurnUrls(urls);
+    return expanded.map((url) => ({
+        urls: url,
         username,
         credential,
-    };
+    }));
 }
 
 function buildStaticIceServers() {
     const iceServers = [...buildStunEntries()];
-    const turn = buildTurnEntry();
-    if (turn) iceServers.push(turn);
+    iceServers.push(...buildTurnEntries());
     return iceServers;
+}
+
+/** Normalize Metered / mixed API payloads into RTCPeerConnection iceServers. */
+function normalizeIceServers(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const entry of list) {
+        if (!entry || typeof entry !== 'object') continue;
+        const urls = entry.urls ?? entry.url;
+        if (!urls) continue;
+        const item = { urls };
+        if (entry.username) item.username = entry.username;
+        if (entry.credential) item.credential = entry.credential;
+        out.push(item);
+    }
+    return out;
 }
 
 async function fetchMeteredIceServers(apiKey) {
@@ -67,8 +106,8 @@ async function fetchMeteredIceServers(apiKey) {
         throw new Error(`Metered TURN API failed: ${res.status}`);
     }
     const data = await res.json();
-    const list = Array.isArray(data) ? data : data?.iceServers;
-    if (!Array.isArray(list) || list.length === 0) {
+    const list = normalizeIceServers(Array.isArray(data) ? data : data?.iceServers);
+    if (list.length === 0) {
         throw new Error('Metered TURN API returned no iceServers');
     }
     meteredCache = { at: now, iceServers: list };
@@ -79,7 +118,10 @@ async function fetchMeteredIceServers(apiKey) {
  * @returns {Promise<{ iceServers: object[] }>}
  */
 export async function getIceServerConfig() {
-    const meteredKey = process.env.METERED_TURN_API_KEY?.trim();
+    const meteredKey = (
+        process.env.METERED_TURN_API_KEY
+        || process.env.OPENRELAY_API_KEY
+    )?.trim();
     if (meteredKey) {
         try {
             const iceServers = await fetchMeteredIceServers(meteredKey);
@@ -107,7 +149,10 @@ export async function getIceServerConfig() {
 }
 
 export function getIceConfigStatus() {
-    const hasMetered = Boolean(process.env.METERED_TURN_API_KEY?.trim());
+    const hasMetered = Boolean(
+        process.env.METERED_TURN_API_KEY?.trim()
+        || process.env.OPENRELAY_API_KEY?.trim(),
+    );
     const hasTurnEnv = Boolean(
         process.env.TURN_URL?.trim()
         && process.env.TURN_USERNAME?.trim()

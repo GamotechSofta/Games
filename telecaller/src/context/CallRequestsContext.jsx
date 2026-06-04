@@ -13,6 +13,7 @@ import {
     getCallSocket,
     registerTelecaller,
 } from '../services/callSocketService';
+import { getRtcConfiguration } from '../services/iceConfigService';
 
 const CallRequestsContext = createContext(null);
 
@@ -40,6 +41,8 @@ export function CallRequestsProvider({ children }) {
             setRequests([]);
             return undefined;
         }
+
+        getRtcConfiguration().catch(() => {});
 
         const socket = connectCallSocket();
 

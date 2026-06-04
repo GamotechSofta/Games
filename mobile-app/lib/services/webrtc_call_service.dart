@@ -8,6 +8,8 @@ class WebRtcCallService {
   RTCPeerConnection? _pc;
   MediaStream? _localStream;
   final _remoteRenderer = RTCVideoRenderer();
+  final List<Map<String, dynamic>> _pendingIce = [];
+  bool _remoteReady = false;
 
   RTCVideoRenderer get remoteRenderer => _remoteRenderer;
 
@@ -24,7 +26,11 @@ class WebRtcCallService {
     void Function(MediaStream stream)? onRemoteTrack,
   }) async {
     final rtcConfig = await IceConfigService.getRtcConfiguration();
-    final pc = await createPeerConnection(rtcConfig);
+    final config = Map<String, dynamic>.from(rtcConfig);
+    config['iceCandidatePoolSize'] = 10;
+    config['bundlePolicy'] = 'max-bundle';
+
+    final pc = await createPeerConnection(config);
 
     pc.onIceCandidate = (c) {
       if (c.candidate != null && c.candidate!.isNotEmpty) {
@@ -40,6 +46,35 @@ class WebRtcCallService {
     };
 
     return pc;
+  }
+
+  Future<void> _flushPendingIce() async {
+    if (_pc == null) return;
+    final pending = List<Map<String, dynamic>>.from(_pendingIce);
+    _pendingIce.clear();
+    for (final candidate in pending) {
+      await addIceCandidate(candidate);
+    }
+  }
+
+  Future<void> _waitForIceGathering(RTCPeerConnection pc) async {
+    if (pc.iceGatheringState ==
+        RTCIceGatheringState.RTCIceGatheringStateComplete) {
+      return;
+    }
+    final completer = Completer<void>();
+    void listener(RTCIceGatheringState state) {
+      if (state == RTCIceGatheringState.RTCIceGatheringStateComplete &&
+          !completer.isCompleted) {
+        completer.complete();
+      }
+    }
+
+    pc.onIceGatheringState = (state) => listener(state);
+    Future.delayed(const Duration(seconds: 10), () {
+      if (!completer.isCompleted) completer.complete();
+    });
+    await completer.future;
   }
 
   /// Accept telecaller offer and return SDP answer map for signaling.
@@ -61,14 +96,25 @@ class WebRtcCallService {
     await _pc!.setRemoteDescription(
       RTCSessionDescription(offer['sdp'] as String, offer['type'] as String),
     );
+    _remoteReady = true;
+    await _flushPendingIce();
+
     final answer = await _pc!.createAnswer();
     await _pc!.setLocalDescription(answer);
+    await _waitForIceGathering(_pc!);
 
-    return {'type': answer.type, 'sdp': answer.sdp};
+    final local = await _pc!.getLocalDescription();
+    return {
+      'type': local?.type ?? answer.type,
+      'sdp': local?.sdp ?? answer.sdp,
+    };
   }
 
   Future<void> addIceCandidate(Map<String, dynamic> candidate) async {
-    if (_pc == null) return;
+    if (_pc == null || !_remoteReady) {
+      _pendingIce.add(candidate);
+      return;
+    }
     await _pc!.addCandidate(
       RTCIceCandidate(
         candidate['candidate'] as String?,
@@ -86,6 +132,8 @@ class WebRtcCallService {
   }
 
   Future<void> _cleanup() async {
+    _remoteReady = false;
+    _pendingIce.clear();
     _localStream?.getTracks().forEach((t) => t.stop());
     _localStream?.dispose();
     _localStream = null;

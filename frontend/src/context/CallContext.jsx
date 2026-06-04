@@ -23,6 +23,7 @@ import {
   playRemoteAudio,
   stopRemoteAudio,
 } from '../services/webrtcService';
+import { getRtcConfiguration } from '../services/iceConfigService';
 import {
   subscribeToCallPush,
   fetchPendingCall,
@@ -65,6 +66,7 @@ export function CallProvider({ children, enabled }) {
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
   const telecallerIdRef = useRef(null);
+  const pendingIceRef = useRef([]);
 
   const getUserIds = useCallback(() => {
     const u = readUser();
@@ -81,6 +83,7 @@ export function CallProvider({ children, enabled }) {
     localStreamRef.current = null;
     stopRemoteAudio();
     telecallerIdRef.current = null;
+    pendingIceRef.current = [];
   }, []);
 
   const endCall = useCallback(() => {
@@ -98,6 +101,8 @@ export function CallProvider({ children, enabled }) {
 
   const openIncomingFromServer = useCallback((data) => {
     if (!data?.offer || !data?.from) return;
+    telecallerIdRef.current = data.from;
+    pendingIceRef.current = [];
     setIncoming({
       callId: data.callId,
       from: data.from,
@@ -149,7 +154,7 @@ export function CallProvider({ children, enabled }) {
           setRequestState('in-call');
         },
         onConnectionState: (state) => {
-          if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+          if (state === 'failed' || state === 'closed') {
             endCall();
           }
         },
@@ -158,6 +163,10 @@ export function CallProvider({ children, enabled }) {
       attachLocalStream(pc, stream);
 
       const answer = await createAnswer(pc, inc.offer);
+      for (const candidate of pendingIceRef.current) {
+        await addIceCandidate(pc, candidate);
+      }
+      pendingIceRef.current = [];
       getCallSocket()?.emit('answer-call', {
         from: userId,
         to: inc.from,
@@ -177,6 +186,10 @@ export function CallProvider({ children, enabled }) {
     setRequestState('waiting');
     setCallStatus('waiting');
   }, [getUserIds]);
+
+  useEffect(() => {
+    if (enabled) getRtcConfiguration().catch(() => {});
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
@@ -208,7 +221,11 @@ export function CallProvider({ children, enabled }) {
     };
 
     const onIce = async ({ from, candidate }) => {
-      if (from !== telecallerIdRef.current || !pcRef.current) return;
+      if (from !== telecallerIdRef.current || !candidate) return;
+      if (!pcRef.current) {
+        pendingIceRef.current.push(candidate);
+        return;
+      }
       try {
         await addIceCandidate(pcRef.current, candidate);
       } catch (_) {}
