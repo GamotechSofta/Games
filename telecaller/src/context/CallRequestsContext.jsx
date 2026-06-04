@@ -79,6 +79,8 @@ export function CallRequestsProvider({ children }) {
         socket.on('ice-candidate', wrap('ice-candidate'));
         socket.on('call-ended', wrap('call-ended'));
         socket.on('user-unavailable', wrap('user-unavailable'));
+        socket.on('call-busy', wrap('call-busy'));
+        socket.on('user-busy', wrap('user-busy'));
 
         if (socket.connected) onConnect();
 
@@ -93,6 +95,8 @@ export function CallRequestsProvider({ children }) {
             socket.off('ice-candidate', wrap('ice-candidate'));
             socket.off('call-ended', wrap('call-ended'));
             socket.off('user-unavailable', wrap('user-unavailable'));
+            socket.off('call-busy', wrap('call-busy'));
+            socket.off('user-busy', wrap('user-busy'));
         };
     }, [telecallerId, telecallerName]);
 

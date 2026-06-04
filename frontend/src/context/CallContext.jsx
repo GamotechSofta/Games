@@ -23,8 +23,27 @@ import {
   playRemoteAudio,
   stopRemoteAudio,
 } from '../services/webrtcService';
+import {
+  subscribeToCallPush,
+  fetchPendingCall,
+  rejectPendingCallApi,
+  isCallPushEnabledLocally,
+} from '../services/callPushService';
 
 const CallContext = createContext(null);
+
+function getIncomingCallIdFromUrl() {
+  if (typeof window === 'undefined') return null;
+  return new URLSearchParams(window.location.search).get('incomingCall');
+}
+
+function clearIncomingCallUrl() {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has('incomingCall')) return;
+  url.searchParams.delete('incomingCall');
+  window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+}
 
 function readUser() {
   try {
@@ -40,6 +59,8 @@ export function CallProvider({ children, enabled }) {
   const [requestState, setRequestState] = useState('idle'); // idle | waiting | in-call
   const [incoming, setIncoming] = useState(null);
   const [callStatus, setCallStatus] = useState('idle');
+  const [pushAlertsEnabled, setPushAlertsEnabled] = useState(() => isCallPushEnabledLocally());
+  const [pushError, setPushError] = useState('');
 
   const pcRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -75,9 +96,25 @@ export function CallProvider({ children, enabled }) {
     setTimeout(() => setCallStatus('idle'), 1500);
   }, [cleanupCall, getUserIds]);
 
+  const openIncomingFromServer = useCallback((data) => {
+    if (!data?.offer || !data?.from) return;
+    setIncoming({
+      callId: data.callId,
+      from: data.from,
+      offer: data.offer,
+      callerName: data.callerName || 'Aakda.in',
+    });
+    setRequestState('incoming');
+    setCallStatus('ringing');
+  }, []);
+
   const rejectIncoming = useCallback(() => {
     const { userId } = getUserIds();
     const from = incoming?.from;
+    const callId = incoming?.callId;
+    if (callId && userId) {
+      rejectPendingCallApi(callId, userId).catch(() => {});
+    }
     if (userId && from) {
       getCallSocket()?.emit('reject-call', { from: userId, to: from });
     }
@@ -98,7 +135,7 @@ export function CallProvider({ children, enabled }) {
       localStreamRef.current = stream;
       telecallerIdRef.current = inc.from;
 
-      const pc = createPeerConnection({
+      const pc = await createPeerConnection({
         onIceCandidate: (candidate) => {
           getCallSocket()?.emit('ice-candidate', {
             from: userId,
@@ -159,13 +196,7 @@ export function CallProvider({ children, enabled }) {
     };
 
     const onIncoming = (data) => {
-      setIncoming({
-        from: data.from,
-        offer: data.offer,
-        callerName: data.callerName || 'Telecaller',
-      });
-      setRequestState('incoming');
-      setCallStatus('ringing');
+      openIncomingFromServer(data);
     };
 
     const onEnded = ({ from }) => {
@@ -201,7 +232,58 @@ export function CallProvider({ children, enabled }) {
       disconnectUserCallSocket();
       cleanupCall();
     };
-  }, [enabled, getUserIds, cleanupCall]);
+  }, [enabled, getUserIds, cleanupCall, openIncomingFromServer]);
+
+  const enableCallAlerts = useCallback(async () => {
+    const { userId } = getUserIds();
+    if (!userId) return;
+    setPushError('');
+    try {
+      await subscribeToCallPush(userId);
+      setPushAlertsEnabled(true);
+    } catch (err) {
+      setPushError(err.message || 'Could not enable call alerts');
+    }
+  }, [getUserIds]);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const { userId } = getUserIds();
+    if (!userId) return undefined;
+
+    const loadFromCallId = async (callId) => {
+      try {
+        const data = await fetchPendingCall(callId, userId);
+        openIncomingFromServer({
+          callId: data.callId,
+          from: data.from,
+          offer: data.offer,
+          callerName: data.callerName,
+        });
+        clearIncomingCallUrl();
+      } catch (err) {
+        console.warn('[call] pending load failed', err);
+      }
+    };
+
+    const callId = getIncomingCallIdFromUrl();
+    if (callId) loadFromCallId(callId);
+
+    const onSwMessage = (event) => {
+      if (event.data?.type === 'incoming-call-open' && event.data.callId) {
+        loadFromCallId(event.data.callId);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', onSwMessage);
+
+    if (pushAlertsEnabled && Notification.permission === 'granted') {
+      subscribeToCallPush(userId).catch(() => {});
+    }
+
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', onSwMessage);
+    };
+  }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled]);
 
   const value = {
     connected,
@@ -213,6 +295,9 @@ export function CallProvider({ children, enabled }) {
     rejectIncoming,
     endCall,
     isInCall: callStatus === 'in-call',
+    pushAlertsEnabled,
+    pushError,
+    enableCallAlerts,
   };
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;

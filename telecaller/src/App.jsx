@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlayersProvider } from './context/PlayersContext';
 import { CallRequestsProvider } from './context/CallRequestsContext';
+import { TelecallerCallProvider } from './context/TelecallerCallContext';
 import Login from './pages/Login';
 import AppLayout from './components/layout/AppLayout';
 import OverviewPage from './pages/OverviewPage';
@@ -30,6 +31,7 @@ const PrivateRoute = ({ children }) => {
 
 const AppShell = () => (
     <CallRequestsProvider>
+        <TelecallerCallProvider>
         <PlayersProvider>
         <Routes>
             <Route
@@ -51,6 +53,7 @@ const AppShell = () => (
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         </PlayersProvider>
+        </TelecallerCallProvider>
     </CallRequestsProvider>
 );
 

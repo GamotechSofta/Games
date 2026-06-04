@@ -21,6 +21,7 @@ import {
 } from 'react-icons/hi';
 import { clearUserAuth } from '../utils/auth';
 import RequestCallButton from '../components/call/RequestCallButton';
+import EnableCallAlerts from '../components/call/EnableCallAlerts';
 import { triggerApkDownload } from '../utils/downloads';
 import {
   bidAccent,
@@ -278,7 +279,8 @@ const Profile = () => {
               <p className={`text-xl font-bold leading-tight md:text-2xl ${bidAccent}`}>₹{formattedBalance}</p>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 space-y-3">
+              <EnableCallAlerts />
               <RequestCallButton />
             </div>
 

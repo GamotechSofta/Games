@@ -30,6 +30,6 @@ Enter the same **MongoDB user `_id`** as the web app `localStorage.user.id`.
 
 See `lib/services/fcm_service.dart`. Add Firebase, then on push `incoming_call` reconnect socket and open `IncomingCallScreen`.
 
-## TURN
+## Cross-network calls (not only same Wi‑Fi)
 
-Replace placeholder in `lib/services/webrtc_config.dart` for production NAT traversal.
+Configure TURN on the **backend** `.env` (`METERED_TURN_API_KEY` or `TURN_*`). The app loads ICE servers from `GET /api/v1/call/ice-config`.

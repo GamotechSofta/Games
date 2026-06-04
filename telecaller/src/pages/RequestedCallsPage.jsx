@@ -1,4 +1,4 @@
-import { FaPhone, FaPhoneSlash, FaCircle, FaInbox } from 'react-icons/fa';
+import { FaPhone, FaCircle, FaInbox } from 'react-icons/fa';
 import PageHeader from '../components/layout/PageHeader';
 import { useTelecallerCalls, CALL_STATUS } from '../hooks/useTelecallerCalls';
 
@@ -17,10 +17,9 @@ const RequestedCallsPage = () => {
         connected,
         requests,
         status,
-        activeUser,
         startCall,
-        endCall,
         isBusy,
+        callError,
     } = useTelecallerCalls();
 
     return (
@@ -47,24 +46,17 @@ const RequestedCallsPage = () => {
                 <span className="text-sm text-gray-600">
                     · Status: <strong className="text-teal-700">{statusLabel[status] || status}</strong>
                 </span>
-                {isBusy && activeUser && (
-                    <button
-                        type="button"
-                        onClick={endCall}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700"
-                    >
-                        <FaPhoneSlash className="w-4 h-4" />
-                        End call
-                    </button>
+                {isBusy && (
+                    <span className="text-xs text-teal-700 font-medium">
+                        (finish this call before starting another)
+                    </span>
                 )}
             </div>
 
-            {isBusy && activeUser && (
-                <div className="mb-4 p-4 rounded-xl border border-teal-200 bg-teal-50">
-                    <p className="text-sm text-teal-900 font-medium">
-                        Active: {activeUser.name} · {activeUser.phone}
-                    </p>
-                </div>
+            {callError && !isBusy && (
+                <p className="mb-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    {callError}
+                </p>
             )}
 
             {requests.length === 0 ? (
@@ -96,6 +88,7 @@ const RequestedCallsPage = () => {
                                 type="button"
                                 disabled={isBusy}
                                 onClick={() => startCall(req)}
+                                title={isBusy ? 'End your current call first' : 'Start voice call'}
                                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <FaPhone className="w-4 h-4" />

@@ -1,12 +1,8 @@
-/** WebRTC: audio-only + STUN + TURN placeholder */
+/** Fallback if /call/ice-config is unreachable (STUN only — same Wi‑Fi may work, not reliable cross-network). */
 export const ICE_SERVERS = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        {
-            urls: 'turn:your-turn-server.com:3478',
-            username: 'turnuser',
-            credential: 'turnpassword',
-        },
+        { urls: 'stun:stun1.l.google.com:19302' },
     ],
 };
 

@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
 import '../services/call_socket_service.dart';
 import '../services/user_session.dart';
+import '../services/native_call_service.dart';
 import 'incoming_call_screen.dart';
 
-/// Main screen: register socket, request call, listen for incoming calls.
+typedef StartBackgroundFn = Future<void> Function({
+  required String userId,
+  String name,
+  String phone,
+});
+typedef StopBackgroundFn = Future<void> Function();
+
+/// Main screen: register socket, request call, background listener for native ring.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.onStartBackground,
+    this.onStopBackground,
+  });
+
+  final StartBackgroundFn? onStartBackground;
+  final StopBackgroundFn? onStopBackground;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -18,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _phoneCtrl = TextEditingController();
 
   bool _connected = false;
+  bool _backgroundOn = false;
   String _status = 'idle';
 
   @override
@@ -33,7 +49,19 @@ class _HomeScreenState extends State<HomeScreen> {
       _userIdCtrl.text = s['userId']!;
       _nameCtrl.text = s['name']!;
       _phoneCtrl.text = s['phone']!;
+      await _enableBackgroundListener();
     }
+  }
+
+  Future<void> _enableBackgroundListener() async {
+    final userId = _userIdCtrl.text.trim();
+    if (userId.isEmpty || widget.onStartBackground == null) return;
+    await widget.onStartBackground!(
+      userId: userId,
+      name: _nameCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+    );
+    if (mounted) setState(() => _backgroundOn = true);
   }
 
   void _setupSocket() {
@@ -48,9 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _connected = false);
     });
 
-    _socket.on('incoming-call', (data) {
+    _socket.on('incoming-call', (data) async {
       if (!mounted) return;
       final map = Map<String, dynamic>.from(data as Map);
+      final callId = map['callId']?.toString() ?? '';
+      await NativeCallService.showIncomingCall(
+        callId: callId.isNotEmpty ? callId : DateTime.now().millisecondsSinceEpoch.toString(),
+        callerName: map['callerName']?.toString() ?? 'Aakda.in',
+        handle: 'aakda.in',
+      );
+      if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => IncomingCallScreen(
@@ -96,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     _register();
+    _enableBackgroundListener();
     _socket.requestCall(
       userId: userId,
       name: _nameCtrl.text.trim(),
@@ -117,7 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Request a Call'),
+        title: const Text('Aakda Calls'),
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
       ),
@@ -132,7 +168,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: _connected ? Colors.green : Colors.grey,
               ),
               const SizedBox(width: 8),
-              Text(_connected ? 'Connected to server' : 'Connecting…'),
+              Expanded(
+                child: Text(
+                  _connected
+                      ? (_backgroundOn
+                          ? 'Connected — background call listener on'
+                          : 'Connected')
+                      : 'Connecting…',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -161,6 +205,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             keyboardType: TextInputType.phone,
           ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _enableBackgroundListener,
+            icon: const Icon(Icons.notifications_active),
+            label: const Text('Enable incoming calls (lock screen)'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
+          ),
           const SizedBox(height: 24),
           if (_status == 'waiting')
             const Card(
@@ -168,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
-                  'Waiting for telecaller…\nKeep the app open.',
+                  'Waiting for telecaller…',
                   style: TextStyle(color: Color(0xFF9A3412)),
                 ),
               ),
@@ -185,8 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 32),
           const Text(
-            'When a telecaller calls you, an incoming call screen appears. '
-            'For background wake-up, configure FCM in lib/services/fcm_service.dart.',
+            'Incoming calls use native Answer/Decline on the lock screen (no Firebase). '
+            'Keep "incoming calls" enabled and allow notifications + microphone.',
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],

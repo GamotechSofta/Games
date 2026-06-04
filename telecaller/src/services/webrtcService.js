@@ -1,10 +1,15 @@
-import { ICE_SERVERS, MEDIA_CONSTRAINTS } from './webrtcConfig';
+import { MEDIA_CONSTRAINTS } from './webrtcConfig';
+import { getRtcConfiguration } from './iceConfigService';
 
 /**
  * Outbound call from telecaller browser to user.
  */
-export function createPeerConnection({ onIceCandidate, onRemoteTrack, onConnectionState }) {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onConnectionState }) {
+    const rtcConfig = await getRtcConfiguration();
+    const pc = new RTCPeerConnection({
+        ...rtcConfig,
+        iceTransportPolicy: 'all',
+    });
 
     pc.onicecandidate = (e) => {
         if (e.candidate) onIceCandidate?.(e.candidate);

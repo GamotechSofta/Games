@@ -20,6 +20,9 @@ import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
 import telecallerRoutes from './routes/telecaller/telecallerRoutes.js';
+import callRoutes from './routes/call/callRoutes.js';
+import { getIceConfigStatus } from './config/iceServers.js';
+import { isWebPushConfigured } from './services/callPushService.js';
 import { getClientIp } from './utils/activityLogger.js';
 import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
@@ -181,6 +184,7 @@ app.use('/api/v1/bank-details', bankDetailRoutes);
 app.use('/api/v1/commission', commissionRoutes);
 app.use('/api/v1/settlements', settlementRoutes);
 app.use('/api/v1/telecaller', telecallerRoutes);
+app.use('/api/v1/call', callRoutes);
 
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
@@ -213,6 +217,17 @@ async function startServer() {
         initPlayerSocket(httpServer, { isProd });
         httpServer.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
+            const ice = getIceConfigStatus();
+            if (ice.turnConfigured) {
+                console.log(`[ice] WebRTC TURN ready (source: ${ice.source}) — cross-network calls enabled`);
+            } else {
+                console.warn('[ice] TURN not configured — WebRTC calls may only work on same LAN/Wi‑Fi. See .env.example (METERED_TURN_API_KEY or TURN_*)');
+            }
+            if (isWebPushConfigured()) {
+                console.log('[push] Web Push (VAPID) ready — incoming call notifications without Firebase');
+            } else {
+                console.warn('[push] WEB_PUSH_VAPID_* not set — run: node scripts/generateVapidKeys.js');
+            }
         });
     } catch (error) {
         console.error('Failed to start server:', error?.message || error);

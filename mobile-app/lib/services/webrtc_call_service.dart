@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'ice_config_service.dart';
 import 'webrtc_config.dart';
 
 /// Inbound WebRTC audio call (user answers telecaller).
@@ -22,7 +23,8 @@ class WebRtcCallService {
     required void Function(RTCIceCandidate candidate) onIceCandidate,
     void Function(MediaStream stream)? onRemoteTrack,
   }) async {
-    final pc = await createPeerConnection(WebRtcConfig.iceServers);
+    final rtcConfig = await IceConfigService.getRtcConfiguration();
+    final pc = await createPeerConnection(rtcConfig);
 
     pc.onIceCandidate = (c) {
       if (c.candidate != null && c.candidate!.isNotEmpty) {

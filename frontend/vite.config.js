@@ -39,29 +39,13 @@ export default defineConfig(({ mode }) => {
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      devOptions: { enabled: true },
       includeAssets: ['favIcon.png', 'favIcon.webp', 'aakdaLogo.webp'],
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,png,webp,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/res\.cloudinary\.com\//i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'cloudinary-assets',
-              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
-            },
-          },
-          {
-            urlPattern: /\/api\/v1\/markets\/get-markets/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'markets-list',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 5 },
-            },
-          },
-        ],
-      },
       manifest: {
         name: 'Aakda Games',
         short_name: 'Aakda',

@@ -1,13 +1,9 @@
-/// WebRTC ICE servers: STUN + TURN placeholder (audio only).
+/// Fallback STUN-only; production uses IceConfigService from backend.
 class WebRtcConfig {
   static Map<String, dynamic> get iceServers => {
         'iceServers': [
           {'urls': 'stun:stun.l.google.com:19302'},
-          {
-            'urls': 'turn:your-turn-server.com:3478',
-            'username': 'turnuser',
-            'credential': 'turnpassword',
-          },
+          {'urls': 'stun:stun1.l.google.com:19302'},
         ],
       };
 

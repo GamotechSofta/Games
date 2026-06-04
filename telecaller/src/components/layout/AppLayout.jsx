@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
 import Sidebar from './Sidebar';
+import ActiveCallBar from '../call/ActiveCallBar';
 
 const AppLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,6 +34,7 @@ const AppLayout = () => {
                 </header>
 
                 <main className="flex-1 p-4 sm:p-6 max-w-[1400px] w-full mx-auto">
+                    <ActiveCallBar />
                     <Outlet />
                 </main>
             </div>

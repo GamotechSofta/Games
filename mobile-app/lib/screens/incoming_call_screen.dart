@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/call_socket_service.dart';
 import '../services/webrtc_call_service.dart';
+import '../services/pending_call_api.dart';
+import '../services/native_call_service.dart';
 
 /// Incoming call UI — Accept / Reject + WebRTC audio.
 class IncomingCallScreen extends StatefulWidget {
@@ -9,11 +11,13 @@ class IncomingCallScreen extends StatefulWidget {
     required this.socket,
     required this.incoming,
     required this.userId,
+    this.loadByCallId = false,
   });
 
   final CallSocketService socket;
   final Map<String, dynamic> incoming;
   final String userId;
+  final bool loadByCallId;
 
   @override
   State<IncomingCallScreen> createState() => _IncomingCallScreenState();
@@ -24,11 +28,17 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   String _phase = 'ringing'; // ringing | in-call | ended
   String? _telecallerId;
 
+  Map<String, dynamic> _incoming = {};
+
   @override
   void initState() {
     super.initState();
-    _telecallerId = widget.incoming['from']?.toString();
+    _incoming = Map<String, dynamic>.from(widget.incoming);
+    _telecallerId = _incoming['from']?.toString();
     _webrtc.initRenderer();
+    if (widget.loadByCallId) {
+      _loadPending();
+    }
 
     widget.socket.on('ice-candidate', (data) async {
       final map = Map<String, dynamic>.from(data as Map);
@@ -47,14 +57,36 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
   }
 
+  Future<void> _loadPending() async {
+    final callId = _incoming['callId']?.toString() ?? '';
+    if (callId.isEmpty) return;
+    final data = await PendingCallApi.fetchByCallId(
+      callId,
+      userId: widget.userId.isNotEmpty ? widget.userId : null,
+    );
+    if (data == null || !mounted) return;
+    setState(() {
+      _incoming = data;
+      _telecallerId = data['from']?.toString();
+    });
+  }
+
   Future<void> _accept() async {
-    final offer = widget.incoming['offer'];
-    if (offer == null || _telecallerId == null) return;
+    final offer = _incoming['offer'];
+    if (offer == null || _telecallerId == null || _telecallerId!.isEmpty) {
+      await _loadPending();
+    }
+    final offer2 = _incoming['offer'];
+    final from = _incoming['from']?.toString();
+    if (offer2 == null || from == null || from.isEmpty) return;
+    _telecallerId = from;
 
     setState(() => _phase = 'connecting');
 
     try {
-      final offerMap = Map<String, dynamic>.from(offer as Map);
+      final callId = _incoming['callId']?.toString();
+      if (callId != null) NativeCallService.endCall(callId);
+      final offerMap = Map<String, dynamic>.from(offer2 as Map);
       final answer = await _webrtc.acceptOffer(offerMap);
 
       _webrtc.bindIceHandler((candidate) {
@@ -107,7 +139,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
   @override
   Widget build(BuildContext context) {
     final callerName =
-        widget.incoming['callerName']?.toString() ?? 'Telecaller';
+        _incoming['callerName']?.toString() ?? 'Aakda.in';
 
     return Scaffold(
       backgroundColor: Colors.black87,

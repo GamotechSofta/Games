@@ -9,6 +9,20 @@ import {
     removeCallRequest,
     listCallRequests,
 } from './callRequestStore.js';
+import { storePendingIncomingCall, removePendingForUser } from './pendingCallStore.js';
+import { sendIncomingCallPush } from '../services/callPushService.js';
+import {
+    lockCall,
+    unlockPair,
+    unlockTelecaller,
+    unlockUser,
+    isTelecallerOnCall,
+    isUserOnCall,
+    getTelecallerActiveUser,
+} from './telecallerCallLock.js';
+
+/** @type {import('socket.io').Server | null} */
+let ioRef = null;
 
 /** userId -> socket.id */
 const userIdToSocket = new Map();
@@ -39,11 +53,26 @@ function emitToUser(io, userId, event, data) {
     return Boolean(sid);
 }
 
+/** Route signaling to a user (e.g. reject from push while app closed). */
+export function routeCallEventToUser(userId, event, data) {
+    if (!ioRef) return false;
+    return emitToUser(ioRef, userId, event, data);
+}
+
+export function isUserOnline(userId) {
+    return Boolean(getSocketIdForUser(userId));
+}
+
 function unregisterSocket(socket) {
     const meta = socketMeta.get(socket.id);
     if (meta?.userId) {
         const current = userIdToSocket.get(meta.userId);
         if (current === socket.id) userIdToSocket.delete(meta.userId);
+        if (meta.role === 'telecaller') {
+            unlockTelecaller(meta.userId);
+        } else {
+            unlockUser(meta.userId);
+        }
     }
     socketMeta.delete(socket.id);
 }
@@ -53,6 +82,7 @@ function unregisterSocket(socket) {
  * @param {import('socket.io').Server} io
  */
 export function initCallSocket(io) {
+    ioRef = io;
     io.on('connection', (socket) => {
         socket.on('register', (payload) => {
             const { userId, role, name } = normalizeRegisterPayload(payload);
@@ -92,27 +122,79 @@ export function initCallSocket(io) {
         });
 
         /** Telecaller starts WebRTC call to user */
-        socket.on('call-user', (data = {}) => {
+        socket.on('call-user', async (data = {}) => {
             const from = String(data.from || socket.data.userId || '').trim();
             const to = String(data.to || '').trim();
             const offer = data.offer;
             if (!from || !to || !offer) return;
 
+            if (isTelecallerOnCall(from)) {
+                const activeUser = getTelecallerActiveUser(from);
+                if (activeUser !== to) {
+                    socket.emit('call-busy', {
+                        message: 'You are already on a call. End it before starting another.',
+                        activeUserId: activeUser,
+                    });
+                    return;
+                }
+            }
+
+            if (isUserOnCall(to)) {
+                socket.emit('user-busy', {
+                    userId: to,
+                    message: 'This player is already on a call.',
+                });
+                return;
+            }
+
+            if (!lockCall(from, to)) {
+                socket.emit('call-busy', {
+                    message: 'Could not start call — line busy. Try again in a moment.',
+                });
+                return;
+            }
+
             removeCallRequest(to);
 
-            const delivered = emitToUser(io, to, 'incoming-call', {
+            const callerName = data.callerName || 'Aakda.in';
+            const callId = storePendingIncomingCall({
+                userId: to,
+                from,
+                callerName,
+                offer,
+            });
+
+            const baseUrl = (process.env.FRONTEND_BASE_URL || 'https://aakda.in').replace(/\/$/, '');
+            const openUrl = `${baseUrl}/?incomingCall=${callId}`;
+
+            const incomingPayload = {
+                callId,
                 from,
                 to,
                 offer,
-                callerName: data.callerName || 'Telecaller',
-            });
+                callerName,
+            };
+
+            const delivered = emitToUser(io, to, 'incoming-call', incomingPayload);
+
+            // Web Push: ring when tab closed / phone locked (no Firebase — standard VAPID)
+            sendIncomingCallPush({
+                userId: to,
+                callId,
+                callerName,
+                openUrl,
+            }).catch((err) => console.error('[push] incoming call notify failed:', err.message));
 
             if (!delivered) {
-                socket.emit('user-unavailable', { userId: to, reason: 'offline' });
-                io.to('telecallers').emit('call-request-removed', { userId: to });
-            } else {
-                io.to('telecallers').emit('call-request-removed', { userId: to });
+                unlockPair(from, to);
+                socket.emit('user-unavailable', {
+                    userId: to,
+                    reason: 'offline',
+                    pushSent: true,
+                    callId,
+                });
             }
+            io.to('telecallers').emit('call-request-removed', { userId: to });
         });
 
         socket.on('answer-call', (data = {}) => {
@@ -120,6 +202,7 @@ export function initCallSocket(io) {
             const to = String(data.to || '').trim();
             const answer = data.answer;
             if (!from || !to || !answer) return;
+            removePendingForUser(from);
             emitToUser(io, to, 'call-answered', { from, to, answer });
         });
 
@@ -127,6 +210,8 @@ export function initCallSocket(io) {
             const from = String(data.from || socket.data.userId || '').trim();
             const to = String(data.to || '').trim();
             if (!from || !to) return;
+            removePendingForUser(from);
+            unlockPair(to, from);
             emitToUser(io, to, 'call-rejected', { from, to });
         });
 
@@ -142,6 +227,8 @@ export function initCallSocket(io) {
             const from = String(data.from || socket.data.userId || '').trim();
             const to = String(data.to || '').trim();
             if (!to) return;
+            unlockPair(from, to);
+            unlockPair(to, from);
             emitToUser(io, to, 'call-ended', { from, to });
         });
 
