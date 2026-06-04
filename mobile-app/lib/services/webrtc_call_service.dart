@@ -26,9 +26,12 @@ class WebRtcCallService {
     void Function(MediaStream stream)? onRemoteTrack,
   }) async {
     final rtcConfig = await IceConfigService.getRtcConfiguration();
-    final config = Map<String, dynamic>.from(rtcConfig);
-    config['iceCandidatePoolSize'] = 10;
-    config['bundlePolicy'] = 'max-bundle';
+    final config = <String, dynamic>{
+      'iceServers': rtcConfig['iceServers'],
+      'iceTransportPolicy': rtcConfig['iceTransportPolicy'] ?? 'all',
+      'iceCandidatePoolSize': 10,
+      'bundlePolicy': 'max-bundle',
+    };
 
     final pc = await createPeerConnection(config);
 

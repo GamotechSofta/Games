@@ -13,11 +13,16 @@ export async function getRtcConfiguration() {
       const res = await fetch(`${API_BASE_URL}/call/ice-config`);
       const json = await res.json();
       if (json.success && json.data?.iceServers?.length) {
-        cached = { iceServers: json.data.iceServers };
-        if (!json.data.turnConfigured) {
-          console.warn(
-            '[call] TURN not configured on server — cross-network calls may fail. '
-            + 'Set METERED_TURN_API_KEY or TURN_* in backend .env',
+        cached = {
+          iceServers: json.data.iceServers,
+          turnConfigured: Boolean(json.data.turnConfigured),
+          iceTransportPolicy: json.data.iceTransportPolicy
+            || (json.data.turnConfigured ? 'relay' : 'all'),
+        };
+        if (!cached.turnConfigured) {
+          console.error(
+            '[call] Server has no TURN — calls will NOT work on different internet. '
+            + 'Admin must set METERED_TURN_API_KEY on api server and restart.',
           );
         }
         return cached;
@@ -25,11 +30,20 @@ export async function getRtcConfiguration() {
     } catch (err) {
       console.warn('[call] ICE config fetch failed', err);
     }
-    cached = FALLBACK;
+    cached = {
+      iceServers: FALLBACK.iceServers,
+      turnConfigured: false,
+      iceTransportPolicy: 'all',
+    };
     return cached;
   })();
 
   const result = await loading;
   loading = null;
   return result;
+}
+
+export function clearIceConfigCache() {
+  cached = null;
+  loading = null;
 }

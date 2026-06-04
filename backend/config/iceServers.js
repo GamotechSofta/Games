@@ -2,10 +2,10 @@
  * ICE servers for WebRTC (STUN + TURN).
  * TURN relay is required when caller and callee are on different networks / strict NAT.
  *
- * Configure either:
- * - TURN_URL + TURN_USERNAME + TURN_PASSWORD (or TURN_CREDENTIAL)
- * - TURN_URLS (comma-separated) + username/password
- * - METERED_TURN_API_KEY (fetches ephemeral credentials from Metered.ca)
+ * Configure ONE of:
+ * - METERED_TURN_API_KEY or OPENRELAY_API_KEY (fetches from Metered — recommended)
+ * - ICE_SERVERS_JSON (paste full iceServers array from Metered dashboard)
+ * - TURN_URL + TURN_USERNAME + TURN_PASSWORD
  */
 
 const DEFAULT_STUN = [
@@ -24,13 +24,21 @@ function parseList(raw) {
         .filter(Boolean);
 }
 
+export function iceServersHaveTurn(iceServers) {
+    if (!Array.isArray(iceServers)) return false;
+    return iceServers.some((s) => {
+        const u = s.urls;
+        const str = Array.isArray(u) ? u.join(' ') : String(u || '');
+        return str.includes('turn:') || str.includes('turns:');
+    });
+}
+
 function buildStunEntries() {
     const fromEnv = parseList(process.env.STUN_URLS);
     const urls = fromEnv.length ? fromEnv : DEFAULT_STUN;
     return urls.map((u) => ({ urls: u }));
 }
 
-/** Expand a single turn: URL into UDP + TCP + TLS variants for strict NAT / mobile networks. */
 function expandTurnUrls(baseUrls) {
     const out = new Set();
     for (const raw of baseUrls) {
@@ -45,10 +53,9 @@ function expandTurnUrls(baseUrls) {
             const [hostPort] = hostPart.split('?');
             if (hostPort) {
                 const host = hostPort.split(':')[0];
-                const port443 = hostPort.includes(':') ? '443' : '443';
-                out.add(`turn:${host}:${port443}`);
-                out.add(`turn:${host}:${port443}?transport=tcp`);
-                out.add(`turns:${host}:${port443}?transport=tcp`);
+                out.add(`turn:${host}:443`);
+                out.add(`turn:${host}:443?transport=tcp`);
+                out.add(`turns:${host}:443?transport=tcp`);
             }
         }
     }
@@ -72,13 +79,25 @@ function buildTurnEntries() {
     }));
 }
 
+function parseIceServersJson() {
+    const raw = process.env.ICE_SERVERS_JSON?.trim();
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw);
+        const list = Array.isArray(parsed) ? parsed : parsed?.iceServers;
+        return normalizeIceServers(list);
+    } catch (err) {
+        console.error('[ice] ICE_SERVERS_JSON invalid JSON:', err.message);
+        return null;
+    }
+}
+
 function buildStaticIceServers() {
     const iceServers = [...buildStunEntries()];
     iceServers.push(...buildTurnEntries());
     return iceServers;
 }
 
-/** Normalize Metered / mixed API payloads into RTCPeerConnection iceServers. */
 function normalizeIceServers(list) {
     if (!Array.isArray(list)) return [];
     const out = [];
@@ -115,9 +134,19 @@ async function fetchMeteredIceServers(apiKey) {
 }
 
 /**
- * @returns {Promise<{ iceServers: object[] }>}
+ * @returns {Promise<{ iceServers: object[], turnConfigured: boolean, source: string }>}
  */
 export async function getIceServerConfig() {
+    const fromJson = parseIceServersJson();
+    if (fromJson?.length) {
+        const hasTurn = iceServersHaveTurn(fromJson);
+        return {
+            iceServers: fromJson,
+            turnConfigured: hasTurn,
+            source: hasTurn ? 'ice-servers-json' : 'ice-servers-json-stun-only',
+        };
+    }
+
     const meteredKey = (
         process.env.METERED_TURN_API_KEY
         || process.env.OPENRELAY_API_KEY
@@ -125,41 +154,38 @@ export async function getIceServerConfig() {
     if (meteredKey) {
         try {
             const iceServers = await fetchMeteredIceServers(meteredKey);
-            return { iceServers };
+            return {
+                iceServers,
+                turnConfigured: iceServersHaveTurn(iceServers),
+                source: 'metered',
+            };
         } catch (err) {
             console.error('[ice] Metered fetch failed, falling back to env TURN:', err.message);
         }
     }
 
     const iceServers = buildStaticIceServers();
-    const hasTurn = iceServers.some((s) => {
-        const u = s.urls;
-        const str = Array.isArray(u) ? u.join(' ') : String(u || '');
-        return str.includes('turn:') || str.includes('turns:');
-    });
+    const turnConfigured = iceServersHaveTurn(iceServers);
 
-    if (!hasTurn) {
+    if (!turnConfigured) {
         console.warn(
-            '[ice] No TURN server configured — calls may only work on the same LAN/Wi‑Fi. '
-            + 'Set TURN_URL, TURN_USERNAME, TURN_PASSWORD or METERED_TURN_API_KEY in .env',
+            '[ice] No TURN server — calls only work on same Wi‑Fi/LAN. '
+            + 'Set METERED_TURN_API_KEY (https://www.metered.ca/tools/openrelay/) or TURN_* / ICE_SERVERS_JSON in .env',
         );
     }
 
-    return { iceServers };
+    return {
+        iceServers,
+        turnConfigured,
+        source: turnConfigured ? 'env-turn' : 'stun-only',
+    };
 }
 
-export function getIceConfigStatus() {
-    const hasMetered = Boolean(
-        process.env.METERED_TURN_API_KEY?.trim()
-        || process.env.OPENRELAY_API_KEY?.trim(),
-    );
-    const hasTurnEnv = Boolean(
-        process.env.TURN_URL?.trim()
-        && process.env.TURN_USERNAME?.trim()
-        && (process.env.TURN_PASSWORD || process.env.TURN_CREDENTIAL),
-    );
+/** @deprecated Use getIceServerConfig() — kept for startup log */
+export async function getIceConfigStatus() {
+    const cfg = await getIceServerConfig();
     return {
-        turnConfigured: hasMetered || hasTurnEnv,
-        source: hasMetered ? 'metered' : hasTurnEnv ? 'env' : 'stun-only',
+        turnConfigured: cfg.turnConfigured,
+        source: cfg.source,
     };
 }

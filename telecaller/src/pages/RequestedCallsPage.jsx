@@ -1,5 +1,6 @@
 import { FaPhone, FaCircle, FaInbox } from 'react-icons/fa';
 import PageHeader from '../components/layout/PageHeader';
+import TurnServerBanner from '../components/call/TurnServerBanner';
 import { useTelecallerCalls, CALL_STATUS } from '../hooks/useTelecallerCalls';
 
 const statusLabel = {
@@ -28,6 +29,8 @@ const RequestedCallsPage = () => {
                 title="Requested calls"
                 description="This tab is only for players who tapped Request a call in the app. Use Player calls for your full calling list."
             />
+
+            <TurnServerBanner />
 
             <div className="mb-4 flex flex-wrap items-center gap-3">
                 <span

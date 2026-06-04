@@ -1,6 +1,10 @@
 import { MEDIA_CONSTRAINTS } from './webrtcConfig';
 import { getRtcConfiguration } from './iceConfigService';
-import { createIceCandidateQueue, waitForIceGatheringComplete } from './webrtcIce';
+import {
+    createIceCandidateQueue,
+    waitForIceGatheringComplete,
+    serializeIceCandidate,
+} from './webrtcIce';
 
 /**
  * Outbound call from telecaller browser to user.
@@ -8,8 +12,8 @@ import { createIceCandidateQueue, waitForIceGatheringComplete } from './webrtcIc
 export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onConnectionState }) {
     const rtcConfig = await getRtcConfiguration();
     const pc = new RTCPeerConnection({
-        ...rtcConfig,
-        iceTransportPolicy: 'all',
+        iceServers: rtcConfig.iceServers,
+        iceTransportPolicy: rtcConfig.iceTransportPolicy || 'all',
         iceCandidatePoolSize: 10,
         bundlePolicy: 'max-bundle',
     });
@@ -18,7 +22,9 @@ export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onCo
     pc._iceQueue = iceQueue;
 
     pc.onicecandidate = (e) => {
-        if (e.candidate) onIceCandidate?.(e.candidate);
+        if (e.candidate) {
+            onIceCandidate?.(serializeIceCandidate(e.candidate));
+        }
     };
 
     pc.ontrack = (e) => {
@@ -31,7 +37,12 @@ export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onCo
     };
 
     pc.oniceconnectionstatechange = () => {
-        onConnectionState?.(pc.iceConnectionState === 'connected' ? 'connected' : pc.connectionState);
+        const ice = pc.iceConnectionState;
+        if (ice === 'connected' || ice === 'completed') {
+            onConnectionState?.('connected');
+        } else if (ice === 'failed') {
+            onConnectionState?.('failed');
+        }
     };
 
     return pc;

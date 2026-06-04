@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { getIceServerConfig, getIceConfigStatus } from '../config/iceServers.js';
+import { getIceServerConfig } from '../config/iceServers.js';
 import {
     getVapidPublicKey,
     isWebPushConfigured,
@@ -14,14 +14,15 @@ import { routeCallEventToUser } from '../socket/callSocket.js';
 
 export const getIceConfig = async (req, res) => {
     try {
-        const { iceServers } = await getIceServerConfig();
-        const status = getIceConfigStatus();
+        const { iceServers, turnConfigured, source } = await getIceServerConfig();
         res.status(200).json({
             success: true,
             data: {
                 iceServers,
-                turnConfigured: status.turnConfigured,
-                source: status.source,
+                turnConfigured,
+                source,
+                /** Use relay-only when true — required for different ISPs / mobile data */
+                iceTransportPolicy: turnConfigured ? 'relay' : 'all',
             },
         });
     } catch (error) {

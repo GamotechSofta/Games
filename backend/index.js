@@ -217,12 +217,16 @@ async function startServer() {
         initPlayerSocket(httpServer, { isProd });
         httpServer.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
-            const ice = getIceConfigStatus();
-            if (ice.turnConfigured) {
-                console.log(`[ice] WebRTC TURN ready (source: ${ice.source}) — cross-network calls enabled`);
-            } else {
-                console.warn('[ice] TURN not configured — WebRTC calls may only work on same LAN/Wi‑Fi. See .env.example (METERED_TURN_API_KEY or TURN_*)');
-            }
+            getIceConfigStatus().then((ice) => {
+                if (ice.turnConfigured) {
+                    console.log(`[ice] WebRTC TURN ready (source: ${ice.source}) — cross-network calls enabled`);
+                } else {
+                    console.warn(
+                        '[ice] TURN not configured — calls fail on different internet. '
+                        + 'Set METERED_TURN_API_KEY in .env (see .env.example) and run: node scripts/checkTurnSetup.js',
+                    );
+                }
+            }).catch((err) => console.warn('[ice] config check failed:', err.message));
             if (isWebPushConfigured()) {
                 console.log('[push] Web Push (VAPID) ready — incoming call notifications without Firebase');
             } else {

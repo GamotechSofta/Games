@@ -18,6 +18,7 @@ import {
     playRemoteAudio,
     stopRemoteAudio,
 } from '../services/webrtcService';
+import { getRtcConfiguration } from '../services/iceConfigService';
 
 export const CALL_STATUS = {
     IDLE: 'idle',
@@ -82,6 +83,16 @@ export function TelecallerCallProvider({ children }) {
 
         setCallError('');
         cleanup();
+
+        const iceCfg = await getRtcConfiguration();
+        if (!iceCfg.turnConfigured) {
+            setCallError(
+                'Server has no TURN relay — calls cannot work on different internet. '
+                + 'Set METERED_TURN_API_KEY on api.aakda.in and restart backend.',
+            );
+            return;
+        }
+
         setStatus(CALL_STATUS.CALLING);
         setActiveUser(request);
         remoteUserIdRef.current = request.userId;

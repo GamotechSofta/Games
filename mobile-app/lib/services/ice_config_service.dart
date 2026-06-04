@@ -29,12 +29,21 @@ class IceConfigService {
           final data = json['data'] as Map<String, dynamic>?;
           final list = data?['iceServers'] as List<dynamic>?;
           if (list != null && list.isNotEmpty) {
-            _cached = {'iceServers': list};
-            _cachedAt = DateTime.now();
             final turnOk = data?['turnConfigured'] == true;
+            final policy = data?['iceTransportPolicy'] as String?
+                ?? (turnOk ? 'relay' : 'all');
+            _cached = {
+              'iceServers': list,
+              'iceTransportPolicy': policy,
+              'turnConfigured': turnOk,
+            };
+            _cachedAt = DateTime.now();
             if (!turnOk) {
               // ignore: avoid_print
-              print('[call] TURN not configured on server — set METERED_TURN_API_KEY or TURN_* in .env');
+              print(
+                '[call] TURN not configured on server — cross-network calls will fail. '
+                'Set METERED_TURN_API_KEY on backend.',
+              );
             }
             return _cached!;
           }
@@ -45,7 +54,11 @@ class IceConfigService {
       print('[call] ICE config fetch failed: $e');
     }
 
-    _cached = WebRtcConfig.iceServers;
+    _cached = {
+      ...WebRtcConfig.iceServers,
+      'iceTransportPolicy': 'all',
+      'turnConfigured': false,
+    };
     _cachedAt = DateTime.now();
     return _cached!;
   }

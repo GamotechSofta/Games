@@ -2,6 +2,12 @@
  * Trickle ICE: queue remote candidates until setRemoteDescription completes.
  */
 
+export function serializeIceCandidate(candidate) {
+  if (!candidate) return null;
+  if (typeof candidate.toJSON === 'function') return candidate.toJSON();
+  return candidate;
+}
+
 export function createIceCandidateQueue(pc) {
   const queue = [];
 
@@ -40,7 +46,7 @@ export function createIceCandidateQueue(pc) {
   };
 }
 
-export function waitForIceGatheringComplete(pc, timeoutMs = 10000) {
+export function waitForIceGatheringComplete(pc, timeoutMs = 12000) {
   return new Promise((resolve) => {
     if (!pc || pc.iceGatheringState === 'complete') {
       resolve();
