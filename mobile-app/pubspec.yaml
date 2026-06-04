@@ -1,0 +1,25 @@
+name: games_mobile
+description: Games mobile app with click-to-call (WebRTC + Socket.IO)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  socket_io_client: ^2.0.3+1
+  flutter_webrtc: ^0.12.4
+  shared_preferences: ^2.3.3
+  # FCM: add firebase_core + firebase_messaging when Firebase project is configured
+  # firebase_core: ^3.8.1
+  # firebase_messaging: ^15.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -17,6 +17,8 @@ import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
 import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
+import { CallProvider } from '../context/CallContext';
+import IncomingCallOverlay from '../components/call/IncomingCallOverlay';
 
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
@@ -178,8 +180,16 @@ const Layout = ({ children }) => {
   if (isAdminPanel) return <>{children}</>;
   if (!hasUser) return <Navigate to="/login" replace />;
 
+  const callEnabled = Boolean(hasUser && !isAdminPanel);
+  const wrapCalls = (node) => (
+    <CallProvider enabled={callEnabled}>
+      {node}
+      <IncomingCallOverlay />
+    </CallProvider>
+  );
+
   if (isDesktop) {
-    return (
+    return wrapCalls(
       <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-[#141415]">
         <Suspense fallback={<RouteFallback />}>
           <DesktopDashboardLayout
@@ -189,7 +199,7 @@ const Layout = ({ children }) => {
             {children}
           </DesktopDashboardLayout>
         </Suspense>
-      </div>
+      </div>,
     );
   }
 
@@ -208,7 +218,7 @@ const Layout = ({ children }) => {
           ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
           : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
 
-    return (
+    return wrapCalls(
       <div
         className={
           hideBottomNavOnMobile
@@ -233,7 +243,7 @@ const Layout = ({ children }) => {
           </div>
         </div>
         {!hideBottomNavOnMobile && <BottomNavbar />}
-      </div>
+      </div>,
     );
   }
 

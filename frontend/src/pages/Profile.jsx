@@ -20,6 +20,7 @@ import {
   HiOutlineTrendingUp,
 } from 'react-icons/hi';
 import { clearUserAuth } from '../utils/auth';
+import RequestCallButton from '../components/call/RequestCallButton';
 import { triggerApkDownload } from '../utils/downloads';
 import {
   bidAccent,
@@ -275,6 +276,10 @@ const Profile = () => {
                 {t('profile.walletBalance')}
               </p>
               <p className={`text-xl font-bold leading-tight md:text-2xl ${bidAccent}`}>₹{formattedBalance}</p>
+            </div>
+
+            <div className="mt-3">
+              <RequestCallButton />
             </div>
 
             <div className="mt-2.5 grid grid-cols-2 gap-2">

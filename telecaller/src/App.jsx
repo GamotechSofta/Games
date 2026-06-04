@@ -2,11 +2,13 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlayersProvider } from './context/PlayersContext';
+import { CallRequestsProvider } from './context/CallRequestsContext';
 import Login from './pages/Login';
 import AppLayout from './components/layout/AppLayout';
 import OverviewPage from './pages/OverviewPage';
 import PlayerCallsPage from './pages/PlayerCallsPage';
 import BetsPage from './pages/BetsPage';
+import RequestedCallsPage from './pages/RequestedCallsPage';
 
 const PrivateRoute = ({ children }) => {
     const { session, loading } = useAuth();
@@ -27,7 +29,8 @@ const PrivateRoute = ({ children }) => {
 };
 
 const AppShell = () => (
-    <PlayersProvider>
+    <CallRequestsProvider>
+        <PlayersProvider>
         <Routes>
             <Route
                 element={(
@@ -37,6 +40,8 @@ const AppShell = () => (
                 )}
             >
                 <Route path="/dashboard" element={<OverviewPage />} />
+                <Route path="/requested-calls" element={<RequestedCallsPage />} />
+                <Route path="/live-calls" element={<Navigate to="/requested-calls" replace />} />
                 <Route path="/call-players" element={<PlayerCallsPage />} />
                 <Route path="/bets" element={<BetsPage />} />
                 <Route path="/players" element={<Navigate to="/call-players" replace />} />
@@ -45,7 +50,8 @@ const AppShell = () => (
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-    </PlayersProvider>
+        </PlayersProvider>
+    </CallRequestsProvider>
 );
 
 const AppRoutes = () => (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import RequestCallButton from '../../components/call/RequestCallButton';
 import {
   backBtn,
   bidAccent,
@@ -157,6 +158,10 @@ const SupportNew = () => {
           </div>
         ) : (
           <>
+            <div className={`rounded-2xl p-4 mb-4 shadow-sm ${bidSurface}`}>
+              <p className={`text-sm font-medium mb-3 ${bidFieldLabel}`}>Need help on a call?</p>
+              <RequestCallButton />
+            </div>
             <form
               onSubmit={handleSubmit}
               className={`rounded-2xl p-4 sm:p-6 space-y-5 shadow-sm ${bidSurface}`}

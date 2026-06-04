@@ -3,6 +3,7 @@ import { setWalletSocketIo, playerWalletRoom } from './walletSocketBridge.js';
 import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { resolveActivePlayerUserIdFromSubscribe } from '../utils/playerSocketAuth.js';
 import { parseAllowedOrigins } from '../config/cors.js';
+import { initCallSocket } from './callSocket.js';
 
 /** @type {Server | null} */
 let io = null;
@@ -29,6 +30,8 @@ export function initPlayerSocket(httpServer, opts = {}) {
   });
 
   setWalletSocketIo(io);
+
+  initCallSocket(io);
 
   io.on('connection', (socket) => {
     socket.on('wallet:subscribe', async (payload = {}) => {

@@ -1,10 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FaSignOutAlt, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { useCallRequests } from '../../context/CallRequestsContext';
 import { NAV_ITEMS } from '../../constants/navItems';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const { session, logout } = useAuth();
+    const { requestCount } = useCallRequests();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -49,17 +51,25 @@ const Sidebar = ({ isOpen, onClose }) => {
             </div>
 
             <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-                {NAV_ITEMS.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        className={linkClass}
-                        onClick={onClose}
-                    >
-                        <item.icon className="w-4 h-4 shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                    </NavLink>
-                ))}
+                {NAV_ITEMS.map((item) => {
+                    const badge = item.showRequestBadge && requestCount > 0 ? requestCount : 0;
+                    return (
+                        <NavLink
+                            key={item.path}
+                            to={item.path}
+                            className={linkClass}
+                            onClick={onClose}
+                        >
+                            <item.icon className="w-4 h-4 shrink-0" />
+                            <span className="truncate flex-1">{item.label}</span>
+                            {badge > 0 && (
+                                <span className="min-w-[1.25rem] h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                    {badge > 99 ? '99+' : badge}
+                                </span>
+                            )}
+                        </NavLink>
+                    );
+                })}
             </nav>
 
             <div className="p-3 border-t border-gray-200">
