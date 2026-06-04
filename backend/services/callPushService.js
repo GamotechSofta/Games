@@ -25,35 +25,48 @@ export function isWebPushConfigured() {
     );
 }
 
+function defaultPlayerBaseUrl() {
+    return (process.env.FRONTEND_BASE_URL || 'https://aakda.in').replace(/\/$/, '');
+}
+
+function buildOpenUrl(callId, appOrigin) {
+    const base = (appOrigin || defaultPlayerBaseUrl()).replace(/\/$/, '');
+    return `${base}/?incomingCall=${callId}`;
+}
+
 /**
  * Ring user's devices via Web Push (works when site closed / phone locked on supported browsers).
  */
-export async function sendIncomingCallPush({ userId, callId, callerName, openUrl }) {
+export async function sendIncomingCallPush({ userId, callId, callerName }) {
     if (!initVapid()) {
-        console.warn('[push] VAPID keys missing — set WEB_PUSH_VAPID_* in .env (run: node scripts/generateVapidKeys.js)');
-        return { sent: 0, failed: 0 };
+        console.warn('[push] VAPID keys missing — set WEB_PUSH_VAPID_* in .env (run: npm run generate-vapid)');
+        return { sent: 0, failed: 0, skipped: 'no-vapid' };
     }
 
     const subs = await PushSubscription.find({ userId }).lean();
-    if (!subs.length) return { sent: 0, failed: 0 };
-
-    const payload = JSON.stringify({
-        title: 'Aakda.in is calling',
-        body: `${callerName || 'Support'} wants to talk to you`,
-        tag: `incoming-call-${callId}`,
-        data: {
-            type: 'incoming-call',
-            callId,
-            userId: String(userId),
-            callerName: callerName || 'Aakda.in',
-            url: openUrl,
-        },
-    });
+    if (!subs.length) {
+        console.warn(`[push] No subscriptions for user ${userId} — player must tap "Enable call alerts"`);
+        return { sent: 0, failed: 0, skipped: 'no-subs' };
+    }
 
     let sent = 0;
     let failed = 0;
 
     await Promise.all(subs.map(async (sub) => {
+        const openUrl = buildOpenUrl(callId, sub.appOrigin);
+        const payload = JSON.stringify({
+            title: 'Aakda.in is calling',
+            body: `${callerName || 'Support'} wants to talk to you`,
+            tag: `incoming-call-${callId}`,
+            data: {
+                type: 'incoming-call',
+                callId,
+                userId: String(userId),
+                callerName: callerName || 'Aakda.in',
+                url: openUrl,
+            },
+        });
+
         try {
             await webpush.sendNotification(
                 {
@@ -61,16 +74,25 @@ export async function sendIncomingCallPush({ userId, callId, callerName, openUrl
                     keys: sub.keys,
                 },
                 payload,
-                { TTL: 60, urgency: 'high' },
+                {
+                    TTL: 120,
+                    urgency: 'high',
+                    topic: `call-${callId}`,
+                },
             );
             sent += 1;
         } catch (err) {
             failed += 1;
+            console.warn('[push] send failed:', err.statusCode || err.message);
             if (err.statusCode === 404 || err.statusCode === 410) {
                 await PushSubscription.deleteOne({ _id: sub._id });
             }
         }
     }));
+
+    if (sent > 0) {
+        console.log(`[push] incoming call ${callId} → ${sent} device(s)`);
+    }
 
     return { sent, failed };
 }

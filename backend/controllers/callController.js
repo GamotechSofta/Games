@@ -55,6 +55,8 @@ export const subscribeWebPush = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid push subscription' });
         }
 
+        const appOrigin = String(req.body?.appOrigin || '').trim().replace(/\/$/, '');
+
         await PushSubscription.findOneAndUpdate(
             { endpoint: subscription.endpoint },
             {
@@ -66,6 +68,7 @@ export const subscribeWebPush = async (req, res) => {
                 },
                 userAgent: req.headers['user-agent'] || '',
                 platform: 'web',
+                appOrigin,
             },
             { upsert: true, new: true },
         );

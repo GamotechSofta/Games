@@ -164,9 +164,6 @@ export function initCallSocket(io) {
                 offer,
             });
 
-            const baseUrl = (process.env.FRONTEND_BASE_URL || 'https://aakda.in').replace(/\/$/, '');
-            const openUrl = `${baseUrl}/?incomingCall=${callId}`;
-
             const incomingPayload = {
                 callId,
                 from,
@@ -182,7 +179,6 @@ export function initCallSocket(io) {
                 userId: to,
                 callId,
                 callerName,
-                openUrl,
             }).catch((err) => console.error('[push] incoming call notify failed:', err.message));
 
             if (!delivered) {

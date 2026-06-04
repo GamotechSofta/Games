@@ -7,9 +7,27 @@ import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-const API_BASE = self.location.origin.includes('localhost')
-  ? `${self.location.origin}/api/v1`
-  : `${self.location.origin}/api/v1`;
+/** API base baked at build from VITE_API_BASE_URL (needed when API is on another host). */
+function resolveApiBase() {
+  const raw = import.meta.env.VITE_API_BASE_URL || '';
+  let url = String(raw).trim().replace(/\/+$/, '');
+  if (!url) {
+    return `${self.location.origin}/api/v1`;
+  }
+  if (!/\/api\/v1$/i.test(url)) {
+    if (url.startsWith('/')) {
+      url = url === '/' ? '/api/v1' : `${url}/api/v1`;
+    } else {
+      url = `${url}/api/v1`;
+    }
+  }
+  if (url.startsWith('/')) {
+    return `${self.location.origin}${url}`;
+  }
+  return url;
+}
+
+const API_BASE = resolveApiBase();
 
 async function rejectPendingCall(callId, userId) {
   try {
@@ -38,8 +56,9 @@ self.addEventListener('push', (event) => {
       body,
       icon: '/favIcon.png',
       badge: '/favIcon.png',
-      tag: payload.tag || 'incoming-call',
+      tag: payload.tag || `incoming-call-${data.callId || 'ring'}`,
       requireInteraction: true,
+      silent: false,
       vibrate: [400, 150, 400, 150, 400],
       actions: [
         { action: 'answer', title: 'Answer' },

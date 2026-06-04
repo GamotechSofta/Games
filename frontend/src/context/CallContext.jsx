@@ -30,6 +30,7 @@ import {
   rejectPendingCallApi,
   isCallPushEnabledLocally,
 } from '../services/callPushService';
+import { showIncomingCallNotification } from '../services/callNotificationService';
 
 const CallContext = createContext(null);
 
@@ -103,14 +104,19 @@ export function CallProvider({ children, enabled }) {
     if (!data?.offer || !data?.from) return;
     telecallerIdRef.current = data.from;
     pendingIceRef.current = [];
+    const callerName = data.callerName || 'Aakda.in';
     setIncoming({
       callId: data.callId,
       from: data.from,
       offer: data.offer,
-      callerName: data.callerName || 'Aakda.in',
+      callerName,
     });
     setRequestState('incoming');
     setCallStatus('ringing');
+    showIncomingCallNotification({
+      callId: data.callId,
+      callerName,
+    }).catch(() => {});
   }, []);
 
   const rejectIncoming = useCallback(() => {
@@ -262,6 +268,20 @@ export function CallProvider({ children, enabled }) {
       setPushError(err.message || 'Could not enable call alerts');
     }
   }, [getUserIds]);
+
+  /** Re-register push when permission already granted (e.g. after reinstall). */
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const { userId } = getUserIds();
+    if (!userId) return undefined;
+    if (Notification.permission !== 'granted') return undefined;
+
+    subscribeToCallPush(userId)
+      .then(() => setPushAlertsEnabled(true))
+      .catch(() => {});
+
+    return undefined;
+  }, [enabled, getUserIds]);
 
   useEffect(() => {
     if (!enabled) return undefined;

@@ -3,10 +3,29 @@ import { API_BASE_URL } from '../config/api';
 /**
  * Web Push (VAPID) for incoming calls when site closed / phone locked — no Firebase.
  */
+
+export async function waitForServiceWorker(timeoutMs = 15000) {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Service worker not supported');
+  }
+  if (navigator.serviceWorker.controller) {
+    return navigator.serviceWorker.ready;
+  }
+  return Promise.race([
+    navigator.serviceWorker.ready,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Service worker not ready — reload the app once')), timeoutMs);
+    }),
+  ]);
+}
+
 export async function fetchVapidPublicKey() {
   const res = await fetch(`${API_BASE_URL}/call/push/vapid-public-key`);
   const json = await res.json();
   if (!json.success || !json.data?.publicKey) {
+    throw new Error('Call alerts not configured on server (admin must set WEB_PUSH_VAPID_* keys)');
+  }
+  if (!json.data.configured) {
     throw new Error('Call alerts not configured on server');
   }
   return json.data.publicKey;
@@ -33,22 +52,45 @@ export async function subscribeToCallPush(userId) {
     if (perm !== 'granted') throw new Error('Notification permission denied');
   }
 
+  await waitForServiceWorker();
   const reg = await navigator.serviceWorker.ready;
+
+  try {
+    await reg.update();
+  } catch (_) {}
+
   const vapidKey = await fetchVapidPublicKey();
+  const appServerKey = urlBase64ToUint8Array(vapidKey);
 
   let sub = await reg.pushManager.getSubscription();
+  if (sub) {
+    const existingKey = sub.options?.applicationServerKey;
+    let needsResubscribe = !existingKey;
+    if (existingKey && existingKey.byteLength) {
+      const a = new Uint8Array(existingKey);
+      const b = appServerKey;
+      needsResubscribe = a.length !== b.length || a.some((v, i) => v !== b[i]);
+    }
+    if (needsResubscribe) {
+      await sub.unsubscribe();
+      sub = null;
+    }
+  }
+
   if (!sub) {
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      applicationServerKey: appServerKey,
     });
   }
 
   const subscription = sub.toJSON();
+  const appOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
   const res = await fetch(`${API_BASE_URL}/call/push/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, subscription }),
+    body: JSON.stringify({ userId, subscription, appOrigin }),
   });
   const json = await res.json();
   if (!json.success) throw new Error(json.message || 'Failed to enable call alerts');

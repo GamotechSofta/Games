@@ -19,6 +19,7 @@ import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
 import IncomingCallOverlay from '../components/call/IncomingCallOverlay';
+import CallAlertsBanner from '../components/call/CallAlertsBanner';
 
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
@@ -183,6 +184,7 @@ const Layout = ({ children }) => {
   const callEnabled = Boolean(hasUser && !isAdminPanel);
   const wrapCalls = (node) => (
     <CallProvider enabled={callEnabled}>
+      <CallAlertsBanner />
       {node}
       <IncomingCallOverlay />
     </CallProvider>

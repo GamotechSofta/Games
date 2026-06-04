@@ -34,10 +34,14 @@ Socket path: `/socket.io` (same server as wallet socket).
 
 ## Incoming call when user left site / phone locked (no Firebase)
 
-1. Run `npm run generate-vapid` in backend, add keys to `.env`.
-2. User taps **Enable call alerts** on Profile (web) — grants notification permission.
-3. On telecaller **Call Now**, server stores offer + sends **Web Push**: "Aakda.in is calling" with Answer / Decline.
+1. Run `npm run generate-vapid` in backend, add `WEB_PUSH_VAPID_*` to **production** env (Render/host) and restart.
+2. Player taps **Enable call alerts** on Profile (or the banner) — grants notification permission and registers Web Push.
+3. On telecaller **Call Now**, server stores offer + sends **Web Push** (and shows a notification if the tab is backgrounded but socket is still connected).
 4. Tapping opens `/?incomingCall={callId}` and loads pending offer from `GET /api/v1/call/pending/:callId`.
+
+**iPhone:** Web Push works only from the **Home Screen PWA** (Safari → Share → Add to Home Screen), iOS 16.4+.
+
+**Android Chrome:** Allow notifications for the site; keep call alerts enabled after login.
 
 **Flutter app:** foreground background service + native CallKit-style UI (`flutter_callkit_incoming`), no FCM.
 

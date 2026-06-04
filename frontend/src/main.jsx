@@ -53,17 +53,22 @@ function startApp() {
 
   scheduleCriticalChunkPrefetch()
 
-  if (import.meta.env.PROD) {
-    window.addEventListener(
-      'load',
-      () => {
-        import('virtual:pwa-register').then(({ registerSW }) => {
-          registerSW({ immediate: false })
+  window.addEventListener(
+    'load',
+    () => {
+      import('virtual:pwa-register').then(({ registerSW }) => {
+        registerSW({
+          immediate: true,
+          onRegisteredSW() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+            }
+          },
         })
-      },
-      { once: true },
-    )
-  }
+      }).catch(() => {})
+    },
+    { once: true },
+  )
 }
 
 startApp()

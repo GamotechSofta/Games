@@ -14,6 +14,8 @@ const pushSubscriptionSchema = new mongoose.Schema({
     },
     userAgent: { type: String, default: '' },
     platform: { type: String, default: 'web' },
+    /** Where the player PWA was opened (e.g. https://aakda.in) — used for notification deep links */
+    appOrigin: { type: String, default: '' },
 }, {
     timestamps: true,
 });

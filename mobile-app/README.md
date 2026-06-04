@@ -26,9 +26,14 @@ Enter the same **MongoDB user `_id`** as the web app `localStorage.user.id`.
 - `socket_io_client` — signaling (`register`, `call-request`, `incoming-call`, etc.)
 - `flutter_webrtc` — audio-only peer connection
 
-## FCM (background incoming calls)
+## Incoming calls (no Firebase)
 
-See `lib/services/fcm_service.dart`. Add Firebase, then on push `incoming_call` reconnect socket and open `IncomingCallScreen`.
+- **Socket.IO** — `incoming-call` when the app is open or background service is running
+- **Background service** — `lib/services/background_call_service.dart` keeps the socket alive on Android
+- **Native lock screen UI** — `lib/services/native_call_service.dart` (CallKit-style Answer / Decline)
+- **Pending call API** — `GET /api/v1/call/pending/:callId` if the app was killed and reopened from a web push link
+
+The **web player app** uses **Web Push (VAPID)** via the service worker — not Firebase Cloud Messaging.
 
 ## Cross-network calls (not only same Wi‑Fi)
 

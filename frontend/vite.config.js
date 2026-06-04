@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
       srcDir: 'src',
       filename: 'sw.js',
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: false,
       devOptions: { enabled: true },
       includeAssets: ['favIcon.png', 'favIcon.webp', 'aakdaLogo.webp'],
       manifest: {
