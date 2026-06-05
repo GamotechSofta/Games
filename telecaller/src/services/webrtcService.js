@@ -2,7 +2,6 @@ import { MEDIA_CONSTRAINTS } from './webrtcConfig';
 import { getRtcConfiguration } from './iceConfigService';
 import {
     createIceCandidateQueue,
-    waitForIceGatheringComplete,
     serializeIceCandidate,
 } from './webrtcIce';
 
@@ -59,7 +58,6 @@ export function attachLocalStream(pc, stream) {
 export async function createOffer(pc) {
     const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
-    await waitForIceGatheringComplete(pc);
     return pc.localDescription || offer;
 }
 

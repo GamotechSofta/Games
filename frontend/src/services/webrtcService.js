@@ -2,7 +2,6 @@ import { MEDIA_CONSTRAINTS } from './webrtcConfig';
 import { getRtcConfiguration } from './iceConfigService';
 import {
   createIceCandidateQueue,
-  waitForIceGatheringComplete,
   serializeIceCandidate,
 } from './webrtcIce';
 
@@ -59,8 +58,21 @@ export async function createAnswer(pc, offer) {
 
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
-  await waitForIceGatheringComplete(pc);
+  // Trickle ICE — send answer immediately; candidates follow via socket
   return pc.localDescription || answer;
+}
+
+/** Create hidden audio element while ringing so playback starts faster on accept. */
+export function prepareRemoteAudioElement() {
+  let audio = document.getElementById('user-call-remote-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'user-call-remote-audio';
+    audio.autoplay = true;
+    audio.playsInline = true;
+    document.body.appendChild(audio);
+  }
+  return audio;
 }
 
 export async function addIceCandidate(pc, candidate) {

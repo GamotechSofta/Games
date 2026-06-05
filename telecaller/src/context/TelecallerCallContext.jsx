@@ -143,9 +143,9 @@ export function TelecallerCallProvider({ children }) {
             if (from !== remoteUserIdRef.current || !pcRef.current || !answer) return;
             try {
                 await applyAnswer(pcRef.current, answer);
-                for (const candidate of pendingIceRef.current) {
-                    await addIceCandidate(pcRef.current, candidate);
-                }
+                await Promise.all(
+                    pendingIceRef.current.map((c) => addIceCandidate(pcRef.current, c)),
+                );
                 pendingIceRef.current = [];
                 setStatus(CALL_STATUS.IN_CALL);
             } catch (e) {

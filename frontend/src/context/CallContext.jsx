@@ -22,6 +22,7 @@ import {
   closePeerConnection,
   playRemoteAudio,
   stopRemoteAudio,
+  prepareRemoteAudioElement,
 } from '../services/webrtcService';
 import { getRtcConfiguration } from '../services/iceConfigService';
 import {
@@ -68,6 +69,12 @@ export function CallProvider({ children, enabled }) {
   const localStreamRef = useRef(null);
   const telecallerIdRef = useRef(null);
   const pendingIceRef = useRef([]);
+  const prewarmStreamRef = useRef(null);
+
+  const stopPrewarmMic = useCallback(() => {
+    prewarmStreamRef.current?.getTracks().forEach((t) => t.stop());
+    prewarmStreamRef.current = null;
+  }, []);
 
   const getUserIds = useCallback(() => {
     const u = readUser();
@@ -85,7 +92,8 @@ export function CallProvider({ children, enabled }) {
     stopRemoteAudio();
     telecallerIdRef.current = null;
     pendingIceRef.current = [];
-  }, []);
+    stopPrewarmMic();
+  }, [stopPrewarmMic]);
 
   const endCall = useCallback(() => {
     const { userId } = getUserIds();
@@ -142,9 +150,12 @@ export function CallProvider({ children, enabled }) {
 
     try {
       setCallStatus('connecting');
-      const stream = await getLocalAudioStream();
-      localStreamRef.current = stream;
       telecallerIdRef.current = inc.from;
+      prepareRemoteAudioElement();
+
+      const stream = prewarmStreamRef.current || await getLocalAudioStream();
+      prewarmStreamRef.current = null;
+      localStreamRef.current = stream;
 
       const pc = await createPeerConnection({
         onIceCandidate: (candidate) => {
@@ -169,15 +180,15 @@ export function CallProvider({ children, enabled }) {
       attachLocalStream(pc, stream);
 
       const answer = await createAnswer(pc, inc.offer);
-      for (const candidate of pendingIceRef.current) {
-        await addIceCandidate(pc, candidate);
-      }
-      pendingIceRef.current = [];
       getCallSocket()?.emit('answer-call', {
         from: userId,
         to: inc.from,
         answer,
       });
+      await Promise.all(
+        pendingIceRef.current.map((c) => addIceCandidate(pc, c)),
+      );
+      pendingIceRef.current = [];
       setIncoming(null);
     } catch (err) {
       console.error('[call] accept failed', err);
@@ -196,6 +207,31 @@ export function CallProvider({ children, enabled }) {
   useEffect(() => {
     if (enabled) getRtcConfiguration().catch(() => {});
   }, [enabled]);
+
+  /** Prewarm mic + audio element while ringing so Accept connects faster. */
+  useEffect(() => {
+    if (!incoming) {
+      stopPrewarmMic();
+      return undefined;
+    }
+    let cancelled = false;
+    getRtcConfiguration().catch(() => {});
+    prepareRemoteAudioElement();
+    getLocalAudioStream()
+      .then((stream) => {
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        stopPrewarmMic();
+        prewarmStreamRef.current = stream;
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      stopPrewarmMic();
+    };
+  }, [incoming, stopPrewarmMic]);
 
   useEffect(() => {
     if (!enabled) {

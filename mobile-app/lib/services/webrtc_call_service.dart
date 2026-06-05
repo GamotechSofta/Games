@@ -60,26 +60,6 @@ class WebRtcCallService {
     }
   }
 
-  Future<void> _waitForIceGathering(RTCPeerConnection pc) async {
-    if (pc.iceGatheringState ==
-        RTCIceGatheringState.RTCIceGatheringStateComplete) {
-      return;
-    }
-    final completer = Completer<void>();
-    void listener(RTCIceGatheringState state) {
-      if (state == RTCIceGatheringState.RTCIceGatheringStateComplete &&
-          !completer.isCompleted) {
-        completer.complete();
-      }
-    }
-
-    pc.onIceGatheringState = (state) => listener(state);
-    Future.delayed(const Duration(seconds: 10), () {
-      if (!completer.isCompleted) completer.complete();
-    });
-    await completer.future;
-  }
-
   /// Accept telecaller offer and return SDP answer map for signaling.
   Future<Map<String, dynamic>> acceptOffer(Map<String, dynamic> offer) async {
     await _cleanup();
@@ -104,7 +84,6 @@ class WebRtcCallService {
 
     final answer = await _pc!.createAnswer();
     await _pc!.setLocalDescription(answer);
-    await _waitForIceGathering(_pc!);
 
     final local = await _pc!.getLocalDescription();
     return {
