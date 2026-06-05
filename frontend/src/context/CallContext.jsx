@@ -23,6 +23,8 @@ import {
   playRemoteAudio,
   stopRemoteAudio,
   prepareRemoteAudioElement,
+  setLocalAudioEnabled,
+  setRemoteAudioVolume,
 } from '../services/webrtcService';
 import { getRtcConfiguration } from '../services/iceConfigService';
 import {
@@ -79,8 +81,15 @@ export function CallProvider({ children, enabled }) {
   const [callStatus, setCallStatus] = useState('idle');
   const [pushAlertsEnabled, setPushAlertsEnabled] = useState(false);
   const [pushError, setPushError] = useState('');
+  const [activeSession, setActiveSession] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [speakerOn, setSpeakerOn] = useState(true);
+  const [callDurationSec, setCallDurationSec] = useState(0);
+  const [isEnablingAlerts, setIsEnablingAlerts] = useState(false);
 
   const pcRef = useRef(null);
+  const callTimerRef = useRef(null);
+  const callStartedAtRef = useRef(null);
   const localStreamRef = useRef(null);
   const telecallerIdRef = useRef(null);
   const pendingIceRef = useRef([]);
@@ -112,6 +121,15 @@ export function CallProvider({ children, enabled }) {
     telecallerIdRef.current = null;
     pendingIceRef.current = [];
     stopPrewarmMic();
+    setIsMuted(false);
+    setSpeakerOn(true);
+    setRemoteAudioVolume(1);
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+    callStartedAtRef.current = null;
+    setCallDurationSec(0);
   }, [stopPrewarmMic]);
 
   const endCall = useCallback(() => {
@@ -123,10 +141,35 @@ export function CallProvider({ children, enabled }) {
     cleanupCall();
     incomingRef.current = null;
     setIncoming(null);
-    setCallStatus('ended');
+    const wasInCall = callStatusRef.current === 'in-call' || callStatusRef.current === 'connecting';
+    setActiveSession((prev) => (prev ? { ...prev } : null));
+    setCallStatus(wasInCall || callStatusRef.current === 'ringing' ? 'ended' : 'idle');
     setRequestState('idle');
-    setTimeout(() => setCallStatus('idle'), 1500);
+    if (wasInCall || callStatusRef.current === 'ringing') {
+      setTimeout(() => {
+        setCallStatus('idle');
+        setActiveSession(null);
+      }, 1500);
+    } else {
+      setActiveSession(null);
+    }
   }, [cleanupCall, getUserIds]);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      setLocalAudioEnabled(localStreamRef.current, !next);
+      return next;
+    });
+  }, []);
+
+  const toggleSpeaker = useCallback(() => {
+    setSpeakerOn((prev) => {
+      const next = !prev;
+      setRemoteAudioVolume(next ? 1 : 0);
+      return next;
+    });
+  }, []);
 
   const openIncomingFromServer = useCallback((data) => {
     if (!data?.offer || !data?.from) return;
@@ -147,6 +190,12 @@ export function CallProvider({ children, enabled }) {
     startCallRingtone();
 
     setIncoming(payload);
+    setActiveSession({
+      callerName,
+      from: data.from,
+      callId: data.callId,
+      direction: 'incoming',
+    });
     setRequestState('incoming');
     setCallStatus('ringing');
 
@@ -170,7 +219,10 @@ export function CallProvider({ children, enabled }) {
     setIncoming(null);
     setCallStatus('rejected');
     setRequestState('idle');
-    setTimeout(() => setCallStatus('idle'), 1500);
+    setTimeout(() => {
+      setCallStatus('idle');
+      setActiveSession(null);
+    }, 1500);
   }, [incoming, getUserIds]);
 
   const acceptIncoming = useCallback(async () => {
@@ -198,8 +250,11 @@ export function CallProvider({ children, enabled }) {
         onRemoteTrack: (streamOrTrack) => {
           stopCallDelayTone();
           playRemoteAudio(streamOrTrack);
+          setRemoteAudioVolume(1);
           setCallStatus('in-call');
           setRequestState('in-call');
+          callStartedAtRef.current = Date.now();
+          setCallDurationSec(0);
         },
         onConnectionState: (state) => {
           if (state === 'failed' || state === 'closed') {
@@ -222,6 +277,12 @@ export function CallProvider({ children, enabled }) {
       pendingIceRef.current = [];
       incomingRef.current = null;
       setIncoming(null);
+      setActiveSession({
+        callerName: inc.callerName || 'Aakda.in',
+        from: inc.from,
+        callId: inc.callId,
+        direction: 'incoming',
+      });
     } catch (err) {
       console.error('[call] accept failed', err);
       rejectIncoming();
@@ -232,6 +293,12 @@ export function CallProvider({ children, enabled }) {
     const { userId, name, phone } = getUserIds();
     if (!userId) return;
     emitCallRequest({ userId, name, phone });
+    setActiveSession({
+      callerName: 'Aakda Support',
+      from: null,
+      callId: null,
+      direction: 'outgoing',
+    });
     setRequestState('waiting');
     setCallStatus('waiting');
   }, [getUserIds]);
@@ -240,15 +307,39 @@ export function CallProvider({ children, enabled }) {
     if (enabled) getRtcConfiguration().catch(() => {});
   }, [enabled]);
 
+  /** Call duration timer while in-call. */
+  useEffect(() => {
+    if (callStatus !== 'in-call') {
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
+        callTimerRef.current = null;
+      }
+      return undefined;
+    }
+
+    callTimerRef.current = setInterval(() => {
+      if (callStartedAtRef.current) {
+        setCallDurationSec(Math.floor((Date.now() - callStartedAtRef.current) / 1000));
+      }
+    }, 1000);
+
+    return () => {
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
+        callTimerRef.current = null;
+      }
+    };
+  }, [callStatus]);
+
   /** Play ringtone while incoming call UI is shown. */
   useEffect(() => {
-    if (incoming && callStatus === 'ringing') {
+    if (callStatus === 'ringing') {
       startCallRingtone();
     } else {
       stopCallRingtone();
     }
     return () => stopCallRingtone();
-  }, [incoming, callStatus]);
+  }, [callStatus]);
 
   /** Hold/connecting tone after Accept until telecaller voice is live. */
   useEffect(() => {
@@ -322,6 +413,10 @@ export function CallProvider({ children, enabled }) {
       setIncoming(null);
       setCallStatus('ended');
       setRequestState('idle');
+      setTimeout(() => {
+        setCallStatus('idle');
+        setActiveSession(null);
+      }, 1500);
     };
 
     const onIce = async ({ from, candidate }) => {
@@ -401,12 +496,15 @@ export function CallProvider({ children, enabled }) {
       return;
     }
 
+    setIsEnablingAlerts(true);
     try {
       await subscribeToCallPush(userId);
       setPushAlertsEnabled(true);
     } catch (err) {
       setPushError(err.message || 'Could not enable call alerts');
       setPushAlertsEnabled(await verifyCallPushSubscription() && isNotificationGranted());
+    } finally {
+      setIsEnablingAlerts(false);
     }
   }, [getUserIds]);
 
@@ -483,19 +581,29 @@ export function CallProvider({ children, enabled }) {
     };
   }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled, pollForPendingCall]);
 
+  const isCallUiOpen = ['ringing', 'connecting', 'in-call', 'waiting'].includes(callStatus);
+
   const value = {
     connected,
     requestState,
     callStatus,
     incoming,
+    activeSession,
     requestCall,
     acceptIncoming,
     rejectIncoming,
     endCall,
     isInCall: callStatus === 'in-call',
+    isCallUiOpen,
+    isMuted,
+    toggleMute,
+    speakerOn,
+    toggleSpeaker,
+    callDurationSec,
     pushAlertsEnabled,
     pushError,
     enableCallAlerts,
+    isEnablingAlerts,
     iosCallReady: isIosCallReady(pushAlertsEnabled),
     iosCallSetupStep: getIosCallSetupStep({ pushAlertsEnabled }),
   };

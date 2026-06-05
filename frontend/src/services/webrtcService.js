@@ -114,8 +114,26 @@ export function playRemoteAudio(streamOrTrack) {
   return audio;
 }
 
+export function getRemoteAudioElement() {
+  return document.getElementById('user-call-remote-audio');
+}
+
+export function setRemoteAudioVolume(volume) {
+  const audio = getRemoteAudioElement();
+  if (audio) {
+    audio.volume = Math.min(1, Math.max(0, volume));
+    audio.muted = volume <= 0;
+  }
+}
+
+export function setLocalAudioEnabled(stream, enabled) {
+  stream?.getAudioTracks().forEach((track) => {
+    track.enabled = enabled;
+  });
+}
+
 export function stopRemoteAudio() {
-  const audio = document.getElementById('user-call-remote-audio');
+  const audio = getRemoteAudioElement();
   if (audio) {
     audio.srcObject = null;
     audio.remove();

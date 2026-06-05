@@ -18,8 +18,7 @@ import Home from '../pages/Home';
 import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
-import IncomingCallOverlay from '../components/call/IncomingCallOverlay';
-import CallAlertsBanner from '../components/call/CallAlertsBanner';
+import CallSessionOverlay from '../components/call/CallSessionOverlay';
 import IosCallSetupModal from '../components/call/IosCallSetupModal';
 
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
@@ -185,10 +184,9 @@ const Layout = ({ children }) => {
   const callEnabled = Boolean(hasUser && !isAdminPanel);
   const wrapCalls = (node) => (
     <CallProvider enabled={callEnabled}>
-      <CallAlertsBanner />
       <IosCallSetupModal />
       {node}
-      <IncomingCallOverlay />
+      <CallSessionOverlay />
     </CallProvider>
   );
 

@@ -1,67 +1,105 @@
-import React from 'react';
-import { HiOutlineBell, HiOutlineDeviceMobile, HiOutlineShare } from 'react-icons/hi';
+import React, { useState } from 'react';
+import { HiOutlineBell, HiOutlineCheckCircle } from 'react-icons/hi';
 import { useCall } from '../../context/CallContext';
 import { isIosDevice } from '../../services/callNotificationService';
 import { getIosCallSetupStep } from '../../services/iosCallSetup';
 
-function StepBadge({ n, done }) {
+function StepRow({ n, title, detail, done }) {
   return (
-    <span
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-        done
-          ? 'bg-emerald-600 text-white'
-          : 'bg-amber-500 text-white'
-      }`}
-    >
-      {done ? '✓' : n}
-    </span>
+    <div className="flex gap-3 rounded-xl border border-gray-200/80 bg-gray-50/80 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]">
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+          done ? 'bg-emerald-600 text-white' : 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+        }`}
+      >
+        {done ? '✓' : n}
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
+        <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400 mt-0.5">{detail}</p>
+      </div>
+    </div>
   );
 }
 
-function IosInstallSteps() {
+function NotificationPermissionPrompt({ onConfirm, onCancel, loading }) {
   return (
-    <ol className="mt-3 space-y-2.5 text-xs text-amber-900 dark:text-amber-100">
-      <li className="flex gap-2.5">
-        <StepBadge n={1} done={false} />
-        <span>
-          Open <strong>www.aakda.in</strong> in <strong>Safari</strong> (not Chrome).
+    <div className="rounded-2xl border border-teal-500/30 bg-gradient-to-b from-teal-500/10 to-transparent p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-white">
+          <HiOutlineBell className="h-6 w-6" />
         </span>
-      </li>
-      <li className="flex gap-2.5">
-        <StepBadge n={2} done={false} />
-        <span className="flex items-start gap-1.5">
-          <HiOutlineShare className="mt-0.5 h-4 w-4 shrink-0" />
-          Tap <strong>Share</strong> at the bottom → <strong>Add to Home Screen</strong>.
-        </span>
-      </li>
-      <li className="flex gap-2.5">
-        <StepBadge n={3} done={false} />
-        <span className="flex items-start gap-1.5">
-          <HiOutlineDeviceMobile className="mt-0.5 h-4 w-4 shrink-0" />
-          Open <strong>Aakda</strong> from your Home Screen icon, then come back here.
-        </span>
-      </li>
-    </ol>
+        <div>
+          <p className="text-sm font-bold text-gray-900 dark:text-white">Allow call notifications</p>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 leading-relaxed">
+            We only use this for incoming support calls — &quot;Aakda.in is calling&quot; with Answer / Decline.
+            No ads or promotions.
+          </p>
+        </div>
+      </div>
+      <ul className="mt-3 space-y-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+        <li className="flex items-center gap-2">
+          <HiOutlineCheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+          Works when your screen is locked
+        </li>
+        <li className="flex items-center gap-2">
+          <HiOutlineCheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+          Tap Allow on the next system popup
+        </li>
+      </ul>
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={loading}
+          className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 dark:border-white/15 dark:text-gray-300"
+        >
+          Not now
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={loading}
+          className="flex-1 rounded-xl bg-teal-600 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {loading ? 'Enabling…' : 'Continue'}
+        </button>
+      </div>
+    </div>
   );
 }
 
-/**
- * Guided iPhone call setup: Home Screen install → enable notifications.
- * On Android/desktop shows a simple enable button.
- */
 export default function IosCallSetupCard({ className = '', compact = false }) {
-  const { pushAlertsEnabled, pushError, enableCallAlerts } = useCall();
+  const { pushAlertsEnabled, pushError, enableCallAlerts, isEnablingAlerts } = useCall();
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false);
   const ios = isIosDevice();
   const step = getIosCallSetupStep({ pushAlertsEnabled });
+
+  const handleEnable = () => {
+    setShowPermissionPrompt(true);
+  };
+
+  const confirmEnable = () => {
+    void enableCallAlerts().finally(() => setShowPermissionPrompt(false));
+  };
 
   if (!ios) {
     if (pushAlertsEnabled) {
       return (
+        <div className={`flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 ${className}`}>
+          <HiOutlineCheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+          <p className="text-xs text-emerald-800 dark:text-emerald-200">Call alerts enabled</p>
+        </div>
+      );
+    }
+    if (showPermissionPrompt) {
+      return (
         <div className={className}>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <HiOutlineBell className="h-4 w-4 shrink-0" />
-            Call alerts on — incoming calls work when the screen is locked.
-          </p>
+          <NotificationPermissionPrompt
+            onConfirm={confirmEnable}
+            onCancel={() => setShowPermissionPrompt(false)}
+            loading={isEnablingAlerts}
+          />
         </div>
       );
     }
@@ -69,8 +107,8 @@ export default function IosCallSetupCard({ className = '', compact = false }) {
       <div className={className}>
         <button
           type="button"
-          onClick={enableCallAlerts}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-200"
+          onClick={handleEnable}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-sm"
         >
           <HiOutlineBell className="h-5 w-5" />
           Enable call alerts
@@ -82,54 +120,79 @@ export default function IosCallSetupCard({ className = '', compact = false }) {
 
   if (step === 'ready') {
     return (
-      <div className={className}>
-        <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-          <HiOutlineBell className="h-4 w-4 shrink-0" />
-          iPhone call alerts ready — you will get &quot;Aakda.in is calling&quot; when locked.
-        </p>
+      <div className={`flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 ${className}`}>
+        <HiOutlineCheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+        <p className="text-xs text-emerald-800 dark:text-emerald-200">iPhone call alerts ready</p>
       </div>
     );
   }
 
   if (step === 'need-pwa') {
+    if (compact) {
+      return (
+        <p className={`text-xs text-gray-600 dark:text-gray-300 ${className}`}>
+          iPhone: Safari → Share → Add to Home Screen, then open that icon.
+        </p>
+      );
+    }
     return (
-      <div
-        className={`rounded-xl border-2 border-amber-500/50 bg-amber-500/10 ${
-          compact ? 'px-3 py-2.5' : 'px-4 py-3'
-        } ${className}`}
-      >
-        <p className="text-sm font-bold text-amber-900 dark:text-amber-100">
-          Step 1 of 2 — Add Aakda to Home Screen
-        </p>
-        <p className="text-[11px] text-amber-800/90 dark:text-amber-200/90 mt-1">
-          iPhone only rings when locked if you open the app from your Home Screen (Apple rule).
-        </p>
-        {!compact && <IosInstallSteps />}
-        {compact && (
-          <p className="text-[11px] text-amber-800 mt-2">
-            Safari → Share → Add to Home Screen → open that icon.
-          </p>
-        )}
+      <div className={`space-y-2 ${className}`}>
+        <StepRow
+          n={1}
+          title="Use Safari"
+          detail="Open www.aakda.in in Safari (not Chrome)."
+          done={false}
+        />
+        <StepRow
+          n={2}
+          title="Add to Home Screen"
+          detail="Tap Share at the bottom, then Add to Home Screen."
+          done={false}
+        />
+        <StepRow
+          n={3}
+          title="Open the app icon"
+          detail="Launch Aakda from your Home Screen, then enable alerts below."
+          done={false}
+        />
+      </div>
+    );
+  }
+
+  if (showPermissionPrompt) {
+    return (
+      <div className={className}>
+        <NotificationPermissionPrompt
+          onConfirm={confirmEnable}
+          onCancel={() => setShowPermissionPrompt(false)}
+          loading={isEnablingAlerts}
+        />
       </div>
     );
   }
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-200">
-        Step 2 of 2 — Home Screen app detected. Turn on call notifications.
-      </div>
+    <div className={`space-y-3 ${className}`}>
+      <StepRow
+        n={1}
+        title="Home Screen app"
+        detail="Detected — you opened Aakda from your Home Screen."
+        done
+      />
+      <StepRow
+        n={2}
+        title="Turn on notifications"
+        detail="Tap below, then Allow on the iPhone popup."
+        done={false}
+      />
       <button
         type="button"
-        onClick={enableCallAlerts}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500/60 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-200"
+        onClick={handleEnable}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-sm"
       >
         <HiOutlineBell className="h-5 w-5" />
         Enable call alerts
       </button>
-      <p className="text-[11px] text-gray-500 dark:text-gray-400">
-        Tap Allow when iPhone asks for notification permission.
-      </p>
       {pushError && <p className="text-xs text-red-500">{pushError}</p>}
     </div>
   );

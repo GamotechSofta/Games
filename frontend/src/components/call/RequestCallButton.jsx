@@ -6,28 +6,13 @@ import { useCall } from '../../context/CallContext';
  * User taps to request a callback from telecaller team (Socket call-request).
  */
 export default function RequestCallButton({ className = '' }) {
-  const { requestCall, requestState, connected, endCall, isInCall } = useCall();
+  const { requestCall, requestState, connected, isInCall } = useCall();
 
-  if (isInCall) {
+  if (isInCall || requestState === 'waiting') {
     return (
-      <button
-        type="button"
-        onClick={endCall}
-        className={`flex w-full items-center justify-center gap-2 rounded-xl border-2 border-red-600 bg-red-600 px-4 py-3 text-sm font-bold text-white ${className}`}
-      >
-        End call
-      </button>
-    );
-  }
-
-  if (requestState === 'waiting') {
-    return (
-      <div className={`rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-center ${className}`}>
-        <p className="text-sm font-semibold text-amber-200">Waiting for telecaller…</p>
-        <p className="text-xs text-amber-200/70 mt-1">
-          {connected ? 'Your request was sent. Keep this app open.' : 'Connecting…'}
-        </p>
-      </div>
+      <p className={`text-xs text-center text-gray-500 dark:text-gray-400 ${className}`}>
+        Call in progress — use the call screen controls.
+      </p>
     );
   }
 

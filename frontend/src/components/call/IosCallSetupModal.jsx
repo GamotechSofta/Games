@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HiX } from 'react-icons/hi';
 import { useCall } from '../../context/CallContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import {
   dismissIosCallSetupModal,
   shouldShowIosCallSetupModal,
 } from '../../services/iosCallSetup';
 import IosCallSetupCard from './IosCallSetupCard';
 
-/** One-time prompt so iPhone players complete Home Screen + notification setup. */
+/** Profile-first setup sheet — hidden during active calls to avoid layout clash. */
 export default function IosCallSetupModal() {
-  const { pushAlertsEnabled } = useCall();
+  const { pushAlertsEnabled, isCallUiOpen } = useCall();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (isCallUiOpen) {
+      setOpen(false);
+      return;
+    }
     setOpen(shouldShowIosCallSetupModal(pushAlertsEnabled));
-  }, [pushAlertsEnabled]);
+  }, [pushAlertsEnabled, isCallUiOpen]);
+
+  useBodyScrollLock(open);
 
   if (!open) return null;
 
@@ -23,34 +31,51 @@ export default function IosCallSetupModal() {
     setOpen(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-black/70 p-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-      <div className="w-full max-w-md rounded-2xl border border-amber-500/40 bg-white p-5 shadow-2xl dark:bg-[#1a1a1c] dark:text-white">
-        <div className="mb-3 flex items-start justify-between gap-3">
+  return createPortal(
+    <div className="fixed inset-0 z-[140] flex items-end justify-center sm:items-center">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        aria-label="Close"
+        onClick={close}
+      />
+      <div
+        className="relative w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-gray-200/80 bg-white shadow-2xl dark:border-white/10 dark:bg-[#141416] mx-0 sm:mx-4"
+        style={{
+          paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))',
+        }}
+      >
+        <div className="flex justify-center pt-3 sm:hidden">
+          <span className="h-1 w-10 rounded-full bg-gray-300 dark:bg-white/20" />
+        </div>
+        <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-2">
           <div>
-            <p className="text-lg font-bold text-gray-900 dark:text-white">Receive support calls</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Two quick steps so telecallers can reach you on iPhone.
+            <p className="text-lg font-bold text-gray-900 dark:text-white">Never miss a support call</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-[18rem]">
+              Quick setup so telecallers can reach you — even when your phone is locked.
             </p>
           </div>
           <button
             type="button"
             onClick={close}
-            className="shrink-0 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
+            className="shrink-0 rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10"
             aria-label="Close"
           >
             <HiX className="h-5 w-5" />
           </button>
         </div>
-        <IosCallSetupCard />
-        <button
-          type="button"
-          onClick={close}
-          className="mt-4 w-full text-center text-xs text-gray-500 underline dark:text-gray-400"
-        >
-          Remind me later
-        </button>
+        <div className="px-5 pb-4">
+          <IosCallSetupCard />
+          <button
+            type="button"
+            onClick={close}
+            className="mt-4 w-full py-2 text-center text-xs text-gray-500 dark:text-gray-400"
+          >
+            Remind me later
+          </button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
