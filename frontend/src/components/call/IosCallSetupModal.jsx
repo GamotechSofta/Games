@@ -11,16 +11,16 @@ import IosCallSetupCard from './IosCallSetupCard';
 
 /** Profile-first setup sheet — hidden during active calls to avoid layout clash. */
 export default function IosCallSetupModal() {
-  const { pushAlertsEnabled, isCallUiOpen } = useCall();
+  const { pushAlertsEnabled, isCallOverlayOpen } = useCall();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (isCallUiOpen) {
+    if (isCallOverlayOpen) {
       setOpen(false);
       return;
     }
     setOpen(shouldShowIosCallSetupModal(pushAlertsEnabled));
-  }, [pushAlertsEnabled, isCallUiOpen]);
+  }, [pushAlertsEnabled, isCallOverlayOpen]);
 
   useBodyScrollLock(open);
 

@@ -7,6 +7,7 @@ import { MdOutlineAccountBalanceWallet, MdOutlineReceiptLong } from 'react-icons
 import { HiOutlineXMark } from 'react-icons/hi2';
 import aakdaLogo from '../config/logo';
 import { clearUserAuth } from '../utils/auth';
+import { useCall } from '../context/CallContext';
 import {
   DashboardIcon,
   HiHome,
@@ -65,6 +66,7 @@ const BottomNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { isCallOverlayOpen } = useCall();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState({ casino: true, sports: true });
   const [user, setUser] = useState(() => {
@@ -211,6 +213,8 @@ const BottomNavbar = () => {
       </div>
     );
   };
+
+  if (isCallOverlayOpen) return null;
 
   const navEl = (
     <>

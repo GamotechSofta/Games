@@ -293,15 +293,12 @@ export function CallProvider({ children, enabled }) {
     const { userId, name, phone } = getUserIds();
     if (!userId) return;
     emitCallRequest({ userId, name, phone });
-    setActiveSession({
-      callerName: 'Aakda Support',
-      from: null,
-      callId: null,
-      direction: 'outgoing',
-    });
     setRequestState('waiting');
-    setCallStatus('waiting');
   }, [getUserIds]);
+
+  const cancelCallRequest = useCallback(() => {
+    setRequestState('idle');
+  }, []);
 
   useEffect(() => {
     if (enabled) getRtcConfiguration().catch(() => {});
@@ -581,7 +578,9 @@ export function CallProvider({ children, enabled }) {
     };
   }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled, pollForPendingCall]);
 
-  const isCallUiOpen = ['ringing', 'connecting', 'in-call', 'waiting'].includes(callStatus);
+  const isCallOverlayOpen = ['ringing', 'connecting', 'in-call', 'ended', 'rejected'].includes(
+    callStatus,
+  );
 
   const value = {
     connected,
@@ -590,11 +589,13 @@ export function CallProvider({ children, enabled }) {
     incoming,
     activeSession,
     requestCall,
+    cancelCallRequest,
     acceptIncoming,
     rejectIncoming,
     endCall,
     isInCall: callStatus === 'in-call',
-    isCallUiOpen,
+    isCallOverlayOpen,
+    isCallUiOpen: isCallOverlayOpen,
     isMuted,
     toggleMute,
     speakerOn,

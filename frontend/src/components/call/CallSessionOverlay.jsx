@@ -18,7 +18,7 @@ function formatDuration(totalSec) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function CallerAvatar({ name }) {
+function CallerAvatar({ name, pulsing }) {
   const initials = useMemo(() => {
     const parts = String(name || 'A').trim().split(/\s+/);
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
@@ -26,33 +26,43 @@ function CallerAvatar({ name }) {
   }, [name]);
 
   return (
-    <div className="relative mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-teal-500/30 to-emerald-600/20 ring-4 ring-white/10 shadow-[0_0_40px_rgba(16,185,129,0.25)]">
-      <span className="text-3xl font-bold text-white">{initials}</span>
-      <span className="absolute inset-0 rounded-full border border-white/20" />
+    <div className="relative mx-auto mb-8 flex h-36 w-36 items-center justify-center">
+      {pulsing && (
+        <>
+          <span className="absolute inset-0 rounded-full bg-emerald-400/20 animate-ping" />
+          <span className="absolute -inset-3 rounded-full border border-emerald-400/25 animate-pulse" />
+          <span className="absolute -inset-6 rounded-full border border-emerald-400/10" />
+        </>
+      )}
+      <div className="relative flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#1e3a5f] via-[#0f766e] to-[#065f46] shadow-[0_20px_60px_rgba(16,185,129,0.35)] ring-1 ring-white/20">
+        <span className="text-4xl font-bold tracking-tight text-white">{initials}</span>
+      </div>
     </div>
   );
 }
 
-function ActionButton({ label, onClick, className, children, large }) {
+function ControlButton({ label, onClick, variant = 'default', large, children }) {
+  const shell = {
+    default: 'bg-white/12 hover:bg-white/18 backdrop-blur-sm',
+    danger: 'bg-red-500 hover:bg-red-400 shadow-[0_8px_28px_rgba(239,68,68,0.45)]',
+    active: 'bg-amber-500/90 hover:bg-amber-500',
+  }[variant];
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex flex-col items-center gap-2 ${className}`}
-    >
+    <button type="button" onClick={onClick} className="flex flex-col items-center gap-2.5 min-w-[4.5rem]">
       <span
-        className={`flex items-center justify-center rounded-full text-white shadow-lg transition active:scale-95 ${
-          large ? 'h-16 w-16' : 'h-14 w-14'
+        className={`flex items-center justify-center rounded-full text-white transition active:scale-95 ${shell} ${
+          large ? 'h-[4.5rem] w-[4.5rem]' : 'h-14 w-14'
         }`}
       >
         {children}
       </span>
-      <span className="text-xs font-medium text-white/80">{label}</span>
+      <span className="text-[11px] font-medium tracking-wide text-white/75">{label}</span>
     </button>
   );
 }
 
-/** Full-screen call UI: ringing → connecting → in-call controls stay visible. */
+/** Full-screen call UI — only for incoming / active calls (not request-waiting). */
 export default function CallSessionOverlay() {
   const {
     callStatus,
@@ -65,157 +75,139 @@ export default function CallSessionOverlay() {
     speakerOn,
     toggleSpeaker,
     callDurationSec,
+    isCallOverlayOpen,
   } = useCall();
 
   const [endedVisible, setEndedVisible] = useState(false);
-  const isOpen = ['ringing', 'connecting', 'in-call', 'waiting'].includes(callStatus) || endedVisible;
+  const showOverlay = isCallOverlayOpen || endedVisible;
 
-  useBodyScrollLock(isOpen);
+  useBodyScrollLock(showOverlay);
 
   useEffect(() => {
     if (callStatus === 'ended' || callStatus === 'rejected') {
       setEndedVisible(true);
-      const t = setTimeout(() => setEndedVisible(false), 1600);
+      const t = setTimeout(() => setEndedVisible(false), 1800);
       return () => clearTimeout(t);
     }
     setEndedVisible(false);
     return undefined;
   }, [callStatus]);
 
-  if (!isOpen || !activeSession) return null;
+  useEffect(() => {
+    if (!showOverlay) return undefined;
+    document.documentElement.classList.add('call-overlay-open');
+    return () => document.documentElement.classList.remove('call-overlay-open');
+  }, [showOverlay]);
+
+  if (!showOverlay || !activeSession) return null;
 
   const { callerName } = activeSession;
-
-  const statusLabel = {
-    ringing: 'Incoming call',
-    connecting: 'Connecting…',
-    'in-call': formatDuration(callDurationSec),
-    waiting: 'Waiting for telecaller',
-    ended: 'Call ended',
-    rejected: 'Call declined',
-  }[callStatus] || 'Call';
+  const isRinging = callStatus === 'ringing';
+  const isConnecting = callStatus === 'connecting';
+  const isLive = callStatus === 'in-call';
+  const isDone = callStatus === 'ended' || callStatus === 'rejected' || endedVisible;
 
   const onOverlayTouch = () => {
-    if (callStatus === 'ringing') {
+    if (isRinging) {
       void unlockCallAudio().then(() => startCallRingtone());
     }
   };
 
   const content = (
     <div
-      className="fixed inset-0 z-[250] flex flex-col bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#020617] text-white"
+      className="fixed inset-0 z-[10050] flex flex-col overflow-hidden text-white"
       style={{
-        paddingTop: 'max(1.5rem, env(safe-area-inset-top, 0px))',
-        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
+        paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
+        paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom, 0px))',
       }}
       onPointerDown={onOverlayTouch}
       role="dialog"
       aria-modal="true"
-      aria-label="Active call"
+      aria-label="Phone call"
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-teal-500/10 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
-      </div>
+      <div className="absolute inset-0 bg-[#06080f]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(16,185,129,0.18),transparent_70%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_100%,rgba(14,165,233,0.12),transparent_65%)]" />
 
-      <div className="relative flex flex-1 flex-col items-center justify-center px-6 text-center">
-        <CallerAvatar name={callerName} />
+      <div className="relative flex flex-1 flex-col">
+        <div className="px-5 pt-2 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-emerald-300/90">
+            {isRinging && 'Incoming call'}
+            {isConnecting && 'Connecting'}
+            {isLive && 'On call'}
+            {isDone && (callStatus === 'rejected' ? 'Declined' : 'Call ended')}
+          </p>
+        </div>
 
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-teal-300/90">
-          {callStatus === 'in-call' ? 'On call' : statusLabel}
-        </p>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight">{callerName}</h2>
-        <p className="mt-2 max-w-xs text-sm text-white/55">
-          {callStatus === 'ringing' && 'Support team is calling you'}
-          {callStatus === 'connecting' && 'Setting up secure voice connection…'}
-          {callStatus === 'in-call' && 'Tap controls below during your call'}
-          {callStatus === 'waiting' && 'A telecaller will call you shortly. Keep this screen open.'}
-          {(callStatus === 'ended' || callStatus === 'rejected') && 'You can continue using the app'}
-        </p>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-4 text-center">
+          <CallerAvatar name={callerName} pulsing={isRinging || isConnecting} />
 
-        {callStatus === 'connecting' && (
-          <div className="mt-6 flex items-center gap-2 text-sm text-white/70">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-            Connecting audio…
+          <h2 className="text-[1.65rem] font-bold leading-tight tracking-tight">{callerName}</h2>
+          <p className="mt-2 text-sm text-white/50">Aakda Support · Audio only</p>
+
+          {isRinging && (
+            <p className="mt-4 text-sm text-white/70">Support team is calling you now</p>
+          )}
+          {isConnecting && (
+            <div className="mt-5 flex items-center gap-2 rounded-full bg-white/8 px-4 py-2 text-sm text-white/80">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+              Connecting secure voice…
+            </div>
+          )}
+          {isLive && (
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/35 bg-emerald-500/15 px-5 py-2 text-base font-semibold tabular-nums text-emerald-100">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              {formatDuration(callDurationSec)}
+            </div>
+          )}
+          {isDone && (
+            <p className="mt-4 text-sm text-white/55">Returning to the app…</p>
+          )}
+        </div>
+
+        {!isDone && (
+          <div className="relative mx-4 mb-2 rounded-[2rem] border border-white/10 bg-white/[0.06] px-5 py-6 backdrop-blur-xl">
+            {isRinging && (
+              <div className="flex items-center justify-center gap-14">
+                <ControlButton label="Decline" onClick={rejectIncoming} variant="danger" large>
+                  <HiOutlinePhoneMissedCall className="h-8 w-8" />
+                </ControlButton>
+                <ControlButton label="Accept" onClick={acceptIncoming} variant="default" large>
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-emerald-500 shadow-[0_8px_28px_rgba(16,185,129,0.45)]">
+                    <HiOutlinePhone className="h-8 w-8" />
+                  </span>
+                </ControlButton>
+              </div>
+            )}
+
+            {(isConnecting || isLive) && (
+              <div className="flex items-center justify-between gap-2 max-w-md mx-auto">
+                <ControlButton
+                  label={isMuted ? 'Unmute' : 'Mute'}
+                  onClick={toggleMute}
+                  variant={isMuted ? 'active' : 'default'}
+                >
+                  <HiOutlineMicrophone className={`h-6 w-6 ${isMuted ? 'opacity-70' : ''}`} />
+                </ControlButton>
+
+                <ControlButton label="End call" onClick={endCall} variant="danger" large>
+                  <HiOutlinePhone className="h-8 w-8 rotate-[135deg]" />
+                </ControlButton>
+
+                <ControlButton
+                  label={speakerOn ? 'Speaker' : 'Muted'}
+                  onClick={toggleSpeaker}
+                  variant={speakerOn ? 'default' : 'active'}
+                >
+                  {speakerOn ? (
+                    <HiOutlineVolumeUp className="h-6 w-6" />
+                  ) : (
+                    <HiOutlineVolumeOff className="h-6 w-6" />
+                  )}
+                </ControlButton>
+              </div>
+            )}
           </div>
-        )}
-
-        {callStatus === 'in-call' && (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold text-emerald-200">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Live · {formatDuration(callDurationSec)}
-          </div>
-        )}
-      </div>
-
-      <div className="relative px-6 pb-2">
-        {callStatus === 'ringing' && (
-          <div className="flex items-center justify-center gap-10">
-            <ActionButton
-              label="Decline"
-              onClick={rejectIncoming}
-              className="text-red-200"
-              large
-            >
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-red-600 hover:bg-red-500">
-                <HiOutlinePhoneMissedCall className="h-7 w-7" />
-              </span>
-            </ActionButton>
-            <ActionButton
-              label="Accept"
-              onClick={acceptIncoming}
-              className="text-emerald-200"
-              large
-            >
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-500 animate-pulse">
-                <HiOutlinePhone className="h-7 w-7" />
-              </span>
-            </ActionButton>
-          </div>
-        )}
-
-        {(callStatus === 'connecting' || callStatus === 'in-call') && (
-          <div className="mx-auto flex max-w-sm items-center justify-between gap-4">
-            <ActionButton label={isMuted ? 'Unmute' : 'Mute'} onClick={toggleMute}>
-              <span
-                className={`flex h-full w-full items-center justify-center rounded-full ${
-                  isMuted ? 'bg-amber-600' : 'bg-white/15 hover:bg-white/20'
-                }`}
-              >
-                <HiOutlineMicrophone className={`h-6 w-6 ${isMuted ? 'opacity-60' : ''}`} />
-              </span>
-            </ActionButton>
-
-            <ActionButton label="End" onClick={endCall} large>
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-red-600 hover:bg-red-500">
-                <HiOutlinePhoneMissedCall className="h-7 w-7 rotate-[135deg]" />
-              </span>
-            </ActionButton>
-
-            <ActionButton label={speakerOn ? 'Speaker' : 'Speaker off'} onClick={toggleSpeaker}>
-              <span
-                className={`flex h-full w-full items-center justify-center rounded-full ${
-                  speakerOn ? 'bg-white/15 hover:bg-white/20' : 'bg-amber-600'
-                }`}
-              >
-                {speakerOn ? (
-                  <HiOutlineVolumeUp className="h-6 w-6" />
-                ) : (
-                  <HiOutlineVolumeOff className="h-6 w-6" />
-                )}
-              </span>
-            </ActionButton>
-          </div>
-        )}
-
-        {callStatus === 'waiting' && (
-          <button
-            type="button"
-            onClick={endCall}
-            className="mx-auto flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 py-3.5 text-sm font-semibold"
-          >
-            Cancel request
-          </button>
         )}
       </div>
     </div>
