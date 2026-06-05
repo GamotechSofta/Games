@@ -32,6 +32,8 @@ import {
   isCallPushEnabledLocally,
 } from '../services/callPushService';
 import { showIncomingCallNotification } from '../services/callNotificationService';
+import { startCallRingtone, stopCallRingtone } from '../services/callRingtoneService';
+import { startCallDelayTone, stopCallDelayTone } from '../services/callDelayToneService';
 
 const CallContext = createContext(null);
 
@@ -90,6 +92,8 @@ export function CallProvider({ children, enabled }) {
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
     stopRemoteAudio();
+    stopCallRingtone();
+    stopCallDelayTone();
     telecallerIdRef.current = null;
     pendingIceRef.current = [];
     stopPrewarmMic();
@@ -166,6 +170,7 @@ export function CallProvider({ children, enabled }) {
           });
         },
         onRemoteTrack: (streamOrTrack) => {
+          stopCallDelayTone();
           playRemoteAudio(streamOrTrack);
           setCallStatus('in-call');
           setRequestState('in-call');
@@ -207,6 +212,26 @@ export function CallProvider({ children, enabled }) {
   useEffect(() => {
     if (enabled) getRtcConfiguration().catch(() => {});
   }, [enabled]);
+
+  /** Play ringtone while incoming call UI is shown. */
+  useEffect(() => {
+    if (incoming && callStatus === 'ringing') {
+      startCallRingtone();
+    } else {
+      stopCallRingtone();
+    }
+    return () => stopCallRingtone();
+  }, [incoming, callStatus]);
+
+  /** Hold/connecting tone after Accept until telecaller voice is live. */
+  useEffect(() => {
+    if (callStatus === 'connecting') {
+      startCallDelayTone();
+    } else {
+      stopCallDelayTone();
+    }
+    return () => stopCallDelayTone();
+  }, [callStatus]);
 
   /** Prewarm mic + audio element while ringing so Accept connects faster. */
   useEffect(() => {

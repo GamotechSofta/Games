@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       injectRegister: false,
       devOptions: { enabled: true },
-      includeAssets: ['favIcon.png', 'favIcon.webp', 'aakdaLogo.webp'],
+      includeAssets: ['favIcon.png', 'favIcon.webp', 'aakdaLogo.webp', 'callRingtone.mp3', 'delayTone.mp3'],
       manifest: {
         name: 'Aakda Games',
         short_name: 'Aakda',
