@@ -40,6 +40,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       _loadPending();
     }
 
+    _startRingPrep();
+
     widget.socket.on('ice-candidate', (data) async {
       final map = Map<String, dynamic>.from(data as Map);
       if (map['from']?.toString() != _telecallerId) return;
@@ -57,6 +59,14 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
   }
 
+  Future<void> _startRingPrep() async {
+    final offer = _incoming['offer'];
+    if (offer is! Map) return;
+    try {
+      await _webrtc.prepareOffer(Map<String, dynamic>.from(offer));
+    } catch (_) {}
+  }
+
   Future<void> _loadPending() async {
     final callId = _incoming['callId']?.toString() ?? '';
     if (callId.isEmpty) return;
@@ -69,6 +79,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       _incoming = data;
       _telecallerId = data['from']?.toString();
     });
+    _startRingPrep();
   }
 
   Future<void> _accept() async {

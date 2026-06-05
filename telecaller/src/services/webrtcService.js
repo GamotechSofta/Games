@@ -3,11 +3,9 @@ import { getRtcConfiguration } from './iceConfigService';
 import {
     createIceCandidateQueue,
     serializeIceCandidate,
+    waitForInitialCandidates,
 } from './webrtcIce';
 
-/**
- * Outbound call from telecaller browser to user.
- */
 export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onConnectionState }) {
     const rtcConfig = await getRtcConfiguration();
     const pc = new RTCPeerConnection({
@@ -52,12 +50,16 @@ export async function getLocalAudioStream() {
 }
 
 export function attachLocalStream(pc, stream) {
-    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    stream.getTracks().forEach((track) => {
+        track.enabled = true;
+        pc.addTrack(track, stream);
+    });
 }
 
 export async function createOffer(pc) {
     const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await pc.setLocalDescription(offer);
+    await waitForInitialCandidates(pc, 400);
     return pc.localDescription || offer;
 }
 
@@ -82,26 +84,27 @@ export function closePeerConnection(pc) {
     pc.close();
 }
 
-export function playRemoteAudio(streamOrTrack) {
-    const audio = document.createElement('audio');
-    audio.autoplay = true;
-    audio.playsInline = true;
-    audio.id = 'telecaller-remote-audio';
-    const prev = document.getElementById(audio.id);
-    if (prev) prev.remove();
+export function prepareRemoteAudioElement() {
+    let audio = document.getElementById('telecaller-remote-audio');
+    if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = 'telecaller-remote-audio';
+        audio.autoplay = true;
+        audio.playsInline = true;
+        document.body.appendChild(audio);
+    }
+    return audio;
+}
 
+export function playRemoteAudio(streamOrTrack) {
+    const audio = prepareRemoteAudioElement();
     if (streamOrTrack instanceof MediaStream) {
         audio.srcObject = streamOrTrack;
     } else if (streamOrTrack) {
         audio.srcObject = new MediaStream([streamOrTrack]);
     }
-    document.body.appendChild(audio);
     const playPromise = audio.play();
-    if (playPromise?.catch) {
-        playPromise.catch(() => {
-            console.warn('[call] autoplay blocked — click the page if you hear no audio');
-        });
-    }
+    if (playPromise?.catch) playPromise.catch(() => {});
     return audio;
 }
 

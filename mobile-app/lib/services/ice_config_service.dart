@@ -30,8 +30,7 @@ class IceConfigService {
           final list = data?['iceServers'] as List<dynamic>?;
           if (list != null && list.isNotEmpty) {
             final turnOk = data?['turnConfigured'] == true;
-            final policy = data?['iceTransportPolicy'] as String?
-                ?? (turnOk ? 'relay' : 'all');
+            final policy = data?['iceTransportPolicy'] as String? ?? 'all';
             _cached = {
               'iceServers': list,
               'iceTransportPolicy': policy,

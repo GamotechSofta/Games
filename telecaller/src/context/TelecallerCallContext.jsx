@@ -17,6 +17,7 @@ import {
     closePeerConnection,
     playRemoteAudio,
     stopRemoteAudio,
+    prepareRemoteAudioElement,
 } from '../services/webrtcService';
 import { getRtcConfiguration } from '../services/iceConfigService';
 
@@ -98,6 +99,7 @@ export function TelecallerCallProvider({ children }) {
         remoteUserIdRef.current = request.userId;
 
         try {
+            prepareRemoteAudioElement();
             const stream = await getLocalAudioStream();
             localStreamRef.current = stream;
 

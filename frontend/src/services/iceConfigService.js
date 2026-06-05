@@ -16,8 +16,7 @@ export async function getRtcConfiguration() {
         cached = {
           iceServers: json.data.iceServers,
           turnConfigured: Boolean(json.data.turnConfigured),
-          iceTransportPolicy: json.data.iceTransportPolicy
-            || (json.data.turnConfigured ? 'relay' : 'all'),
+          iceTransportPolicy: json.data.iceTransportPolicy || 'all',
         };
         if (!cached.turnConfigured) {
           console.error(
