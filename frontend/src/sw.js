@@ -52,6 +52,11 @@ self.addEventListener('push', (event) => {
     const body = payload.body || 'Tap to answer';
     const data = payload.data || {};
 
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of clients) {
+      client.postMessage({ type: 'incoming-call-push', callId: data.callId });
+    }
+
     await self.registration.showNotification(title, {
       body,
       icon: '/favIcon.png',

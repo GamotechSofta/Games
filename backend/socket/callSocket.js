@@ -175,18 +175,26 @@ export function initCallSocket(io) {
             const delivered = emitToUser(io, to, 'incoming-call', incomingPayload);
 
             // Web Push: ring when tab closed / phone locked (no Firebase — standard VAPID)
-            sendIncomingCallPush({
-                userId: to,
-                callId,
-                callerName,
-            }).catch((err) => console.error('[push] incoming call notify failed:', err.message));
+            let pushSent = false;
+            try {
+                const pushResult = await sendIncomingCallPush({
+                    userId: to,
+                    callId,
+                    callerName,
+                });
+                pushSent = (pushResult?.sent || 0) > 0;
+            } catch (err) {
+                console.error('[push] incoming call notify failed:', err.message);
+            }
 
             if (!delivered) {
-                unlockPair(from, to);
+                if (!pushSent) {
+                    unlockPair(from, to);
+                }
                 socket.emit('user-unavailable', {
                     userId: to,
-                    reason: 'offline',
-                    pushSent: true,
+                    reason: pushSent ? 'not-connected' : 'offline',
+                    pushSent,
                     callId,
                 });
             }

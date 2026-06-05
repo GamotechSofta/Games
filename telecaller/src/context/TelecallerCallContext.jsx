@@ -185,12 +185,21 @@ export function TelecallerCallProvider({ children }) {
             setTimeout(() => setStatus(CALL_STATUS.IDLE), 1500);
         };
 
-        const onUnavailable = ({ userId }) => {
+        const onUnavailable = ({ userId, pushSent, callId }) => {
             if (userId !== remoteUserIdRef.current) return;
+            if (pushSent) {
+                setStatus(CALL_STATUS.CALLING);
+                setCallError(
+                    callId
+                        ? 'Notification sent — waiting for player to open the app and answer'
+                        : 'Player not connected — waiting for them to open the app',
+                );
+                return;
+            }
             cleanup();
             setStatus(CALL_STATUS.UNAVAILABLE);
             setActiveUser(null);
-            setCallError('Player is offline — they may still get a notification');
+            setCallError('Player is offline and has no call alerts enabled');
             setTimeout(() => {
                 setStatus(CALL_STATUS.IDLE);
                 setCallError('');

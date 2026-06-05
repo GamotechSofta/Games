@@ -9,6 +9,7 @@ import { queryClient } from './queryClient'
 import { store } from './store'
 import { schedulePostLoginPrefetch } from './api/postLoginPrefetch'
 import { prefetchSpecialMarketChunks } from './api/prefetchSpecialMarkets'
+import { bindCallAudioUnlock } from './services/callAudioUnlock'
 
 applyThemeToDocument(getStoredTheme())
 
@@ -32,6 +33,8 @@ function scheduleCriticalChunkPrefetch() {
 }
 
 function startApp() {
+  bindCallAudioUnlock()
+
   createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>

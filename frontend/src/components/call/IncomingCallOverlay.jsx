@@ -1,6 +1,8 @@
 import React from 'react';
 import { HiOutlinePhone, HiOutlinePhoneMissedCall } from 'react-icons/hi';
 import { useCall } from '../../context/CallContext';
+import { unlockCallAudio } from '../../services/callAudioUnlock';
+import { startCallRingtone } from '../../services/callRingtoneService';
 
 /** Full-screen incoming call UI (accept / reject) */
 export default function IncomingCallOverlay() {
@@ -8,8 +10,15 @@ export default function IncomingCallOverlay() {
 
   if (!incoming || callStatus !== 'ringing') return null;
 
+  const onOverlayTouch = () => {
+    void unlockCallAudio().then(() => startCallRingtone());
+  };
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-4">
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 p-4"
+      onPointerDown={onOverlayTouch}
+    >
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1a1a1c] p-6 text-center shadow-2xl">
         <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-teal-600/20 text-teal-400">
           <HiOutlinePhone className="h-10 w-10 animate-pulse" />

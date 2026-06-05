@@ -116,6 +116,14 @@ export async function fetchPendingCall(callId, userId) {
   return json.data;
 }
 
+/** Active ringing call for this user (socket backup / iOS background wake-up). */
+export async function fetchMyPendingCall(userId) {
+  const res = await fetch(`${API_BASE_URL}/call/pending-user/${encodeURIComponent(userId)}`);
+  const json = await res.json();
+  if (!json.success) return null;
+  return json.data || null;
+}
+
 export async function rejectPendingCallApi(callId, userId) {
   await fetch(`${API_BASE_URL}/call/reject-pending`, {
     method: 'POST',

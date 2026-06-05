@@ -28,6 +28,7 @@ import { getRtcConfiguration } from '../services/iceConfigService';
 import {
   subscribeToCallPush,
   fetchPendingCall,
+  fetchMyPendingCall,
   rejectPendingCallApi,
   isCallPushEnabledLocally,
 } from '../services/callPushService';
@@ -75,6 +76,8 @@ export function CallProvider({ children, enabled }) {
   const telecallerIdRef = useRef(null);
   const pendingIceRef = useRef([]);
   const prewarmStreamRef = useRef(null);
+  const incomingRef = useRef(null);
+  const callStatusRef = useRef('idle');
 
   const stopPrewarmMic = useCallback(() => {
     prewarmStreamRef.current?.getTracks().forEach((t) => t.stop());
@@ -109,6 +112,7 @@ export function CallProvider({ children, enabled }) {
       getCallSocket()?.emit('end-call', { from: userId, to });
     }
     cleanupCall();
+    incomingRef.current = null;
     setIncoming(null);
     setCallStatus('ended');
     setRequestState('idle');
@@ -117,17 +121,26 @@ export function CallProvider({ children, enabled }) {
 
   const openIncomingFromServer = useCallback((data) => {
     if (!data?.offer || !data?.from) return;
+    if (incomingRef.current && callStatusRef.current === 'ringing') return;
+
     telecallerIdRef.current = data.from;
     pendingIceRef.current = [];
     const callerName = data.callerName || 'Aakda.in';
-    setIncoming({
+    const payload = {
       callId: data.callId,
       from: data.from,
       offer: data.offer,
       callerName,
-    });
+    };
+
+    incomingRef.current = payload;
+    callStatusRef.current = 'ringing';
+    startCallRingtone();
+
+    setIncoming(payload);
     setRequestState('incoming');
     setCallStatus('ringing');
+
     showIncomingCallNotification({
       callId: data.callId,
       callerName,
@@ -144,6 +157,7 @@ export function CallProvider({ children, enabled }) {
     if (userId && from) {
       getCallSocket()?.emit('reject-call', { from: userId, to: from });
     }
+    incomingRef.current = null;
     setIncoming(null);
     setCallStatus('rejected');
     setRequestState('idle');
@@ -197,6 +211,7 @@ export function CallProvider({ children, enabled }) {
         pendingIceRef.current.map((c) => addIceCandidate(pc, c)),
       );
       pendingIceRef.current = [];
+      incomingRef.current = null;
       setIncoming(null);
     } catch (err) {
       console.error('[call] accept failed', err);
@@ -236,30 +251,38 @@ export function CallProvider({ children, enabled }) {
     return () => stopCallDelayTone();
   }, [callStatus]);
 
-  /** Prewarm mic + audio element while ringing so Accept connects faster. */
+  useEffect(() => {
+    incomingRef.current = incoming;
+  }, [incoming]);
+
+  useEffect(() => {
+    callStatusRef.current = callStatus;
+  }, [callStatus]);
+
+  /** Prewarm remote audio while ringing — mic waits until Accept (avoids killing ringtone). */
   useEffect(() => {
     if (!incoming) {
       stopPrewarmMic();
       return undefined;
     }
-    let cancelled = false;
     getRtcConfiguration().catch(() => {});
     prepareRemoteAudioElement();
-    getLocalAudioStream()
-      .then((stream) => {
-        if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        stopPrewarmMic();
-        prewarmStreamRef.current = stream;
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-      stopPrewarmMic();
-    };
+    return undefined;
   }, [incoming, stopPrewarmMic]);
+
+  const pollForPendingCall = useCallback(async () => {
+    const { userId } = getUserIds();
+    if (!userId) return;
+    if (incomingRef.current && callStatusRef.current === 'ringing') return;
+    if (callStatusRef.current === 'in-call' || callStatusRef.current === 'connecting') return;
+
+    try {
+      const data = await fetchMyPendingCall(userId);
+      if (data?.offer && data?.from) {
+        openIncomingFromServer(data);
+      }
+    } catch (_) {}
+  }, [getUserIds, openIncomingFromServer]);
 
   useEffect(() => {
     if (!enabled) {
@@ -276,6 +299,7 @@ export function CallProvider({ children, enabled }) {
     const onConnect = () => {
       setConnected(true);
       registerUser(userId, name, phone);
+      void pollForPendingCall();
     };
 
     const onIncoming = (data) => {
@@ -285,6 +309,7 @@ export function CallProvider({ children, enabled }) {
     const onEnded = ({ from }) => {
       if (from !== telecallerIdRef.current) return;
       cleanupCall();
+      incomingRef.current = null;
       setIncoming(null);
       setCallStatus('ended');
       setRequestState('idle');
@@ -319,7 +344,37 @@ export function CallProvider({ children, enabled }) {
       disconnectUserCallSocket();
       cleanupCall();
     };
-  }, [enabled, getUserIds, cleanupCall, openIncomingFromServer]);
+  }, [enabled, getUserIds, cleanupCall, openIncomingFromServer, pollForPendingCall]);
+
+  /** Recover missed socket events (iOS background / flaky mobile data). */
+  useEffect(() => {
+    if (!enabled) return undefined;
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void pollForPendingCall();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    window.addEventListener('pageshow', onVisible);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void pollForPendingCall();
+      }
+    }, 5000);
+
+    void pollForPendingCall();
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+      clearInterval(interval);
+    };
+  }, [enabled, pollForPendingCall]);
 
   const enableCallAlerts = useCallback(async () => {
     const { userId } = getUserIds();
@@ -373,6 +428,10 @@ export function CallProvider({ children, enabled }) {
     const onSwMessage = (event) => {
       if (event.data?.type === 'incoming-call-open' && event.data.callId) {
         loadFromCallId(event.data.callId);
+        return;
+      }
+      if (event.data?.type === 'incoming-call-push') {
+        void pollForPendingCall();
       }
     };
     navigator.serviceWorker?.addEventListener('message', onSwMessage);
@@ -384,7 +443,7 @@ export function CallProvider({ children, enabled }) {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
     };
-  }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled]);
+  }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled, pollForPendingCall]);
 
   const value = {
     connected,
