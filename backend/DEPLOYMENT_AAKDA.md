@@ -23,8 +23,8 @@ BACKEND_BASE_URL=https://api.aakda.in
 # Player site (for call push links — must match live frontend)
 FRONTEND_BASE_URL=https://www.aakda.in
 
-CORS_ORIGINS=https://aakda.in,https://www.aakda.in
-# Add telecaller URL when deployed, e.g. https://telecaller.aakda.in
+CORS_ORIGINS=https://aakda.in,https://www.aakda.in,https://aakdatelecaller.onrender.com
+TELECALLER_BASE_URL=https://aakdatelecaller.onrender.com
 
 # Web Push (already in your .env — copy to AWS)
 WEB_PUSH_VAPID_PUBLIC_KEY=...
@@ -91,11 +91,15 @@ Custom domain: `www.aakda.in` and `aakda.in` → Render, as you already have.
 VITE_API_BASE_URL=https://api.aakda.in/api/v1
 ```
 
-On **AWS backend**, add telecaller origin to `CORS_ORIGINS` and set:
+On **AWS backend** (`api.aakda.in`), add telecaller to CORS (required or browser blocks all API calls):
 
 ```env
-TELECALLER_BASE_URL=https://your-telecaller-domain
+TELECALLER_BASE_URL=https://aakdatelecaller.onrender.com
+CORS_ORIGINS=https://aakda.in,https://www.aakda.in,https://aakdatelecaller.onrender.com
 ```
+
+Restart the Node process after changing env. On startup you should see:
+`[CORS]   - https://aakdatelecaller.onrender.com`
 
 ---
 
@@ -114,6 +118,8 @@ TELECALLER_BASE_URL=https://your-telecaller-domain
 |-------|-----|
 | `FRONTEND_BASE_URL` still `player-p15g.onrender.com` | Set `https://www.aakda.in` on AWS |
 | Frontend build without `VITE_API_BASE_URL` | Set on Render, rebuild |
-| CORS error in browser | Add `https://www.aakda.in` to `CORS_ORIGINS` on AWS |
+| CORS error in browser | Add frontend + telecaller origins to `CORS_ORIGINS` on AWS (see above) |
+| Telecaller CORS from `aakdatelecaller.onrender.com` | Set `TELECALLER_BASE_URL` + add URL to `CORS_ORIGINS`, restart API |
+| `504 Gateway Time-out` on API | EC2/nginx timeout or Node/Mongo down — fix CORS first, then check `pm2 logs` / MongoDB |
 | Red TURN banner | coturn + `TURN_*` on AWS, security group UDP 3478 |
 | Socket connects but no voice | TURN not configured (STUN only) |

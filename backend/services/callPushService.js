@@ -34,6 +34,13 @@ function buildOpenUrl(callId, appOrigin) {
     return `${base}/?incomingCall=${callId}`;
 }
 
+/** Web Push Topic header: max 32 URL/filename-safe chars (RFC 8030). */
+function pushTopicForCall(callId) {
+    return String(callId || '')
+        .replace(/[^a-zA-Z0-9_-]/g, '')
+        .slice(0, 32);
+}
+
 /**
  * Ring user's devices via Web Push (works when site closed / phone locked on supported browsers).
  */
@@ -77,7 +84,7 @@ export async function sendIncomingCallPush({ userId, callId, callerName }) {
                 {
                     TTL: 120,
                     urgency: 'high',
-                    topic: `call-${callId}`,
+                    topic: pushTopicForCall(callId),
                 },
             );
             sent += 1;
