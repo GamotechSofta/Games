@@ -55,6 +55,15 @@ export async function showIncomingCallNotification({ callId, callerName }) {
   }
 }
 
+export function getNotificationPermission() {
+  if (typeof Notification === 'undefined') return 'unsupported';
+  return Notification.permission;
+}
+
+export function isNotificationGranted() {
+  return getNotificationPermission() === 'granted';
+}
+
 export function isIosDevice() {
   if (typeof navigator === 'undefined') return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent)

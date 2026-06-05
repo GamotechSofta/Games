@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config/api';
+import { getNotificationPermission } from './callNotificationService';
 
 /**
  * Web Push (VAPID) for incoming calls when site closed / phone locked — no Firebase.
@@ -44,10 +45,14 @@ export async function subscribeToCallPush(userId) {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     throw new Error('Push notifications are not supported on this browser');
   }
-  if (Notification.permission === 'denied') {
+  const permission = getNotificationPermission();
+  if (permission === 'unsupported') {
+    throw new Error('Notifications are not supported — on iPhone, add the site to your Home Screen first');
+  }
+  if (permission === 'denied') {
     throw new Error('Notifications blocked — enable them in browser settings');
   }
-  if (Notification.permission !== 'granted') {
+  if (permission !== 'granted') {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') throw new Error('Notification permission denied');
   }

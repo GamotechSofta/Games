@@ -31,7 +31,10 @@ import {
   rejectPendingCallApi,
   isCallPushEnabledLocally,
 } from '../services/callPushService';
-import { showIncomingCallNotification } from '../services/callNotificationService';
+import {
+  isNotificationGranted,
+  showIncomingCallNotification,
+} from '../services/callNotificationService';
 import { startCallRingtone, stopCallRingtone } from '../services/callRingtoneService';
 import { startCallDelayTone, stopCallDelayTone } from '../services/callDelayToneService';
 
@@ -335,7 +338,7 @@ export function CallProvider({ children, enabled }) {
     if (!enabled) return undefined;
     const { userId } = getUserIds();
     if (!userId) return undefined;
-    if (Notification.permission !== 'granted') return undefined;
+    if (!isNotificationGranted()) return undefined;
 
     subscribeToCallPush(userId)
       .then(() => setPushAlertsEnabled(true))
@@ -374,7 +377,7 @@ export function CallProvider({ children, enabled }) {
     };
     navigator.serviceWorker?.addEventListener('message', onSwMessage);
 
-    if (pushAlertsEnabled && Notification.permission === 'granted') {
+    if (pushAlertsEnabled && isNotificationGranted()) {
       subscribeToCallPush(userId).catch(() => {});
     }
 

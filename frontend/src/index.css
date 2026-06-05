@@ -1004,6 +1004,13 @@ body {
   .min-h-ios-screen {
     min-height: -webkit-fill-available;
   }
+
+  /* Avoid content stuck at opacity:0 when fade-in animation does not run */
+  .content-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Download App button – gentle blink/glow so user notices */
