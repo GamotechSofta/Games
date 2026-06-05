@@ -14,16 +14,15 @@ import {
   getCallSocket,
 } from '../services/callSocketService';
 import {
+  createPeerConnection,
   getLocalAudioStream,
+  attachLocalStream,
+  createAnswer,
   addIceCandidate,
   closePeerConnection,
   playRemoteAudio,
   stopRemoteAudio,
   prepareRemoteAudioElement,
-  prepareInboundPeer,
-  completeInboundAnswer,
-  createPeerConnection,
-  attachLocalStream,
 } from '../services/webrtcService';
 import { getRtcConfiguration } from '../services/iceConfigService';
 import {
@@ -70,17 +69,11 @@ export function CallProvider({ children, enabled }) {
   const localStreamRef = useRef(null);
   const telecallerIdRef = useRef(null);
   const pendingIceRef = useRef([]);
-  const prepPcRef = useRef(null);
-  const prepStreamRef = useRef(null);
-  const prepGenRef = useRef(0);
+  const prewarmStreamRef = useRef(null);
 
-  const cleanupPrep = useCallback(() => {
-    if (prepPcRef.current) {
-      closePeerConnection(prepPcRef.current);
-      prepPcRef.current = null;
-    }
-    prepStreamRef.current?.getTracks().forEach((t) => t.stop());
-    prepStreamRef.current = null;
+  const stopPrewarmMic = useCallback(() => {
+    prewarmStreamRef.current?.getTracks().forEach((t) => t.stop());
+    prewarmStreamRef.current = null;
   }, []);
 
   const getUserIds = useCallback(() => {
@@ -99,8 +92,8 @@ export function CallProvider({ children, enabled }) {
     stopRemoteAudio();
     telecallerIdRef.current = null;
     pendingIceRef.current = [];
-    cleanupPrep();
-  }, [cleanupPrep]);
+    stopPrewarmMic();
+  }, [stopPrewarmMic]);
 
   const endCall = useCallback(() => {
     const { userId } = getUserIds();
@@ -150,31 +143,6 @@ export function CallProvider({ children, enabled }) {
     setTimeout(() => setCallStatus('idle'), 1500);
   }, [incoming, getUserIds]);
 
-  const bindUserPcHandlers = useCallback((pc, userId, telecallerId) => {
-    pc.ontrack = (e) => {
-      const stream = e.streams?.[0] || (e.track ? new MediaStream([e.track]) : null);
-      if (stream) {
-        playRemoteAudio(stream);
-        setCallStatus('in-call');
-        setRequestState('in-call');
-      }
-    };
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
-        endCall();
-      }
-    };
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        getCallSocket()?.emit('ice-candidate', {
-          from: userId,
-          to: telecallerId,
-          candidate: e.candidate.toJSON?.() || e.candidate,
-        });
-      }
-    };
-  }, [endCall]);
-
   const acceptIncoming = useCallback(async () => {
     const inc = incoming;
     const { userId } = getUserIds();
@@ -185,40 +153,48 @@ export function CallProvider({ children, enabled }) {
       telecallerIdRef.current = inc.from;
       prepareRemoteAudioElement();
 
-      let pc = prepPcRef.current;
-      let stream = prepStreamRef.current;
-
-      if (!pc || !stream) {
-        stream = await getLocalAudioStream();
-        pc = await createPeerConnection({});
-        attachLocalStream(pc, stream);
-        await pc.setRemoteDescription(new RTCSessionDescription(inc.offer));
-        await pc._iceQueue?.markRemoteReady();
-        await Promise.all(pendingIceRef.current.map((c) => addIceCandidate(pc, c)));
-        pendingIceRef.current = [];
-      } else {
-        prepPcRef.current = null;
-        prepStreamRef.current = null;
-      }
-
-      pcRef.current = pc;
+      const stream = prewarmStreamRef.current || await getLocalAudioStream();
+      prewarmStreamRef.current = null;
       localStreamRef.current = stream;
-      bindUserPcHandlers(pc, userId, inc.from);
 
-      const answer = await completeInboundAnswer(pc);
+      const pc = await createPeerConnection({
+        onIceCandidate: (candidate) => {
+          getCallSocket()?.emit('ice-candidate', {
+            from: userId,
+            to: inc.from,
+            candidate,
+          });
+        },
+        onRemoteTrack: (streamOrTrack) => {
+          playRemoteAudio(streamOrTrack);
+          setCallStatus('in-call');
+          setRequestState('in-call');
+        },
+        onConnectionState: (state) => {
+          if (state === 'failed' || state === 'closed') {
+            endCall();
+          }
+        },
+      });
+      pcRef.current = pc;
+      attachLocalStream(pc, stream);
+
+      const answer = await createAnswer(pc, inc.offer);
       getCallSocket()?.emit('answer-call', {
         from: userId,
         to: inc.from,
         answer,
       });
+      await Promise.all(
+        pendingIceRef.current.map((c) => addIceCandidate(pc, c)),
+      );
+      pendingIceRef.current = [];
       setIncoming(null);
-      setCallStatus('in-call');
-      setRequestState('in-call');
     } catch (err) {
       console.error('[call] accept failed', err);
       rejectIncoming();
     }
-  }, [incoming, getUserIds, endCall, rejectIncoming, bindUserPcHandlers]);
+  }, [incoming, getUserIds, endCall, rejectIncoming]);
 
   const requestCall = useCallback(() => {
     const { userId, name, phone } = getUserIds();
@@ -232,56 +208,30 @@ export function CallProvider({ children, enabled }) {
     if (enabled) getRtcConfiguration().catch(() => {});
   }, [enabled]);
 
-  /** While ringing: mic + apply telecaller offer so Accept only sends answer. */
+  /** Prewarm mic + audio element while ringing so Accept connects faster. */
   useEffect(() => {
-    if (!incoming?.offer || !incoming?.from) {
-      cleanupPrep();
+    if (!incoming) {
+      stopPrewarmMic();
       return undefined;
     }
-
-    const gen = prepGenRef.current + 1;
-    prepGenRef.current = gen;
-    const { userId } = getUserIds();
-    if (!userId) return undefined;
-
-    telecallerIdRef.current = incoming.from;
-    prepareRemoteAudioElement();
+    let cancelled = false;
     getRtcConfiguration().catch(() => {});
-
-    (async () => {
-      try {
-        const stream = await getLocalAudioStream();
-        if (gen !== prepGenRef.current) {
+    prepareRemoteAudioElement();
+    getLocalAudioStream()
+      .then((stream) => {
+        if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
-
-        const iceSnap = [...pendingIceRef.current];
-        const pc = await prepareInboundPeer({
-          offer: incoming.offer,
-          localStream: stream,
-          onIceCandidate: () => {},
-          pendingIce: iceSnap,
-        });
-
-        if (gen !== prepGenRef.current) {
-          closePeerConnection(pc);
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-
-        prepPcRef.current = pc;
-        prepStreamRef.current = stream;
-      } catch (err) {
-        console.warn('[call] ring prep failed', err);
-      }
-    })();
-
+        stopPrewarmMic();
+        prewarmStreamRef.current = stream;
+      })
+      .catch(() => {});
     return () => {
-      prepGenRef.current += 1;
-      cleanupPrep();
+      cancelled = true;
+      stopPrewarmMic();
     };
-  }, [incoming, getUserIds, cleanupPrep]);
+  }, [incoming, stopPrewarmMic]);
 
   useEffect(() => {
     if (!enabled) {
@@ -314,13 +264,12 @@ export function CallProvider({ children, enabled }) {
 
     const onIce = async ({ from, candidate }) => {
       if (from !== telecallerIdRef.current || !candidate) return;
-      const target = pcRef.current || prepPcRef.current;
-      if (!target) {
+      if (!pcRef.current) {
         pendingIceRef.current.push(candidate);
         return;
       }
       try {
-        await addIceCandidate(target, candidate);
+        await addIceCandidate(pcRef.current, candidate);
       } catch (_) {}
     };
 

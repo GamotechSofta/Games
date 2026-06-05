@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'ice_config_service.dart';
 import 'webrtc_config.dart';
@@ -9,7 +10,6 @@ class WebRtcCallService {
   final _remoteRenderer = RTCVideoRenderer();
   final List<Map<String, dynamic>> _pendingIce = [];
   bool _remoteReady = false;
-  bool _prepared = false;
 
   RTCVideoRenderer get remoteRenderer => _remoteRenderer;
 
@@ -60,9 +60,8 @@ class WebRtcCallService {
     }
   }
 
-  /// While ringing: apply offer + mic (no answer until user accepts).
-  Future<void> prepareOffer(Map<String, dynamic> offer) async {
-    if (_prepared) return;
+  /// Accept telecaller offer and return SDP answer map for signaling.
+  Future<Map<String, dynamic>> acceptOffer(Map<String, dynamic> offer) async {
     await _cleanup();
 
     _pc = await _createPc(
@@ -81,15 +80,7 @@ class WebRtcCallService {
       RTCSessionDescription(offer['sdp'] as String, offer['type'] as String),
     );
     _remoteReady = true;
-    _prepared = true;
     await _flushPendingIce();
-  }
-
-  /// Accept: create answer + return SDP (fast if prepareOffer ran while ringing).
-  Future<Map<String, dynamic>> acceptOffer(Map<String, dynamic> offer) async {
-    if (!_prepared || _pc == null) {
-      await prepareOffer(offer);
-    }
 
     final answer = await _pc!.createAnswer();
     await _pc!.setLocalDescription(answer);
@@ -124,7 +115,6 @@ class WebRtcCallService {
 
   Future<void> _cleanup() async {
     _remoteReady = false;
-    _prepared = false;
     _pendingIce.clear();
     _localStream?.getTracks().forEach((t) => t.stop());
     _localStream?.dispose();

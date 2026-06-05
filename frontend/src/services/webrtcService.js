@@ -3,7 +3,6 @@ import { getRtcConfiguration } from './iceConfigService';
 import {
   createIceCandidateQueue,
   serializeIceCandidate,
-  waitForInitialCandidates,
 } from './webrtcIce';
 
 export async function createPeerConnection({ onIceCandidate, onRemoteTrack, onConnectionState }) {
@@ -50,43 +49,30 @@ export async function getLocalAudioStream() {
 }
 
 export function attachLocalStream(pc, stream) {
-  stream.getTracks().forEach((track) => {
-    track.enabled = true;
-    pc.addTrack(track, stream);
-  });
-}
-
-/**
- * While ringing: apply offer + mic so telecaller ICE is absorbed early.
- * Does not send answer until user taps Accept.
- */
-export async function prepareInboundPeer({
-  offer,
-  localStream,
-  onIceCandidate,
-  pendingIce = [],
-}) {
-  const pc = await createPeerConnection({ onIceCandidate });
-  attachLocalStream(pc, localStream);
-  await pc.setRemoteDescription(new RTCSessionDescription(offer));
-  await pc._iceQueue?.markRemoteReady();
-  if (pendingIce.length) {
-    await Promise.all(pendingIce.map((c) => addIceCandidate(pc, c)));
-  }
-  return pc;
-}
-
-export async function completeInboundAnswer(pc) {
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  await waitForInitialCandidates(pc, 400);
-  return pc.localDescription || answer;
+  stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 }
 
 export async function createAnswer(pc, offer) {
   await pc.setRemoteDescription(new RTCSessionDescription(offer));
   await pc._iceQueue?.markRemoteReady();
-  return completeInboundAnswer(pc);
+
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  // Trickle ICE — send answer immediately; candidates follow via socket
+  return pc.localDescription || answer;
+}
+
+/** Create hidden audio element while ringing so playback starts faster on accept. */
+export function prepareRemoteAudioElement() {
+  let audio = document.getElementById('user-call-remote-audio');
+  if (!audio) {
+    audio = document.createElement('audio');
+    audio.id = 'user-call-remote-audio';
+    audio.autoplay = true;
+    audio.playsInline = true;
+    document.body.appendChild(audio);
+  }
+  return audio;
 }
 
 export async function addIceCandidate(pc, candidate) {
@@ -105,7 +91,7 @@ export function closePeerConnection(pc) {
   pc.close();
 }
 
-export function prepareRemoteAudioElement() {
+export function playRemoteAudio(streamOrTrack) {
   let audio = document.getElementById('user-call-remote-audio');
   if (!audio) {
     audio = document.createElement('audio');
@@ -114,11 +100,6 @@ export function prepareRemoteAudioElement() {
     audio.playsInline = true;
     document.body.appendChild(audio);
   }
-  return audio;
-}
-
-export function playRemoteAudio(streamOrTrack) {
-  const audio = prepareRemoteAudioElement();
   if (streamOrTrack instanceof MediaStream) {
     audio.srcObject = streamOrTrack;
   } else if (streamOrTrack) {
@@ -126,7 +107,9 @@ export function playRemoteAudio(streamOrTrack) {
   }
   const playPromise = audio.play();
   if (playPromise?.catch) {
-    playPromise.catch(() => {});
+    playPromise.catch(() => {
+      console.warn('[call] autoplay blocked — interact with the page if you hear no audio');
+    });
   }
   return audio;
 }

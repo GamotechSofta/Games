@@ -21,8 +21,8 @@ export const getIceConfig = async (req, res) => {
                 iceServers,
                 turnConfigured,
                 source,
-                /** 'all' = try direct/STUN first, TURN as fallback (faster connect than relay-only) */
-                iceTransportPolicy: 'all',
+                /** Use relay-only when true — required for different ISPs / mobile data */
+                iceTransportPolicy: turnConfigured ? 'relay' : 'all',
             },
         });
     } catch (error) {

@@ -46,25 +46,21 @@ export function createIceCandidateQueue(pc) {
   };
 }
 
-/** Wait briefly so SDP may include first host/srflx candidates (max 400ms). */
-export function waitForInitialCandidates(pc, timeoutMs = 400) {
+export function waitForIceGatheringComplete(pc, timeoutMs = 12000) {
   return new Promise((resolve) => {
     if (!pc || pc.iceGatheringState === 'complete') {
       resolve();
       return;
     }
-    let done = false;
     const finish = () => {
-      if (done) return;
-      done = true;
-      pc.removeEventListener('icecandidate', onCandidate);
+      pc.removeEventListener('icegatheringstatechange', onChange);
       clearTimeout(timer);
       resolve();
     };
-    const onCandidate = (e) => {
-      if (e.candidate) finish();
+    const onChange = () => {
+      if (pc.iceGatheringState === 'complete') finish();
     };
-    pc.addEventListener('icecandidate', onCandidate);
+    pc.addEventListener('icegatheringstatechange', onChange);
     const timer = setTimeout(finish, timeoutMs);
   });
 }
