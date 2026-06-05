@@ -1,13 +1,25 @@
 /**
  * In-memory pending call requests (user asked telecaller to call them).
- * Each entry: { id, userId, name, phone, createdAt }
+ * Each entry: { id, userId, name, phone, issue, createdAt }
  */
 
 const pending = new Map();
 
-export function addCallRequest({ userId, name, phone }) {
+const MAX_ISSUE_LEN = 500;
+
+export function normalizeCallRequestIssue(raw) {
+    return String(raw || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .slice(0, MAX_ISSUE_LEN);
+}
+
+export function addCallRequest({ userId, name, phone, issue }) {
     const uid = String(userId || '').trim();
     if (!uid) return null;
+
+    const normalizedIssue = normalizeCallRequestIssue(issue);
+    if (!normalizedIssue) return null;
 
     // One active request per user — replace previous
     const id = `cr_${uid}_${Date.now()}`;
@@ -16,6 +28,7 @@ export function addCallRequest({ userId, name, phone }) {
         userId: uid,
         name: String(name || 'Player').trim() || 'Player',
         phone: String(phone || '').trim(),
+        issue: normalizedIssue,
         createdAt: new Date().toISOString(),
     };
     pending.set(uid, entry);

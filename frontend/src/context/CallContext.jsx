@@ -11,6 +11,7 @@ import {
   disconnectUserCallSocket,
   registerUser,
   emitCallRequest,
+  emitCancelCallRequest,
   getCallSocket,
 } from '../services/callSocketService';
 import {
@@ -77,6 +78,8 @@ function readUser() {
 export function CallProvider({ children, enabled }) {
   const [connected, setConnected] = useState(false);
   const [requestState, setRequestState] = useState('idle'); // idle | waiting | in-call
+  const [requestIssue, setRequestIssue] = useState('');
+  const [requestError, setRequestError] = useState('');
   const [incoming, setIncoming] = useState(null);
   const [callStatus, setCallStatus] = useState('idle');
   const [pushAlertsEnabled, setPushAlertsEnabled] = useState(false);
@@ -289,16 +292,27 @@ export function CallProvider({ children, enabled }) {
     }
   }, [incoming, getUserIds, endCall, rejectIncoming]);
 
-  const requestCall = useCallback(() => {
+  const requestCall = useCallback((issue) => {
     const { userId, name, phone } = getUserIds();
     if (!userId) return;
-    emitCallRequest({ userId, name, phone });
+    const trimmed = String(issue || '').trim().replace(/\s+/g, ' ');
+    if (trimmed.length < 5) {
+      setRequestError('Please describe your issue (at least 5 characters)');
+      return;
+    }
+    setRequestError('');
+    emitCallRequest({ userId, name, phone, issue: trimmed });
+    setRequestIssue(trimmed);
     setRequestState('waiting');
   }, [getUserIds]);
 
   const cancelCallRequest = useCallback(() => {
+    const { userId } = getUserIds();
+    if (userId) emitCancelCallRequest(userId);
     setRequestState('idle');
-  }, []);
+    setRequestIssue('');
+    setRequestError('');
+  }, [getUserIds]);
 
   useEffect(() => {
     if (enabled) getRtcConfiguration().catch(() => {});
@@ -431,9 +445,20 @@ export function CallProvider({ children, enabled }) {
     socket.on('incoming-call', onIncoming);
     socket.on('call-ended', onEnded);
     socket.on('ice-candidate', onIce);
-    socket.on('call-request-ack', () => {
+    const onRequestAck = ({ request } = {}) => {
+      if (request?.issue) setRequestIssue(request.issue);
       setRequestState('waiting');
-    });
+      setRequestError('');
+    };
+
+    const onRequestError = ({ message } = {}) => {
+      setRequestState('idle');
+      setRequestIssue('');
+      setRequestError(message || 'Could not send call request');
+    };
+
+    socket.on('call-request-ack', onRequestAck);
+    socket.on('call-request-error', onRequestError);
 
     if (socket.connected) onConnect();
 
@@ -442,6 +467,8 @@ export function CallProvider({ children, enabled }) {
       socket.off('incoming-call', onIncoming);
       socket.off('call-ended', onEnded);
       socket.off('ice-candidate', onIce);
+      socket.off('call-request-ack', onRequestAck);
+      socket.off('call-request-error', onRequestError);
       disconnectUserCallSocket();
       cleanupCall();
     };
@@ -590,6 +617,8 @@ export function CallProvider({ children, enabled }) {
     activeSession,
     requestCall,
     cancelCallRequest,
+    requestIssue,
+    requestError,
     acceptIncoming,
     rejectIncoming,
     endCall,

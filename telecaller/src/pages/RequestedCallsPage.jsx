@@ -83,6 +83,12 @@ const RequestedCallsPage = () => {
                                 </p>
                                 <p className="font-semibold text-gray-900">{req.name}</p>
                                 <p className="text-sm text-gray-500 font-mono">{req.phone || '—'}</p>
+                                {req.issue && (
+                                    <p className="mt-2 text-sm text-gray-700 bg-amber-50/80 border border-amber-100 rounded-lg px-3 py-2 leading-relaxed">
+                                        <span className="font-semibold text-amber-900">Issue: </span>
+                                        {req.issue}
+                                    </p>
+                                )}
                                 <p className="text-xs text-gray-400 mt-1">
                                     {new Date(req.createdAt).toLocaleString('en-IN')}
                                 </p>

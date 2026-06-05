@@ -115,10 +115,29 @@ export function initCallSocket(io) {
                 userId,
                 name: data.name || meta?.name || 'Player',
                 phone: data.phone || '',
+                issue: data.issue || data.description || '',
             });
+
+            if (!entry) {
+                socket.emit('call-request-error', {
+                    message: 'Please describe your issue before requesting a call',
+                });
+                return;
+            }
 
             io.to('telecallers').emit('new-call-request', entry);
             socket.emit('call-request-ack', { ok: true, request: entry });
+        });
+
+        /** User cancelled their callback request before telecaller called */
+        socket.on('cancel-call-request', (data = {}) => {
+            const meta = socketMeta.get(socket.id);
+            const userId = String(data.userId || meta?.userId || '').trim();
+            if (!userId) return;
+
+            removeCallRequest(userId);
+            io.to('telecallers').emit('call-request-removed', { userId });
+            socket.emit('call-request-cancelled', { ok: true, userId });
         });
 
         /** Telecaller starts WebRTC call to user */

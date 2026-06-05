@@ -42,6 +42,10 @@ export function registerUser(userId, name, phone) {
   });
 }
 
-export function emitCallRequest({ userId, name, phone }) {
-  getCallSocket()?.emit('call-request', { userId, name, phone });
+export function emitCallRequest({ userId, name, phone, issue }) {
+  getCallSocket()?.emit('call-request', { userId, name, phone, issue });
+}
+
+export function emitCancelCallRequest(userId) {
+  getCallSocket()?.emit('cancel-call-request', { userId: String(userId) });
 }
