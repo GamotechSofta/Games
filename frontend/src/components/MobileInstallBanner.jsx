@@ -6,6 +6,7 @@ import {
   isMobileInstallBannerDismissed,
   setMobileInstallBannerDismissed,
 } from '../utils/mobileInstallBanner';
+import { isIosDevice, isStandalonePwa } from '../services/callNotificationService';
 
 export default function MobileInstallBanner() {
   const { t } = useTranslation();
@@ -21,6 +22,38 @@ export default function MobileInstallBanner() {
   };
 
   if (dismissed) return null;
+
+  const ios = isIosDevice();
+  const iosNeedsInstall = ios && !isStandalonePwa();
+
+  if (iosNeedsInstall) {
+    return (
+      <div className="md:hidden">
+        <div className="rounded-[22px] border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 shadow-sm">
+          <div className="flex items-start gap-2.5">
+            <button
+              type="button"
+              onClick={closeBanner}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-amber-800/80 active:scale-95"
+              aria-label={t('common.close') || 'Close'}
+            >
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l8 8M14 6l-8 8" />
+              </svg>
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-amber-900 dark:text-amber-100">
+                Add to Home Screen for calls
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-amber-800/90 dark:text-amber-200/90">
+                Safari → Share → Add to Home Screen. Then open Aakda from that icon and enable call alerts on Profile.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="md:hidden">

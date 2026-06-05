@@ -20,6 +20,7 @@ import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
 import IncomingCallOverlay from '../components/call/IncomingCallOverlay';
 import CallAlertsBanner from '../components/call/CallAlertsBanner';
+import IosCallSetupModal from '../components/call/IosCallSetupModal';
 
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
@@ -185,6 +186,7 @@ const Layout = ({ children }) => {
   const wrapCalls = (node) => (
     <CallProvider enabled={callEnabled}>
       <CallAlertsBanner />
+      <IosCallSetupModal />
       {node}
       <IncomingCallOverlay />
     </CallProvider>

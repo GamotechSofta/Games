@@ -30,8 +30,17 @@ import {
   fetchPendingCall,
   fetchMyPendingCall,
   rejectPendingCallApi,
-  isCallPushEnabledLocally,
+  isCallPushActive,
+  verifyCallPushSubscription,
 } from '../services/callPushService';
+import {
+  getIosCallSetupStep,
+  isIosCallReady,
+} from '../services/iosCallSetup';
+import {
+  isIosDevice,
+  isStandalonePwa,
+} from '../services/callNotificationService';
 import {
   isNotificationGranted,
   showIncomingCallNotification,
@@ -68,7 +77,7 @@ export function CallProvider({ children, enabled }) {
   const [requestState, setRequestState] = useState('idle'); // idle | waiting | in-call
   const [incoming, setIncoming] = useState(null);
   const [callStatus, setCallStatus] = useState('idle');
-  const [pushAlertsEnabled, setPushAlertsEnabled] = useState(() => isCallPushEnabledLocally());
+  const [pushAlertsEnabled, setPushAlertsEnabled] = useState(false);
   const [pushError, setPushError] = useState('');
 
   const pcRef = useRef(null);
@@ -376,31 +385,60 @@ export function CallProvider({ children, enabled }) {
     };
   }, [enabled, pollForPendingCall]);
 
+  const syncPushAlertsState = useCallback(async () => {
+    const active = await isCallPushActive();
+    setPushAlertsEnabled(active);
+    return active;
+  }, []);
+
   const enableCallAlerts = useCallback(async () => {
     const { userId } = getUserIds();
     if (!userId) return;
     setPushError('');
+
+    if (isIosDevice() && !isStandalonePwa()) {
+      setPushError('Add Aakda to your Home Screen first (Safari → Share → Add to Home Screen), then open from that icon.');
+      return;
+    }
+
     try {
       await subscribeToCallPush(userId);
       setPushAlertsEnabled(true);
     } catch (err) {
       setPushError(err.message || 'Could not enable call alerts');
+      setPushAlertsEnabled(await verifyCallPushSubscription() && isNotificationGranted());
     }
   }, [getUserIds]);
 
-  /** Re-register push when permission already granted (e.g. after reinstall). */
+  /** Sync + re-register push (iOS PWA needs this after reinstall / iOS updates). */
   useEffect(() => {
     if (!enabled) return undefined;
     const { userId } = getUserIds();
     if (!userId) return undefined;
-    if (!isNotificationGranted()) return undefined;
 
-    subscribeToCallPush(userId)
-      .then(() => setPushAlertsEnabled(true))
-      .catch(() => {});
+    let cancelled = false;
 
-    return undefined;
-  }, [enabled, getUserIds]);
+    const sync = async () => {
+      const active = await isCallPushActive();
+      if (cancelled) return;
+      setPushAlertsEnabled(active);
+
+      if (isNotificationGranted() && isStandalonePwa()) {
+        try {
+          await subscribeToCallPush(userId);
+          if (!cancelled) setPushAlertsEnabled(true);
+        } catch (_) {
+          if (!cancelled) await syncPushAlertsState();
+        }
+      }
+    };
+
+    void sync();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, getUserIds, syncPushAlertsState]);
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -458,6 +496,8 @@ export function CallProvider({ children, enabled }) {
     pushAlertsEnabled,
     pushError,
     enableCallAlerts,
+    iosCallReady: isIosCallReady(pushAlertsEnabled),
+    iosCallSetupStep: getIosCallSetupStep({ pushAlertsEnabled }),
   };
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;

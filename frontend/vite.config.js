@@ -49,13 +49,15 @@ export default defineConfig(({ mode }) => {
       manifest: {
         name: 'Aakda Games',
         short_name: 'Aakda',
+        description: 'Aakda — markets, games, and support calls',
         theme_color: '#141415',
         background_color: '#141415',
         display: 'standalone',
         start_url: '/',
+        scope: '/',
         icons: [
-          { src: '/favIcon.png', sizes: '192x192', type: 'image/png' },
-          { src: '/favIcon.png', sizes: '512x512', type: 'image/png' },
+          { src: '/favIcon.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/favIcon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),

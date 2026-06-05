@@ -1,23 +1,40 @@
 import { API_BASE_URL } from '../config/api';
-import { getNotificationPermission } from './callNotificationService';
+import { getNotificationPermission, isIosDevice } from './callNotificationService';
 
 /**
  * Web Push (VAPID) for incoming calls when site closed / phone locked — no Firebase.
  */
 
-export async function waitForServiceWorker(timeoutMs = 15000) {
+export async function waitForServiceWorker(timeoutMs) {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service worker not supported');
   }
+  const waitMs = timeoutMs ?? (isIosDevice() ? 30000 : 15000);
+
   if (navigator.serviceWorker.controller) {
     return navigator.serviceWorker.ready;
   }
+
   return Promise.race([
     navigator.serviceWorker.ready,
     new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Service worker not ready — reload the app once')), timeoutMs);
+      setTimeout(
+        () => reject(new Error('Service worker not ready — close and reopen the app from your Home Screen icon')),
+        waitMs,
+      );
     }),
   ]);
+}
+
+export async function verifyCallPushSubscription() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    return Boolean(sub);
+  } catch (_) {
+    return false;
+  }
 }
 
 export async function fetchVapidPublicKey() {
@@ -106,6 +123,13 @@ export async function subscribeToCallPush(userId) {
 
 export function isCallPushEnabledLocally() {
   return localStorage.getItem('callPushEnabled') === '1';
+}
+
+/** True when permission + active push subscription exist (not just localStorage flag). */
+export async function isCallPushActive() {
+  if (!isCallPushEnabledLocally()) return false;
+  if (getNotificationPermission() !== 'granted') return false;
+  return verifyCallPushSubscription();
 }
 
 export async function fetchPendingCall(callId, userId) {

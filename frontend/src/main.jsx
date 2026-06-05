@@ -13,6 +13,20 @@ import { bindCallAudioUnlock } from './services/callAudioUnlock'
 
 applyThemeToDocument(getStoredTheme())
 
+/** Register SW early — required for iPhone Home Screen push before subscribe. */
+void import('virtual:pwa-register')
+  .then(({ registerSW }) => {
+    registerSW({
+      immediate: true,
+      onRegisteredSW() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+        }
+      },
+    })
+  })
+  .catch(() => {})
+
 function scheduleCriticalChunkPrefetch() {
   const run = () => {
     void import('./pages/MarketsPage')
@@ -55,23 +69,6 @@ function startApp() {
   }
 
   scheduleCriticalChunkPrefetch()
-
-  window.addEventListener(
-    'load',
-    () => {
-      import('virtual:pwa-register').then(({ registerSW }) => {
-        registerSW({
-          immediate: true,
-          onRegisteredSW() {
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
-            }
-          },
-        })
-      }).catch(() => {})
-    },
-    { once: true },
-  )
 }
 
 startApp()
