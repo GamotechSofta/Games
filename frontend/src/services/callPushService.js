@@ -148,6 +148,19 @@ export async function fetchMyPendingCall(userId) {
   return json.data || null;
 }
 
+export async function cancelCallRequestApi(userId) {
+  const res = await fetch(`${API_BASE_URL}/call/cancel-request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: String(userId) }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to cancel call request');
+  }
+  return res.json();
+}
+
 export async function rejectPendingCallApi(callId, userId) {
   await fetch(`${API_BASE_URL}/call/reject-pending`, {
     method: 'POST',

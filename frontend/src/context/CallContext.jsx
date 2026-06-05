@@ -33,6 +33,7 @@ import {
   fetchPendingCall,
   fetchMyPendingCall,
   rejectPendingCallApi,
+  cancelCallRequestApi,
   isCallPushActive,
   verifyCallPushSubscription,
 } from '../services/callPushService';
@@ -306,9 +307,15 @@ export function CallProvider({ children, enabled }) {
     setRequestState('waiting');
   }, [getUserIds]);
 
-  const cancelCallRequest = useCallback(() => {
+  const cancelCallRequest = useCallback(async () => {
     const { userId } = getUserIds();
-    if (userId) emitCancelCallRequest(userId);
+    if (!userId) return;
+    emitCancelCallRequest(userId);
+    try {
+      await cancelCallRequestApi(userId);
+    } catch (err) {
+      console.warn('[call] cancel request api', err);
+    }
     setRequestState('idle');
     setRequestIssue('');
     setRequestError('');

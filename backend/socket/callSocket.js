@@ -63,6 +63,17 @@ export function isUserOnline(userId) {
     return Boolean(getSocketIdForUser(userId));
 }
 
+/** Remove queued callback request and notify telecaller dashboards. */
+export function cancelCallRequestForUser(userId) {
+    const id = String(userId || '').trim();
+    if (!id) return false;
+    removeCallRequest(id);
+    if (ioRef) {
+        ioRef.to('telecallers').emit('call-request-removed', { userId: id });
+    }
+    return true;
+}
+
 function unregisterSocket(socket) {
     const meta = socketMeta.get(socket.id);
     if (meta?.userId) {
@@ -134,9 +145,7 @@ export function initCallSocket(io) {
             const meta = socketMeta.get(socket.id);
             const userId = String(data.userId || meta?.userId || '').trim();
             if (!userId) return;
-
-            removeCallRequest(userId);
-            io.to('telecallers').emit('call-request-removed', { userId });
+            cancelCallRequestForUser(userId);
             socket.emit('call-request-cancelled', { ok: true, userId });
         });
 

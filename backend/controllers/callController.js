@@ -10,7 +10,7 @@ import {
     getPendingCallForUser,
     removePendingCall,
 } from '../socket/pendingCallStore.js';
-import { routeCallEventToUser } from '../socket/callSocket.js';
+import { routeCallEventToUser, cancelCallRequestForUser } from '../socket/callSocket.js';
 
 export const getIceConfig = async (req, res) => {
     try {
@@ -136,6 +136,20 @@ export const getMyPendingCall = async (req, res) => {
                 offer: entry.offer,
             },
         });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/** Cancel queued callback request (Support page) — keeps telecaller list in sync. */
+export const cancelCallRequest = async (req, res) => {
+    try {
+        const userId = String(req.body?.userId || '').trim();
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId required' });
+        }
+        cancelCallRequestForUser(userId);
+        res.status(200).json({ success: true, userId });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

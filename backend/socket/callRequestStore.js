@@ -36,7 +36,10 @@ export function addCallRequest({ userId, name, phone, issue }) {
 }
 
 export function removeCallRequest(userId) {
-    pending.delete(String(userId || '').trim());
+    const uid = String(userId || '').trim();
+    const existed = pending.has(uid);
+    pending.delete(uid);
+    return existed;
 }
 
 export function getCallRequest(userId) {

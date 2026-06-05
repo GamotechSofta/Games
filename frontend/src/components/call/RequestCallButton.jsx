@@ -5,7 +5,7 @@ import { useCall } from '../../context/CallContext';
 const MAX_ISSUE_LEN = 500;
 
 /**
- * Request callback with issue description — stays on Profile until telecaller rings.
+ * Request callback with issue description — Support page only; waiting card until telecaller rings.
  */
 export default function RequestCallButton({ className = '' }) {
   const {
@@ -65,14 +65,14 @@ export default function RequestCallButton({ className = '' }) {
     );
   }
 
+  const trimmedIssue = issue.trim();
+  const canRequest = connected && trimmedIssue.length >= 5;
+
   const submit = () => {
-    const trimmed = issue.trim();
-    if (trimmed.length < 5) {
-      setLocalError('Please describe your issue (at least 5 characters)');
-      return;
-    }
+    if (!canRequest) return;
     setLocalError('');
-    requestCall(trimmed);
+    setIssue('');
+    requestCall(trimmedIssue);
   };
 
   const displayError = localError || requestError;
@@ -108,8 +108,8 @@ export default function RequestCallButton({ className = '' }) {
       <button
         type="button"
         onClick={submit}
-        disabled={!connected}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/25 transition hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+        disabled={!canRequest}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-teal-600/25 transition hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
       >
         <HiOutlinePhone className="h-5 w-5" />
         Request a Call
