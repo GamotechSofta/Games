@@ -3,12 +3,8 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUserSlash, FaUserCheck, FaUserPlus, FaSearch } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
-const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
-
-const computeIsOnline = (item) => {
-    const lastActive = item?.lastActiveAt ? new Date(item.lastActiveAt).getTime() : 0;
-    return lastActive > 0 && Date.now() - lastActive < ONLINE_THRESHOLD_MS;
-};
+import { setupVisibilityRefresh } from '../utils/onlineActivity';
+import OnlineStatusBadge from '../components/OnlineStatusBadge';
 
 const ALL_TABS = [
     { id: 'all', label: 'All Players', value: 'all' },
@@ -32,7 +28,6 @@ const AllUsers = () => {
     const [success, setSuccess] = useState('');
     const [togglingId, setTogglingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [, setTick] = useState(0);
     const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
@@ -106,12 +101,7 @@ const AllUsers = () => {
             })
             .catch(() => setHasSecretDeclarePassword(false));
 
-        const refreshInterval = setInterval(() => fetchData(false), 60000);
-        const tickInterval = setInterval(() => setTick((t) => t + 1), 5000);
-        return () => {
-            clearInterval(refreshInterval);
-            clearInterval(tickInterval);
-        };
+        return setupVisibilityRefresh(() => fetchData(false), 5 * 60 * 1000);
     }, [navigate]);
 
     const handleLogout = () => {
@@ -438,15 +428,7 @@ const AllUsers = () => {
                                                                                         <td className="px-4 py-2.5 text-gray-300 truncate max-w-[120px] lg:max-w-[160px]">{u.email || '—'}</td>
                                                                                         <td className="px-4 py-2.5 text-gray-300 hidden lg:table-cell">{u.phone || '—'}</td>
                                                                                         <td className="px-4 py-2.5">
-                                                                                            {(() => {
-                                                                                                const isOnline = computeIsOnline(u);
-                                                                                                return (
-                                                                                                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${isOnline ? 'text-green-400' : 'text-gray-500'}`}>
-                                                                                                        <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`} />
-                                                                                                        {isOnline ? 'Online' : 'Offline'}
-                                                                                                    </span>
-                                                                                                );
-                                                                                            })()}
+                                                                                            <OnlineStatusBadge user={u} variant="compact" />
                                                                                         </td>
                                                                                         <td className="px-4 py-2.5 text-green-400 font-mono text-xs">₹{Number(u.walletBalance ?? 0).toLocaleString('en-IN')}</td>
                                                                                         <td className="px-4 py-2.5 hidden sm:table-cell">
@@ -543,10 +525,7 @@ const AllUsers = () => {
                                                             <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                                                                 <Link to={`/all-users/${u._id}`} className="font-medium text-yellow-400 hover:text-yellow-300 hover:underline text-sm">{u.username}</Link>
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs ${computeIsOnline(u) ? 'text-green-400' : 'text-gray-500'}`}>
-                                                                        <span className={`w-1.5 h-1.5 rounded-full ${computeIsOnline(u) ? 'bg-green-500' : 'bg-gray-500'}`} />
-                                                                        {computeIsOnline(u) ? 'Online' : 'Offline'}
-                                                                    </span>
+                                                                    <OnlineStatusBadge user={u} variant="minimal" />
                                                                     <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${u.isActive !== false ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`}>
                                                                         {u.isActive !== false ? 'Active' : 'Suspended'}
                                                                     </span>
@@ -642,19 +621,7 @@ const AllUsers = () => {
                                                     {item.status || '—'}
                                                 </span>
                                             ) : (
-                                                (() => {
-                                                    const isOnline = computeIsOnline(item);
-                                                    return (
-                                                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                                                            isOnline
-                                                                ? 'bg-green-900/50 text-green-400 border border-green-700'
-                                                                : 'bg-gray-700 text-gray-400 border border-gray-600'
-                                                        }`}>
-                                                            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`} />
-                                                            {isOnline ? 'Online' : 'Offline'}
-                                                        </span>
-                                                    );
-                                                })()
+                                                <OnlineStatusBadge user={item} variant="pill" />
                                             )}
                                         </td>
                                         <td className="px-2 sm:px-3 py-2 sm:py-3">

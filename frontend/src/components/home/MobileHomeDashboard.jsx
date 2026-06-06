@@ -71,10 +71,30 @@ function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction
 function HeroBanner({ t, navigate, index, setIndex, isLight }) {
   useEffect(() => {
     if (MOBILE_HOME_BANNERS.length <= 1) return undefined;
-    const id = window.setInterval(() => {
-      setIndex((current) => (current + 1) % MOBILE_HOME_BANNERS.length);
-    }, 4000);
-    return () => window.clearInterval(id);
+
+    let timerId = null;
+    const advance = () => setIndex((current) => (current + 1) % MOBILE_HOME_BANNERS.length);
+    const start = () => {
+      if (timerId) window.clearInterval(timerId);
+      timerId = window.setInterval(advance, 6000);
+    };
+    const stop = () => {
+      if (timerId) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    };
+
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [setIndex]);
 
   return (
@@ -111,6 +131,10 @@ export default function MobileHomeDashboard() {
   useRefreshOnMarketReset(refetch);
 
   const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
+  const allMarketsExceptPopular = useMemo(
+    () => markets.filter((market) => !market.showInPopular),
+    [markets],
+  );
 
   return (
     <div className="w-full pb-8">
@@ -159,29 +183,31 @@ export default function MobileHomeDashboard() {
           </div>
         )}
 
-        <div>
-          <SectionHeader
-            icon={MarketsCategoryIcon}
-            iconClassName="text-[#f59e0b]"
-            title={t('dashboard.allMarkets', { defaultValue: 'All Markets' })}
-          />
-          {loading ? (
-            <div className={ALL_MARKETS_GRID_CLASS}>
-              {[1, 2, 3, 4].map((item) => (
-                <div
-                  key={item}
-                  className={`${MARKET_CARD_GRID_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className={ALL_MARKETS_GRID_CLASS}>
-              {markets.map((market) => (
-                <MarketCard key={market.id} market={market} />
-              ))}
-            </div>
-          )}
-        </div>
+        {(loading || allMarketsExceptPopular.length > 0) && (
+          <div>
+            <SectionHeader
+              icon={MarketsCategoryIcon}
+              iconClassName="text-[#f59e0b]"
+              title={t('dashboard.allMarkets', { defaultValue: 'All Markets' })}
+            />
+            {loading ? (
+              <div className={ALL_MARKETS_GRID_CLASS}>
+                {[1, 2, 3, 4].map((item) => (
+                  <div
+                    key={item}
+                    className={`${MARKET_CARD_GRID_CLASS} ${MARKET_CARD_SKELETON_BASE_CLASS}`}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className={ALL_MARKETS_GRID_CLASS}>
+                {allMarketsExceptPopular.map((market) => (
+                  <MarketCard key={market.id} market={market} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
 
       </div>

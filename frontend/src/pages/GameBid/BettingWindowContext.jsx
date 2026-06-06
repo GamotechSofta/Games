@@ -17,6 +17,14 @@ function computeWindowState(market) {
     };
 }
 
+function windowStatesEqual(a, b) {
+    return (
+        a.allowed === b.allowed
+        && a.closeOnly === b.closeOnly
+        && a.message === b.message
+    );
+}
+
 function MarketClosedModal({ market, allowed }) {
     const navigate = useNavigate();
     const [visible, setVisible] = useState(false);
@@ -96,16 +104,31 @@ export function BettingWindowProvider({ market, scheduleForTomorrow = false, chi
     );
 
     useEffect(() => {
+        const openTomorrow = { allowed: true, closeOnly: false, message: null };
+
+        if (scheduleForTomorrow) {
+            setWindowState((prev) => (windowStatesEqual(prev, openTomorrow) ? prev : openTomorrow));
+            return undefined;
+        }
+
         const tick = () => {
-            if (scheduleForTomorrow) {
-                setWindowState({ allowed: true, closeOnly: false, message: null });
-                return;
-            }
-            setWindowState(computeWindowState(market));
+            if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+            const next = computeWindowState(market);
+            setWindowState((prev) => (windowStatesEqual(prev, next) ? prev : next));
         };
+
         tick();
         const id = setInterval(tick, 1000);
-        return () => clearInterval(id);
+
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') tick();
+        };
+        document.addEventListener('visibilitychange', onVisible);
+
+        return () => {
+            clearInterval(id);
+            document.removeEventListener('visibilitychange', onVisible);
+        };
     }, [market?._id, market?.id, market?.startingTime, market?.closingTime, market?.betClosureTime, scheduleForTomorrow]);
 
     const value = useMemo(

@@ -1,8 +1,9 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
-import { schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
+import { prefetchForPathname, schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
+import useWalletBalanceBootstrap from '../hooks/useWalletBalanceBootstrap';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getActivePanelFromLocation, useDashboardNav } from '../utils/dashboardNav';
 import SkeletonBlock from '../components/SkeletonBlock';
@@ -86,32 +87,16 @@ const ScrollToTop = () => {
 
     const scrollToTop = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      if (document.documentElement) document.documentElement.scrollTop = 0;
-      if (document.body) document.body.scrollTop = 0;
-      try {
-        document.body.scrollIntoView?.({ behavior: 'instant', block: 'start' });
-        document.documentElement?.scrollIntoView?.({ behavior: 'instant', block: 'start' });
-      } catch (_) {}
-      try {
-        const scrollables = document.querySelectorAll(
-          '[class*="overflow-y-auto"], [class*="overflow-y-scroll"], [class*="overflow-auto"], [class*="ios-scroll-touch"]'
-        );
-        scrollables.forEach((el) => {
-          if (el && typeof el.scrollTop === 'number') el.scrollTop = 0;
-        });
-      } catch (_) {}
+      const scrollRoot = document.querySelector('main, [data-scroll-root]');
+      if (scrollRoot && typeof scrollRoot.scrollTop === 'number') {
+        scrollRoot.scrollTop = 0;
+      }
     };
 
     scrollToTop();
     const raf = requestAnimationFrame(scrollToTop);
-    const t1 = setTimeout(scrollToTop, 100);
-    const t2 = setTimeout(scrollToTop, 250);
 
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
+    return () => cancelAnimationFrame(raf);
   }, [pathname, search]);
 
   return null;
@@ -151,6 +136,23 @@ const Layout = ({ children }) => {
   }, []);
 
   usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel));
+  useWalletBalanceBootstrap(Boolean(hasUser && !isAdminPanel));
+
+  useEffect(() => {
+    if (hasUser) prefetchForPathname(location.pathname);
+  }, [hasUser, location.pathname]);
+
+  useEffect(() => {
+    const syncTabHidden = () => {
+      document.body.classList.toggle('tab-hidden', document.visibilityState === 'hidden');
+    };
+    syncTabHidden();
+    document.addEventListener('visibilitychange', syncTabHidden);
+    return () => {
+      document.removeEventListener('visibilitychange', syncTabHidden);
+      document.body.classList.remove('tab-hidden');
+    };
+  }, []);
 
   useEffect(() => {
     const validateToken = () => {

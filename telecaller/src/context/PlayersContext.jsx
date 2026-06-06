@@ -5,85 +5,124 @@ import React, {
     useEffect,
     useMemo,
     useCallback,
+    useRef,
 } from 'react';
-import { loadTelecallerDashboard, computeIsOnline } from '../utils/playerActivity';
-import { sortPlayers, filterPlayersBySearch } from '../utils/playerSort';
+import { loadTelecallerDashboard } from '../utils/playerActivity';
 
 const PlayersContext = createContext(null);
 
+const REFRESH_MS = 5 * 60 * 1000;
+const SEARCH_DEBOUNCE_MS = 350;
+
+const EMPTY_STATS = {
+    total: 0,
+    online: 0,
+    withDeposit: 0,
+    withWithdrawal: 0,
+    withWalletCredit: 0,
+    withBet: 0,
+};
+
 export function PlayersProvider({ children }) {
     const [players, setPlayers] = useState([]);
+    const [onlinePreview, setOnlinePreview] = useState([]);
+    const [stats, setStats] = useState(EMPTY_STATS);
+    const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 1 });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [sortBy, setSortBy] = useState('last_deposit_desc');
-    const [, setTick] = useState(0);
+    const [page, setPage] = useState(1);
+    const loadSeq = useRef(0);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, SEARCH_DEBOUNCE_MS);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const setSortByAndResetPage = useCallback((value) => {
+        setSortBy(value);
+        setPage(1);
+    }, []);
 
     const load = useCallback(async (silent = false) => {
+        const seq = ++loadSeq.current;
         if (!silent) setLoading(true);
         else setRefreshing(true);
         setError('');
         try {
-            const rows = await loadTelecallerDashboard();
-            setPlayers(rows);
+            const result = await loadTelecallerDashboard({
+                search: debouncedSearch,
+                page,
+                sort: sortBy,
+            });
+            if (seq !== loadSeq.current) return;
+            setPlayers(result.players);
+            setOnlinePreview(result.onlinePreview);
+            setStats(result.stats);
+            setPagination(result.pagination);
         } catch (err) {
+            if (seq !== loadSeq.current) return;
             setError(err.message || 'Failed to load players');
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (seq === loadSeq.current) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
-    }, []);
+    }, [debouncedSearch, page, sortBy]);
 
     useEffect(() => {
         load(false);
-        const refresh = setInterval(() => load(true), 60000);
-        const tick = setInterval(() => setTick((t) => t + 1), 5000);
+    }, [load]);
+
+    useEffect(() => {
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') load(true);
+        };
+        const refresh = setInterval(() => {
+            if (document.visibilityState === 'visible') load(true);
+        }, REFRESH_MS);
+        document.addEventListener('visibilitychange', onVisible);
         return () => {
             clearInterval(refresh);
-            clearInterval(tick);
+            document.removeEventListener('visibilitychange', onVisible);
         };
     }, [load]);
 
-    const filteredPlayers = useMemo(
-        () => sortPlayers(filterPlayersBySearch(players, search), sortBy),
-        [players, search, sortBy],
-    );
-
-    const stats = useMemo(() => {
-        const now = Date.now();
-        return {
-            total: players.length,
-            online: players.filter((p) => computeIsOnline(p, now)).length,
-            withDeposit: players.filter((p) => p.lastDeposit).length,
-            withWithdrawal: players.filter((p) => p.lastWithdrawal).length,
-            withWalletCredit: players.filter((p) => p.lastWalletCredit).length,
-            withBet: players.filter((p) => p.lastBet).length,
-        };
-    }, [players]);
-
     const value = useMemo(() => ({
         players,
-        filteredPlayers,
+        filteredPlayers: players,
+        onlinePreview,
         loading,
         refreshing,
         error,
         search,
         setSearch,
         sortBy,
-        setSortBy,
+        setSortBy: setSortByAndResetPage,
         stats,
+        pagination,
+        page,
+        setPage,
         load,
         refresh: () => load(true),
     }), [
         players,
-        filteredPlayers,
+        onlinePreview,
         loading,
         refreshing,
         error,
         search,
         sortBy,
         stats,
+        pagination,
+        page,
         load,
     ]);
 

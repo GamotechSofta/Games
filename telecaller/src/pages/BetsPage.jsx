@@ -4,6 +4,7 @@ import ErrorAlert from '../components/common/ErrorAlert';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmptyState from '../components/common/EmptyState';
 import ListFooter from '../components/common/ListFooter';
+import PaginationBar from '../components/common/PaginationBar';
 import TableShell from '../components/tables/TableShell';
 import { PlayerIndexCell, PlayerNameCell, PlayerPhoneCell } from '../components/players/PlayerIdentityCells';
 import DateTimeCell from '../components/players/DateTimeCell';
@@ -19,7 +20,6 @@ const BETS_SORT = SORT_OPTIONS.filter((o) =>
 const BetsPage = () => {
     const {
         filteredPlayers,
-        players,
         loading,
         refreshing,
         error,
@@ -28,6 +28,9 @@ const BetsPage = () => {
         sortBy,
         setSortBy,
         refresh,
+        pagination,
+        page,
+        setPage,
     } = usePlayers();
 
     return (
@@ -76,7 +79,14 @@ const BetsPage = () => {
                             ))}
                         </tbody>
                     </TableShell>
-                    <ListFooter shown={filteredPlayers.length} total={players.length} loading={loading} />
+                    <ListFooter shown={filteredPlayers.length} total={pagination.total} loading={loading} />
+                    <PaginationBar
+                        page={page}
+                        totalPages={pagination.totalPages}
+                        total={pagination.total}
+                        onPageChange={setPage}
+                        disabled={loading || refreshing}
+                    />
                 </>
             )}
         </>

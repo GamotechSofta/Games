@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { setupVisibilityRefresh } from '../utils/onlineActivity';
 
 const ACTION_LABELS = {
     admin_login: 'Admin Login',
@@ -77,8 +78,7 @@ const Logs = () => {
             return;
         }
         fetchLogs(true);
-        const interval = setInterval(() => fetchLogs(false), 15000);
-        return () => clearInterval(interval);
+        return setupVisibilityRefresh(() => fetchLogs(false), 60 * 1000);
     }, [navigate, page, filterType, sortOrder]);
 
     const handleLogout = () => {

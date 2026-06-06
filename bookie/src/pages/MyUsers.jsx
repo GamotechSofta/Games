@@ -4,12 +4,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL, bookieFetch } from '../utils/api';
 import { FaUserPlus, FaSearch } from 'react-icons/fa';
 
-const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
-
-const computeIsOnline = (item) => {
-    const lastActive = item?.lastActiveAt ? new Date(item.lastActiveAt).getTime() : 0;
-    return lastActive > 0 && Date.now() - lastActive < ONLINE_THRESHOLD_MS;
-};
+import { setupVisibilityRefresh } from '../utils/onlineActivity';
+import OnlineStatusBadge from '../components/OnlineStatusBadge';
+import OnlineUserCount from '../components/OnlineUserCount';
 
 const MyUsers = () => {
     const navigate = useNavigate();
@@ -17,7 +14,6 @@ const MyUsers = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [, setTick] = useState(0);
 
     const fetchData = async (showLoader = true) => {
         if (showLoader) setLoading(true);
@@ -39,14 +35,7 @@ const MyUsers = () => {
 
     useEffect(() => {
         fetchData(true);
-        // Auto-refresh every 15 seconds
-        const refreshInterval = setInterval(() => fetchData(false), 15000);
-        // Tick to re-evaluate online status
-        const tickInterval = setInterval(() => setTick((t) => t + 1), 5000);
-        return () => {
-            clearInterval(refreshInterval);
-            clearInterval(tickInterval);
-        };
+        return setupVisibilityRefresh(() => fetchData(false), 5 * 60 * 1000);
     }, []);
 
     const q = searchQuery.trim().toLowerCase();
@@ -61,7 +50,6 @@ const MyUsers = () => {
 
     const activeCount = users.filter((u) => u.isActive !== false).length;
     const suspendedCount = users.filter((u) => u.isActive === false).length;
-    const onlineCount = users.filter((u) => computeIsOnline(u)).length;
 
     return (
         <Layout title="My Players">
@@ -106,7 +94,7 @@ const MyUsers = () => {
                 </div>
                 <div className="glass-panel glass-panel-card rounded-xl p-5 border border-slate-200 relative overflow-hidden group">
                     <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">Online</p>
-                    <p className="text-2xl font-bold text-slate-900 font-mono">{onlineCount}</p>
+                    <p className="text-2xl font-bold text-slate-900 font-mono"><OnlineUserCount users={users} /></p>
                     <div className="absolute right-0 top-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                         <div className="w-8 h-8 rounded-full bg-amber-500"></div>
                     </div>
@@ -187,9 +175,7 @@ const MyUsers = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredUsers.map((item, index) => {
-                                    const isOnline = computeIsOnline(item);
-                                    return (
+                                {filteredUsers.map((item, index) => (
                                         <tr key={item._id} className="hover:bg-white/5 transition-colors group">
                                             <td className="px-4 py-4 text-slate-400 block-number">{index + 1}</td>
                                             <td className="px-4 py-4">
@@ -210,10 +196,7 @@ const MyUsers = () => {
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">
-                                                <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold border ${isOnline ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-700/30 text-slate-400 border-slate-700/50'}`}>
-                                                    <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`}></div>
-                                                    {isOnline ? 'Online' : 'Offline'}
-                                                </div>
+                                                <OnlineStatusBadge user={item} />
                                             </td>
                                             <td className="px-4 py-4">
                                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${item.isActive !== false
@@ -231,8 +214,7 @@ const MyUsers = () => {
                                                 }) : '—'}
                                             </td>
                                         </tr>
-                                    );
-                                })}
+                                ))}
                             </tbody>
                         </table>
                     </div>

@@ -227,7 +227,7 @@ export async function getMyWalletTransactions(limit = 200) {
  * @param {{ days?: number, limit?: number }} [options]
  * @returns {Promise<{ success: boolean, data?: Array<Bet>, message?: string }>}
  */
-export async function getMyBetHistory({ days = 30, limit = 200 } = {}) {
+export async function getMyBetHistory({ days = 30, limit = 50, skip = 0 } = {}) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   if (!userId) {
@@ -237,6 +237,7 @@ export async function getMyBetHistory({ days = 30, limit = 200 } = {}) {
     userId,
     days: String(days),
     limit: String(limit),
+    skip: String(skip),
   });
   const url = `${API_BASE_URL}/bets/my-history?${params.toString()}`;
   const response = await fetch(url);

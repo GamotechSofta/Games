@@ -9,11 +9,30 @@ const BannersSection = () => {
   const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
-    if (HOME_BANNERS.length <= 1) return;
-    bannerTimerRef.current = setInterval(() => {
-      setBannerIdx((i) => (i + 1) % HOME_BANNERS.length);
-    }, 4000);
-    return () => clearInterval(bannerTimerRef.current);
+    if (HOME_BANNERS.length <= 1) return undefined;
+
+    const advance = () => setBannerIdx((i) => (i + 1) % HOME_BANNERS.length);
+    const start = () => {
+      if (bannerTimerRef.current) clearInterval(bannerTimerRef.current);
+      bannerTimerRef.current = setInterval(advance, 6000);
+    };
+    const stop = () => {
+      if (bannerTimerRef.current) {
+        clearInterval(bannerTimerRef.current);
+        bannerTimerRef.current = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    };
+
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   const handleTouchStart = (e) => {

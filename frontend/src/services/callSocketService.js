@@ -1,35 +1,16 @@
-import { io } from 'socket.io-client';
-import { getSocketUrl } from '../config/api';
-
-let socket = null;
+import { connectPlayerSocket, getPlayerSocket } from './playerSocket';
 
 export function getCallSocket() {
-  return socket;
+  return getPlayerSocket();
 }
 
+/** Uses the shared player socket — does not open a second connection. */
 export function connectUserCallSocket() {
-  if (socket?.connected) return socket;
-
-  const url = getSocketUrl();
-  if (!url) return null;
-
-  socket = io(url, {
-    path: '/socket.io',
-    withCredentials: true,
-    transports: ['websocket', 'polling'],
-    reconnection: true,
-    reconnectionDelay: 1500,
-  });
-
-  return socket;
+  return connectPlayerSocket();
 }
 
-export function disconnectUserCallSocket() {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-}
+/** Call handlers detach only; wallet hook owns disconnect via releasePlayerSocket. */
+export function disconnectUserCallSocket() {}
 
 export function registerUser(userId, name, phone) {
   const s = connectUserCallSocket();

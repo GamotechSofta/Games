@@ -8,8 +8,11 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
 
-/** Max players shown in telecaller app (same cap as dashboard query). */
+/** Legacy cap for telecaller assignable-player counts in admin APIs. */
 export const TELECALLER_PLAYER_LIMIT = 2000;
+
+export const TELECALLER_PLAYER_PAGE_SIZE = 50;
+export const TELECALLER_PLAYER_PAGE_MAX = 100;
 
 /** Players a telecaller can mark done (all users, capped to dashboard limit). */
 export async function getTelecallerAssignablePlayerCount() {
@@ -110,35 +113,142 @@ async function aggregateLastBets(userIds) {
     );
 }
 
+function escapeRegex(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildTelecallerUserQuery(bookieUserIds, search) {
+    const query = { role: 'user' };
+    if (bookieUserIds !== null) {
+        query._id = { $in: bookieUserIds };
+    }
+    const term = String(search || '').trim();
+    if (term) {
+        const pattern = escapeRegex(term);
+        query.$or = [
+            { username: { $regex: pattern, $options: 'i' } },
+            { phone: { $regex: pattern, $options: 'i' } },
+        ];
+    }
+    return query;
+}
+
+function sortDashboardRows(rows, sortBy) {
+    const ts = (d) => (d ? new Date(d).getTime() : 0);
+    const sorted = [...rows];
+    sorted.sort((a, b) => {
+        if (sortBy === 'name_asc') {
+            return String(a.username || '').localeCompare(String(b.username || ''), undefined, { sensitivity: 'base' });
+        }
+        if (sortBy === 'last_deposit_desc') {
+            return ts(b.lastDeposit?.createdAt) - ts(a.lastDeposit?.createdAt);
+        }
+        if (sortBy === 'last_withdraw_desc') {
+            return ts(b.lastWithdrawal?.createdAt) - ts(a.lastWithdrawal?.createdAt);
+        }
+        if (sortBy === 'last_wallet_add_desc') {
+            return ts(b.lastWalletCredit?.createdAt) - ts(a.lastWalletCredit?.createdAt);
+        }
+        if (sortBy === 'last_wallet_deduct_desc') {
+            return ts(b.lastWalletDebit?.createdAt) - ts(a.lastWalletDebit?.createdAt);
+        }
+        if (sortBy === 'last_bet_desc') {
+            return ts(b.lastBet?.createdAt) - ts(a.lastBet?.createdAt);
+        }
+        return ts(b.createdAt) - ts(a.createdAt);
+    });
+    return sorted;
+}
+
+async function countDistinctActivityUsers(Model, match, bookieUserIds) {
+    const pipeline = [{ $match: match }];
+    if (bookieUserIds !== null) {
+        pipeline.push({ $match: { userId: { $in: bookieUserIds } } });
+    }
+    pipeline.push({ $group: { _id: '$userId' } }, { $count: 'count' });
+    const rows = await Model.aggregate(pipeline);
+    return rows[0]?.count ?? 0;
+}
+
+function mapUserRow(user, activityMaps, now) {
+    const id = String(user._id);
+    const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
+    const isOnline = lastActive > 0 && now - lastActive < ONLINE_THRESHOLD_MS;
+    const {
+        lastDeposit,
+        lastWithdrawal,
+        lastBet,
+        lastWalletCredit,
+        lastWalletDebit,
+    } = activityMaps;
+    return {
+        _id: user._id,
+        username: user.username,
+        phone: user.phone,
+        isActive: user.isActive,
+        isBlocked: user.isBlocked,
+        lastActiveAt: user.lastActiveAt,
+        createdAt: user.createdAt,
+        isOnline,
+        lastDeposit: lastDeposit[id] || null,
+        lastWithdrawal: lastWithdrawal[id] || null,
+        lastBet: lastBet[id] || null,
+        lastWalletCredit: lastWalletCredit[id] || null,
+        lastWalletDebit: lastWalletDebit[id] || null,
+    };
+}
+
 /**
- * Telecaller dashboard: player contact + activity only (no wallet balance, credentials, or IPs).
+ * Telecaller dashboard: paginated player contact + activity (no wallet balance, credentials, or IPs).
  */
 export const getTelecallerDashboard = async (req, res) => {
     try {
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const query = { role: 'user' };
-        if (bookieUserIds !== null) {
-            query._id = { $in: bookieUserIds };
-        }
+        const baseQuery = buildTelecallerUserQuery(bookieUserIds, '');
+        const search = String(req.query.search || '').trim();
+        const listQuery = buildTelecallerUserQuery(bookieUserIds, search);
+        const sortBy = String(req.query.sort || 'last_deposit_desc');
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(
+            TELECALLER_PLAYER_PAGE_MAX,
+            Math.max(1, parseInt(req.query.limit, 10) || TELECALLER_PLAYER_PAGE_SIZE),
+        );
+        const skip = (page - 1) * limit;
+        const now = Date.now();
+        const onlineSince = new Date(now - ONLINE_THRESHOLD_MS);
 
-        const search = String(req.query.search || '').trim().toLowerCase();
-        const users = await User.find(query)
-            .select('username phone isActive isBlocked lastActiveAt createdAt')
-            .sort({ createdAt: -1 })
-            .limit(TELECALLER_PLAYER_LIMIT)
-            .lean();
+        const [
+            totalPlayers,
+            listTotal,
+            users,
+            onlineCount,
+            withDeposit,
+            withWithdrawal,
+            withWalletCredit,
+            withBet,
+            onlineUsers,
+        ] = await Promise.all([
+            User.countDocuments(baseQuery),
+            User.countDocuments(listQuery),
+            User.find(listQuery)
+                .select('username phone isActive isBlocked lastActiveAt createdAt')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            User.countDocuments({ ...baseQuery, lastActiveAt: { $gte: onlineSince } }),
+            countDistinctActivityUsers(Payment, { type: 'deposit' }, bookieUserIds),
+            countDistinctActivityUsers(Payment, { type: 'withdrawal' }, bookieUserIds),
+            countDistinctActivityUsers(WalletTransaction, { type: 'credit' }, bookieUserIds),
+            countDistinctActivityUsers(Bet, {}, bookieUserIds),
+            User.find({ ...baseQuery, lastActiveAt: { $gte: onlineSince } })
+                .select('username phone isActive isBlocked lastActiveAt createdAt')
+                .sort({ lastActiveAt: -1 })
+                .limit(8)
+                .lean(),
+        ]);
 
-        const filteredUsers = search
-            ? users.filter((u) => {
-                const phone = String(u.phone || '');
-                return (
-                    (u.username || '').toLowerCase().includes(search)
-                    || phone.includes(search)
-                );
-            })
-            : users;
-
-        const userIds = filteredUsers.map((u) => u._id);
+        const userIds = users.map((u) => u._id);
         const [lastDeposit, lastWithdrawal, lastBet, lastWalletCredit, lastWalletDebit] = await Promise.all([
             aggregateLastPayments(userIds, 'deposit'),
             aggregateLastPayments(userIds, 'withdrawal'),
@@ -146,34 +256,38 @@ export const getTelecallerDashboard = async (req, res) => {
             aggregateLastWalletTx(userIds, 'credit'),
             aggregateLastWalletTx(userIds, 'debit'),
         ]);
+        const activityMaps = {
+            lastDeposit,
+            lastWithdrawal,
+            lastBet,
+            lastWalletCredit,
+            lastWalletDebit,
+        };
 
-        const now = Date.now();
-        const data = filteredUsers.map((user) => {
-            const id = String(user._id);
-            const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
-            const isOnline = lastActive > 0 && now - lastActive < ONLINE_THRESHOLD_MS;
-            return {
-                _id: user._id,
-                username: user.username,
-                phone: user.phone,
-                isActive: user.isActive,
-                isBlocked: user.isBlocked,
-                lastActiveAt: user.lastActiveAt,
-                createdAt: user.createdAt,
-                isOnline,
-                lastDeposit: lastDeposit[id] || null,
-                lastWithdrawal: lastWithdrawal[id] || null,
-                lastBet: lastBet[id] || null,
-                lastWalletCredit: lastWalletCredit[id] || null,
-                lastWalletDebit: lastWalletDebit[id] || null,
-            };
-        });
+        const rows = users.map((user) => mapUserRow(user, activityMaps, now));
+        const data = sortDashboardRows(rows, sortBy);
+        const onlinePreview = onlineUsers.map((user) => mapUserRow(user, activityMaps, now));
 
         res.set('Cache-Control', 'private, max-age=20, stale-while-revalidate=40');
         res.status(200).json({
             success: true,
             count: data.length,
             data,
+            pagination: {
+                page,
+                limit,
+                total: listTotal,
+                totalPages: Math.max(1, Math.ceil(listTotal / limit)),
+            },
+            stats: {
+                total: totalPlayers,
+                online: onlineCount,
+                withDeposit,
+                withWithdrawal,
+                withWalletCredit,
+                withBet,
+            },
+            onlinePreview,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

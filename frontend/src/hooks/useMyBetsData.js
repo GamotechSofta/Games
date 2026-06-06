@@ -1,16 +1,17 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
   clearMyBets,
   fetchMyBetsDataThunk,
+  MY_BETS_PAGE_SIZE,
   selectMyBets,
+  selectMyBetsHasMore,
   selectMyBetsMarkets,
   selectMyBetsRates,
   selectMyBetsStatus,
 } from '../store/slices/myBetsSlice';
 
 const DEFAULT_DAYS = 30;
-const DEFAULT_LIMIT = 200;
 
 function readUserId() {
   try {
@@ -26,7 +27,7 @@ function readUserId() {
  */
 export function useMyBetsData({
   days = DEFAULT_DAYS,
-  limit = DEFAULT_LIMIT,
+  limit = MY_BETS_PAGE_SIZE,
   enabled = true,
 } = {}) {
   const dispatch = useAppDispatch();
@@ -34,28 +35,41 @@ export function useMyBetsData({
   const bets = useAppSelector(selectMyBets);
   const ratesMap = useAppSelector(selectMyBetsRates);
   const markets = useAppSelector(selectMyBetsMarkets);
+  const hasMore = useAppSelector(selectMyBetsHasMore);
   const { loading, isFetching, error } = useAppSelector(selectMyBetsStatus);
 
   useEffect(() => {
     if (!enabled || !userId) return;
-    void dispatch(fetchMyBetsDataThunk({ days, limit }));
+    void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false }));
   }, [dispatch, enabled, userId, days, limit]);
 
-  const invalidate = () => {
+  const invalidate = useCallback(() => {
     dispatch(clearMyBets());
     if (userId) {
-      void dispatch(fetchMyBetsDataThunk({ days, limit }));
+      void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false }));
     }
-  };
+  }, [dispatch, userId, days, limit]);
+
+  const loadMore = useCallback(() => {
+    if (!userId || !hasMore || isFetching) return;
+    void dispatch(fetchMyBetsDataThunk({
+      days,
+      limit,
+      skip: bets.length,
+      append: true,
+    }));
+  }, [dispatch, userId, hasMore, isFetching, days, limit, bets.length]);
 
   return {
     bets,
     ratesMap,
     markets,
+    hasMore,
     loading: enabled && Boolean(userId) && loading && !bets.length,
     isFetching,
     error: error || '',
-    refetch: () => dispatch(fetchMyBetsDataThunk({ days, limit })),
+    refetch: () => dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false })),
+    loadMore,
     invalidate,
   };
 }

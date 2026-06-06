@@ -317,13 +317,15 @@ export const getMyBetHistory = async (req, res) => {
 
         const parsedDays = Number.parseInt(String(req.query.days || 30), 10);
         const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 30;
-        const parsedLimit = Number.parseInt(String(req.query.limit || 200), 10);
-        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 200;
+        const parsedLimit = Number.parseInt(String(req.query.limit || 50), 10);
+        const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 50;
+        const parsedSkip = Number.parseInt(String(req.query.skip || 0), 10);
+        const skip = Number.isFinite(parsedSkip) ? Math.max(0, parsedSkip) : 0;
 
         const since = new Date();
         since.setDate(since.getDate() - days);
 
-        const bets = await Bet.find({
+        const query = Bet.find({
             userId,
             createdAt: { $gte: since },
         })
@@ -333,11 +335,16 @@ export const getMyBetHistory = async (req, res) => {
                 model: Market,
             })
             .sort({ createdAt: -1 })
-            .limit(limit)
+            .skip(skip)
+            .limit(limit + 1)
             .lean();
 
+        const rows = await query;
+        const hasMore = rows.length > limit;
+        const bets = hasMore ? rows.slice(0, limit) : rows;
+
         res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
-        res.status(200).json({ success: true, data: bets });
+        res.status(200).json({ success: true, data: bets, hasMore });
     } catch (error) {
         console.error('[getMyBetHistory]', error.message || error);
         res.status(500).json({ success: false, message: error.message || 'Failed to fetch bet history' });

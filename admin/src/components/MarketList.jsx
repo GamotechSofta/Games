@@ -33,10 +33,10 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
     const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
     const [marketToDelete, setMarketToDelete] = useState(null);
     const [marketToEdit, setMarketToEdit] = useState(null);
-    const [, setTick] = useState(0);
+    const [nowMs, setNowMs] = useState(() => Date.now());
 
     useEffect(() => {
-        const interval = setInterval(() => setTick((t) => t + 1), 60000);
+        const interval = setInterval(() => setNowMs(Date.now()), 60000);
         return () => clearInterval(interval);
     }, []);
 
@@ -153,7 +153,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
         const hasClosing = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
         if (hasOpening && hasClosing) return { status: 'closed', color: 'bg-red-600' };
         if (hasOpening && !hasClosing) return { status: 'running', color: 'bg-green-600' };
-        if (isClosingTimePassedIST(market.closingTime)) return { status: 'closed', color: 'bg-red-600' };
+        if (isClosingTimePassedIST(market.closingTime, nowMs)) return { status: 'closed', color: 'bg-red-600' };
         return { status: 'open', color: 'bg-green-600' };
     };
 

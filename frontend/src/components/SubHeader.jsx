@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getBalance, updateUserBalance } from '../api/bets';
 import { formatWalletAmount } from '../utils/walletBalance';
 import { useTheme } from '../context/ThemeContext';
+import useDisplayedWalletBalance from '../hooks/useDisplayedWalletBalance';
 import {
   isMobileInstallBannerDismissed,
   MOBILE_INSTALL_BANNER_EVENT,
@@ -20,41 +20,11 @@ const SubHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLight } = useTheme();
-  const [balance, setBalance] = useState(null);
+  const balance = useDisplayedWalletBalance();
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
 
   const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
   const headerHeight = getMobileDashboardSubHeaderTop(hasPromoBanner);
-
-  const loadStoredBalance = () => {
-    try {
-      const u = JSON.parse(localStorage.getItem('user') || '{}');
-      const b = u?.balance ?? u?.walletBalance ?? u?.wallet ?? 0;
-      setBalance(Number(b));
-    } catch (_) {
-      setBalance(0);
-    }
-  };
-
-  useEffect(() => {
-    loadStoredBalance();
-    const onLogin = () => loadStoredBalance();
-    const fetchAndUpdateBalance = async () => {
-      try {
-        const u = JSON.parse(localStorage.getItem('user') || 'null');
-        const userId = u?.id || u?._id;
-        if (!userId) return;
-        const res = await getBalance();
-        if (res.success && res.data?.balance != null) {
-          updateUserBalance(res.data.balance);
-          setBalance(res.data.balance);
-        }
-      } catch (_) {}
-    };
-    fetchAndUpdateBalance();
-    window.addEventListener('userLogin', onLogin);
-    return () => window.removeEventListener('userLogin', onLogin);
-  }, []);
 
   useEffect(() => {
     const syncBannerState = () => setBannerDismissed(isMobileInstallBannerDismissed());

@@ -5,15 +5,21 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useMemo,
 } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   connectUserCallSocket,
-  disconnectUserCallSocket,
   registerUser,
   emitCallRequest,
   emitCancelCallRequest,
   getCallSocket,
 } from '../services/callSocketService';
+import {
+  shouldEnableCallSignals,
+  shouldPollForPendingCall,
+  hasIncomingCallUrlParam,
+} from '../utils/callActivity';
 import {
   createPeerConnection,
   getLocalAudioStream,
@@ -53,6 +59,7 @@ import { startCallRingtone, stopCallRingtone } from '../services/callRingtoneSer
 import { startCallDelayTone, stopCallDelayTone } from '../services/callDelayToneService';
 
 const CallContext = createContext(null);
+const CallOverlayOpenContext = createContext(false);
 
 function getIncomingCallIdFromUrl() {
   if (typeof window === 'undefined') return null;
@@ -77,6 +84,7 @@ function readUser() {
 }
 
 export function CallProvider({ children, enabled }) {
+  const { pathname } = useLocation();
   const [connected, setConnected] = useState(false);
   const [requestState, setRequestState] = useState('idle'); // idle | waiting | in-call
   const [requestIssue, setRequestIssue] = useState('');
@@ -321,9 +329,33 @@ export function CallProvider({ children, enabled }) {
     setRequestError('');
   }, [getUserIds]);
 
+  const signalsEnabled = shouldEnableCallSignals({
+    enabled,
+    pathname,
+    requestState,
+    callStatus,
+    pushAlertsEnabled,
+  });
+
+  const pollPendingCalls = shouldPollForPendingCall({
+    signalsEnabled,
+    requestState,
+    callStatus,
+    pushAlertsEnabled,
+  });
+
+  const pollIntervalMs = (
+    requestState === 'waiting'
+    || callStatus === 'ringing'
+    || callStatus === 'connecting'
+    || hasIncomingCallUrlParam()
+  ) ? 5000 : 30000;
+
   useEffect(() => {
-    if (enabled) getRtcConfiguration().catch(() => {});
-  }, [enabled]);
+    if (!signalsEnabled) return undefined;
+    getRtcConfiguration().catch(() => {});
+    return undefined;
+  }, [signalsEnabled]);
 
   /** Call duration timer while in-call. */
   useEffect(() => {
@@ -403,8 +435,8 @@ export function CallProvider({ children, enabled }) {
   }, [getUserIds, openIncomingFromServer]);
 
   useEffect(() => {
-    if (!enabled) {
-      disconnectUserCallSocket();
+    if (!signalsEnabled) {
+      setConnected(false);
       return undefined;
     }
 
@@ -417,7 +449,7 @@ export function CallProvider({ children, enabled }) {
     const onConnect = () => {
       setConnected(true);
       registerUser(userId, name, phone);
-      void pollForPendingCall();
+      if (pollPendingCalls) void pollForPendingCall();
     };
 
     const onIncoming = (data) => {
@@ -476,14 +508,14 @@ export function CallProvider({ children, enabled }) {
       socket.off('ice-candidate', onIce);
       socket.off('call-request-ack', onRequestAck);
       socket.off('call-request-error', onRequestError);
-      disconnectUserCallSocket();
+      setConnected(false);
       cleanupCall();
     };
-  }, [enabled, getUserIds, cleanupCall, openIncomingFromServer, pollForPendingCall]);
+  }, [signalsEnabled, pollPendingCalls, getUserIds, cleanupCall, openIncomingFromServer, pollForPendingCall]);
 
   /** Recover missed socket events (iOS background / flaky mobile data). */
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!pollPendingCalls) return undefined;
 
     const onVisible = () => {
       if (document.visibilityState === 'visible') {
@@ -499,7 +531,7 @@ export function CallProvider({ children, enabled }) {
       if (document.visibilityState === 'visible') {
         void pollForPendingCall();
       }
-    }, 5000);
+    }, pollIntervalMs);
 
     void pollForPendingCall();
 
@@ -509,7 +541,7 @@ export function CallProvider({ children, enabled }) {
       window.removeEventListener('pageshow', onVisible);
       clearInterval(interval);
     };
-  }, [enabled, pollForPendingCall]);
+  }, [pollPendingCalls, pollIntervalMs, pollForPendingCall]);
 
   const syncPushAlertsState = useCallback(async () => {
     const active = await isCallPushActive();
@@ -541,7 +573,7 @@ export function CallProvider({ children, enabled }) {
 
   /** Sync + re-register push (iOS PWA needs this after reinstall / iOS updates). */
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!signalsEnabled) return undefined;
     const { userId } = getUserIds();
     if (!userId) return undefined;
 
@@ -567,10 +599,10 @@ export function CallProvider({ children, enabled }) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, getUserIds, syncPushAlertsState]);
+  }, [signalsEnabled, getUserIds, syncPushAlertsState]);
 
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!signalsEnabled) return undefined;
     const { userId } = getUserIds();
     if (!userId) return undefined;
 
@@ -610,13 +642,13 @@ export function CallProvider({ children, enabled }) {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
     };
-  }, [enabled, getUserIds, openIncomingFromServer, pushAlertsEnabled, pollForPendingCall]);
+  }, [signalsEnabled, getUserIds, openIncomingFromServer, pushAlertsEnabled, pollForPendingCall]);
 
   const isCallOverlayOpen = ['ringing', 'connecting', 'in-call', 'ended', 'rejected'].includes(
     callStatus,
   );
 
-  const value = {
+  const value = useMemo(() => ({
     connected,
     requestState,
     callStatus,
@@ -643,13 +675,45 @@ export function CallProvider({ children, enabled }) {
     isEnablingAlerts,
     iosCallReady: isIosCallReady(pushAlertsEnabled),
     iosCallSetupStep: getIosCallSetupStep({ pushAlertsEnabled }),
-  };
+  }), [
+    connected,
+    requestState,
+    callStatus,
+    incoming,
+    activeSession,
+    requestCall,
+    cancelCallRequest,
+    requestIssue,
+    requestError,
+    acceptIncoming,
+    rejectIncoming,
+    endCall,
+    isCallOverlayOpen,
+    isMuted,
+    toggleMute,
+    speakerOn,
+    toggleSpeaker,
+    callDurationSec,
+    pushAlertsEnabled,
+    pushError,
+    enableCallAlerts,
+    isEnablingAlerts,
+  ]);
 
-  return <CallContext.Provider value={value}>{children}</CallContext.Provider>;
+  return (
+    <CallOverlayOpenContext.Provider value={isCallOverlayOpen}>
+      <CallContext.Provider value={value}>{children}</CallContext.Provider>
+    </CallOverlayOpenContext.Provider>
+  );
 }
 
 export function useCall() {
   const ctx = useContext(CallContext);
   if (!ctx) throw new Error('useCall must be used within CallProvider');
   return ctx;
+}
+
+/** Lightweight hook for nav chrome — avoids subscribing to full call state. */
+export function useIsCallOverlayOpen() {
+  return useContext(CallOverlayOpenContext);
 }

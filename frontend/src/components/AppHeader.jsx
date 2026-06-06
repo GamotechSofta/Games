@@ -1,11 +1,11 @@
 import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getBalance, updateUserBalance } from '../api/bets';
 import { triggerApkDownload } from '../utils/downloads';
 import aakdaLogo from '../config/logo';
 import { useTheme } from '../context/ThemeContext';
 import { formatWalletAmount } from '../utils/walletBalance';
+import useDisplayedWalletBalance from '../hooks/useDisplayedWalletBalance';
 
 const LanguageSwitcher = lazy(() => import('./LanguageSwitcher'));
 const ThemeSwitcher = lazy(() => import('./ThemeSwitcher'));
@@ -17,17 +17,7 @@ const AppHeader = () => {
   const { t } = useTranslation();
   const { isLight } = useTheme();
   const [user, setUser] = useState(null);
-  const [balance, setBalance] = useState(null);
-
-  const loadStoredBalance = () => {
-    try {
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      const b = storedUser?.balance ?? storedUser?.walletBalance ?? storedUser?.wallet ?? 0;
-      setBalance(Number(b));
-    } catch (_) {
-      setBalance(0);
-    }
-  };
+  const balance = useDisplayedWalletBalance();
 
   useEffect(() => {
     const checkUser = () => {
@@ -41,32 +31,15 @@ const AppHeader = () => {
       } else {
         setUser(null);
       }
-      loadStoredBalance();
     };
 
     checkUser();
-
-    const fetchAndUpdateBalance = async () => {
-      try {
-        const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-        const userId = storedUser?.id || storedUser?._id;
-        if (!userId) return;
-        const res = await getBalance();
-        if (res.success && res.data?.balance != null) {
-          updateUserBalance(res.data.balance);
-          setBalance(res.data.balance);
-        }
-      } catch (_) {}
-    };
-
-    const balanceDeferId = window.setTimeout(fetchAndUpdateBalance, 2500);
 
     window.addEventListener('storage', checkUser);
     window.addEventListener('userLogin', checkUser);
     window.addEventListener('userLogout', checkUser);
 
     return () => {
-      window.clearTimeout(balanceDeferId);
       window.removeEventListener('storage', checkUser);
       window.removeEventListener('userLogin', checkUser);
       window.removeEventListener('userLogout', checkUser);

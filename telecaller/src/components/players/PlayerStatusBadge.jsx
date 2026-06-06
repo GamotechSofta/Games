@@ -1,7 +1,13 @@
+import { useState, useEffect } from 'react';
 import { computeIsOnline } from '../../utils/playerActivity';
+import { subscribeOnlineClock } from '../../utils/onlineStatusClock';
 
 const PlayerStatusBadge = ({ player }) => {
-    const online = computeIsOnline(player);
+    const [nowMs, setNowMs] = useState(() => Date.now());
+
+    useEffect(() => subscribeOnlineClock(setNowMs), []);
+
+    const online = computeIsOnline(player, nowMs);
     const suspended = player.isBlocked || player.isActive === false;
 
     return (

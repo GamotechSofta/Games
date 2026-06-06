@@ -27,7 +27,7 @@ const Bank = () => {
       setLoading(true);
       setError('');
       try {
-        const [b, t] = await Promise.all([getBalance(), getMyWalletTransactions(500)]);
+        const [b, t] = await Promise.all([getBalance(), getMyWalletTransactions(100)]);
         if (!alive) return;
         if (b?.success && b?.data?.balance != null) {
           setBalance(Number(b.data.balance) || 0);

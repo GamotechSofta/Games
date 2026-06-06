@@ -1,25 +1,21 @@
 import { useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { getSocketUrl } from '../config/api';
 import { updateUserBalance } from '../api/bets';
 import { attachPlayerWalletSocket } from '../lib/playerWalletSocket';
+import { acquirePlayerSocket, getPlayerSocket, releasePlayerSocket } from '../services/playerSocket';
 
 /**
- * Keeps player wallet in sync via Socket.IO (replaces frequent balance polling).
+ * Keeps player wallet in sync via Socket.IO (shared socket with call signaling).
  */
 export function usePlayerWalletSocketSync(enabled) {
   useEffect(() => {
     if (!enabled) return undefined;
-    const socketUrl = getSocketUrl();
-    if (!socketUrl) return undefined;
 
-    const socket = io(socketUrl, {
-      path: '/socket.io',
-      withCredentials: true,
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: 2000,
-    });
+    acquirePlayerSocket();
+    const socket = getPlayerSocket();
+    if (!socket) {
+      releasePlayerSocket();
+      return undefined;
+    }
 
     const detachWallet = attachPlayerWalletSocket(socket);
 
@@ -41,7 +37,7 @@ export function usePlayerWalletSocketSync(enabled) {
     return () => {
       detachWallet();
       socket.off('wallet:update', onWalletUpdate);
-      socket.disconnect();
+      releasePlayerSocket();
     };
   }, [enabled]);
 }

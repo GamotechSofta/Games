@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment } from 'react-icons/md';
@@ -85,7 +85,6 @@ function MarketRowSkeleton({ scrollable = true, gapClass = 'gap-3' }) {
 export default function DesktopHomeSections({ searchQuery = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [, setTick] = useState(0);
   const { markets, loading, refetch } = useMainMarkets();
 
   const getMarketDisplayName = useCallback(
@@ -99,11 +98,6 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
   );
 
   const isSearching = Boolean(searchQuery.trim());
-
-  useEffect(() => {
-    const id = setInterval(() => setTick((tick) => tick + 1), 60000);
-    return () => clearInterval(id);
-  }, []);
 
   useRefreshOnMarketReset(refetch);
 

@@ -8,6 +8,16 @@ import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../
 import { backBtn } from '../styles/appTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
 import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
+import {
+  canCancelBet,
+  evaluateBet,
+  inferBetKind,
+  isKingBazaarMarketName,
+  isStarlineMarketName,
+  normalizeMarketName,
+} from '../utils/betEvaluation';
+
+const BETS_DISPLAY_PAGE = 40;
 
 const safeParse = (raw, fallback) => {
   try {
@@ -58,106 +68,6 @@ const renderBetNumber = (val) => {
     );
   }
   return s || '-';
-};
-
-const sumDigits = (str) => [...String(str)].reduce((acc, c) => acc + (Number(c) || 0), 0);
-const lastDigit = (str) => sumDigits(str) % 10;
-
-const normalizeMarketName = (s) => (s || '').toString().trim().toLowerCase();
-
-const inferBetKind = (betNumberRaw) => {
-  const s = (betNumberRaw ?? '').toString().trim();
-  if (!s) return 'unknown';
-  if (s.includes('-')) {
-    const [a, b] = s.split('-').map((x) => (x || '').trim());
-    if (/^\d{3}$/.test(a) && /^\d{3}$/.test(b)) return 'full-sangam';
-    if (/^\d{3}$/.test(a) && /^\d$/.test(b)) return 'half-sangam-open';
-    if (/^\d$/.test(a) && /^\d{3}$/.test(b)) return 'half-sangam-close';
-    return 'unknown';
-  }
-  if (/^\d$/.test(s)) return 'digit';
-  if (/^\d{2}$/.test(s)) return 'jodi';
-  if (/^\d{3}$/.test(s)) return 'panna';
-  return 'unknown';
-};
-
-// Backend defaults (must match backend/models/rate/rate.js) – used when API rates not loaded
-const DEFAULT_RATES = { single: 10, jodi: 100, singlePatti: 150, doublePatti: 300, triplePatti: 1000, halfSangam: 5000, fullSangam: 10000 };
-
-const rateNum = (val, def) => (Number.isFinite(Number(val)) && Number(val) >= 0 ? Number(val) : def);
-const getPayoutMultiplier = (kind, betNumberRaw, ratesMap) => {
-  const r = ratesMap && typeof ratesMap === 'object' ? ratesMap : DEFAULT_RATES;
-  if (kind === 'digit') return rateNum(r.single, DEFAULT_RATES.single);
-  if (kind === 'jodi') return rateNum(r.jodi, DEFAULT_RATES.jodi);
-  if (kind === 'half-sangam-open' || kind === 'half-sangam-close') return rateNum(r.halfSangam, DEFAULT_RATES.halfSangam);
-  if (kind === 'full-sangam') return rateNum(r.fullSangam, DEFAULT_RATES.fullSangam);
-  if (kind === 'panna') {
-    const s = (betNumberRaw ?? '').toString().trim();
-    if (/^\d{3}$/.test(s)) {
-      const a = s[0], b = s[1], c = s[2];
-      const allSame = a === b && b === c;
-      const twoSame = a === b || b === c || a === c;
-      if (allSame) return rateNum(r.triplePatti, DEFAULT_RATES.triplePatti);
-      if (twoSame) return rateNum(r.doublePatti, DEFAULT_RATES.doublePatti);
-      return rateNum(r.singlePatti, DEFAULT_RATES.singlePatti);
-    }
-  }
-  return 0;
-};
-
-const evaluateBet = ({ market, betNumberRaw, amount, session, ratesMap }) => {
-  const opening = market?.openingNumber && /^\d{3}$/.test(String(market.openingNumber)) ? String(market.openingNumber) : null;
-  const closing = market?.closingNumber && /^\d{3}$/.test(String(market.closingNumber)) ? String(market.closingNumber) : null;
-  const openDigit = opening ? String(lastDigit(opening)) : null;
-  const closeDigit = closing ? String(lastDigit(closing)) : null;
-  const jodi = openDigit != null && closeDigit != null ? `${openDigit}${closeDigit}` : null;
-
-  const betNumber = (betNumberRaw ?? '').toString().trim();
-  const kind = inferBetKind(betNumber);
-  const sess = (session || '').toString().trim().toUpperCase();
-
-  // Determine if result is declared for this kind/session
-  const declared =
-    kind === 'digit'
-      ? (sess === 'OPEN' ? !!openDigit : sess === 'CLOSE' ? !!closeDigit : !!(openDigit && closeDigit))
-      : kind === 'panna'
-        ? (sess === 'OPEN' ? !!opening : sess === 'CLOSE' ? !!closing : !!(opening && closing))
-        : kind === 'jodi'
-          ? !!jodi
-          : kind === 'half-sangam-open'
-            ? !!(opening && openDigit)
-            : kind === 'half-sangam-close' || kind === 'full-sangam'
-              ? !!(opening && closing)
-            : false;
-
-  if (!declared) return { state: 'pending', kind, payout: 0 };
-
-  let won = false;
-  if (kind === 'digit') {
-    if (sess === 'OPEN') won = betNumber === openDigit;
-    else if (sess === 'CLOSE') won = betNumber === closeDigit;
-    else won = betNumber === openDigit || betNumber === closeDigit;
-  } else if (kind === 'jodi') {
-    won = betNumber === jodi;
-  } else if (kind === 'panna') {
-    if (sess === 'OPEN') won = betNumber === opening;
-    else if (sess === 'CLOSE') won = betNumber === closing;
-    else won = betNumber === opening || betNumber === closing;
-  } else if (kind === 'full-sangam') {
-    won = betNumber === `${opening}-${closing}`;
-  } else if (kind === 'half-sangam-open') {
-    // Half Sangam (O) in this app is Open Pana + Open Ank (derived from Open Pana),
-    // so it can be decided as soon as OPEN result is declared.
-    won = betNumber === `${opening}-${openDigit}`;
-  } else if (kind === 'half-sangam-close') {
-    won = betNumber === `${openDigit}-${closing}`;
-  }
-
-  if (!won) return { state: 'lost', kind, payout: 0 };
-
-  const mul = getPayoutMultiplier(kind, betNumber, ratesMap);
-  const payout = mul > 0 ? (Number(amount) || 0) * mul : 0;
-  return { state: 'won', kind, payout };
 };
 
 const HISTORY_SCOPE_TABS = [
@@ -244,7 +154,11 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     markets,
     loading: betsLoading,
     invalidate: invalidateBetsData,
+    loadMore,
+    hasMore,
+    isFetching,
   } = useMyBetsData();
+  const [visibleCount, setVisibleCount] = useState(BETS_DISPLAY_PAGE);
   const [cancellingBetId, setCancellingBetId] = useState(null);
   const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
   const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
@@ -256,14 +170,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   // - "king": only king bazaar markets
   const scopeRaw = (marketScope || '').toString().trim().toLowerCase();
   const scope = scopeRaw || 'main';
-  const isStarlineMarketName = (marketTitle) => {
-    const k = normalizeMarketName(marketTitle);
-    return k.includes('starline') || k.includes('startline') || k.includes('star line') || k.includes('start line');
-  };
-  const isKingBazaarMarketName = (marketTitle) => {
-    const k = normalizeMarketName(marketTitle);
-    return k.includes('king') || k.includes('bazaar') || k.includes('bazar');
-  };
   const inScope = (marketTitle) => {
     if (scope === 'starline' || scope === 'startline') return isStarlineMarketName(marketTitle);
     if (scope === 'king') return isKingBazaarMarketName(marketTitle);
@@ -302,88 +208,9 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
 
   useRefreshOnMarketReset(() => invalidateBetsData());
 
-  // Function to check if a bet can be cancelled
-  const canCancelBet = (bet) => {
-    if (!bet || bet.status !== 'pending') {
-      console.log('Cannot cancel - bet status:', bet?.status);
-      return { canCancel: false, reason: `Status: ${bet?.status || 'unknown'}` };
-    }
-
-    const market = bet.marketId;
-    if (!market) {
-      console.log('Cannot cancel - market not found');
-      return { canCancel: false, reason: 'Market not found' };
-    }
-
-    const now = new Date();
-    const betPlacedAt = new Date(bet.createdAt);
-    const timeSinceBetPlaced = (now - betPlacedAt) / 1000 / 60; // minutes
-
-    console.log('Bet placed at:', betPlacedAt, 'Time since placed:', timeSinceBetPlaced, 'minutes');
-
-    // Rule 1: Check if within 30 minutes of placing bet
-    if (timeSinceBetPlaced > 30) {
-      return { canCancel: false, reason: 'Can only cancel within 30 minutes of placing' };
-    }
-
-    // Rule 2: Check if at least 30 minutes before market closing
-    const closeStr = (market?.closingTime || '').toString().trim();
-    if (!closeStr) {
-      console.log('Cannot cancel - market timing not configured');
-      return { canCancel: false, reason: 'Market timing not configured' };
-    }
-
-    try {
-      const getTodayIST = () => {
-        return new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Asia/Kolkata',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(new Date());
-      };
-
-      const normalizeTimeStr = (timeStr) => {
-        const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
-        return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
-      };
-
-      const parseISTDateTime = (isoStr) => {
-        const d = new Date(isoStr);
-        return isNaN(d.getTime()) ? null : d.getTime();
-      };
-
-      const todayIST = getTodayIST();
-      const openAt = parseISTDateTime(`${todayIST}T00:00:00+05:30`);
-      let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
-
-      if (closeAt <= openAt) {
-        const baseDate = new Date(`${todayIST}T12:00:00+05:30`);
-        baseDate.setDate(baseDate.getDate() + 1);
-        const nextDayStr = new Intl.DateTimeFormat('en-CA', {
-          timeZone: 'Asia/Kolkata',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        }).format(baseDate);
-        closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
-      }
-
-      const timeUntilClosing = (closeAt - now.getTime()) / 1000 / 60; // minutes
-
-      console.log('Market closing at:', new Date(closeAt), 'Time until closing:', timeUntilClosing, 'minutes');
-
-      if (timeUntilClosing < 30) {
-        return { canCancel: false, reason: 'Cannot cancel within 30 minutes of market closing' };
-      }
-
-      console.log('Bet CAN be cancelled!');
-      return { canCancel: true, reason: '' };
-    } catch (e) {
-      console.error('Error checking market timing:', e);
-      return { canCancel: false, reason: 'Error checking market timing' };
-    }
-  };
+  useEffect(() => {
+    setVisibleCount(BETS_DISPLAY_PAGE);
+  }, [statusTabFilter, selectedSessions, selectedStatuses, selectedMarkets, selectedBidOptions, scope]);
 
   const handleCancelBetClick = (betId) => {
     if (!betId) return;
@@ -502,14 +329,10 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     return filtered.map((item) => ({ label: item.name, key: normalizeMarketName(item.name) }));
   }, [markets, bets, scope]);
 
-  const enriched = useMemo(() => {
-    console.log('Enriching bets, flat count:', flat.length);
-    return flat.map((item) => {
+  const enriched = useMemo(() => flat.map((item) => {
       const { bet, betId, marketTitle, betNumber, amount, session, betType, status, createdAt, marketData } = item;
       const m = marketByName.get(normalizeMarketName(marketTitle)) || marketData;
-      
-      console.log('Processing bet:', betId, 'status:', status, 'market:', marketTitle, 'marketData:', marketData);
-      
+
       // If bet is already settled (won/lost/cancelled), use that status
       if (status === 'won' || status === 'lost' || status === 'cancelled') {
         const verdict = {
@@ -531,7 +354,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           status,
           createdAt,
           verdict,
-          canCancel: status === 'pending' ? canCancelBet(bet) : { canCancel: false, reason: `Status is ${status}` },
+          canCancel: status === 'pending' ? canCancelBet(bet, t) : { canCancel: false, reason: `Status is ${status}` },
         };
       }
       
@@ -544,8 +367,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         ratesMap,
       });
 
-      const cancelCheck = canCancelBet(bet);
-      console.log('Cancel check for bet', betId, ':', cancelCheck);
+      const cancelCheck = canCancelBet(bet, t);
 
       const bidOptionKey = getBidOptionKey(betType, betNumber);
       return {
@@ -563,8 +385,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         verdict: computed,
         canCancel: cancelCheck,
       };
-    });
-  }, [flat, marketByName, ratesMap, t]);
+    }), [flat, marketByName, ratesMap, t]);
 
   const filtered = useMemo(() => {
     return (enriched || []).filter((row) => {
@@ -611,6 +432,24 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   const allBetsNewestFirst = useMemo(() => {
     return [...(filtered || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [filtered]);
+
+  const visibleBets = useMemo(
+    () => allBetsNewestFirst.slice(0, visibleCount),
+    [allBetsNewestFirst, visibleCount],
+  );
+
+  const canShowMore = visibleCount < allBetsNewestFirst.length || hasMore;
+
+  const handleShowMore = () => {
+    if (visibleCount < allBetsNewestFirst.length) {
+      setVisibleCount((c) => c + BETS_DISPLAY_PAGE);
+      return;
+    }
+    if (hasMore && !isFetching) {
+      loadMore();
+      setVisibleCount((c) => c + BETS_DISPLAY_PAGE);
+    }
+  };
 
   const statusLabel = (verdict) => {
     if (verdict?.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
@@ -757,7 +596,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
             <>
               {/* Mobile: 2x2 grid, each bet = one card */}
               <div className="md:hidden grid grid-cols-2 gap-3 overflow-x-hidden">
-                {allBetsNewestFirst.map((row, idx) => {
+                {visibleBets.map((row, idx) => {
                   const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
                   const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                   const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
@@ -861,7 +700,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {allBetsNewestFirst.map((row, idx) => {
+                    {visibleBets.map((row, idx) => {
                       const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
                       const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                       const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
@@ -945,6 +784,18 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   </tbody>
                 </table>
               </div>
+              {canShowMore ? (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={handleShowMore}
+                    disabled={isFetching}
+                    className="px-5 py-2.5 rounded-xl border border-[#d4af37]/50 text-[#d4af37] text-sm font-semibold hover:bg-[#d4af37]/10 disabled:opacity-50"
+                  >
+                    {isFetching ? t('common.loading') : t('bids.loadMoreBets', { defaultValue: 'Load more bets' })}
+                  </button>
+                </div>
+              ) : null}
             </>
           )}
         </div>

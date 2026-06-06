@@ -1,7 +1,8 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../context/ThemeContext';
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -43,25 +44,8 @@ function ClockIcon({ color = 'rgba(255,255,255,0.8)', size = 18 }) {
 function MarketCard({ market }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDark: isDarkMode } = useTheme();
   const [showClosedModal, setShowClosedModal] = useState(false);
-  const getIsDarkTheme = () => {
-    if (typeof document === 'undefined') return true;
-    const rootClasses = document.documentElement.classList;
-    return rootClasses.contains('theme-dark') || rootClasses.contains('dark');
-  };
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return getIsDarkTheme();
-  });
-
-  useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
-    const root = document.documentElement;
-    const syncTheme = () => setIsDarkMode(getIsDarkTheme());
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClosed = market.status === 'closed';
@@ -213,54 +197,6 @@ function MarketCard({ market }) {
 
   return (
     <>
-      <style>{`
-        @keyframes marketTomorrowBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
-        }
-        .market-tomorrow-label-text {
-          animation: marketTomorrowBlink 1.1s ease-in-out infinite;
-        }
-        .market-card-time-bar {
-          width: 100%;
-          box-sizing: border-box;
-          padding: 8px;
-          border-radius: 14px;
-        }
-        .market-card-time-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
-          align-items: center;
-          gap: 3px;
-          width: 100%;
-          min-width: 0;
-        }
-        .market-card-time-col {
-          container-type: inline-size;
-          min-width: 0;
-          text-align: center;
-        }
-        .market-card-time-value {
-          font-family: 'Barlow Condensed', sans-serif;
-          font-weight: 800;
-          white-space: nowrap;
-          line-height: 1.15;
-          letter-spacing: 0;
-          font-size: 9px;
-          font-size: clamp(7px, 19cqi, 11px);
-          overflow: visible;
-          text-overflow: clip;
-        }
-        .market-card-time-label {
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          margin-top: 2px;
-          line-height: 1.1;
-          font-size: 8px;
-          font-size: clamp(6px, 14cqi, 9px);
-        }
-      `}</style>
       {/* Card */}
       <div
         role="button"
@@ -378,6 +314,7 @@ function MarketCard({ market }) {
         {/* Running for tomorrow — red bg static; text blinks only */}
         {isClosed ? (
           <div
+            className="market-card-tomorrow-bar"
             style={{
               padding: '7px 8px',
               textAlign: 'center',

@@ -6,6 +6,7 @@ import ErrorAlert from '../components/common/ErrorAlert';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmptyState from '../components/common/EmptyState';
 import ListFooter from '../components/common/ListFooter';
+import PaginationBar from '../components/common/PaginationBar';
 import TableShell from '../components/tables/TableShell';
 import { PlayerIndexCell, PlayerNameCell, PlayerPhoneCell } from '../components/players/PlayerIdentityCells';
 import PlayerStatusBadge from '../components/players/PlayerStatusBadge';
@@ -25,7 +26,6 @@ const PlayerCallsPage = () => {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
     const {
         filteredPlayers,
-        players,
         loading,
         refreshing,
         error,
@@ -34,6 +34,10 @@ const PlayerCallsPage = () => {
         sortBy,
         setSortBy,
         refresh,
+        stats,
+        pagination,
+        page,
+        setPage,
     } = usePlayers();
     const {
         isCalled,
@@ -80,7 +84,7 @@ const PlayerCallsPage = () => {
                 <>
                     <CalledPlayersToolbar
                         calledCount={calledCount}
-                        total={players.length}
+                        total={stats.total}
                         onClearAll={clearAllCalled}
                     />
                     <TableShell minWidth="760px">
@@ -125,7 +129,14 @@ const PlayerCallsPage = () => {
                             })}
                         </tbody>
                     </TableShell>
-                    <ListFooter shown={filteredPlayers.length} total={players.length} loading={loading} />
+                    <ListFooter shown={filteredPlayers.length} total={pagination.total} loading={loading} />
+                    <PaginationBar
+                        page={page}
+                        totalPages={pagination.totalPages}
+                        total={pagination.total}
+                        onPageChange={setPage}
+                        disabled={loading || refreshing}
+                    />
                 </>
             )}
 

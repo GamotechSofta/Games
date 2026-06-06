@@ -5,8 +5,9 @@ import {
   selectSpecialSlots,
   selectSpecialSlotsStatus,
 } from '../store/slices/specialSlotsSlice';
+import useSectionAutoRefresh from './useSectionAutoRefresh';
 
-const REFRESH_MS = 60 * 1000;
+const REFRESH_MS = 2 * 60 * 1000;
 
 /**
  * Cached time slots for one Starline or King Bazaar group.
@@ -25,19 +26,22 @@ export function useSpecialMarketSlots({
   const items = useAppSelector(selectSpecialSlots(marketType, group));
   const { loading } = useAppSelector(selectSpecialSlotsStatus(marketType, group));
 
-  useEffect(() => {
-    if (!canFetch) return undefined;
-    void dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
-    const id = setInterval(() => {
-      void dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
-    }, REFRESH_MS);
-    return () => clearInterval(id);
-  }, [dispatch, marketType, group, marketLabel, canFetch]);
-
   const refetch = useCallback(() => {
     if (!canFetch) return undefined;
     return dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
   }, [dispatch, marketType, group, marketLabel, canFetch]);
+
+  useEffect(() => {
+    if (!canFetch) return undefined;
+    void dispatch(fetchSpecialSlotsThunk({ marketType, groupKey: group, marketLabel }));
+  }, [dispatch, marketType, group, marketLabel, canFetch]);
+
+  useSectionAutoRefresh({
+    enabled: canFetch,
+    intervalMs: REFRESH_MS,
+    immediate: false,
+    onRefresh: refetch,
+  });
 
   return {
     items,
