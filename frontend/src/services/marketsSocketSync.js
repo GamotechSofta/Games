@@ -5,12 +5,18 @@ let started = false;
 let detachSocket = null;
 let hadConnected = false;
 
+function subscribeMarkets(socket) {
+  if (!socket?.connected) return;
+  socket.emit('markets:subscribe');
+}
+
 function attachToSocket(socket) {
   const handler = (payload) => {
     void refetchAllMarketData(payload || {});
   };
 
   const onConnect = () => {
+    subscribeMarkets(socket);
     if (hadConnected) {
       void refetchAllMarketData({ reason: 'socket_reconnect', marketType: 'all' });
     }
@@ -19,8 +25,10 @@ function attachToSocket(socket) {
 
   socket.on('markets:updated', handler);
   socket.on('connect', onConnect);
+
   if (socket.connected) {
     hadConnected = true;
+    subscribeMarkets(socket);
   }
 
   return () => {
@@ -57,4 +65,8 @@ export function stopMarketsSocketSync() {
   }
   started = false;
   hadConnected = false;
+}
+
+export function isMarketsSocketSyncActive() {
+  return started;
 }

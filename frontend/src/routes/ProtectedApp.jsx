@@ -139,7 +139,6 @@ const Layout = ({ children }) => {
   }, []);
 
   usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel && WALLET_SOCKET_ENABLED));
-  useMarketsSocketSync(Boolean(hasUser && !isAdminPanel));
   useWalletBalanceBootstrap(Boolean(hasUser && !isAdminPanel));
 
   useEffect(() => {
@@ -260,6 +259,20 @@ const Layout = ({ children }) => {
 
 export default function ProtectedApp() {
   useHeartbeat();
+  const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
+
+  useEffect(() => {
+    const sync = () => setHasUser(!!localStorage.getItem('user'));
+    sync();
+    window.addEventListener('userLogin', sync);
+    window.addEventListener('userLogout', sync);
+    return () => {
+      window.removeEventListener('userLogin', sync);
+      window.removeEventListener('userLogout', sync);
+    };
+  }, []);
+
+  useMarketsSocketSync(hasUser);
 
   return (
     <>

@@ -280,9 +280,8 @@ export const getMarkets = async (req, res) => {
 
         const markets = await query.lean();
         const data = attachDisplayResults(markets);
-        if (fieldsPreset === 'home' || isSpecialType || limit <= 100) {
-            res.set('Cache-Control', 'public, max-age=15, stale-while-revalidate=30');
-        }
+        // Live results change on admin declare — never cache this response in browsers/CDNs.
+        res.set('Cache-Control', 'private, no-cache, must-revalidate');
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -1196,7 +1195,12 @@ export const getMarketResultHistory = async (req, res) => {
                     closingNumber: r.closingNumber || null,
                 }));
 
-        res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+        res.set(
+            'Cache-Control',
+            dateKey === todayKey
+                ? 'private, no-cache, must-revalidate'
+                : 'public, max-age=300, stale-while-revalidate=600',
+        );
         res.status(200).json({ success: true, data: [...data, ...extras] });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

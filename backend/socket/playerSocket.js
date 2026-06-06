@@ -36,6 +36,14 @@ export function initPlayerSocket(httpServer, opts = {}) {
     initCallSocket(io);
   }
 
+  // Market result push — always on (independent of wallet socket flag).
+  io.on('connection', (socket) => {
+    socket.on('markets:subscribe', () => {
+      socket.data.marketsSubscribed = true;
+      socket.emit('markets:subscribed', { ok: true, ts: Date.now() });
+    });
+  });
+
   if (walletSocketEnabled) {
     io.on('connection', (socket) => {
       socket.on('wallet:subscribe', async (payload = {}) => {

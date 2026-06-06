@@ -35,6 +35,7 @@ export default function useMainMarkets({ popularOnly = false } = {}) {
   useEffect(() => {
     return subscribeMarketScheduleRefresh(() => {
       void dispatch(fetchMainMarketsThunk({ popularOnly: false, force: true }));
+      void dispatch(fetchMainMarketsThunk({ popularOnly: true, force: true }));
     });
   }, [dispatch]);
 

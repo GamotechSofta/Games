@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config/api';
 import { MARKETS_UPDATED_EVENT } from '../services/marketsDataSync';
+import fetchNoStore from '../utils/fetchNoStore';
 
 const STALE_MS = 5 * 60 * 1000;
 
 async function fetchResultHistory(dateKey) {
-  const res = await fetch(
+  const res = await fetchNoStore(
     `${API_BASE_URL}/markets/result-history?date=${encodeURIComponent(dateKey)}`,
   );
   const data = await res.json();

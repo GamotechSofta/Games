@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit';
 import { API_BASE_URL } from '../../config/api';
+import fetchNoStore from '../../utils/fetchNoStore';
 import {
   buildKingDemoSlots,
   mapKingBazaarSlot,
@@ -19,7 +20,7 @@ function buildMarketsUrl(marketType, groupKey) {
 }
 
 async function fetchSlots(marketType, groupKey, marketLabel) {
-  const res = await fetch(buildMarketsUrl(marketType, groupKey));
+  const res = await fetchNoStore(buildMarketsUrl(marketType, groupKey));
   const data = await res.json();
   const list = Array.isArray(data?.data) ? data.data : [];
   const mapper = marketType === 'king' ? mapKingBazaarSlot : mapStarlineSlot;

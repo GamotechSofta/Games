@@ -56,6 +56,7 @@ export async function refetchAllMarketData(payload = {}) {
 
   if (refreshMain) {
     tasks.push(store.dispatch(fetchMainMarketsThunk({ popularOnly: false, force: true })));
+    tasks.push(store.dispatch(fetchMainMarketsThunk({ popularOnly: true, force: true })));
   }
 
   const state = store.getState();

@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { getSocketUrl } from '../config/api';
+import { getUserToken } from '../utils/auth';
 
 /** @type {import('socket.io-client').Socket | null} */
 let socket = null;
@@ -16,12 +17,20 @@ export function connectPlayerSocket() {
   const url = getSocketUrl();
   if (!url) return null;
 
+  const token = getUserToken();
   socket = io(url, {
     path: '/socket.io',
     withCredentials: true,
     transports: ['websocket', 'polling'],
     reconnection: true,
     reconnectionDelay: 2000,
+    auth: token && token !== 'cookie-auth' ? { token } : undefined,
+  });
+
+  socket.on('connect_error', (err) => {
+    if (import.meta.env.DEV) {
+      console.warn('[socket] connect_error:', err?.message || err);
+    }
   });
 
   return socket;

@@ -3,7 +3,7 @@ import { startMarketsSocketSync, stopMarketsSocketSync } from '../services/marke
 
 /**
  * Event-driven market result sync via Socket.IO (admin declare → instant refetch).
- * Shared socket stays open for click-to-call; no polling.
+ * Starts at app shell level; stays active for the whole session.
  */
 export function useMarketsSocketSync(enabled = true) {
   useEffect(() => {
