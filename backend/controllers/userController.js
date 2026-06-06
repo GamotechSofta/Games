@@ -6,6 +6,7 @@ import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
+import { generateUserToken } from '../utils/jwt.js';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const DB_QUERY_MS = 12000;
@@ -184,10 +185,13 @@ export const userLogin = async (req, res) => {
             data.referredBy = user.referredBy;
         }
 
+        const token = generateUserToken({ id: user._id, phone: user.phone || normalizedPhone });
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
             data,
+            token,
         });
     } catch (error) {
         if (isMongoTimeoutError(error)) {

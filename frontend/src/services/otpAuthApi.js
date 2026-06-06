@@ -23,7 +23,10 @@ otpApi.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
     const url = String(error?.config?.url || '');
-    const isAuthAttempt = url.includes('/users/login') || url.includes('/users/signup');
+    const isAuthAttempt =
+      url.includes('/users/login') ||
+      url.includes('/users/signup') ||
+      url.includes('/users/otp/');
     if (status === 401 && !isAuthAttempt) {
       clearUserAuth();
     }
@@ -41,6 +44,29 @@ export const fetchMyProfile = async (token) => {
 const RETRYABLE_STATUSES = new Set([503, 504]);
 const RETRY_DELAY_MS = 1200;
 const MAX_LOGIN_ATTEMPTS = 3;
+
+export const sendOtp = async ({ phone, purpose }) => {
+  const response = await otpApi.post('/users/otp/send', { phone, purpose });
+  return response.data;
+};
+
+export const verifyOtp = async ({ phone, otp, purpose, deviceId, firstName, lastName, referredBy }) => {
+  const response = await otpApi.post('/users/otp/verify', {
+    phone,
+    otp,
+    purpose,
+    deviceId,
+    firstName,
+    lastName,
+    referredBy,
+  });
+  return response.data;
+};
+
+export const resendOtp = async ({ phone }) => {
+  const response = await otpApi.post('/users/otp/resend', { phone });
+  return response.data;
+};
 
 export const loginWithPassword = async ({ phone, password, deviceId }, attempt = 0) => {
   try {
