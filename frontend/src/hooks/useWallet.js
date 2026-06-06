@@ -33,9 +33,9 @@ export function useWallet() {
       if (res.success && res.data?.balance != null) return Number(res.data.balance);
       throw new Error(res?.message || 'Failed to fetch balance');
     },
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchInterval: 5 * 60 * 1000,
+    staleTime: 45 * 1000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 90 * 1000,
     retry: 1,
   });
 

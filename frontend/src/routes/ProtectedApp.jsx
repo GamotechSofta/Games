@@ -23,6 +23,8 @@ import { CallProvider } from '../context/CallContext';
 import CallSessionOverlay from '../components/call/CallSessionOverlay';
 import IosCallSetupModal from '../components/call/IosCallSetupModal';
 
+const WALLET_SOCKET_ENABLED = import.meta.env.VITE_WALLET_SOCKET === 'true';
+
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
 const BidOptions = lazy(() => import('../pages/BidOptions'));
@@ -136,7 +138,7 @@ const Layout = ({ children }) => {
     };
   }, []);
 
-  usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel));
+  usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel && WALLET_SOCKET_ENABLED));
   useMarketsSocketSync(Boolean(hasUser && !isAdminPanel));
   useWalletBalanceBootstrap(Boolean(hasUser && !isAdminPanel));
 

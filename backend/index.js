@@ -1,4 +1,5 @@
-    import express from 'express';
+import './bootstrapAsyncRoutes.js';
+import express from 'express';
 import http from 'http';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
@@ -31,6 +32,8 @@ import compression from 'compression';
 import path from 'path';
 import { getCorsOptions, logCorsConfig, parseAllowedOrigins } from './config/cors.js';
 import { initPlayerSocket } from './socket/playerSocket.js';
+import { limitApiConcurrency } from './middleware/dbConcurrency.js';
+import { requireDbReady, apiRequestTimeout } from './middleware/apiMiddleware.js';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -83,6 +86,7 @@ app.use(cors(getCorsOptions({ isProd })));
 app.use(compression({ threshold: 1024 }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(limitApiConcurrency);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -152,17 +156,8 @@ app.get('/test-reset', async (req, res) => {
     }
 });
 
-// Reject API traffic until MongoDB is connected (prevents buffering timeouts / crashes).
-app.use('/api', (req, res, next) => {
-    if (!isDbReady()) {
-        return res.status(503).json({
-            success: false,
-            message: 'Database connection is not ready. Please retry in a moment.',
-            code: 'DB_NOT_READY',
-        });
-    }
-    next();
-});
+app.use('/api', requireDbReady);
+app.use('/api', apiRequestTimeout());
 
 app.use('/api/v1/markets', marketRoutes);
 app.use('/api/v1/admin', adminRoutes);
@@ -204,6 +199,14 @@ cron.schedule('30 18 * * *', async () => {
     }
 }, {
     timezone: 'UTC'
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('[process] unhandledRejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('[process] uncaughtException:', err?.message || err);
 });
 
 async function startServer() {

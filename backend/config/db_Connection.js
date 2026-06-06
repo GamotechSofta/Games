@@ -6,15 +6,16 @@ dotenv.config();
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 const isProd = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 
-// Fail fast if DB is not connected — avoids 10s "buffering timed out" on every request.
 mongoose.set("bufferCommands", false);
 
 const MONGO_OPTIONS = {
-  maxPoolSize: 20,
-  minPoolSize: 2,
+  maxPoolSize: Number(process.env.MONGO_MAX_POOL_SIZE || (isProd ? 100 : 50)),
+  minPoolSize: Number(process.env.MONGO_MIN_POOL_SIZE || (isProd ? 5 : 2)),
   serverSelectionTimeoutMS: 15000,
   connectTimeoutMS: 15000,
   socketTimeoutMS: 45000,
+  // Fail fast when all pool connections are in use (default driver wait is unlimited).
+  waitQueueTimeoutMS: Number(process.env.MONGO_WAIT_QUEUE_TIMEOUT_MS || 10000),
   maxIdleTimeMS: 60000,
   autoIndex: !isProd,
 };
@@ -46,7 +47,7 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(MONGODB_URI, MONGO_OPTIONS);
     dbReady = true;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host} (pool max ${MONGO_OPTIONS.maxPoolSize})`);
 
     try {
       const { getRatesMap } = await import("../models/rate/rate.js");

@@ -5,9 +5,12 @@ export function isMongoTimeoutError(error) {
         (name === 'MongoServerError' && error?.code === 50)
         || name === 'MongoNetworkTimeoutError'
         || name === 'MongoServerSelectionError'
-        || name === 'MongooseError' && message.includes('buffering timed out')
+        || name === 'MongoWaitQueueTimeoutError'
+        || name === 'WaitQueueTimeoutError'
+        || (name === 'MongooseError' && message.includes('buffering timed out'))
         || message.includes('timed out')
         || message.includes('timeout')
+        || message.includes('WaitQueue')
     );
 }
 

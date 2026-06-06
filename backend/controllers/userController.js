@@ -9,6 +9,8 @@ import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const DB_QUERY_MS = 12000;
+/** Skip heartbeat DB write if user was active within this window (reduces load at scale). */
+const HEARTBEAT_WRITE_INTERVAL_MS = Number(process.env.HEARTBEAT_WRITE_INTERVAL_MS || 120000);
 
 const addWalletBalanceToUsers = async (users) => {
     if (!users || users.length === 0) return users;
@@ -201,16 +203,29 @@ export const userHeartbeat = async (req, res) => {
         if (!userId) {
             return res.status(400).json({ success: false, message: 'userId is required' });
         }
-        const user = await User.findById(userId).select('isActive').lean();
+
+        const user = await User.findById(userId).select('isActive lastActiveAt').maxTimeMS(DB_QUERY_MS).lean();
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found', code: 'ACCOUNT_SUSPENDED' });
         }
         if (!user.isActive) {
             return res.status(403).json({ success: false, message: 'Account suspended', code: 'ACCOUNT_SUSPENDED' });
         }
-        await User.updateOne({ _id: userId }, { $set: { lastActiveAt: new Date() } });
+
+        const lastActive = user.lastActiveAt ? new Date(user.lastActiveAt).getTime() : 0;
+        const shouldWrite = !lastActive || Date.now() - lastActive >= HEARTBEAT_WRITE_INTERVAL_MS;
+        if (shouldWrite) {
+            await User.updateOne(
+                { _id: userId },
+                { $set: { lastActiveAt: new Date() } },
+            ).maxTimeMS(DB_QUERY_MS);
+        }
+
         res.status(200).json({ success: true, message: 'Heartbeat updated' });
     } catch (error) {
+        if (isMongoTimeoutError(error)) {
+            return mongoTimeoutResponse(res);
+        }
         res.status(500).json({ success: false, message: error.message });
     }
 };

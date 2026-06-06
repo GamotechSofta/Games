@@ -38,9 +38,23 @@ export const fetchMyProfile = async (token) => {
   return response.data;
 };
 
-export const loginWithPassword = async ({ phone, password, deviceId }) => {
-  const response = await otpApi.post('/users/login', { phone, password, deviceId });
-  return response.data;
+const RETRYABLE_STATUSES = new Set([503, 504]);
+const RETRY_DELAY_MS = 1200;
+const MAX_LOGIN_ATTEMPTS = 3;
+
+export const loginWithPassword = async ({ phone, password, deviceId }, attempt = 0) => {
+  try {
+    const response = await otpApi.post('/users/login', { phone, password, deviceId });
+    return response.data;
+  } catch (err) {
+    const status = err?.response?.status;
+    const retriable = !status || RETRYABLE_STATUSES.has(status) || err?.code === 'ECONNABORTED';
+    if (retriable && attempt < MAX_LOGIN_ATTEMPTS - 1) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+      return loginWithPassword({ phone, password, deviceId }, attempt + 1);
+    }
+    throw err;
+  }
 };
 
 export const signupUser = async ({ firstName, lastName, phone, password, referredBy, deviceId }) => {

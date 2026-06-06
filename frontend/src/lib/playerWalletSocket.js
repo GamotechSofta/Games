@@ -14,9 +14,17 @@ export function attachPlayerWalletSocket(socket) {
     }
   };
 
+  let lastUserId = '';
+  let lastSubscribeAt = 0;
+  const SUBSCRIBE_DEBOUNCE_MS = 5000;
+
   const subscribe = () => {
     const userId = getUserId();
     if (!userId) return;
+    const now = Date.now();
+    if (userId === lastUserId && now - lastSubscribeAt < SUBSCRIBE_DEBOUNCE_MS) return;
+    lastUserId = userId;
+    lastSubscribeAt = now;
     socket.emit('wallet:subscribe', { userId });
   };
 

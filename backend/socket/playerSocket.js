@@ -4,6 +4,7 @@ import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { resolveActivePlayerUserIdFromSubscribe } from '../utils/playerSocketAuth.js';
 import { parseAllowedOrigins } from '../config/cors.js';
 import { initCallSocket } from './callSocket.js';
+import { walletSocketEnabled, callSocketEnabled } from '../config/features.js';
 
 /** @type {Server | null} */
 let io = null;
@@ -31,28 +32,54 @@ export function initPlayerSocket(httpServer, opts = {}) {
 
   setWalletSocketIo(io);
 
-  initCallSocket(io);
+  if (callSocketEnabled) {
+    initCallSocket(io);
+  }
 
-  io.on('connection', (socket) => {
-    socket.on('wallet:subscribe', async (payload = {}) => {
-      const resolved = await resolveActivePlayerUserIdFromSubscribe(payload);
-      if (!resolved?.userId) {
-        socket.emit('wallet:subscribed', { ok: false, code: resolved?.code || 'AUTH_REQUIRED' });
-        return;
-      }
-      const { userId } = resolved;
-      const prev = socket.data.playerWalletUserId;
-      if (prev && String(prev) !== String(userId)) {
-        socket.leave(playerWalletRoom(prev));
-      }
-      socket.join(playerWalletRoom(userId));
-      socket.data.playerWalletUserId = userId;
-      socket.emit('wallet:subscribed', { ok: true, userId });
-      notifyPlayerWalletBalance(userId, 'wallet_subscribe').catch(() => {});
+  if (walletSocketEnabled) {
+    io.on('connection', (socket) => {
+      socket.on('wallet:subscribe', async (payload = {}) => {
+        const userId = String(payload?.userId || '').trim();
+        if (!userId) {
+          socket.emit('wallet:subscribed', { ok: false, code: 'AUTH_REQUIRED' });
+          return;
+        }
+
+        if (socket.data.playerWalletUserId && String(socket.data.playerWalletUserId) === userId) {
+          socket.emit('wallet:subscribed', { ok: true, userId });
+          return;
+        }
+
+        try {
+          const resolved = await resolveActivePlayerUserIdFromSubscribe(payload);
+          if (!resolved?.userId) {
+            socket.emit('wallet:subscribed', { ok: false, code: resolved?.code || 'AUTH_REQUIRED' });
+            return;
+          }
+          const prev = socket.data.playerWalletUserId;
+          if (prev && String(prev) !== userId) {
+            socket.leave(playerWalletRoom(prev));
+          }
+          socket.join(playerWalletRoom(userId));
+          socket.data.playerWalletUserId = userId;
+          socket.emit('wallet:subscribed', { ok: true, userId });
+
+          if (!socket.data.walletBalanceSent) {
+            socket.data.walletBalanceSent = true;
+            notifyPlayerWalletBalance(userId, 'wallet_subscribe').catch(() => {});
+          }
+        } catch (err) {
+          console.warn('[socket] wallet:subscribe failed:', err?.message || err);
+          socket.emit('wallet:subscribed', { ok: false, code: 'SERVER_BUSY' });
+        }
+      });
     });
-  });
+  }
 
-  console.log('[socket] player wallet Socket.IO ready at /socket.io (markets:updated events enabled)');
+  const parts = ['markets:updated events'];
+  if (callSocketEnabled) parts.push('call signaling');
+  if (walletSocketEnabled) parts.push('wallet rooms');
+  console.log(`[socket] Socket.IO ready at /socket.io (${parts.join(', ')})`);
   return io;
 }
 
