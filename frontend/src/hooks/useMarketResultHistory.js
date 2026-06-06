@@ -1,7 +1,9 @@
+import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '../config/api';
+import { MARKETS_UPDATED_EVENT } from '../services/marketsDataSync';
 
-const STALE_MS = 60 * 1000;
+const STALE_MS = 5 * 60 * 1000;
 
 async function fetchResultHistory(dateKey) {
   const res = await fetch(
@@ -34,6 +36,20 @@ export function useMarketResultHistory(dateKey, { enabled = true } = {}) {
     refetchOnWindowFocus: false,
     retry: 1,
   });
+
+  const refetchRef = useRef(query.refetch);
+  refetchRef.current = query.refetch;
+
+  useEffect(() => {
+    if (!enabled || !dateKey) return undefined;
+
+    const onMarketsUpdated = () => {
+      void refetchRef.current();
+    };
+
+    window.addEventListener(MARKETS_UPDATED_EVENT, onMarketsUpdated);
+    return () => window.removeEventListener(MARKETS_UPDATED_EVENT, onMarketsUpdated);
+  }, [enabled, dateKey]);
 
   return {
     rows: query.data || [],

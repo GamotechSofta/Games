@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useMarketGroups from '../hooks/useMarketGroups';
 import useSpecialMarketSlots from '../hooks/useSpecialMarketSlots';
-import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useVisibleNowMs from '../hooks/useVisibleNowMs';
 import { iconBtn, textPrimary } from '../styles/appTheme';
 
@@ -270,11 +269,6 @@ const KingBazaarMarket = () => {
       state: { marketKey: g.key, marketLabel: g.label || 'King Bazaar' },
     });
   }, [pickingGroup, manualPick, kingGroups, navigate]);
-
-  useRefreshOnMarketReset(() => {
-    if (pickingGroup) refetchGroups();
-    else refetchSlots();
-  });
 
   const openKingGroup = (key, label) => {
     navigate('/king-bazaar-market', {

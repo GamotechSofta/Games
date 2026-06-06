@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMarketResultHistory from '../hooks/useMarketResultHistory';
 import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBetsGameResultsPanel';
 import { backBtn, pageShell, textPrimary } from '../styles/appTheme';
@@ -31,9 +30,7 @@ const MarketResultHistory = () => {
   }, [selectedDate, todayKey]);
 
   const dateKey = useMemo(() => toDateKeyIST(selectedDate) || todayKey, [selectedDate, todayKey]);
-  const { rows, loading: resultsLoading, refetch } = useMarketResultHistory(dateKey);
-
-  useRefreshOnMarketReset(refetch);
+  const { rows, loading: resultsLoading } = useMarketResultHistory(dateKey);
 
   return (
     <div className={`${pageShell} px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 pt-3 pb-[calc(5rem+env(safe-area-inset-bottom,0px))]`}>

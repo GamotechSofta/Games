@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { textPrimary } from '../styles/appTheme';
+import useLiveMarket from '../hooks/useLiveMarket';
 
 import { BID_OPTION_IMAGES, assetUrl } from '../config/homeAssets';
 
@@ -17,12 +18,16 @@ const BidOptions = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const location = useLocation();
-  const market = location.state?.market;
+  const initialMarket = location.state?.market;
   const marketType = (location.state?.marketType || '').toString().trim().toLowerCase();
   const kingBazaarMarketKey = location.state?.kingBazaarMarketKey;
   const kingBazaarMarketLabel = location.state?.kingBazaarMarketLabel || 'King Bazaar';
   const starlineMarketKey = location.state?.starlineMarketKey;
   const starlineMarketLabel = location.state?.starlineMarketLabel || 'Starline';
+  const market = useLiveMarket(initialMarket, {
+    marketType,
+    groupKey: kingBazaarMarketKey || starlineMarketKey || '',
+  });
   const inferredKing = (() => {
     const t = marketType;
     if (t === 'king' || t === 'king-bazaar' || t === 'kingbazaar') return true;

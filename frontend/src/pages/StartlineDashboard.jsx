@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useMarketGroups from '../hooks/useMarketGroups';
-import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { backBtn, textPrimary } from '../styles/appTheme';
 
 const STARLINE_DASHBOARD_MARKET_IMAGE_URL =
@@ -11,7 +10,7 @@ const STARLINE_DASHBOARD_MARKET_IMAGE_URL =
 const StartlineDashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { groups: starlineGroups, loading: loadingGroups, refetch } = useMarketGroups('starline');
+  const { groups: starlineGroups, loading: loadingGroups } = useMarketGroups('starline');
 
   const balanceText = useMemo(() => {
     try {
@@ -22,8 +21,6 @@ const StartlineDashboard = () => {
       return '0';
     }
   }, []);
-
-  useRefreshOnMarketReset(refetch);
 
   const openStarlineMarket = (key, label) => {
     navigate('/starline-market', {

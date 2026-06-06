@@ -15,7 +15,8 @@ async function fetchGroups(type) {
 
 export const fetchMarketGroupsThunk = createAsyncThunk(
   'marketGroups/fetch',
-  async (type, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    const type = typeof arg === 'string' ? arg : arg?.type;
     try {
       return { type, groups: await fetchGroups(type) };
     } catch (err) {
@@ -23,7 +24,10 @@ export const fetchMarketGroupsThunk = createAsyncThunk(
     }
   },
   {
-    condition: (type, { getState }) => {
+    condition: (arg, { getState }) => {
+      const type = typeof arg === 'string' ? arg : arg?.type;
+      const force = typeof arg === 'object' && Boolean(arg?.force);
+      if (force) return true;
       const bucket = getState().marketGroups.byType[type];
       if (!bucket) return true;
       if (bucket.status === 'loading') return false;
@@ -59,7 +63,7 @@ const marketGroupsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchMarketGroupsThunk.pending, (state, action) => {
-        const type = action.meta.arg;
+        const type = typeof action.meta.arg === 'string' ? action.meta.arg : action.meta.arg?.type;
         if (!state.byType[type]) state.byType[type] = emptyBucket();
         state.byType[type].status = 'loading';
         state.byType[type].error = null;

@@ -2,7 +2,6 @@ import React, { memo, useCallback, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import useSpecialMarketSlots from '../hooks/useSpecialMarketSlots';
-import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useVisibleNowMs from '../hooks/useVisibleNowMs';
 import { iconBtn } from '../styles/appTheme';
 
@@ -251,8 +250,6 @@ const StarlineMarket = () => {
   const nowMs = useVisibleNowMs();
   const [showClosedModal, setShowClosedModal] = useState(false);
   const handleShowClosedModal = useCallback(() => setShowClosedModal(true), []);
-
-  useRefreshOnMarketReset(refetch);
 
   const title = marketLabel || 'Starline';
   const isKalyanStarline = title.toString().toLowerCase().includes('kalyan');

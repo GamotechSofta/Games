@@ -249,14 +249,9 @@ const Bids = () => {
   const {
     rows: resultsRows,
     loading: resultsLoading,
-    refetch: refetchResults,
   } = useMarketResultHistory(resultsDateKey, { enabled: isGameResultsPanel });
 
-  const refetchAll = async () => {
-    await Promise.all([refetchBetsData(), refetchResults()]);
-  };
-
-  useRefreshOnMarketReset(refetchAll);
+  useRefreshOnMarketReset(refetchBetsData);
 
   const handleCancelBetClick = (betId) => {
     if (!betId) return;

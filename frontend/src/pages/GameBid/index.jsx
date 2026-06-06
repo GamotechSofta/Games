@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BettingWindowProvider } from './BettingWindowContext';
+import useLiveMarket from '../../hooks/useLiveMarket';
 import SingleDigitBid from './bids/SingleDigitBid';
 import JodiBid from './bids/JodiBid';
 import JodiBulkBid from './bids/JodiBulkBid';
@@ -49,7 +50,11 @@ const BID_COMPONENTS = {
 const GameBid = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { market, betType } = location.state || {};
+    const { market: initialMarket, betType } = location.state || {};
+    const market = useLiveMarket(initialMarket, {
+        marketType: location.state?.marketType || initialMarket?.marketType,
+        groupKey: location.state?.kingBazaarMarketKey || location.state?.starlineMarketKey || '',
+    });
     const scheduleForTomorrow =
         location.state?.scheduleForTomorrow === true ||
         (market &&
