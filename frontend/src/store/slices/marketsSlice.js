@@ -1,11 +1,25 @@
 import { createAsyncThunk, createSlice, createSelector } from '@reduxjs/toolkit';
 import { fetchMainMarkets } from '../../api/mainMarkets';
 
-const STALE_MS = 60 * 1000;
+function parseFetchArg(arg) {
+  if (typeof arg === 'boolean') return { popularOnly: arg, force: false };
+  if (arg && typeof arg === 'object') {
+    return {
+      popularOnly: Boolean(arg.popularOnly),
+      force: Boolean(arg.force),
+    };
+  }
+  return { popularOnly: false, force: false };
+}
+
+function bucketKey(popularOnly) {
+  return popularOnly ? 'popular' : 'all';
+}
 
 export const fetchMainMarketsThunk = createAsyncThunk(
   'markets/fetchMain',
-  async (popularOnly = false, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    const { popularOnly } = parseFetchArg(arg);
     try {
       return await fetchMainMarkets(popularOnly);
     } catch (err) {
@@ -13,13 +27,14 @@ export const fetchMainMarketsThunk = createAsyncThunk(
     }
   },
   {
-    condition: (popularOnly, { getState }) => {
-      const key = popularOnly ? 'popular' : 'all';
+    condition: (arg, { getState }) => {
+      const { popularOnly, force } = parseFetchArg(arg);
+      const key = bucketKey(popularOnly);
       const slice = getState().markets.byFilter[key];
       if (slice.status === 'loading') return false;
-      if (slice.status === 'succeeded' && slice.lastFetchedAt && Date.now() - slice.lastFetchedAt < STALE_MS) {
-        return false;
-      }
+      if (force) return true;
+      // Event-driven cache: keep data until opening / closure / closing / midnight refresh.
+      if (slice.status === 'succeeded' && slice.items.length > 0) return false;
       return true;
     },
   },
@@ -49,18 +64,21 @@ const marketsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchMainMarketsThunk.pending, (state, action) => {
-        const k = action.meta.arg ? 'popular' : 'all';
+        const { popularOnly } = parseFetchArg(action.meta.arg);
+        const k = bucketKey(popularOnly);
         state.byFilter[k].status = 'loading';
         state.byFilter[k].error = null;
       })
       .addCase(fetchMainMarketsThunk.fulfilled, (state, action) => {
-        const k = action.meta.arg ? 'popular' : 'all';
+        const { popularOnly } = parseFetchArg(action.meta.arg);
+        const k = bucketKey(popularOnly);
         state.byFilter[k].items = action.payload;
         state.byFilter[k].status = 'succeeded';
         state.byFilter[k].lastFetchedAt = Date.now();
       })
       .addCase(fetchMainMarketsThunk.rejected, (state, action) => {
-        const k = action.meta.arg ? 'popular' : 'all';
+        const { popularOnly } = parseFetchArg(action.meta.arg);
+        const k = bucketKey(popularOnly);
         state.byFilter[k].status = 'failed';
         state.byFilter[k].error = action.payload || 'Failed to load markets';
       });
@@ -70,7 +88,7 @@ const marketsSlice = createSlice({
 export const { clearMarkets } = marketsSlice.actions;
 
 export const selectMainMarkets = (popularOnly = false) => (state) => {
-  const key = popularOnly ? 'popular' : 'all';
+  const key = bucketKey(popularOnly);
   return state.markets.byFilter[key].items;
 };
 

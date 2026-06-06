@@ -205,6 +205,10 @@ export async function ensureResultsResetForNewDay(Market) {
     lastCheckedDateIST = today;
 
     console.log(`[resultReset] Completed reset for ${today}: ${result.modifiedCount} markets cleared`);
+    try {
+        const { notifyAllMarketsReset } = await import('./marketResultNotify.js');
+        notifyAllMarketsReset('midnight_reset');
+    } catch (_) {}
     })();
     try {
         await ensureResetInFlight;

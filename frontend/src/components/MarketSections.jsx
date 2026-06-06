@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
 import { MdLocalFireDepartment } from 'react-icons/md';
-import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../hooks/useMainMarkets';
 import MarketCard from './MarketCard';
 import { MARKET_SECTION_THEME } from '../config/dashboardTheme';
@@ -69,8 +68,6 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   );
 
   const isSearching = Boolean(searchQuery.trim());
-
-  useRefreshOnMarketReset(refetch);
 
   const normalizedViewMode = String(viewMode || '').trim().toLowerCase();
   const allMarkets = filteredMarkets;

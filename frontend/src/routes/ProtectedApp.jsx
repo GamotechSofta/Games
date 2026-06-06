@@ -3,6 +3,7 @@ import { prefetchForPathname, schedulePostLoginPrefetch } from '../api/postLogin
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
 import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
+import useMarketsSocketSync from '../hooks/useMarketsSocketSync';
 import useWalletBalanceBootstrap from '../hooks/useWalletBalanceBootstrap';
 import { useBreakpoint } from '../hooks/useBreakpoint';
 import { getActivePanelFromLocation, useDashboardNav } from '../utils/dashboardNav';
@@ -136,6 +137,7 @@ const Layout = ({ children }) => {
   }, []);
 
   usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel));
+  useMarketsSocketSync(Boolean(hasUser && !isAdminPanel));
   useWalletBalanceBootstrap(Boolean(hasUser && !isAdminPanel));
 
   useEffect(() => {

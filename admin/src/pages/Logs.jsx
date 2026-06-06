@@ -37,6 +37,9 @@ const TYPE_LABELS = {
     system: 'System',
 };
 
+/** Background refresh interval while this browser tab is visible. */
+const LOGS_POLL_MS = 60 * 1000;
+
 const Logs = () => {
     const navigate = useNavigate();
     const [logs, setLogs] = useState([]);
@@ -78,7 +81,39 @@ const Logs = () => {
             return;
         }
         fetchLogs(true);
-        return setupVisibilityRefresh(() => fetchLogs(false), 60 * 1000);
+
+        let intervalId = null;
+
+        const startPolling = () => {
+            if (intervalId) return;
+            intervalId = setInterval(() => fetchLogs(false), LOGS_POLL_MS);
+        };
+
+        const stopPolling = () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                fetchLogs(false);
+                startPolling();
+            } else {
+                stopPolling();
+            }
+        };
+
+        if (document.visibilityState === 'visible') {
+            startPolling();
+        }
+        document.addEventListener('visibilitychange', onVisibilityChange);
+
+        return () => {
+            stopPolling();
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
     }, [navigate, page, filterType, sortOrder]);
 
     const handleLogout = () => {
@@ -133,7 +168,7 @@ const Logs = () => {
         <AdminLayout onLogout={handleLogout} title="Logs">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Activity Logs</h1>
             <p className="text-gray-400 mb-4 sm:mb-6 text-sm">
-                All activity from admin, bookie and player (frontend) – auto-refreshes every 15 seconds.
+                All activity from admin, bookie and player (frontend) – auto-refreshes every 60 seconds while this tab is active.
             </p>
 
             {/* Filters */}
@@ -161,6 +196,14 @@ const Logs = () => {
                     className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm font-medium w-full sm:col-span-2 xl:col-span-1"
                 >
                     Clear
+                </button>
+                <button
+                    type="button"
+                    onClick={() => fetchLogs(false)}
+                    disabled={loading}
+                    className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-sm font-medium w-full disabled:opacity-50"
+                >
+                    Refresh
                 </button>
                 <button
                     type="button"

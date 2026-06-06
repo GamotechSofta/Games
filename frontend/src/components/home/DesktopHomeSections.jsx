@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment } from 'react-icons/md';
 import { FaThLarge } from 'react-icons/fa';
 import { filterMarketsByQuery, toMarketNameKey } from '../../utils/marketSearch';
-import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
@@ -85,7 +84,7 @@ function MarketRowSkeleton({ scrollable = true, gapClass = 'gap-3' }) {
 export default function DesktopHomeSections({ searchQuery = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { markets, loading, refetch } = useMainMarkets();
+  const { markets, loading } = useMainMarkets();
 
   const getMarketDisplayName = useCallback(
     (gameName) => t(`markets.names.${toMarketNameKey(gameName)}`, { defaultValue: gameName }),
@@ -98,8 +97,6 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
   );
 
   const isSearching = Boolean(searchQuery.trim());
-
-  useRefreshOnMarketReset(refetch);
 
   const popularMarkets = filteredMarkets.filter((market) => market.showInPopular).slice(0, 12);
   const allMarkets = filteredMarkets;

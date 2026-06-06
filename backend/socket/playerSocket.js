@@ -52,7 +52,7 @@ export function initPlayerSocket(httpServer, opts = {}) {
     });
   });
 
-  console.log('[socket] player wallet Socket.IO ready at /socket.io');
+  console.log('[socket] player wallet Socket.IO ready at /socket.io (markets:updated events enabled)');
   return io;
 }
 

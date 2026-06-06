@@ -6,8 +6,6 @@ import {
   mapStarlineSlot,
 } from '../../utils/specialMarketSlots';
 
-const STALE_MS = 30 * 1000;
-
 function slotCacheKey(marketType, groupKey) {
   return `${marketType}:${(groupKey || '').toString().trim().toLowerCase()}`;
 }
@@ -49,14 +47,13 @@ export const fetchSpecialSlotsThunk = createAsyncThunk(
     }
   },
   {
-    condition: ({ marketType, groupKey }, { getState }) => {
+    condition: ({ marketType, groupKey, force = false }, { getState }) => {
+      if (force) return true;
       const key = slotCacheKey(marketType, groupKey);
       const bucket = getState().specialSlots.byKey[key];
       if (!bucket) return true;
       if (bucket.status === 'loading') return false;
-      if (bucket.status === 'succeeded' && bucket.lastFetchedAt && Date.now() - bucket.lastFetchedAt < STALE_MS) {
-        return false;
-      }
+      if (bucket.status === 'succeeded' && bucket.items.length > 0) return false;
       return true;
     },
   },

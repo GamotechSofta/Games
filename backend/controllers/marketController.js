@@ -28,6 +28,7 @@ import {
 } from '../utils/settleBets.js';
 import { scheduleMarketResetCheck } from '../utils/resultReset.js';
 import { attachDisplayResults } from '../utils/marketDisplayResult.js';
+import { notifyMarketsResultUpdated } from '../utils/marketResultNotify.js';
 
 /** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
 function runBackgroundMarketResetCheck() {
@@ -430,6 +431,7 @@ export const setOpeningNumber = async (req, res) => {
                 await upsertMarketResultSnapshot(market, toDateKeyIST(new Date()));
             } catch (_) {}
         }
+        notifyMarketsResultUpdated(market, 'set_opening_number');
         res.status(200).json({ success: true, data: response });
     } catch (error) {
         if (error.name === 'CastError') {
@@ -492,6 +494,7 @@ export const setClosingNumber = async (req, res) => {
                 await upsertMarketResultSnapshot(market, toDateKeyIST(new Date()));
             } catch (_) {}
         }
+        notifyMarketsResultUpdated(market, 'set_closing_number');
         res.status(200).json({ success: true, data: response });
     } catch (error) {
         if (error.name === 'CastError') {
@@ -531,6 +534,7 @@ export const setWinNumber = async (req, res) => {
         }
         const response = market.toObject();
         response.displayResult = market.getDisplayResult();
+        notifyMarketsResultUpdated(market, 'set_win_number');
         res.status(200).json({ success: true, data: response });
     } catch (error) {
         if (error.name === 'CastError') {
@@ -614,6 +618,7 @@ export const declareOpenResult = async (req, res) => {
         // Upsert today's result snapshot for history (IST date)
         try { await upsertMarketResultSnapshot(updated, toDateKeyIST(new Date())); } catch (_) {}
 
+        notifyMarketsResultUpdated(updated, 'declare_open');
         res.status(200).json({ success: true, message: 'Open result declared', data: response });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -886,6 +891,7 @@ export const declareCloseResult = async (req, res) => {
         // Upsert today's result snapshot for history (IST date)
         try { await upsertMarketResultSnapshot(updated, toDateKeyIST(new Date())); } catch (_) {}
 
+        notifyMarketsResultUpdated(updated, 'declare_close');
         res.status(200).json({ success: true, message: 'Close result declared', data: response });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -918,6 +924,7 @@ export const clearResult = async (req, res) => {
         const updated = await Market.findById(marketId);
         const response = updated.toObject();
         response.displayResult = updated.getDisplayResult();
+        notifyMarketsResultUpdated(updated, 'clear_result');
         res.status(200).json({ success: true, message: 'Result cleared', data: response });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -1112,6 +1119,7 @@ export const declareKingBazaar = async (req, res) => {
         // Upsert today's result snapshot for history (IST date)
         try { await upsertMarketResultSnapshot(updated, toDateKeyIST(new Date())); } catch (_) {}
 
+        notifyMarketsResultUpdated(updated, 'declare_king_bazaar');
         res.status(200).json({ success: true, message: 'King Bazaar result declared', data: response });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

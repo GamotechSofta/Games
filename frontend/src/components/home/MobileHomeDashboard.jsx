@@ -10,7 +10,6 @@ import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './H
 import { MarketsCategoryIcon } from './homeCategoryIcons';
 import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
-import { useRefreshOnMarketReset } from '../../hooks/useRefreshOnMarketReset';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 
@@ -126,9 +125,7 @@ export default function MobileHomeDashboard() {
   const { isLight } = useTheme();
   const navigate = useNavigate();
   const [heroIndex, setHeroIndex] = useState(0);
-  const { markets, loading, refetch } = useMainMarkets();
-
-  useRefreshOnMarketReset(refetch);
+  const { markets, loading } = useMainMarkets();
 
   const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
   const allMarketsExceptPopular = useMemo(

@@ -88,10 +88,10 @@ export function isBettingAllowed(market, now = new Date()) {
   
   // Use startingTime if provided, otherwise default to midnight
   const openAt = startStr 
-    ? parseISTDateTime(`${todayIST}T${normalizeTimeStr(startStr)}+05:30`)
-    : parseISTDateTime(`${todayIST}T00:00:00+05:30`);
+    ? parseISTDateTimeMs(`${todayIST}T${normalizeTimeStr(startStr)}+05:30`)
+    : parseISTDateTimeMs(`${todayIST}T00:00:00+05:30`);
   
-  let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
+  let closeAt = parseISTDateTimeMs(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
   
   if (!openAt || !closeAt) {
     return { allowed: false, message: 'Invalid market time.' };
@@ -107,7 +107,7 @@ export function isBettingAllowed(market, now = new Date()) {
       month: '2-digit',
       day: '2-digit',
     }).format(baseDate);
-    closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+    closeAt = parseISTDateTimeMs(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
   }
 
   const closureMs = closureSec * 1000;
@@ -129,23 +129,125 @@ export function isBettingAllowed(market, now = new Date()) {
   return { allowed: true };
 }
 
-export function getTodayIST() {
+export function getTodayIST(now = new Date()) {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Kolkata',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(new Date());
+  }).format(now);
 }
 
-function normalizeTimeStr(timeStr) {
+export function normalizeTimeStr(timeStr) {
   const parts = timeStr.split(':').map((p) => String(parseInt(p, 10) || 0).padStart(2, '0'));
   return `${parts[0] || '00'}:${parts[1] || '00'}:${parts[2] || '00'}`;
 }
 
-function parseISTDateTime(isoStr) {
+export function parseISTDateTimeMs(isoStr) {
   const d = new Date(isoStr);
   return isNaN(d.getTime()) ? null : d.getTime();
+}
+
+/** Next midnight IST (market day rollover) strictly after `now`. */
+export function getNextMidnightISTMs(now = new Date()) {
+  const nowMs = now.getTime();
+  const todayIST = getTodayIST(now);
+  let midnight = parseISTDateTimeMs(`${todayIST}T00:00:00+05:30`);
+  if (midnight != null && midnight > nowMs) return midnight;
+
+  const base = new Date(`${todayIST}T12:00:00+05:30`);
+  base.setDate(base.getDate() + 1);
+  const nextDay = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(base);
+  return parseISTDateTimeMs(`${nextDay}T00:00:00+05:30`);
+}
+
+/**
+ * Opening/closing/closure IST timestamps for one market on a calendar day (YYYY-MM-DD).
+ * @returns {number[]}
+ */
+export function getMarketTimingEventsForDate(market, dateIST) {
+  const closeStr = (market?.closingTime || '').toString().trim();
+  if (!closeStr || !dateIST) return [];
+
+  const startStr = (market?.startingTime || '').toString().trim();
+  const betClosureSec = Number(market?.betClosureTime);
+  const closureSec = Number.isFinite(betClosureSec) && betClosureSec >= 0 ? betClosureSec : 0;
+  const closureMs = closureSec * 1000;
+
+  const openAt = startStr
+    ? parseISTDateTimeMs(`${dateIST}T${normalizeTimeStr(startStr)}+05:30`)
+    : parseISTDateTimeMs(`${dateIST}T00:00:00+05:30`);
+
+  let closeAt = parseISTDateTimeMs(`${dateIST}T${normalizeTimeStr(closeStr)}+05:30`);
+  if (openAt == null || closeAt == null) return [];
+
+  if (closeAt <= openAt) {
+    const baseDate = new Date(`${dateIST}T12:00:00+05:30`);
+    baseDate.setDate(baseDate.getDate() + 1);
+    const nextDayStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(baseDate);
+    closeAt = parseISTDateTimeMs(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+    if (closeAt == null) return [];
+  }
+
+  const events = [openAt, closeAt];
+  if (closureSec > 0) {
+    events.push(openAt - closureMs);
+    events.push(closeAt - closureMs);
+  }
+  return events;
+}
+
+/**
+ * Future refresh timestamps for a market (today + tomorrow IST boundaries).
+ * @returns {number[]}
+ */
+export function collectMarketRefreshEvents(market, now = new Date()) {
+  const nowMs = now.getTime();
+  const todayIST = getTodayIST(now);
+  const tomorrowBase = new Date(`${todayIST}T12:00:00+05:30`);
+  tomorrowBase.setDate(tomorrowBase.getDate() + 1);
+  const tomorrowIST = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(tomorrowBase);
+
+  const raw = [
+    ...getMarketTimingEventsForDate(market, todayIST),
+    ...getMarketTimingEventsForDate(market, tomorrowIST),
+  ];
+
+  return raw.filter((ts) => typeof ts === 'number' && ts > nowMs + 250);
+}
+
+/**
+ * Next refresh time across all markets: opening, closure, closing, and midnight IST.
+ * @param {Array} markets
+ * @param {Date} [now]
+ * @returns {number|null} epoch ms
+ */
+export function getNextMarketRefreshMs(markets, now = new Date()) {
+  const nowMs = now.getTime();
+  const candidates = [getNextMidnightISTMs(now)];
+
+  for (const market of markets || []) {
+    candidates.push(...collectMarketRefreshEvents(market, now));
+  }
+
+  const future = candidates.filter((ts) => typeof ts === 'number' && ts > nowMs + 250);
+  if (!future.length) return null;
+  return Math.min(...future);
 }
 
 function formatTime12(timeStr) {
@@ -172,10 +274,10 @@ export function isPastClosingTime(market, now = new Date()) {
   
   // Use startingTime if provided, otherwise default to midnight
   const openAt = startStr 
-    ? parseISTDateTime(`${todayIST}T${normalizeTimeStr(startStr)}+05:30`)
-    : parseISTDateTime(`${todayIST}T00:00:00+05:30`);
+    ? parseISTDateTimeMs(`${todayIST}T${normalizeTimeStr(startStr)}+05:30`)
+    : parseISTDateTimeMs(`${todayIST}T00:00:00+05:30`);
   
-  let closeAt = parseISTDateTime(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
+  let closeAt = parseISTDateTimeMs(`${todayIST}T${normalizeTimeStr(closeStr)}+05:30`);
   
   if (!openAt || !closeAt) return false;
   
@@ -193,7 +295,7 @@ export function isPastClosingTime(market, now = new Date()) {
       month: '2-digit',
       day: '2-digit',
     }).format(baseDate);
-    closeAt = parseISTDateTime(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
+    closeAt = parseISTDateTimeMs(`${nextDayStr}T${normalizeTimeStr(closeStr)}+05:30`);
     if (!closeAt) return false;
     
     // Check if we're past the closing time on the next day
