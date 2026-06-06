@@ -24,11 +24,15 @@ import {
 } from '../../controllers/marketController.js';
 import { getStarlineGroups, createStarlineGroup, deleteStarlineGroup } from '../../controllers/starlineGroupController.js';
 import { getKingBazaarGroups, createKingBazaarGroup, deleteKingBazaarGroup } from '../../controllers/kingBazaarGroupController.js';
+import { marketLiveUpdates } from '../../controllers/marketLiveController.js';
+import { getMarketRevisionHandler } from '../../controllers/marketRevisionController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
 
-// Public routes
+// Public routes — live result sync
+router.get('/revision', getMarketRevisionHandler);
+router.get('/live-updates', marketLiveUpdates);
 router.get('/get-markets', getMarkets);
 router.get('/get-market/:id', getMarketById);
 router.get('/starline-groups', getStarlineGroups);

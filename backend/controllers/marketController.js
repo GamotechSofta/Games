@@ -280,8 +280,10 @@ export const getMarkets = async (req, res) => {
 
         const markets = await query.lean();
         const data = attachDisplayResults(markets);
-        // Live results change on admin declare — never cache this response in browsers/CDNs.
-        res.set('Cache-Control', 'private, no-cache, must-revalidate');
+        res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+        res.set('CDN-Cache-Control', 'no-store');
         res.status(200).json({ success: true, data });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

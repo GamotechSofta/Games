@@ -21,15 +21,21 @@ export function connectPlayerSocket() {
   socket = io(url, {
     path: '/socket.io',
     withCredentials: true,
-    transports: ['websocket', 'polling'],
+    // Polling first — many production nginx setups block WebSocket upgrade.
+    transports: import.meta.env.PROD ? ['polling', 'websocket'] : ['websocket', 'polling'],
     reconnection: true,
     reconnectionDelay: 2000,
+    reconnectionAttempts: Infinity,
     auth: token && token !== 'cookie-auth' ? { token } : undefined,
   });
 
   socket.on('connect_error', (err) => {
+    console.warn('[socket] connect_error:', err?.message || err);
+  });
+
+  socket.on('connect', () => {
     if (import.meta.env.DEV) {
-      console.warn('[socket] connect_error:', err?.message || err);
+      console.info('[socket] connected', socket.id);
     }
   });
 

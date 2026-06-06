@@ -81,7 +81,46 @@ VITE_SOCKET_URL=https://api.aakda.in
 
 Redeploy after changing env vars (Vite bakes them at build time).
 
+**Required for instant market results:**
+
+```env
+VITE_API_BASE_URL=https://api.aakda.in/api/v1
+VITE_SOCKET_URL=https://api.aakda.in
+```
+
+If `VITE_SOCKET_URL` is missing, the app falls back to deriving the host from `VITE_API_BASE_URL`. Set both explicitly on Render/Vercel.
+
 Custom domain: `www.aakda.in` and `aakda.in` → Render, as you already have.
+
+### Instant market results in production
+
+The player app receives admin declares via:
+
+1. **SSE** (primary in production) — `GET https://api.aakda.in/api/v1/markets/live-updates`  
+   Works through nginx without WebSocket. **nginx must disable buffering** for this path (see [nginx-api.example.conf](./nginx-api.example.conf)).
+
+2. **Socket.IO** (optional) — `wss://api.aakda.in/socket.io/`  
+   Requires nginx `Upgrade` headers (same example config).
+
+After deploy, verify in browser DevTools → Network:
+
+- `live-updates` stays **pending** (EventStream) while logged in — if **404**, backend not deployed yet; **revision poll** still works after deploy
+- `revision` returns `{"success":true,"data":{"ts":...}}` every ~5s in production
+- Declaring a result triggers a new event and market cards update without refresh
+
+Quick checks from your machine:
+
+```bash
+curl -s https://api.aakda.in/api/v1/markets/revision
+curl -sI -H "Origin: https://www.aakda.in" https://api.aakda.in/api/v1/markets/live-updates
+curl -s "https://api.aakda.in/socket.io/?EIO=4&transport=polling"
+```
+
+| curl result | Meaning |
+|---------------|---------|
+| `revision` → 404 | **Deploy backend** — player app cannot detect declares |
+| `live-updates` → 404 | Deploy backend + nginx SSE block (see example config) |
+| `socket.io` → JSON with `"sid"` | Socket reachable; instant updates work once backend emits + frontend redeployed |
 
 ---
 
@@ -123,3 +162,5 @@ Restart the Node process after changing env. On startup you should see:
 | `504 Gateway Time-out` on API | EC2/nginx timeout or Node/Mongo down — fix CORS first, then check `pm2 logs` / MongoDB |
 | Red TURN banner | coturn + `TURN_*` on AWS, security group UDP 3478 |
 | Socket connects but no voice | TURN not configured (STUN only) |
+| Market result not instant in prod (works locally) | 1) Redeploy backend + frontend with latest code 2) Set `VITE_SOCKET_URL` on frontend build 3) nginx: proxy `/socket.io/` + disable buffering on `/api/v1/markets/live-updates` ([nginx-api.example.conf](./nginx-api.example.conf)) 4) `CORS_ORIGINS` must include `https://www.aakda.in` |
+| `live-updates` 504 in Network tab | nginx `proxy_read_timeout` too low or buffering on — use example nginx config |

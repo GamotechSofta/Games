@@ -15,13 +15,20 @@ const inFlight = pLimit(MAX_IN_FLIGHT);
 
 const SKIP_PATHS = new Set(['/health', '/api/wallet/health']);
 
+function shouldSkipConcurrency(req) {
+  if (SKIP_PATHS.has(req.path || '')) return true;
+  const url = String(req.originalUrl || '');
+  return url.includes('/markets/live-updates')
+    || url.includes('/markets/revision')
+    || url.startsWith('/socket.io');
+}
+
 /**
  * Cap concurrent in-flight API requests so MongoDB pool is not flooded.
  * Requests wait briefly in the app queue; only bursts beyond the queue get 503 SERVER_BUSY.
  */
 export function limitApiConcurrency(req, res, next) {
-  const path = req.path || '';
-  if (SKIP_PATHS.has(path)) {
+  if (shouldSkipConcurrency(req)) {
     return next();
   }
 

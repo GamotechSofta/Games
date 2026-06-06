@@ -81,9 +81,19 @@ validateEnvConfig();
 logCorsConfig({ isProd });
 
 app.set('trust proxy', 1);
+app.set('etag', false);
 
 app.use(cors(getCorsOptions({ isProd })));
-app.use(compression({ threshold: 1024 }));
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    if (String(req.originalUrl || '').includes('/markets/live-updates')
+      || String(req.originalUrl || '').includes('/markets/revision')) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+}));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(limitApiConcurrency);

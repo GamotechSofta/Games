@@ -42,6 +42,11 @@ export function requireDbReady(req, res, next) {
  */
 export function apiRequestTimeout(timeoutMs = DEFAULT_API_TIMEOUT_MS) {
   return (req, res, next) => {
+    if (String(req.originalUrl || '').includes('/markets/live-updates')
+      || String(req.originalUrl || '').includes('/markets/revision')) {
+      return next();
+    }
+
     let settled = false;
 
     const timer = setTimeout(() => {
