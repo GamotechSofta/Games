@@ -233,8 +233,9 @@ const Layout = ({ children }) => {
     const mobileContentTop = showMobileHeader
       ? getMobileDashboardContentTop(hasPromoBanner)
       : undefined;
+    const showBottomNav = hasUser && !hideBottomNavOnMobile;
     const mobileBottomPad =
-      hideBottomNavOnMobile
+      !showBottomNav
         ? 'pb-[env(safe-area-inset-bottom,0px)]'
         : location.pathname === '/profile'
           ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
@@ -242,11 +243,7 @@ const Layout = ({ children }) => {
 
     return withAuthGate(wrapCalls(
       <div
-        className={
-          hideBottomNavOnMobile
-            ? 'min-h-screen min-h-ios-screen pb-6 md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black'
-            : `min-h-screen min-h-ios-screen ${mobileBottomPad} md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black`
-        }
+        className={`min-h-screen min-h-ios-screen ${mobileBottomPad} md:pb-0 w-full max-w-full overflow-x-hidden bg-[#f5f5f7] dark:bg-black`}
       >
         {showMobileHeader && <AppHeader />}
         <div
@@ -264,7 +261,7 @@ const Layout = ({ children }) => {
             {gatedChildren}
           </div>
         </div>
-        {!hideBottomNavOnMobile && <BottomNavbar />}
+        {showBottomNav && <BottomNavbar />}
       </div>,
     ));
   }
