@@ -45,7 +45,7 @@ export const clearUserAuth = () => {
   localStorage.removeItem('user');
   localStorage.removeItem(AUTH_TOKEN_KEY);
   window.dispatchEvent(new Event('userLogout'));
-  window.location.href = '/login';
+  window.location.href = '/';
 };
 
 /**

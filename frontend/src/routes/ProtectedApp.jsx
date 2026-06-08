@@ -17,6 +17,7 @@ import {
 import AppHeader from '../components/AppHeader';
 import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
+import AuthModal from '../components/auth/AuthModal';
 import ProtectedRoute from './ProtectedRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
@@ -184,7 +185,21 @@ const Layout = ({ children }) => {
   }, [location.pathname]);
 
   if (isAdminPanel) return <>{children}</>;
-  if (!hasUser) return <Navigate to="/login" replace />;
+
+  // Logged-out users: show the home page behind a non-dismissible login/sign up popup.
+  // Inner content stays locked until the user authenticates.
+  const gatedChildren = hasUser ? children : <Home />;
+  const withAuthGate = (node) => {
+    if (hasUser) return node;
+    return (
+      <>
+        <div className="pointer-events-none select-none" aria-hidden>
+          {node}
+        </div>
+        <AuthModal />
+      </>
+    );
+  };
 
   const callEnabled = Boolean(hasUser && !isAdminPanel);
   const wrapCalls = (node) => (
@@ -196,18 +211,18 @@ const Layout = ({ children }) => {
   );
 
   if (isDesktop) {
-    return wrapCalls(
+    return withAuthGate(wrapCalls(
       <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-[#141415]">
         <Suspense fallback={<RouteFallback />}>
           <DesktopDashboardLayout
             activePanel={showDesktopDashboardNav ? activePanel || (location.pathname === '/markets' ? 'markets' : 'home') : undefined}
             onPanelChange={showDesktopDashboardNav ? onPanelChange : undefined}
           >
-            {children}
+            {gatedChildren}
           </DesktopDashboardLayout>
         </Suspense>
       </div>,
-    );
+    ));
   }
 
   if (!isDesktop) {
@@ -225,7 +240,7 @@ const Layout = ({ children }) => {
           ? 'pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]'
           : 'pb-[calc(4rem+env(safe-area-inset-bottom,0px))]';
 
-    return wrapCalls(
+    return withAuthGate(wrapCalls(
       <div
         className={
           hideBottomNavOnMobile
@@ -246,12 +261,12 @@ const Layout = ({ children }) => {
             className={isGameBidMobileShell ? 'flex flex-col flex-1 min-h-0 h-full pt-0' : undefined}
             style={!isGameBidMobileShell && mobileContentTop ? { paddingTop: mobileContentTop } : undefined}
           >
-            {children}
+            {gatedChildren}
           </div>
         </div>
         {!hideBottomNavOnMobile && <BottomNavbar />}
       </div>,
-    );
+    ));
   }
 
   return null;

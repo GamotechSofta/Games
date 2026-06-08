@@ -1,9 +1,7 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SkeletonBlock from '../components/SkeletonBlock';
 import ProtectedApp from './ProtectedApp';
-
-const Login = lazy(() => import('../pages/Login'));
 
 function RouteFallback() {
   return (
@@ -15,13 +13,20 @@ function RouteFallback() {
   );
 }
 
+// Old login routes now resolve to the home page (login/sign up shows as a popup there).
+// Preserve any query string (e.g. ?ref=) for referral signups.
+const LoginRedirect = () => {
+  const location = useLocation();
+  return <Navigate to={{ pathname: '/', search: location.search }} replace />;
+};
+
 const AppRoutes = () => {
   return (
     <Router>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/login/password" element={<Login />} />
+          <Route path="/login" element={<LoginRedirect />} />
+          <Route path="/login/password" element={<LoginRedirect />} />
           <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />
           <Route path="*" element={<ProtectedApp />} />
         </Routes>
@@ -31,4 +36,3 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
-
