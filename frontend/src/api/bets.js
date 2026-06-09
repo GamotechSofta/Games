@@ -3,6 +3,7 @@ import { queryClient } from '../queryClient';
 import { redirectToLoginIf401 } from '../utils/auth';
 import { clearSessionCache, createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
 import {
+  BET_HISTORY_DAYS,
   betHistoryCacheKey,
   gameRatesCacheKey,
   USER_DATA_CACHE_TTL_MS,
@@ -263,7 +264,7 @@ export async function getMyWalletTransactions(limit = 200) {
  * @param {{ days?: number, limit?: number }} [options]
  * @returns {Promise<{ success: boolean, data?: Array<Bet>, message?: string }>}
  */
-export async function getMyBetHistory({ days = 30, limit = 50, skip = 0, force = false } = {}) {
+export async function getMyBetHistory({ days = BET_HISTORY_DAYS, limit = 50, skip = 0, force = false } = {}) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   if (!userId) {

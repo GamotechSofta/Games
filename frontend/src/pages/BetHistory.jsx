@@ -6,6 +6,31 @@ import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMyBetsData from '../hooks/useMyBetsData';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
+import {
+  betHistoryCancelBtn,
+  betHistoryContentPanel,
+  betHistoryCopyToast,
+  betHistoryEmpty,
+  betHistoryFilterBtn,
+  betHistoryFilterOption,
+  betHistoryIndexLabel,
+  betHistoryLoadMoreBtn,
+  betHistoryModalHeader,
+  betHistoryModalShell,
+  betHistoryModalTitleBar,
+  betHistoryPageWrap,
+  betHistoryPrimaryBtn,
+  betHistorySectionTitle,
+  betHistoryTableShell,
+  betHistoryThead,
+  betHistoryTh,
+  getBetCardClasses,
+  getBetStatusDisplay,
+  getBetTableRowClass,
+  getSessionBadgeClasses,
+  textMuted,
+  textPrimary,
+} from './bids/betHistoryTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
 import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 import {
@@ -77,9 +102,9 @@ const HISTORY_SCOPE_TABS = [
     labelKey: 'markets.markets',
     ariaLabelKey: 'bids.betHistory',
     activeClass:
-      'border-[#d4af37] bg-[#d4af37]/15 text-gray-900 dark:bg-[#d4af37]/20 dark:text-[#f2c14e] shadow-[0_0_0_1px_rgba(212,175,55,0.35)]',
+      'border-red-600 bg-red-50 text-red-800 dark:bg-red-500/15 dark:text-red-200 shadow-[0_0_0_1px_rgba(220,38,38,0.2)]',
     idleClass:
-      'border-gray-200 bg-white text-gray-700 hover:border-[#d4af37]/50 dark:border-white/15 dark:bg-[#202124] dark:text-gray-300 dark:hover:border-[#d4af37]/40',
+      'border-gray-200 bg-white text-gray-700 hover:border-red-300 dark:border-white/15 dark:bg-[#202124] dark:text-gray-300 dark:hover:border-red-500/40',
   },
   {
     scope: 'starline',
@@ -170,6 +195,12 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   // - "king": only king bazaar markets
   const scopeRaw = (marketScope || '').toString().trim().toLowerCase();
   const scope = scopeRaw || 'main';
+  const historySubtitleKey =
+    scope === 'starline' || scope === 'startline'
+      ? 'bids.starlineBetHistorySubtitle'
+      : scope === 'king'
+        ? 'bids.kingBazaarBetHistorySubtitle'
+        : 'bids.betHistorySubtitle';
   const inScope = (marketTitle) => {
     if (scope === 'starline' || scope === 'startline') return isStarlineMarketName(marketTitle);
     if (scope === 'king') return isKingBazaarMarketName(marketTitle);
@@ -451,13 +482,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     }
   };
 
-  const statusLabel = (verdict) => {
-    if (verdict?.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
-    if (verdict?.state === 'lost') return { text: t('bids.status.lost'), className: 'text-red-400 font-semibold' };
-    if (verdict?.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-600 dark:text-orange-400 font-semibold' };
-    return { text: t('bids.status.pending'), className: 'text-amber-400/90 font-medium' };
-  };
-
   // Draft state for modal
   const [draftSessions, setDraftSessions] = useState([]);
   const [draftStatuses, setDraftStatuses] = useState([]);
@@ -477,22 +501,27 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-black dark:text-white px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4 pt-3 pb-[calc(7rem+env(safe-area-inset-bottom,0px))]">
+    <div className={`${betHistoryPageWrap} px-4 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] sm:px-4`}>
       <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto">
         {/* Header row */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-4 overflow-visible">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4 overflow-visible">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
             <button
               type="button"
               onClick={() => navigate('/bids', { replace: true })}
               className={backBtn}
-              aria-label="Back"
+              aria-label={t('common.back')}
             >
               <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-lg sm:text-2xl font-bold truncate">{displayTitle}</h1>
+            <div className="min-w-0">
+              <h1 className={`text-lg sm:text-2xl font-extrabold truncate ${textPrimary}`}>
+                {displayTitle}
+              </h1>
+              <p className={`text-[11px] sm:text-xs mt-0.5 truncate ${textMuted}`}>{t(historySubtitleKey)}</p>
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 max-w-[58%] sm:max-w-[65%] justify-end">
@@ -503,12 +532,12 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
             <button
               type="button"
               onClick={() => setIsFilterOpen(true)}
-              className="shrink-0 flex items-center gap-1 sm:gap-2 text-[#d4af37] hover:text-[#f3b61b] transition-colors"
+              className={betHistoryFilterBtn}
               aria-label={t('bids.filterBy')}
               title={t('bids.filterBy')}
             >
-              <span className="text-[11px] sm:text-sm font-semibold whitespace-nowrap">{t('bids.filterBy')}</span>
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <span className="whitespace-nowrap">{t('bids.filterBy')}</span>
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18l-7 8v6l-4 2v-8L3 4z" />
               </svg>
             </button>
@@ -524,8 +553,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         {cancelMessage.text && (
           <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${
             cancelMessage.type === 'success'
-              ? 'bg-green-500/10 border border-green-500/30 text-green-200'
-              : 'bg-red-500/10 border border-red-500/30 text-red-200'
+              ? 'bg-green-50 border border-green-500/30 text-green-800 dark:bg-green-500/10 dark:text-green-200'
+              : 'bg-red-50 border border-red-500/30 text-red-800 dark:bg-red-500/10 dark:text-red-200'
           }`}>
             {cancelMessage.text}
           </div>
@@ -533,7 +562,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
 
         {/* Bet ID copied toast */}
         {copyToast && (
-          <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1100] px-4 py-2.5 rounded-lg bg-[#d4af37] text-black font-semibold text-sm shadow-lg">
+          <div className={betHistoryCopyToast}>
             {copyToast}
           </div>
         )}
@@ -541,37 +570,41 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         {/* Cancel bet confirmation modal (mobile + desktop) */}
         {confirmCancelBetId && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
-            <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] shadow-2xl p-5 space-y-4">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('bids.cancelBetTitle')}</h3>
-              <p className="text-gray-300 text-sm">
-                {t('bids.cancelBetConfirm')}
-              </p>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmCancelBetId(null)}
-                  className="flex-1 py-3 rounded-xl border border-white/20 text-gray-900 dark:text-white font-semibold hover:bg-white/10 transition-colors"
-                >
-                  {t('bids.noKeepBet')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
-                  className="flex-1 py-3 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
-                >
-                  {t('bids.yesCancel')}
-                </button>
+            <div className={betHistoryModalShell}>
+              <div className={betHistoryModalTitleBar}>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('bids.cancelBetTitle')}</h3>
+              </div>
+              <div className="p-5 space-y-4">
+                <p className="text-gray-600 dark:text-gray-300 text-sm">
+                  {t('bids.cancelBetConfirm')}
+                </p>
+                <div className="flex gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmCancelBetId(null)}
+                    className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white font-semibold hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                  >
+                    {t('bids.noKeepBet')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
+                    className={`flex-1 py-3 ${betHistoryPrimaryBtn}`}
+                  >
+                    {t('bids.yesCancel')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* One card per bet, newest first (no market grouping) */}
-        <div className="space-y-4">
+        <div className={`${betHistoryContentPanel} p-3 sm:p-4 space-y-4`}>
           {betsLoading ? (
             <div className="grid grid-cols-2 gap-3 overflow-x-hidden">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-3 space-y-2 skeleton-shimmer">
+                <div key={i} className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-3 space-y-2 skeleton-shimmer">
                   <div className="flex justify-between gap-1">
                     <div className="h-3 w-8 rounded bg-white/10" />
                     <div className="h-4 w-12 rounded bg-white/10" />
@@ -585,11 +618,11 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               ))}
             </div>
           ) : !userId ? (
-            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-6 text-center text-gray-300">
+            <div className={betHistoryEmpty}>
               {t('bids.loginToSeeHistory')}
             </div>
           ) : allBetsNewestFirst.length === 0 ? (
-            <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-6 text-center text-gray-300">
+            <div className={betHistoryEmpty}>
               {t('bids.noBetsFound')}
             </div>
           ) : (
@@ -601,45 +634,34 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                   const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                   const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
-                  const status = statusLabel(verdict);
+                  const status = getBetStatusDisplay(t, verdict);
                   return (
                     <div
                       key={betId}
-                      className={`relative rounded-lg border-2 p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
-                        verdict?.state === 'cancelled'
-                          ? 'bg-orange-50 dark:bg-[#202124] border-orange-400'
-                          : 'bg-white dark:bg-[#202124] ' + (
-                        verdict?.state === 'won'
-                          ? 'border-[#43b36a]'
-                          : verdict?.state === 'lost'
-                            ? 'border-red-500'
-                            : verdict?.state === 'pending'
-                              ? 'border-amber-500'
-                              : 'border-gray-200 dark:border-white/10'
-                      )}`}
+                      className={getBetCardClasses(verdict?.state)}
                     >
                       {verdict?.state === 'cancelled' && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-orange-100/60 dark:bg-black/50 z-10 pointer-events-none">
-                          <svg className="w-12 h-12 text-orange-600 dark:text-orange-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="absolute inset-0 flex items-center justify-center bg-red-100/50 dark:bg-black/50 z-10 pointer-events-none">
+                          <svg className="w-12 h-12 text-red-600 dark:text-red-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6L6 18M6 6l12 12" />
                           </svg>
                         </div>
                       )}
                       <div className="flex justify-between items-center gap-1 flex-wrap">
-                        <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
-                        {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
+                        <span className={`${betHistoryIndexLabel} shrink-0`}>#{idx + 1}</span>
+                        {session ? <span className={getSessionBadgeClasses(session)}>{session}</span> : null}
                       </div>
                       <div className="flex justify-between items-center gap-1 text-[10px]">
                         <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.betIdLabel')}</span>
                         <span className="flex items-center gap-1 min-w-0">
                           <span className="font-mono text-gray-700 dark:text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
-                          <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-500 dark:text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                           </button>
                         </span>
                       </div>
                       {isScheduled && (
-                        <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
+                        <div className="text-[9px] font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded px-1.5 py-0.5 inline-block shrink-0">
                           {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                         </div>
                       )}
@@ -671,7 +693,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                             onClick={() => handleCancelBetClick(betId)}
                             disabled={cancellingBetId === betId}
                             title={t('bids.cancelAndRefund')}
-                            className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-200 border border-gray-300 text-gray-900 hover:bg-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
+                            className={`w-full ${betHistoryCancelBtn}`}
                           >
                             {cancellingBetId === betId ? <><svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t('bids.cancelling')}</> : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> {t('bids.cancelAndRefund')}</>}
                           </button>
@@ -683,20 +705,20 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               </div>
 
               {/* Desktop: table, one row per bet */}
-              <div className="hidden md:block overflow-x-auto rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] shadow-[0_12px_24px_rgba(0,0,0,0.35)]">
+              <div className={`hidden md:block overflow-x-auto ${betHistoryTableShell}`}>
                 <table className="w-full min-w-[640px] lg:min-w-[720px] border-collapse text-sm lg:text-base">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-white/10 bg-black/20">
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">#</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.betIdLabel')}</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.market')}</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.gameTypeLabel')}</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.betNumberLabel')}</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.sessionLabel')}</th>
-                      <th className="text-right py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.pointsLabel')}</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.statusLabel')}</th>
-                      <th className="text-left py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider">{t('bids.dateTimeLabel')}</th>
-                      <th className="text-center py-3 px-3 lg:py-4 lg:px-4 text-[#d4af37] font-bold text-xs uppercase tracking-wider w-32">{t('bids.actionLabel')}</th>
+                    <tr className={betHistoryThead}>
+                      <th className={betHistoryTh}>#</th>
+                      <th className={betHistoryTh}>{t('bids.betIdLabel')}</th>
+                      <th className={betHistoryTh}>{t('bids.market')}</th>
+                      <th className={betHistoryTh}>{t('bids.gameTypeLabel')}</th>
+                      <th className={betHistoryTh}>{t('bids.betNumberLabel')}</th>
+                      <th className={`${betHistoryTh} text-center`}>{t('bids.sessionLabel')}</th>
+                      <th className={`${betHistoryTh} text-right`}>{t('bids.pointsLabel')}</th>
+                      <th className={`${betHistoryTh} text-center`}>{t('bids.statusLabel')}</th>
+                      <th className={betHistoryTh}>{t('bids.dateTimeLabel')}</th>
+                      <th className={`${betHistoryTh} text-center w-32`}>{t('bids.actionLabel')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -705,27 +727,17 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                       const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                       const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                       const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
-                      const status = statusLabel(verdict);
+                      const status = getBetStatusDisplay(t, verdict);
                       return (
                         <tr
                           key={betId}
-                          className={`border-b border-gray-200 dark:border-white/5 hover:bg-white/[0.03] transition-colors ${
-                            row.verdict?.state === 'won'
-                              ? 'bg-[#43b36a]/10 border-l-4 border-l-[#43b36a]'
-                              : row.verdict?.state === 'lost'
-                                ? 'bg-red-500/10 border-l-4 border-l-red-500'
-                                : row.verdict?.state === 'pending'
-                                  ? 'bg-amber-500/10 border-l-4 border-l-amber-500'
-                                  : row.verdict?.state === 'cancelled'
-                                    ? 'bg-orange-400/10 border-l-4 border-l-orange-400'
-                                    : ''
-                          }`}
+                          className={`border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors ${getBetTableRowClass(row.verdict?.state)}`}
                         >
-                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-sm">{idx + 1}</td>
+                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-500 dark:text-gray-400 font-semibold text-sm">{idx + 1}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4">
                             <span className="flex items-center gap-1.5">
-                              <span className="font-mono text-gray-300 text-xs" title={betId}>{String(betId || '').slice(-8)}</span>
-                              <button type="button" onClick={() => { copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="p-1 text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
+                              <span className="font-mono text-gray-600 dark:text-gray-300 text-xs" title={betId}>{String(betId || '').slice(-8)}</span>
+                              <button type="button" onClick={() => { copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                               </button>
                             </span>
@@ -733,7 +745,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-900 dark:text-white text-sm font-medium truncate max-w-[120px]" title={marketTitle}>
                             <span className="block truncate">{marketTitle?.toUpperCase() || '—'}</span>
                             {isScheduled && (
-                              <span className="inline-block mt-1 text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5">
+                              <span className="inline-block mt-1 text-[10px] font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded px-1.5 py-0.5">
                                 {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                               </span>
                             )}
@@ -742,7 +754,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-900 dark:text-white font-semibold">{betValue}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
                             {session ? (
-                              <span className="text-xs font-bold text-[#d4af37] border border-[#d4af37]/30 rounded-full px-2 py-0.5">{session}</span>
+                              <span className={getSessionBadgeClasses(session, { rounded: true })}>{session}</span>
                             ) : (
                               <span className="text-gray-500">-</span>
                             )}
@@ -754,7 +766,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                               <div className="text-[#43b36a] text-xs mt-0.5">₹{Number(verdict.payout).toLocaleString('en-IN')}</div>
                             )}
                           </td>
-                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
+                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
                             {verdict?.state === 'pending' && canCancel?.canCancel ? (
                               <button
@@ -762,7 +774,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                                 onClick={() => handleCancelBetClick(betId)}
                                 disabled={cancellingBetId === betId}
                                 title={t('bids.cancelAndRefund')}
-                                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold min-h-[36px] bg-gray-200 border border-gray-300 text-gray-900 hover:bg-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 hover:border-amber-500/50 active:scale-[0.98] disabled:opacity-60 disabled:cursor-wait"
+                                className={`${betHistoryCancelBtn} active:scale-[0.98]`}
                               >
                                 {cancellingBetId === betId ? (
                                   <><svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>{t('bids.cancelling')}</span></>
@@ -771,7 +783,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                                 )}
                               </button>
                             ) : verdict?.state === 'cancelled' ? (
-                              <svg className="w-6 h-6 text-orange-400 mx-auto inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" title="Cancelled">
+                              <svg className="w-6 h-6 text-red-500 mx-auto inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" title="Cancelled">
                                 <path d="M18 6L6 18M6 6l12 12" />
                               </svg>
                             ) : (
@@ -790,7 +802,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                     type="button"
                     onClick={handleShowMore}
                     disabled={isFetching}
-                    className="px-5 py-2.5 rounded-xl border border-[#d4af37]/50 text-[#d4af37] text-sm font-semibold hover:bg-[#d4af37]/10 disabled:opacity-50"
+                    className={betHistoryLoadMoreBtn}
                   >
                     {isFetching ? t('common.loading') : t('bids.loadMoreBets', { defaultValue: 'Load more bets' })}
                   </button>
@@ -812,43 +824,43 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           />
 
           <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124]">
-            <div className="bg-gray-100 dark:bg-black text-gray-900 dark:text-white text-center py-4 text-2xl font-extrabold border-b border-gray-200 dark:border-white/10">
-              Filter Type
+            <div className={betHistoryModalHeader}>
+              {t('bids.filterType')}
             </div>
 
             <div className="bg-white dark:bg-[#202124] text-gray-900 dark:text-white">
               <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">
-                <div className="text-lg font-bold text-[#d4af37] mb-3">By Game Type</div>
+                <div className={betHistorySectionTitle}>{t('bids.byGameType')}</div>
                 <div className="flex items-center justify-around gap-6 pb-4">
                   <label className="flex items-center gap-3 text-base sm:text-lg">
                     <input
                       type="checkbox"
-                      className="w-6 h-6 accent-[#d4af37]"
+                      className="w-6 h-6 accent-red-600"
                       checked={draftSessions.includes('OPEN')}
                       onChange={() => toggleDraft(draftSessions, 'OPEN', setDraftSessions)}
                     />
-                    Open
+                    {t('bids.session.open')}
                   </label>
                   <label className="flex items-center gap-3 text-base sm:text-lg">
                     <input
                       type="checkbox"
-                      className="w-6 h-6 accent-[#d4af37]"
+                      className="w-6 h-6 accent-red-600"
                       checked={draftSessions.includes('CLOSE')}
                       onChange={() => toggleDraft(draftSessions, 'CLOSE', setDraftSessions)}
                     />
-                    Close
+                    {t('bids.session.close')}
                   </label>
                 </div>
 
                 <div className="h-px bg-gray-200 dark:bg-white/10 my-3" />
 
-                <div className="text-lg font-bold text-[#d4af37] mb-3">By Winning Status</div>
+                <div className={betHistorySectionTitle}>{t('bids.byWinningStatus')}</div>
                 <div className="grid grid-cols-2 gap-3 pb-4">
                   {['Win', 'Loose', 'Pending', 'Cancelled'].map((s) => (
                     <label key={s} className="flex items-center gap-3 text-base sm:text-lg">
                       <input
                         type="checkbox"
-                        className="w-6 h-6 accent-[#d4af37]"
+                        className="w-6 h-6 accent-red-600"
                         checked={draftStatuses.includes(s)}
                         onChange={() => toggleDraft(draftStatuses, s, setDraftStatuses)}
                       />
@@ -860,16 +872,16 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                 {bidOptionFilterOptions.length > 0 ? (
                   <>
                     <div className="h-px bg-gray-200 dark:bg-white/10 my-3" />
-                    <div className="text-lg font-bold text-[#d4af37] mb-3">{t('bids.byBidOption')}</div>
+                    <div className={betHistorySectionTitle}>{t('bids.byBidOption')}</div>
                     <div className="space-y-3 pb-4">
                       {bidOptionFilterOptions.map((opt) => (
                         <label
                           key={opt.key}
-                          className="flex items-center gap-4 bg-black/25 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm px-4 py-3 hover:border-[#d4af37]/40 transition-colors"
+                          className={betHistoryFilterOption}
                         >
                           <input
                             type="checkbox"
-                            className="w-6 h-6 accent-[#d4af37]"
+                            className="w-6 h-6 accent-red-600"
                             checked={draftBidOptions.includes(opt.key)}
                             onChange={() => toggleDraft(draftBidOptions, opt.key, setDraftBidOptions)}
                           />
@@ -882,16 +894,16 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
 
                 <div className="h-px bg-gray-200 dark:bg-white/10 my-3" />
 
-                <div className="text-lg font-bold text-[#d4af37] mb-3">By Games</div>
+                <div className={betHistorySectionTitle}>{t('bids.byGames')}</div>
                 <div className="space-y-3 pb-2">
                   {marketOptions.map((name) => (
                     <label
                       key={name.key}
-                      className="flex items-center gap-4 bg-black/25 rounded-xl border border-gray-200 dark:border-white/10 shadow-sm px-4 py-4 hover:border-[#d4af37]/40 transition-colors"
+                      className={`${betHistoryFilterOption} py-4`}
                     >
                       <input
                         type="checkbox"
-                        className="w-6 h-6 accent-[#d4af37]"
+                        className="w-6 h-6 accent-red-600"
                         checked={draftMarkets.includes(name.key)}
                         onChange={() => toggleDraft(draftMarkets, name.key, setDraftMarkets)}
                       />
@@ -908,9 +920,9 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                   <button
                     type="button"
                     onClick={() => setIsFilterOpen(false)}
-                    className="rounded-full bg-gray-100 dark:bg-black border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:border-[#d4af37]/40 transition-colors"
+                    className="rounded-full bg-gray-100 dark:bg-black border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:border-gray-400 dark:hover:border-white/30 transition-colors"
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     type="button"
@@ -921,9 +933,9 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                       setSelectedBidOptions(draftBidOptions);
                       setIsFilterOpen(false);
                     }}
-                    className="rounded-full bg-gradient-to-r from-[#d4af37] to-[#cca84d] text-[#4b3608] font-extrabold py-4 text-base sm:text-lg shadow-md active:scale-[0.99] hover:from-[#e5c04a] hover:to-[#d4af37] transition-colors"
+                    className={`py-4 text-base sm:text-lg ${betHistoryPrimaryBtn}`}
                   >
-                    Filter
+                    {t('bids.applyFilter')}
                   </button>
                 </div>
               </div>

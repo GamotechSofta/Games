@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { clearBetHistorySessionCache } from '../utils/userDataCache';
+import { BET_HISTORY_DAYS, clearBetHistorySessionCache } from '../utils/userDataCache';
 import {
   fetchMyBetsDataThunk,
   MY_BETS_PAGE_SIZE,
@@ -11,7 +11,7 @@ import {
   selectMyBetsStatus,
 } from '../store/slices/myBetsSlice';
 
-const DEFAULT_DAYS = 30;
+const DEFAULT_DAYS = BET_HISTORY_DAYS;
 
 function readUserId() {
   try {

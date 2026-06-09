@@ -1,5 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  betHistoryCancelBtn,
+  betHistoryCopyToast,
+  betHistoryEmpty,
+  betHistoryIndexLabel,
+  getBetCardClasses,
+  getBetStatusDisplay,
+  getSessionBadgeClasses,
+} from './betHistoryTheme';
 
 const copyToClipboard = (text, onSuccess) => {
   const s = String(text || '').trim();
@@ -19,7 +28,7 @@ const formatScheduledDate = (scheduledDate) => {
 };
 
 /**
- * Bet History panel for My Bets (desktop): same card layout as mobile view.
+ * Bet History panel for My Bets (desktop).
  */
 export default function MyBetsBetHistoryPanel({
   desktopBetHistoryUid,
@@ -39,18 +48,11 @@ export default function MyBetsBetHistoryPanel({
   }, [groupedDesktopByMarket]);
 
   const [copyToast, setCopyToast] = useState('');
-  const statusLabel = (verdict) => {
-    if (!verdict) return { text: '—', className: 'text-gray-500' };
-    if (verdict.state === 'won') return { text: t('bids.status.win'), className: 'text-[#43b36a] font-semibold' };
-    if (verdict.state === 'lost') return { text: t('bids.status.lost'), className: 'text-red-400 font-semibold' };
-    if (verdict.state === 'cancelled') return { text: t('bids.status.cancelled'), className: 'text-orange-600 dark:text-orange-400 font-semibold' };
-    return { text: t('bids.status.pending'), className: 'text-amber-400/90 font-medium' };
-  };
 
   return (
-    <div className={allBetsNewestFirst.length ? 'mt-0' : 'mt-6'}>
+    <div className={allBetsNewestFirst.length ? 'mt-0' : 'mt-2'}>
       {copyToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1100] px-4 py-2.5 rounded-lg bg-[#d4af37] text-black font-semibold text-sm shadow-lg">
+        <div className={betHistoryCopyToast}>
           {copyToast}
         </div>
       )}
@@ -58,8 +60,8 @@ export default function MyBetsBetHistoryPanel({
         <div
           className={`mb-3 rounded-xl px-4 py-3 text-sm ${
             cancelMessage.type === 'success'
-              ? 'bg-green-500/10 border border-green-500/30 text-green-200'
-              : 'bg-red-500/10 border border-red-500/30 text-red-200'
+              ? 'bg-green-50 border border-green-500/30 text-green-800 dark:bg-green-500/10 dark:text-green-200'
+              : 'bg-red-50 border border-red-500/30 text-red-800 dark:bg-red-500/10 dark:text-red-200'
           }`}
         >
           {cancelMessage.text}
@@ -68,11 +70,11 @@ export default function MyBetsBetHistoryPanel({
 
       <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
         {!desktopBetHistoryUid ? (
-          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
+          <div className={betHistoryEmpty}>
             {t('bids.loginToSeeHistory')}
           </div>
         ) : allBetsNewestFirst.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-black/20 p-4 text-gray-300 text-sm">
+          <div className={betHistoryEmpty}>
             {t('bids.noBetsFound')}
           </div>
         ) : (
@@ -82,45 +84,34 @@ export default function MyBetsBetHistoryPanel({
               const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
               const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
               const marketTitle = row.market || row.marketTitle || 'MARKET';
-              const status = statusLabel(verdict);
+              const status = getBetStatusDisplay(t, verdict);
               return (
                 <div
                   key={betId}
-                  className={`relative rounded-lg border-2 p-2 space-y-1.5 min-w-0 shadow-[0_8px_20px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden ${
-                    verdict?.state === 'cancelled'
-                      ? 'bg-orange-50 dark:bg-[#202124] border-orange-400'
-                      : 'bg-white dark:bg-[#202124] ' + (
-                    verdict?.state === 'won'
-                      ? 'border-[#43b36a]'
-                      : verdict?.state === 'lost'
-                        ? 'border-red-500'
-                        : verdict?.state === 'pending'
-                          ? 'border-amber-500'
-                          : 'border-gray-200 dark:border-white/10'
-                  )}`}
+                  className={getBetCardClasses(verdict?.state)}
                 >
                   {verdict?.state === 'cancelled' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-orange-100/60 dark:bg-black/50 z-10 pointer-events-none">
-                      <svg className="w-12 h-12 text-orange-600 dark:text-orange-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <div className="absolute inset-0 flex items-center justify-center bg-red-100/50 dark:bg-black/50 z-10 pointer-events-none">
+                      <svg className="w-12 h-12 text-red-600 dark:text-red-400 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M18 6L6 18M6 6l12 12" />
                       </svg>
                     </div>
                   )}
                   <div className="flex justify-between items-center gap-1 flex-wrap">
-                    <span className="text-[#d4af37] text-[10px] font-semibold shrink-0">#{idx + 1}</span>
-                    {session ? <span className="text-[9px] font-bold text-[#d4af37] border border-[#d4af37]/30 rounded px-1 py-0.5 shrink-0">{session}</span> : null}
+                    <span className={`${betHistoryIndexLabel} shrink-0`}>#{idx + 1}</span>
+                    {session ? <span className={getSessionBadgeClasses(session)}>{session}</span> : null}
                   </div>
                   <div className="flex justify-between items-center gap-1 text-[10px]">
                     <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.betIdLabel')}</span>
                     <span className="flex items-center gap-1 min-w-0">
                       <span className="font-mono text-gray-700 dark:text-gray-300 truncate" title={betId}>{String(betId || '').slice(-8)}</span>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-500 dark:text-gray-400 hover:text-[#d4af37] transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
+                      <button type="button" onClick={(e) => { e.stopPropagation(); copyToClipboard(betId, () => { setCopyToast(t('bids.betIdCopied')); setTimeout(() => setCopyToast(''), 2000); }); }} className="shrink-0 p-0.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors" title={t('bids.copyBetId')} aria-label={t('bids.copyBetId')}>
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                       </button>
                     </span>
                   </div>
                   {isScheduled && (
-                    <div className="text-[9px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/30 rounded px-1.5 py-0.5 inline-block shrink-0">
+                    <div className="text-[9px] font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 rounded px-1.5 py-0.5 inline-block shrink-0">
                       {t('bids.scheduledBet')}{scheduledDateStr ? ` · ${scheduledDateStr}` : ''}
                     </div>
                   )}
@@ -152,7 +143,7 @@ export default function MyBetsBetHistoryPanel({
                         onClick={() => onCancelBetClick(betId)}
                         disabled={cancellingBetId === betId}
                         title={t('bids.cancelAndRefund')}
-                        className="w-full inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold min-h-[36px] bg-gray-200 border border-gray-300 text-gray-900 hover:bg-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 disabled:opacity-60 disabled:cursor-wait"
+                        className={`w-full ${betHistoryCancelBtn}`}
                       >
                         {cancellingBetId === betId ? (
                           <>

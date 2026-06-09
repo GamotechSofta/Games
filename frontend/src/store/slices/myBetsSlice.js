@@ -1,19 +1,20 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getMyBetHistory, getRatesCurrent } from '../../api/bets';
+import { BET_HISTORY_DAYS } from '../../utils/userDataCache';
 
 export const MY_BETS_PAGE_SIZE = 50;
 
 function parseFetchArg(arg) {
   if (arg && typeof arg === 'object') {
     return {
-      days: arg.days ?? 30,
+      days: arg.days ?? BET_HISTORY_DAYS,
       limit: arg.limit ?? MY_BETS_PAGE_SIZE,
       skip: arg.skip ?? 0,
       append: Boolean(arg.append),
       force: Boolean(arg.force),
     };
   }
-  return { days: 30, limit: MY_BETS_PAGE_SIZE, skip: 0, append: false, force: false };
+  return { days: BET_HISTORY_DAYS, limit: MY_BETS_PAGE_SIZE, skip: 0, append: false, force: false };
 }
 
 function marketsFromBets(bets) {

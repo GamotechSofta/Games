@@ -3,11 +3,14 @@ import { clearSessionCache } from './sessionCache';
 /** Session cache TTL — data kept until logout or explicit invalidation. */
 export const USER_DATA_CACHE_TTL_MS = 30 * 60 * 1000;
 
+/** User-facing bet history window (days). */
+export const BET_HISTORY_DAYS = 3;
+
 export function gameRatesCacheKey() {
   return 'rates.current';
 }
 
-export function betHistoryCacheKey(userId, days = 30, limit = 50, skip = 0) {
+export function betHistoryCacheKey(userId, days = BET_HISTORY_DAYS, limit = 50, skip = 0) {
   return `bets.history.${userId}.${days}.${limit}.${skip}`;
 }
 

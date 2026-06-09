@@ -4,7 +4,7 @@ import {
   MY_BETS_PAGE_SIZE,
   prependPlacedBets,
 } from '../store/slices/myBetsSlice';
-import { clearBetHistorySessionCache } from './userDataCache';
+import { BET_HISTORY_DAYS, clearBetHistorySessionCache } from './userDataCache';
 
 function findMarketInStore(marketId) {
   const id = String(marketId || '');
@@ -84,7 +84,7 @@ export function syncBetHistoryAfterPlace({
 
   if (userId) {
     void store.dispatch(fetchMyBetsDataThunk({
-      days: 30,
+      days: BET_HISTORY_DAYS,
       limit: MY_BETS_PAGE_SIZE,
       skip: 0,
       append: false,

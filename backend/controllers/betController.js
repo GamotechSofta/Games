@@ -10,6 +10,7 @@ import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
+import { getTodayIST } from '../utils/resultReset.js';
 
 const DB_QUERY_MS = 12000;
 
@@ -327,15 +328,20 @@ export const getMyBetHistory = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid userId' });
         }
 
-        const parsedDays = Number.parseInt(String(req.query.days || 30), 10);
-        const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 30;
+        const BET_HISTORY_MAX_DAYS = 3;
+        const parsedDays = Number.parseInt(String(req.query.days || BET_HISTORY_MAX_DAYS), 10);
+        const days = Number.isFinite(parsedDays)
+            ? Math.min(Math.max(parsedDays, 1), BET_HISTORY_MAX_DAYS)
+            : BET_HISTORY_MAX_DAYS;
         const parsedLimit = Number.parseInt(String(req.query.limit || 50), 10);
         const limit = Number.isFinite(parsedLimit) ? Math.min(Math.max(parsedLimit, 1), 500) : 50;
         const parsedSkip = Number.parseInt(String(req.query.skip || 0), 10);
         const skip = Number.isFinite(parsedSkip) ? Math.max(0, parsedSkip) : 0;
 
-        const since = new Date();
-        since.setDate(since.getDate() - days);
+        // Last N calendar days in IST (today inclusive).
+        const todayIST = getTodayIST();
+        const since = new Date(`${todayIST}T00:00:00+05:30`);
+        since.setTime(since.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
 
         const query = Bet.find({
             userId,
