@@ -272,6 +272,17 @@ export const placeBet = async (req, res) => {
 
         notifyPlayerWalletBalance(userId, 'bet_placed', newBalance).catch(() => {});
 
+        const placedBets = betIds.length
+            ? await Bet.find({ _id: { $in: betIds } })
+                .populate({
+                    path: 'marketId',
+                    select: 'marketName closingTime marketType startingTime openingNumber closingNumber',
+                    model: Market,
+                })
+                .sort({ createdAt: -1 })
+                .lean()
+            : [];
+
         res.status(201).json({
             success: true,
             message: 'Bet placed successfully',
@@ -279,6 +290,7 @@ export const placeBet = async (req, res) => {
                 newBalance,
                 betIds,
                 totalAmount,
+                bets: placedBets,
             },
         });
     } catch (error) {
@@ -343,7 +355,7 @@ export const getMyBetHistory = async (req, res) => {
         const hasMore = rows.length > limit;
         const bets = hasMore ? rows.slice(0, limit) : rows;
 
-        res.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+        res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
         res.status(200).json({ success: true, data: bets, hasMore });
     } catch (error) {
         console.error('[getMyBetHistory]', error.message || error);
@@ -560,7 +572,7 @@ export const cancelBet = async (req, res) => {
             ip: getClientIp(req),
         });
 
-        notifyPlayerWalletBalance(userId, 'bet_cancelled').catch(() => {});
+        notifyPlayerWalletBalance(userId, 'bet_cancelled', wallet.balance).catch(() => {});
 
         res.status(200).json({
             success: true,

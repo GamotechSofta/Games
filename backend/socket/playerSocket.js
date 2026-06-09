@@ -4,7 +4,7 @@ import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { resolveActivePlayerUserIdFromSubscribe } from '../utils/playerSocketAuth.js';
 import { parseAllowedOrigins } from '../config/cors.js';
 import { initCallSocket } from './callSocket.js';
-import { walletSocketEnabled, callSocketEnabled } from '../config/features.js';
+import { callSocketEnabled } from '../config/features.js';
 
 /** @type {Server | null} */
 let io = null;
@@ -36,57 +36,49 @@ export function initPlayerSocket(httpServer, opts = {}) {
     initCallSocket(io);
   }
 
-  // Market result push — always on (independent of wallet socket flag).
+  // Market + wallet push — always on (event-driven, no client polling).
   io.on('connection', (socket) => {
     socket.on('markets:subscribe', () => {
       socket.data.marketsSubscribed = true;
       socket.emit('markets:subscribed', { ok: true, ts: Date.now() });
     });
+
+    socket.on('wallet:subscribe', async (payload = {}) => {
+      const userId = String(payload?.userId || '').trim();
+      if (!userId) {
+        socket.emit('wallet:subscribed', { ok: false, code: 'AUTH_REQUIRED' });
+        return;
+      }
+
+      if (socket.data.playerWalletUserId && String(socket.data.playerWalletUserId) === userId) {
+        socket.emit('wallet:subscribed', { ok: true, userId });
+        return;
+      }
+
+      try {
+        const resolved = await resolveActivePlayerUserIdFromSubscribe(payload);
+        if (!resolved?.userId) {
+          socket.emit('wallet:subscribed', { ok: false, code: resolved?.code || 'AUTH_REQUIRED' });
+          return;
+        }
+        const prev = socket.data.playerWalletUserId;
+        if (prev && String(prev) !== userId) {
+          socket.leave(playerWalletRoom(prev));
+        }
+        socket.join(playerWalletRoom(userId));
+        socket.data.playerWalletUserId = userId;
+        socket.emit('wallet:subscribed', { ok: true, userId });
+
+        notifyPlayerWalletBalance(userId, 'wallet_subscribe').catch(() => {});
+      } catch (err) {
+        console.warn('[socket] wallet:subscribe failed:', err?.message || err);
+        socket.emit('wallet:subscribed', { ok: false, code: 'SERVER_BUSY' });
+      }
+    });
   });
 
-  if (walletSocketEnabled) {
-    io.on('connection', (socket) => {
-      socket.on('wallet:subscribe', async (payload = {}) => {
-        const userId = String(payload?.userId || '').trim();
-        if (!userId) {
-          socket.emit('wallet:subscribed', { ok: false, code: 'AUTH_REQUIRED' });
-          return;
-        }
-
-        if (socket.data.playerWalletUserId && String(socket.data.playerWalletUserId) === userId) {
-          socket.emit('wallet:subscribed', { ok: true, userId });
-          return;
-        }
-
-        try {
-          const resolved = await resolveActivePlayerUserIdFromSubscribe(payload);
-          if (!resolved?.userId) {
-            socket.emit('wallet:subscribed', { ok: false, code: resolved?.code || 'AUTH_REQUIRED' });
-            return;
-          }
-          const prev = socket.data.playerWalletUserId;
-          if (prev && String(prev) !== userId) {
-            socket.leave(playerWalletRoom(prev));
-          }
-          socket.join(playerWalletRoom(userId));
-          socket.data.playerWalletUserId = userId;
-          socket.emit('wallet:subscribed', { ok: true, userId });
-
-          if (!socket.data.walletBalanceSent) {
-            socket.data.walletBalanceSent = true;
-            notifyPlayerWalletBalance(userId, 'wallet_subscribe').catch(() => {});
-          }
-        } catch (err) {
-          console.warn('[socket] wallet:subscribe failed:', err?.message || err);
-          socket.emit('wallet:subscribed', { ok: false, code: 'SERVER_BUSY' });
-        }
-      });
-    });
-  }
-
-  const parts = ['markets:updated events'];
+  const parts = ['markets:updated events', 'wallet rooms'];
   if (callSocketEnabled) parts.push('call signaling');
-  if (walletSocketEnabled) parts.push('wallet rooms');
   console.log(`[socket] Socket.IO ready at /socket.io (${parts.join(', ')})`);
   return io;
 }

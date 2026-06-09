@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { clearBetHistorySessionCache } from '../utils/userDataCache';
 import {
-  clearMyBets,
   fetchMyBetsDataThunk,
   MY_BETS_PAGE_SIZE,
   selectMyBets,
@@ -44,10 +44,8 @@ export function useMyBetsData({
   }, [dispatch, enabled, userId, days, limit]);
 
   const invalidate = useCallback(() => {
-    dispatch(clearMyBets());
-    if (userId) {
-      void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false }));
-    }
+    if (userId) clearBetHistorySessionCache(userId);
+    void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false, force: true }));
   }, [dispatch, userId, days, limit]);
 
   const loadMore = useCallback(() => {
@@ -68,7 +66,7 @@ export function useMyBetsData({
     loading: enabled && Boolean(userId) && loading && !bets.length,
     isFetching,
     error: error || '',
-    refetch: () => dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false })),
+    refetch: () => dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false, force: true })),
     loadMore,
     invalidate,
   };

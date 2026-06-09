@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
+import { updateUserBalance } from '../../api/bets';
+import { invalidateDepositHistoryCaches } from '../../utils/invalidateUserData';
 import usePaymentConfig from '../../hooks/usePaymentConfig';
 
 const AddFund = () => {
@@ -43,12 +45,9 @@ const AddFund = () => {
                     if (data.success && data.data?.amount) {
                         setCreditedAmount(data.data.amount);
                         setShowSuccessModal(true);
+                        invalidateDepositHistoryCaches(user.id);
                         if (data.data.balance != null) {
-                            const u = JSON.parse(localStorage.getItem('user') || '{}');
-                            if (u.id) {
-                                u.balance = u.walletBalance = data.data.balance;
-                                localStorage.setItem('user', JSON.stringify(u));
-                            }
+                            updateUserBalance(data.data.balance);
                         }
                     } else {
                         setError(data.message || (t('funds.payuVerifyFailed') || 'Deposit could not be verified. If you paid, it may reflect shortly.'));

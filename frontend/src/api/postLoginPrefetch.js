@@ -1,3 +1,5 @@
+import { queryClient } from '../queryClient';
+import { fetchGameRates, gameRatesQueryKey, GAME_RATES_STALE_MS } from '../hooks/useGameRates';
 import { prefetchMainMarkets } from './prefetchHome';
 import { prefetchMyBetsData } from './prefetchBets';
 import { prefetchBankAccounts, prefetchFundsHistory, prefetchPaymentConfig } from './prefetchPayments';
@@ -12,6 +14,7 @@ const BIDS_PATHS = new Set([
 ]);
 
 const FUNDS_PATHS = new Set(['/funds', '/passbook', '/bank', '/wallet']);
+const GAME_RATE_PATH = '/game-rate';
 
 function defer(fn, timeout = 2000) {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -41,8 +44,19 @@ export function scheduleFundsPrefetch() {
   }, 600);
 }
 
+export function scheduleGameRatesPrefetch() {
+  defer(() => {
+    void queryClient.prefetchQuery({
+      queryKey: gameRatesQueryKey(),
+      queryFn: fetchGameRates,
+      staleTime: GAME_RATES_STALE_MS,
+    });
+  }, 400);
+}
+
 export function prefetchForPathname(pathname = '') {
   const path = String(pathname || '');
   if (BIDS_PATHS.has(path)) scheduleBidsPrefetch();
   if (FUNDS_PATHS.has(path)) scheduleFundsPrefetch();
+  if (path === GAME_RATE_PATH) scheduleGameRatesPrefetch();
 }

@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import { Wallet } from '../models/wallet/wallet.js';
 import { emitUserWalletUpdate } from '../socket/walletSocketBridge.js';
 import { isMongoTimeoutError } from './mongoErrors.js';
-import { walletSocketEnabled } from '../config/features.js';
 
 /**
  * Emit realtime wallet balance to the player's subscribed socket(s).
@@ -11,7 +10,6 @@ import { walletSocketEnabled } from '../config/features.js';
  * @param {number|null} balanceOverride - skip DB read when caller already has balance
  */
 export async function notifyPlayerWalletBalance(userId, reason = 'wallet_updated', balanceOverride = null) {
-    if (!walletSocketEnabled) return;
     try {
         if (userId == null) return;
         const uid =

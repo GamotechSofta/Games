@@ -16,24 +16,27 @@ export function attachPlayerWalletSocket(socket) {
 
   let lastUserId = '';
   let lastSubscribeAt = 0;
-  const SUBSCRIBE_DEBOUNCE_MS = 5000;
+  const SUBSCRIBE_DEBOUNCE_MS = 2000;
 
-  const subscribe = () => {
+  const subscribe = (force = false) => {
     const userId = getUserId();
     if (!userId) return;
     const now = Date.now();
-    if (userId === lastUserId && now - lastSubscribeAt < SUBSCRIBE_DEBOUNCE_MS) return;
+    if (!force && userId === lastUserId && now - lastSubscribeAt < SUBSCRIBE_DEBOUNCE_MS) return;
     lastUserId = userId;
     lastSubscribeAt = now;
     socket.emit('wallet:subscribe', { userId });
   };
 
-  socket.on('connect', subscribe);
-  window.addEventListener('userLogin', subscribe);
-  subscribe();
+  const onConnect = () => subscribe(true);
+  const onUserLogin = () => subscribe(true);
+
+  socket.on('connect', onConnect);
+  window.addEventListener('userLogin', onUserLogin);
+  subscribe(true);
 
   return () => {
-    socket.off('connect', subscribe);
-    window.removeEventListener('userLogin', subscribe);
+    socket.off('connect', onConnect);
+    window.removeEventListener('userLogin', onUserLogin);
   };
 }

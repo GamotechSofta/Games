@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../../config/api';
 import { getBalance, updateUserBalance } from '../../api/bets';
+import { invalidateWithdrawalHistoryCaches } from '../../utils/invalidateUserData';
 import usePaymentConfig from '../../hooks/usePaymentConfig';
 import useBankAccounts from '../../hooks/useBankAccounts';
 import { useWallet } from '../../hooks/useWallet';
@@ -113,6 +114,7 @@ const WithdrawFund = () => {
                 setShowSuccessModal(true);
                 setAmount('');
                 setUserNote('');
+                if (user?.id) invalidateWithdrawalHistoryCaches(user.id);
                 const balRes = await getBalance();
                 if (balRes.success && balRes.data?.balance != null) {
                     updateUserBalance(balRes.data.balance);

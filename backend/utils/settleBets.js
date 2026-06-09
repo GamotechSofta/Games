@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Bet from '../models/bet/bet.js';
 import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
+import { notifyPlayerWalletBalance } from './playerWalletNotify.js';
 import { getRatesMap, DEFAULT_RATES } from '../models/rate/rate.js';
 import { isSinglePatti, isDoublePatti } from './singlePattiUtils.js';
 
@@ -263,11 +264,11 @@ function isBetInClosePattiSingleDigitPool(bet) {
 async function creditWalletWin(bet, market, payout, description) {
     const rounded = Math.round(payout * 100) / 100;
     if (rounded <= 0) return;
-    await Wallet.findOneAndUpdate(
+    const wallet = await Wallet.findOneAndUpdate(
         { userId: bet.userId },
         { $inc: { balance: rounded } },
-        { upsert: true }
-    );
+        { upsert: true, new: true }
+    ).select('balance').lean();
     await WalletTransaction.create({
         userId: bet.userId,
         type: 'credit',
@@ -275,6 +276,8 @@ async function creditWalletWin(bet, market, payout, description) {
         description: description || `Win – ${market.marketName}`,
         referenceId: bet._id.toString(),
     });
+    const userId = bet.userId?._id?.toString?.() || bet.userId?.toString?.() || bet.userId;
+    notifyPlayerWalletBalance(userId, 'bet_won', wallet?.balance).catch(() => {});
 }
 
 function winDescription(market, bet) {

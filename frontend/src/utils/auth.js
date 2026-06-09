@@ -1,3 +1,5 @@
+import { invalidateAllUserDataCaches } from './invalidateUserData';
+
 /**
  * Clear user auth and redirect to login.
  * Use on logout or when API returns 401.
@@ -42,6 +44,14 @@ export const setUserAuth = ({ user, token }) => {
 };
 
 export const clearUserAuth = () => {
+  let userId = null;
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    userId = user?.id || user?._id || null;
+  } catch {
+    /* ignore */
+  }
+  invalidateAllUserDataCaches(userId);
   localStorage.removeItem('user');
   localStorage.removeItem(AUTH_TOKEN_KEY);
   window.dispatchEvent(new Event('userLogout'));

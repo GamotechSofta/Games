@@ -1,7 +1,15 @@
 import { queryClient } from '../queryClient';
 import { fetchBankAccounts, bankAccountsQueryKey } from '../hooks/useBankAccounts';
-import { fetchDepositHistory, depositHistoryQueryKey } from '../hooks/useDepositHistory';
-import { fetchWithdrawalHistory, withdrawalHistoryQueryKey } from '../hooks/useWithdrawalHistory';
+import {
+  DEPOSIT_HISTORY_STALE_MS,
+  fetchDepositHistory,
+  depositHistoryQueryKey,
+} from '../hooks/useDepositHistory';
+import {
+  fetchWithdrawalHistory,
+  WITHDRAWAL_HISTORY_STALE_MS,
+  withdrawalHistoryQueryKey,
+} from '../hooks/useWithdrawalHistory';
 import { prefetchPaymentConfigStore } from '../store/prefetch';
 
 function readUserId() {
@@ -34,12 +42,12 @@ export function prefetchFundsHistory() {
     queryClient.prefetchQuery({
       queryKey: depositHistoryQueryKey(userId),
       queryFn: () => fetchDepositHistory(userId),
-      staleTime: 60 * 1000,
+      staleTime: DEPOSIT_HISTORY_STALE_MS,
     }),
     queryClient.prefetchQuery({
       queryKey: withdrawalHistoryQueryKey(userId),
       queryFn: () => fetchWithdrawalHistory(userId),
-      staleTime: 60 * 1000,
+      staleTime: WITHDRAWAL_HISTORY_STALE_MS,
     }),
   ]);
 }

@@ -1,8 +1,20 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getMyBetHistory, getRatesCurrent } from '../../api/bets';
 
-const STALE_MS = 60 * 1000;
 export const MY_BETS_PAGE_SIZE = 50;
+
+function parseFetchArg(arg) {
+  if (arg && typeof arg === 'object') {
+    return {
+      days: arg.days ?? 30,
+      limit: arg.limit ?? MY_BETS_PAGE_SIZE,
+      skip: arg.skip ?? 0,
+      append: Boolean(arg.append),
+      force: Boolean(arg.force),
+    };
+  }
+  return { days: 30, limit: MY_BETS_PAGE_SIZE, skip: 0, append: false, force: false };
+}
 
 function marketsFromBets(bets) {
   const map = new Map();
@@ -30,12 +42,13 @@ function mergeBets(existing, incoming) {
 
 export const fetchMyBetsDataThunk = createAsyncThunk(
   'myBets/fetch',
-  async ({ days = 30, limit = MY_BETS_PAGE_SIZE, skip = 0, append = false } = {}, { rejectWithValue }) => {
+  async (arg, { rejectWithValue }) => {
+    const { days, limit, skip, append, force } = parseFetchArg(arg);
     try {
       const [betsRes, ratesRes] = await Promise.all([
-        getMyBetHistory({ days, limit, skip }),
+        getMyBetHistory({ days, limit, skip, force }),
         skip === 0 && !append
-          ? getRatesCurrent()
+          ? getRatesCurrent({ force })
           : Promise.resolve({ success: true, data: null }),
       ]);
       if (!betsRes?.success) {
@@ -58,13 +71,11 @@ export const fetchMyBetsDataThunk = createAsyncThunk(
   },
   {
     condition: (arg, { getState }) => {
-      const { append } = arg || {};
-      if (append) return true;
-      const { status, lastFetchedAt } = getState().myBets;
+      const { append, force } = parseFetchArg(arg);
+      if (force || append) return true;
+      const { status, bets } = getState().myBets;
       if (status === 'loading') return false;
-      if (status === 'succeeded' && lastFetchedAt && Date.now() - lastFetchedAt < STALE_MS) {
-        return false;
-      }
+      if (status === 'succeeded' && bets.length > 0) return false;
       return true;
     },
   },
@@ -93,6 +104,32 @@ const myBetsSlice = createSlice({
       state.status = 'idle';
       state.error = null;
       state.lastFetchedAt = null;
+    },
+    patchBetStatus(state, action) {
+      const betId = String(action.payload?.betId || '');
+      const status = action.payload?.status;
+      if (!betId || !status) return;
+      const idx = state.bets.findIndex((b) => String(b._id) === betId);
+      if (idx < 0) return;
+      state.bets[idx] = { ...state.bets[idx], status };
+    },
+    prependPlacedBets(state, action) {
+      const incoming = Array.isArray(action.payload) ? action.payload : [];
+      if (!incoming.length) return;
+      const existingIds = new Set(state.bets.map((b) => String(b._id)));
+      const toAdd = incoming.filter((b) => b?._id && !existingIds.has(String(b._id)));
+      if (!toAdd.length) return;
+      state.bets = [...toAdd, ...state.bets];
+      const marketMap = new Map((state.markets || []).map((m) => [String(m._id), m]));
+      for (const bet of toAdd) {
+        const m = bet.marketId;
+        if (m && typeof m === 'object' && m._id) {
+          marketMap.set(String(m._id), m);
+        }
+      }
+      state.markets = Array.from(marketMap.values());
+      state.status = 'succeeded';
+      state.lastFetchedAt = Date.now();
     },
   },
   extraReducers: (builder) => {
@@ -127,7 +164,7 @@ const myBetsSlice = createSlice({
   },
 });
 
-export const { clearMyBets } = myBetsSlice.actions;
+export const { clearMyBets, patchBetStatus, prependPlacedBets } = myBetsSlice.actions;
 
 export const selectMyBets = (state) => state.myBets.bets;
 export const selectMyBetsRates = (state) => state.myBets.rates;

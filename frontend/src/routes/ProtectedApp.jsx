@@ -2,7 +2,6 @@ import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { prefetchForPathname, schedulePostLoginPrefetch } from '../api/postLoginPrefetch';
 import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useHeartbeat } from '../hooks/useHeartbeat';
-import { usePlayerWalletSocketSync } from '../hooks/usePlayerWalletSocketSync';
 import useMarketsSocketSync from '../hooks/useMarketsSocketSync';
 import useWalletBalanceBootstrap from '../hooks/useWalletBalanceBootstrap';
 import { useBreakpoint } from '../hooks/useBreakpoint';
@@ -23,8 +22,6 @@ import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
 import CallSessionOverlay from '../components/call/CallSessionOverlay';
 import IosCallSetupModal from '../components/call/IosCallSetupModal';
-
-const WALLET_SOCKET_ENABLED = import.meta.env.VITE_WALLET_SOCKET === 'true';
 
 const DesktopDashboardLayout = lazy(() => import('../components/DesktopDashboardLayout'));
 const MarketsPage = lazy(() => import('../pages/MarketsPage'));
@@ -139,7 +136,6 @@ const Layout = ({ children }) => {
     };
   }, []);
 
-  usePlayerWalletSocketSync(Boolean(hasUser && !isAdminPanel && WALLET_SOCKET_ENABLED));
   useWalletBalanceBootstrap(Boolean(hasUser && !isAdminPanel));
 
   useEffect(() => {

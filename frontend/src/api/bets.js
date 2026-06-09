@@ -1,6 +1,15 @@
 import { API_BASE_URL } from '../config/api';
+import { queryClient } from '../queryClient';
 import { redirectToLoginIf401 } from '../utils/auth';
-import { createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
+import { clearSessionCache, createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
+import {
+  betHistoryCacheKey,
+  gameRatesCacheKey,
+  USER_DATA_CACHE_TTL_MS,
+} from '../utils/userDataCache';
+import { syncBetHistoryAfterPlace } from '../utils/betHistorySync';
+import { invalidateBetHistoryCaches, markBetCancelledInStore } from '../utils/invalidateUserData';
+import { fetchNoStore } from '../utils/fetchNoStore';
 import { applyBalanceToStoredUser } from '../utils/walletBalance';
 
 const runSharedRequest = createSharedFetcher();
@@ -32,9 +41,10 @@ export function updateUserBalance(newBalance) {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userId = user?.id || user?._id;
     if (userId) {
-      setSessionCache(`wallet.balance.${userId}`, { success: true, data: { balance: newBalance } }, 30 * 1000);
+      const cacheKey = `wallet.balance.${userId}`;
+      setSessionCache(cacheKey, { success: true, data: { balance: newBalance } }, 30 * 60 * 1000);
+      queryClient.setQueryData(['walletBalance', userId], Number(newBalance));
     }
-    window.dispatchEvent(new Event('userLogin'));
     window.dispatchEvent(new CustomEvent('balanceUpdated', { detail: { balance: newBalance } }));
   } catch (_) {}
 }
@@ -113,6 +123,16 @@ export async function placeBet(marketId, bets, scheduledDate) {
   if (data?.data?.newBalance != null) {
     updateUserBalance(data.data.newBalance);
   }
+  if (data?.success) {
+    syncBetHistoryAfterPlace({
+      userId,
+      bets: data?.data?.bets,
+      betIds: data?.data?.betIds,
+      marketId: normalizedMarketId,
+      betsPayload: payload.bets,
+      scheduledDate: scheduledDate || null,
+    });
+  }
   return data;
 }
 
@@ -154,6 +174,13 @@ export async function cancelBet(betId) {
   if (!response.ok) {
     return { success: false, message: data.message || 'Failed to cancel bet', code: data.code };
   }
+  if (data?.data?.newBalance != null) {
+    updateUserBalance(data.data.newBalance);
+  }
+  if (data?.success) {
+    invalidateBetHistoryCaches(userId);
+    markBetCancelledInStore(normalizedBetId);
+  }
   return data;
 }
 
@@ -162,13 +189,22 @@ export async function cancelBet(betId) {
  * Same rates used when settling wins (admin Update Rate screen).
  * @returns {Promise<{ success: boolean, data?: { single, jodi, singlePatti, ... }, message?: string }>}
  */
-export async function getRatesCurrent() {
-  const response = await fetch(`${API_BASE_URL}/rates/current`);
-  const data = await response.json();
-  if (!response.ok) {
-    return { success: false, message: data.message || 'Failed to fetch rates' };
+export async function getRatesCurrent({ force = false } = {}) {
+  const cacheKey = gameRatesCacheKey();
+  if (!force) {
+    const cached = getSessionCache(cacheKey);
+    if (cached) return cached;
   }
-  return data;
+
+  return runSharedRequest(cacheKey, async () => {
+    const response = await fetch(`${API_BASE_URL}/rates/current`);
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || 'Failed to fetch rates' };
+    }
+    setSessionCache(cacheKey, data, USER_DATA_CACHE_TTL_MS);
+    return data;
+  });
 }
 
 /**
@@ -196,7 +232,7 @@ export async function getBalance({ force = false } = {}) {
     if (!response.ok) {
       return { success: false, message: data.message || 'Failed to fetch balance' };
     }
-    setSessionCache(cacheKey, data, 30 * 1000);
+    setSessionCache(cacheKey, data, 30 * 60 * 1000);
     return data;
   });
 }
@@ -227,29 +263,51 @@ export async function getMyWalletTransactions(limit = 200) {
  * @param {{ days?: number, limit?: number }} [options]
  * @returns {Promise<{ success: boolean, data?: Array<Bet>, message?: string }>}
  */
-export async function getMyBetHistory({ days = 30, limit = 50, skip = 0 } = {}) {
+export async function getMyBetHistory({ days = 30, limit = 50, skip = 0, force = false } = {}) {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   const userId = user?.id || user?._id;
   if (!userId) {
     return { success: false, message: 'Please log in' };
   }
-  const params = new URLSearchParams({
-    userId,
-    days: String(days),
-    limit: String(limit),
-    skip: String(skip),
-  });
-  const url = `${API_BASE_URL}/bets/my-history?${params.toString()}`;
-  const response = await fetch(url);
-  if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
-  const data = await response.json();
-  if (!response.ok) {
-    return { success: false, message: data.message || 'Failed to fetch bet history' };
+  const cacheKey = betHistoryCacheKey(userId, days, limit, skip);
+
+  const fetchFromNetwork = async () => {
+    const params = new URLSearchParams({
+      userId,
+      days: String(days),
+      limit: String(limit),
+      skip: String(skip),
+    });
+    const url = `${API_BASE_URL}/bets/my-history?${params.toString()}`;
+    const response = await fetchNoStore(url);
+    if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || 'Failed to fetch bet history' };
+    }
+    setSessionCache(cacheKey, data, USER_DATA_CACHE_TTL_MS);
+    return data;
+  };
+
+  if (force) {
+    clearSessionCache(cacheKey);
+    return fetchFromNetwork();
   }
-  return data;
+
+  const cached = getSessionCache(cacheKey);
+  if (cached) return cached;
+
+  return runSharedRequest(cacheKey, fetchFromNetwork);
 }
 
 export function clearMyBetHistoryCache() {
-  /* React Query invalidates via useMyBetsData.invalidate() */
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const userId = user?.id || user?._id;
+    if (userId) invalidateBetHistoryCaches(userId);
+  } catch {
+    /* ignore */
+  }
 }

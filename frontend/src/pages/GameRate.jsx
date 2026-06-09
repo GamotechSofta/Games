@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getRatesCurrent } from '../api/bets';
+import useGameRates, { DEFAULT_RATES } from '../hooks/useGameRates';
 import {
   backBtn,
   bidAccent,
@@ -24,42 +24,10 @@ const getGameLabels = (t) => [
   { key: 'fullSangam', label: t('gameRate.fullSangam') },
 ];
 
-const DEFAULT_RATES = {
-  single: 10,
-  jodi: 100,
-  singlePatti: 150,
-  doublePatti: 300,
-  triplePatti: 1000,
-  halfSangam: 5000,
-  fullSangam: 10000,
-};
-
 const GameRate = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [rates, setRates] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchRates = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await getRatesCurrent();
-        if (res.success && res.data) {
-          setRates(res.data);
-        } else {
-          setRates(DEFAULT_RATES);
-        }
-      } catch {
-        setRates(DEFAULT_RATES);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRates();
-  }, []);
+  const { rates, loading, error } = useGameRates();
 
   const rateMap = rates || DEFAULT_RATES;
   const GAME_LABELS = getGameLabels(t);
@@ -109,7 +77,6 @@ const GameRate = () => {
             </div>
           ) : (
             <>
-              {/* Desktop / tablet table */}
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full border-collapse text-sm">
                   <thead>
@@ -144,7 +111,6 @@ const GameRate = () => {
                 </table>
               </div>
 
-              {/* Mobile card list */}
               <div className="sm:hidden divide-y divide-red-100 dark:divide-white/10">
                 {rows.map((row) => (
                   <div

@@ -933,7 +933,7 @@ export const approvePayment = async (req, res) => {
             ip: getClientIp(req),
         });
 
-        notifyPlayerWalletBalance(payment.userId._id, `payment_${payment.type}_approved`).catch(() => {});
+        notifyPlayerWalletBalance(payment.userId._id, `payment_${payment.type}_approved`, wallet?.balance).catch(() => {});
 
         res.status(200).json({
             success: true,
