@@ -159,54 +159,70 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
 
     return (
         <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-2.5 min-w-0 w-full max-w-full">
             {markets.map((market) => {
                 const status = getMarketStatus(market);
+                const resultRaw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
+                const resultDisplay = resultRaw ? String(resultRaw).replace(/-/g, '_') : '—';
 
                 return (
                     <div
                         key={market._id}
-                        className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden"
+                        className="bg-gray-800/90 rounded-lg border border-gray-700/80 p-2.5 sm:p-3 hover:border-amber-500/40 transition-colors min-w-0 overflow-hidden flex flex-col"
                     >
-                        {/* Top row: Status only */}
-                        <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                            <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
+                        <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                            <span
+                                className={`${status.color} text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 leading-tight`}
+                                title={status.status === 'running' ? 'Closed is running' : status.status}
+                            >
                                 {status.status === 'open' && 'OPEN'}
-                                {status.status === 'running' && 'CLOSED IS RUNNING'}
+                                {status.status === 'running' && 'RUNNING'}
                                 {status.status === 'closed' && 'CLOSED'}
-                            </div>
+                            </span>
+                            <h3
+                                className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0"
+                                title={market.marketName}
+                            >
+                                {market.marketName}
+                            </h3>
                         </div>
 
-                        {/* Market Info */}
-                        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-1 truncate" title={market.marketName}>{market.marketName}</h3>
-                        <div className="mb-2 min-w-0 overflow-hidden">
-                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={market.displayResult || market.winNumber || ''}>
-                                {(() => {
-                                    const raw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '');
-                                    if (!raw) return '';
-                                    return String(raw).replace(/-/g, '_');
-                                })()}
-                            </span>
-                        </div>
-                        <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                            <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(market.startingTime)}</p>
-                            <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(market.closingTime)}</p>
+                        <p
+                            className="text-amber-400 font-mono text-[11px] sm:text-xs tracking-wide truncate mb-2"
+                            title={resultDisplay}
+                        >
+                            {resultDisplay}
+                        </p>
+
+                        <div className="flex flex-col gap-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1 min-w-0">
+                            <p className="whitespace-nowrap">
+                                <span className="text-gray-500">Open </span>
+                                {formatTime12h(market.startingTime)}
+                            </p>
+                            <p className="whitespace-nowrap">
+                                <span className="text-gray-500">Close </span>
+                                {formatTime12h(market.closingTime)}
+                            </p>
                             {market.betClosureTime != null && market.betClosureTime !== '' && (
-                                <p><span className="font-semibold">Bet Closure:</span> {market.betClosureTime} sec</p>
+                                <p className="whitespace-nowrap">
+                                    <span className="text-gray-500">Bet off </span>
+                                    {market.betClosureTime}s
+                                </p>
                             )}
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                        <div className="grid grid-cols-2 gap-1 mt-auto pt-1 border-t border-gray-700/60">
                             <button
+                                type="button"
                                 onClick={() => handleEdit(market)}
-                                className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
+                                className="px-1.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-black rounded text-[10px] sm:text-xs font-semibold"
                             >
                                 Edit
                             </button>
                             <button
+                                type="button"
                                 onClick={() => handleDelete(market._id)}
-                                className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0"
+                                className="px-1.5 py-1.5 bg-red-600/90 hover:bg-red-500 text-white rounded text-[10px] sm:text-xs font-semibold"
                             >
                                 Delete
                             </button>

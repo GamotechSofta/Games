@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaClock, FaHashtag, FaChartBar, FaEdit } from 'react-icons/fa';
@@ -670,6 +670,228 @@ const FullSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
     );
 };
 
+/** Target house profit % — scan played chart pannas by declare-preview profit bands */
+const collectPlayedPattis = (singleItems = {}, doubleItems = {}, tripleItems = {}) => {
+    const keys = new Set();
+    const add = (items) => {
+        for (const [k, v] of Object.entries(items || {})) {
+            const p = String(k ?? '').trim();
+            if (!/^\d{3}$/.test(p)) continue;
+            if ((Number(v?.amount) || 0) > 0 || (Number(v?.count) || 0) > 0) keys.add(p);
+        }
+    };
+    add(singleItems);
+    add(doubleItems);
+    add(tripleItems);
+    return [...keys].sort();
+};
+
+const TargetHouseProfitSection = ({
+    marketId,
+    session,
+    dateBucket,
+    viewLabel,
+    playedPattis = [],
+}) => {
+    const playedPattisKey = playedPattis.join(',');
+    const [targetProfit, setTargetProfit] = useState('60');
+    const [tolerance, setTolerance] = useState('10');
+    const [scanData, setScanData] = useState(null);
+    const [scanLoading, setScanLoading] = useState(true);
+    const [scanError, setScanError] = useState('');
+
+    const runScan = useCallback(async (profit, tol) => {
+        if (!marketId) return;
+        setScanLoading(true);
+        setScanError('');
+        try {
+            const params = new URLSearchParams({
+                session,
+                dateBucket,
+                targetProfit: String(profit ?? '0'),
+                tolerance: String(tol ?? '0'),
+            });
+            if (playedPattis.length > 0) {
+                params.set('playedPattis', playedPattis.join(','));
+            }
+            const res = await adminFetch(
+                `${API_BASE_URL}/markets/house-profit-scan/${encodeURIComponent(marketId)}?${params}`,
+            );
+            const json = await res.json();
+            if (!json.success) {
+                setScanError(json.message || 'Scan failed');
+                setScanData(null);
+                return;
+            }
+            setScanData(json.data);
+        } catch {
+            setScanError('Network error. Please try again.');
+            setScanData(null);
+        } finally {
+            setScanLoading(false);
+        }
+    }, [marketId, session, dateBucket, playedPattisKey]);
+
+    useEffect(() => {
+        runScan('60', '10');
+    }, [runScan]);
+
+    const matchSet = useMemo(() => {
+        const s = new Set();
+        for (const m of scanData?.matches || []) s.add(m.patti);
+        return s;
+    }, [scanData?.matches]);
+
+    const renderPattiCell = (pattis) => {
+        if (!pattis?.length) return <span className="text-gray-500">—</span>;
+        return (
+            <div className="flex flex-wrap gap-1.5">
+                {pattis.map((p) => (
+                    <span
+                        key={p.patti}
+                        className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${
+                            matchSet.has(p.patti)
+                                ? 'border-amber-400 bg-amber-500/20 text-amber-300 font-semibold'
+                                : 'border-gray-600 bg-gray-700/50 text-gray-200'
+                        }`}
+                    >
+                        {p.display || `${p.patti} (${Number(p.profitPercent).toFixed(2)}%)`}
+                    </span>
+                ))}
+            </div>
+        );
+    };
+
+    return (
+        <div className="space-y-4">
+            <SectionCard title="Target house profit %">
+                <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                    Enter target house profit % (e.g. 60). We only check 3-digit pannas that players actually played (panna / patti tickets).
+                    Result numbers are only those played numbers whose declare preview hits your target. Tolerance 0 means exact match on the same
+                    two-decimal % as the table below (e.g. 9.58). This scan always uses open-session bets (opening declare preview).
+                </p>
+                <div className="flex flex-wrap items-end gap-3 mb-3">
+                    <label className="flex flex-col gap-1 min-w-[120px]">
+                        <span className="text-[11px] text-gray-400 uppercase tracking-wider">Target profit %</span>
+                        <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={targetProfit}
+                            onChange={(e) => setTargetProfit(e.target.value)}
+                            className="rounded border border-gray-600 bg-gray-700 text-white px-2.5 py-1.5 text-sm font-mono focus:ring-2 focus:ring-yellow-500 outline-none"
+                        />
+                    </label>
+                    <label className="flex flex-col gap-1 min-w-[140px]">
+                        <span className="text-[11px] text-gray-400 uppercase tracking-wider">Tolerance ±% (0 = exact)</span>
+                        <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={tolerance}
+                            onChange={(e) => setTolerance(e.target.value)}
+                            className="rounded border border-gray-600 bg-gray-700 text-white px-2.5 py-1.5 text-sm font-mono focus:ring-2 focus:ring-yellow-500 outline-none"
+                        />
+                    </label>
+                    <button
+                        type="button"
+                        onClick={() => runScan(targetProfit, tolerance)}
+                        disabled={scanLoading}
+                        className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-black font-semibold border border-amber-400 transition-colors text-sm"
+                    >
+                        {scanLoading ? 'Scanning…' : 'Find pannas'}
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                    View: <span className="text-gray-300">{viewLabel}</span>
+                    {dateBucket === 'tomorrow' && <span className="text-gray-500"> · Tomorrow&apos;s bets</span>}
+                </p>
+                {scanError && (
+                    <p className="text-xs text-red-400 mt-2">{scanError}</p>
+                )}
+                {scanData?.matches?.length > 0 && (
+                    <p className="text-xs text-amber-400 mt-2">
+                        {scanData.matches.length} panna{scanData.matches.length !== 1 ? 's' : ''} match target ± tolerance (highlighted below).
+                    </p>
+                )}
+            </SectionCard>
+
+            <SectionCard
+                title="Played patti by house profit %"
+                subtitle="Open-session bets only (opening declare preview)."
+            >
+                <p className="text-xs text-gray-400 mb-3 leading-relaxed">
+                    Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100. Within each band, pattis are sorted by actual profit % (highest first).
+                    If the house would lose on some chart outcomes, they appear in the red Loss section above 0–10%, with count and % range.
+                    Only chart pannas are included (SP single list, valid double, triple).
+                </p>
+                {!scanLoading && scanData && (
+                    <p className="text-xs text-amber-400/90 mb-3">
+                        {scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} played patti
+                        {(scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} auto-calculated
+                        {playedPattis.length > 0 && ` (from ${playedPattis.length} on this page)`}.
+                    </p>
+                )}
+
+                {scanLoading && (
+                    <div className="flex items-center justify-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-600 border-t-yellow-500" />
+                    </div>
+                )}
+
+                {!scanLoading && scanData?.loss?.count > 0 && (
+                    <div className="mb-3 rounded-lg border border-red-700/60 bg-red-900/20 p-3">
+                        <p className="text-sm font-semibold text-red-400 mb-1">
+                            Loss ({scanData.loss.count} patti{scanData.loss.count !== 1 ? 's' : ''}
+                            {scanData.loss.minPercent != null && scanData.loss.maxPercent != null && (
+                                <span className="font-normal text-red-300/90">
+                                    {' '}· {scanData.loss.minPercent.toFixed(2)}% to {scanData.loss.maxPercent.toFixed(2)}%
+                                </span>
+                            )}
+                            )
+                        </p>
+                        {renderPattiCell(scanData.loss.pattis)}
+                    </div>
+                )}
+
+                {!scanLoading && (
+                    <div className="overflow-x-auto rounded border border-gray-700 bg-gray-800">
+                        <table className="w-full text-xs sm:text-sm border-collapse">
+                            <thead>
+                                <tr className="bg-gray-700/70 border-b border-gray-600">
+                                    <th className="text-left py-2 px-2.5 font-semibold text-yellow-500 w-[100px] sm:w-[120px]">Target band</th>
+                                    <th className="text-left py-2 px-2.5 font-semibold text-yellow-500">Patti (actual profit %)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(scanData?.bands || [
+                                    { band: '0–10%', pattis: [] },
+                                    { band: '11–20%', pattis: [] },
+                                    { band: '21–30%', pattis: [] },
+                                    { band: '31–40%', pattis: [] },
+                                    { band: '41–50%', pattis: [] },
+                                    { band: '51–60%', pattis: [] },
+                                    { band: '61–70%', pattis: [] },
+                                    { band: '71–80%', pattis: [] },
+                                    { band: '81–90%', pattis: [] },
+                                    { band: '91–100%', pattis: [] },
+                                ]).map((row) => (
+                                    <tr key={row.band} className="border-b border-gray-700 align-top">
+                                        <td className="py-2 px-2.5 font-medium text-amber-400 whitespace-nowrap">{row.band}</td>
+                                        <td className="py-2 px-2.5">{renderPattiCell(row.pattis)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </SectionCard>
+        </div>
+    );
+};
+
 const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     const { marketId } = useParams();
     const location = useLocation();
@@ -744,6 +966,14 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
     const viewSinglePattiItems = viewStats?.singlePatti?.items || {};
     const viewDoublePattiItems = viewStats?.doublePatti?.items || {};
+    const playedOpenPattis = useMemo(
+        () => collectPlayedPattis(
+            statsOpen?.singlePatti?.items,
+            statsOpen?.doublePatti?.items,
+            statsOpen?.triplePatti?.items,
+        ),
+        [statsOpen?.singlePatti?.items, statsOpen?.doublePatti?.items, statsOpen?.triplePatti?.items],
+    );
 
     // Single/Double Patti totals for the selected date (Today/Tomorrow) — used for grand total
     const singlePattiByAnk = useMemo(() => buildSinglePattiByAnk(baseData?.singlePatti?.items), [baseData?.singlePatti?.items]);
@@ -1346,7 +1576,19 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                         totalBets={fullSangamDisplay.totalBets}
                     />
                     )}
+
                 </div>
+
+                {!isKingBazaar && (
+                    <TargetHouseProfitSection
+                        key={`house-profit-${dateView}`}
+                        marketId={marketId}
+                        session="open"
+                        dateBucket={dateView}
+                        viewLabel="Open bets only"
+                        playedPattis={playedOpenPattis}
+                    />
+                )}
 
                 <div className="mt-8 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-3">
                     <Link

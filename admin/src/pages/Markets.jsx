@@ -10,9 +10,9 @@ import { FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const TABS = [
-    { id: 'regular', label: 'Regular Market', icon: FaChartBar },
-    { id: 'starline', label: 'Starline Market', icon: FaStar },
-    { id: 'king', label: 'King Bazaar Market', icon: FaCrown },
+    { id: 'regular', label: 'Regular Market', shortLabel: 'Regular', icon: FaChartBar },
+    { id: 'starline', label: 'Starline Market', shortLabel: 'Starline', icon: FaStar },
+    { id: 'king', label: 'King Bazaar Market', shortLabel: 'King Bazaar', icon: FaCrown },
 ];
 
 const Markets = () => {
@@ -148,10 +148,10 @@ const Markets = () => {
                     </div>
                 )}
 
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-4 truncate">Markets Management</h1>
+                <h1 className="text-base sm:text-lg font-bold mb-2 truncate">Markets Management</h1>
 
-                {/* Top tabs: Regular | Starline | King Bazaar */}
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+                {/* Top tabs: Regular | Starline | King Bazaar — always one row */}
+                <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 min-w-0">
                     {TABS.map((tab) => {
                         const isActive = activeTab === tab.id;
                         const Icon = tab.icon;
@@ -160,14 +160,18 @@ const Markets = () => {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                                title={tab.label}
+                                className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold text-[10px] sm:text-sm transition-all min-w-0 ${
                                     isActive
                                         ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600'
                                 }`}
                             >
-                                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                {tab.label}
+                                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                                <span className="truncate w-full text-center sm:text-left leading-tight sm:hidden">
+                                    {tab.shortLabel}
+                                </span>
+                                <span className="hidden sm:inline truncate">{tab.label}</span>
                             </button>
                         );
                     })}
@@ -199,15 +203,15 @@ const Markets = () => {
                         </div>
                     ) : (
                         <section>
-                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                                <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                                    <span className="inline-block w-1 h-6 sm:h-7 bg-gray-500 rounded-full" />
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                                    <span className="inline-block w-0.5 h-4 bg-gray-500 rounded-full" />
                                     Main / Daily Markets
                                 </h2>
                                 <button
                                     onClick={handleCreate}
                                     type="button"
-                                    className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-xl transition-colors text-sm sm:text-base touch-manipulation"
+                                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-lg transition-colors text-xs sm:text-sm"
                                 >
                                     + Add Market
                                 </button>

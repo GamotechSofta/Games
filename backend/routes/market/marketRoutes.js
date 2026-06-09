@@ -5,6 +5,7 @@ import {
     getMarketById,
     getMarketResultHistory,
     getMarketStats,
+    getHouseProfitScan,
     getSinglePattiSummary,
     updateMarket,
     setOpeningNumber,
@@ -41,6 +42,7 @@ router.get('/result-history', getMarketResultHistory);
 
 // Admin: market detail stats (amount & no. of bets per option)
 router.get('/get-market-stats/:id', verifyAdmin, getMarketStats);
+router.get('/house-profit-scan/:id', verifyAdmin, getHouseProfitScan);
 router.get('/get-single-patti-summary/:id', verifyAdmin, getSinglePattiSummary);
 
 // Super admin: declare result (preview, declare open, declare close)

@@ -28,6 +28,7 @@ import {
 } from '../utils/settleBets.js';
 import { scheduleMarketResetCheck } from '../utils/resultReset.js';
 import { attachDisplayResults } from '../utils/marketDisplayResult.js';
+import { scanPlayedPannasHouseProfit } from '../utils/houseProfitScan.js';
 import { notifyMarketsResultUpdated } from '../utils/marketResultNotify.js';
 
 /** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
@@ -1302,6 +1303,57 @@ export const getMarketStats = async (req, res) => {
                 },
             },
         });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'Invalid market ID' });
+        }
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * GET /api/v1/markets/house-profit-scan/:id
+ * Scan played chart pannas and group by house profit % bands (open/close declare preview).
+ * Query: session=open|close, dateBucket=today|tomorrow, targetProfit=, tolerance=
+ */
+export const getHouseProfitScan = async (req, res) => {
+    try {
+        runBackgroundMarketResetCheck();
+        const { id: marketId } = req.params;
+        const market = await Market.findById(marketId).lean();
+        if (!market) {
+            return res.status(404).json({ success: false, message: 'Market not found' });
+        }
+
+        const session = String(req.query.session || 'open').toLowerCase() === 'close' ? 'close' : 'open';
+        const dateBucket = String(req.query.dateBucket || 'today').toLowerCase() === 'tomorrow' ? 'tomorrow' : 'today';
+        const targetProfit = req.query.targetProfit != null && req.query.targetProfit !== ''
+            ? Number(req.query.targetProfit)
+            : undefined;
+        const tolerance = req.query.tolerance != null && req.query.tolerance !== ''
+            ? Number(req.query.tolerance)
+            : 0;
+
+        const bookieUserIds = await getBookieUserIds(req.admin);
+        const playedPattis = String(req.query.playedPattis || '')
+            .split(',')
+            .map((p) => p.trim())
+            .filter(Boolean);
+        const data = await scanPlayedPannasHouseProfit(marketId, {
+            session,
+            dateBucket,
+            bookieUserIds: bookieUserIds ?? undefined,
+            targetProfit,
+            tolerance,
+            playedPattis,
+        });
+
+        if (data.error) {
+            return res.status(400).json({ success: false, message: data.error });
+        }
+
+        res.set('Cache-Control', 'private, no-store');
+        res.status(200).json({ success: true, data });
     } catch (error) {
         if (error.name === 'CastError') {
             return res.status(400).json({ success: false, message: 'Invalid market ID' });

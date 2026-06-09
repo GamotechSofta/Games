@@ -6,10 +6,19 @@ import { FaExclamationTriangle, FaChartBar, FaStar, FaCrown } from 'react-icons/
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 
 const ADD_RESULT_TABS = [
-    { id: 'regular', label: 'Regular Market', icon: FaChartBar },
-    { id: 'starline', label: 'Starline Market', icon: FaStar },
-    { id: 'king', label: 'King Bazaar Market', icon: FaCrown },
+    { id: 'regular', label: 'Regular Market', shortLabel: 'Regular', icon: FaChartBar },
+    { id: 'starline', label: 'Starline Market', shortLabel: 'Starline', icon: FaStar },
+    { id: 'king', label: 'King Bazaar Market', shortLabel: 'King Bazaar', icon: FaCrown },
 ];
+
+const RESULT_MARKET_GRID = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-2.5 min-w-0 w-full max-w-full';
+const RESULT_CARD_SHELL = 'bg-gray-800/90 rounded-lg border border-gray-700/80 p-2.5 sm:p-3 hover:border-amber-500/40 transition-colors min-w-0 overflow-hidden flex flex-col';
+
+const getStatusLabel = (status) => {
+    if (status === 'open') return 'OPEN';
+    if (status === 'running') return 'RUNNING';
+    return 'CLOSED';
+};
 
 /** Safe number for preview: avoids NaN in UI */
 const safeNum = (value) => {
@@ -539,12 +548,12 @@ const AddResult = () => {
                     </div>
                 )}
 
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6 text-white text-center sm:text-left">
+                <h1 className="text-base sm:text-lg font-bold mb-3 text-white">
                     {isDirectEditMode ? 'Edit Result' : 'Declare Result'}
                 </h1>
 
-                {/* Top tabs: Regular | Starline | King Bazaar */}
-                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                {/* Top tabs: Regular | Starline | King Bazaar — always one row */}
+                <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 min-w-0">
                     {ADD_RESULT_TABS.map((tab) => {
                         const isActive = activeTab === tab.id;
                         const Icon = tab.icon;
@@ -553,14 +562,18 @@ const AddResult = () => {
                                 key={tab.id}
                                 type="button"
                                 onClick={() => handleTabChange(tab.id)}
-                                className={`inline-flex items-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base transition-all ${
+                                title={tab.label}
+                                className={`flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 px-1 py-2 sm:px-4 sm:py-2.5 rounded-lg font-semibold text-[10px] sm:text-sm transition-all min-w-0 ${
                                     isActive
                                         ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20'
                                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white border border-gray-600'
                                 }`}
                             >
-                                <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                                {tab.label}
+                                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                                <span className="truncate w-full text-center sm:text-left leading-tight sm:hidden">
+                                    {tab.shortLabel}
+                                </span>
+                                <span className="hidden sm:inline truncate">{tab.label}</span>
                             </button>
                         );
                     })}
@@ -594,56 +607,57 @@ const AddResult = () => {
                                         <Link to="/markets" state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaStar className="w-4 h-4" /> Go to Starline Market</Link>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                    <div className={RESULT_MARKET_GRID}>
                                         {groups.sort((a, b) => (safeNumOrder(a.order) - safeNumOrder(b.order)) || (a.label || '').localeCompare(b.label || '')).map((g) => {
                                             const groupSlots = (starlineMarkets || []).filter((m) => (m.starlineGroup || '').toString().toLowerCase() === (g.key || '').toLowerCase());
                                             const slotCount = groupSlots.length;
                                             const declaredCount = groupSlots.filter((m) => m.openingNumber && /^\d{3}$/.test(String(m.openingNumber))).length;
                                             const openCount = slotCount - declaredCount;
-                                            const statusLabel = slotCount === 0 ? 'No slots' : openCount > 0 ? 'OPEN' : 'CLOSED';
+                                            const groupStatusLabel = slotCount === 0 ? 'EMPTY' : openCount > 0 ? 'OPEN' : 'CLOSED';
                                             const statusColor = slotCount === 0 ? 'bg-gray-600' : openCount > 0 ? 'bg-green-600' : 'bg-red-600';
                                             return (
-                                                <div key={g.key} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
-                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                        <div className={`${statusColor} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{statusLabel}</div>
-                                                        <span className="text-amber-400 font-mono text-sm">{slotCount} slot{slotCount !== 1 ? 's' : ''}</span>
+                                                <div key={g.key} className={RESULT_CARD_SHELL}>
+                                                    <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                                                        <span className={`${statusColor} text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0`}>{groupStatusLabel}</span>
+                                                        <h3 className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0" title={g.label}>{g.label}</h3>
+                                                        <span className="text-amber-400 font-mono text-[10px] shrink-0">{slotCount}</span>
                                                     </div>
-                                                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={g.label}>{g.label}</h3>
-                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300">
-                                                        {slotCount > 0 && openCount > 0 && <p><span className="font-semibold">Open:</span> {openCount} for bets</p>}
-                                                        {declaredCount > 0 && <p><span className="font-semibold">Declared:</span> {declaredCount}</p>}
+                                                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1">
+                                                        {slotCount > 0 && openCount > 0 && <p><span className="text-gray-500">Open </span>{openCount}</p>}
+                                                        {declaredCount > 0 && <p><span className="text-gray-500">Done </span>{declaredCount}</p>}
                                                     </div>
-                                                    <button type="button" onClick={() => setActiveGroupKey(g.key)} className="w-full px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-sm font-semibold">View Slots</button>
+                                                    <button type="button" onClick={() => setActiveGroupKey(g.key)} className="w-full px-1.5 py-1.5 mt-auto pt-1 border-t border-gray-700/60 bg-amber-600 hover:bg-amber-500 text-black rounded text-[10px] sm:text-xs font-semibold">View Slots</button>
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 )
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                <div className={RESULT_MARKET_GRID}>
                                     {slotsForGroup.length === 0 ? (
                                         <div className="col-span-full text-center py-8 sm:py-12 text-gray-500">No slots in this market.</div>
                                     ) : slotsForGroup.map((m) => {
                                         const status = getMarketStatus(m);
                                         const resultRaw = m.displayResult || m.winNumber || (m.openingNumber ? String(m.openingNumber) : '');
+                                        const resultDisplay = resultRaw ? String(resultRaw).replace(/-/g, '_') : '—';
                                         const isPending = starlinePendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
                                         return (
-                                            <div key={m._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
-                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                    <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>{status.status === 'open' && 'OPEN'}{status.status === 'closed' && 'CLOSED'}</div>
-                                                    {isPending && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
-                                                    <div className="min-w-0 overflow-hidden flex justify-end">
-                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
-                                                    </div>
+                                            <div key={m._id} className={`${RESULT_CARD_SHELL} ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                                <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                                                    <span className={`${status.color} text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0`}>{getStatusLabel(status.status)}</span>
+                                                    <h3 className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0" title={m.marketName}>{m.marketName}</h3>
+                                                    {isPending && <FaExclamationTriangle className="w-3 h-3 text-amber-400 shrink-0" title="Result pending" />}
                                                 </div>
-                                                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={m.marketName}>{m.marketName}</h3>
-                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                    <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
-                                                    {m.betClosureTime != null && m.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>}
+                                                <p className="text-amber-400 font-mono text-[11px] sm:text-xs tracking-wide truncate mb-2" title={resultDisplay}>{resultDisplay}</p>
+                                                <div className="flex flex-col gap-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1 min-w-0">
+                                                    <p className="whitespace-nowrap"><span className="text-gray-500">Close </span>{formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                    {m.betClosureTime != null && m.betClosureTime !== '' && (
+                                                        <p className="whitespace-nowrap"><span className="text-gray-500">Bet off </span>{m.betClosureTime}s</p>
+                                                    )}
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
-                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">{m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'Edit result' : 'Add result'}</button>
+                                                <div className="grid grid-cols-2 gap-1 mt-auto pt-1 border-t border-gray-700/60">
+                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-1.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-black rounded text-[10px] sm:text-xs font-semibold">View</button>
+                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-1.5 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-black rounded text-[10px] sm:text-xs font-semibold">{m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)) ? 'Edit' : 'Add'}</button>
                                                 </div>
                                             </div>
                                         );
@@ -691,35 +705,33 @@ const AddResult = () => {
                                     </div>
                                 ) : null
                             ) : (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                <div className={RESULT_MARKET_GRID}>
                                     {slotsForGroup.length === 0 ? (
                                         <div className="col-span-full text-center py-8 sm:py-12 text-gray-500">No slots in this market.</div>
                                     ) : slotsForGroup.map((m) => {
                                         const status = getMarketStatus(m);
                                         const resultRaw = m.displayResult || m.winNumber || (m.openingNumber != null && m.closingNumber != null ? `${m.openingNumber}-${m.closingNumber}` : '') || (m.openingNumber ? String(m.openingNumber) : '');
+                                        const resultDisplay = resultRaw ? String(resultRaw).replace(/-/g, '_') : '—';
                                         const isPending = kingBazaarPendingList.some((p) => String(p._id) === String(m._id) || p.marketName === m.marketName);
                                         const hasResult = m.openingNumber != null && m.closingNumber != null;
                                         return (
-                                            <div key={m._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
-                                                <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                    <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
-                                                        {status.status === 'open' && 'OPEN'}
-                                                        {status.status === 'running' && 'CLOSED IS RUNNING'}
-                                                        {status.status === 'closed' && 'CLOSED'}
-                                                    </div>
-                                                    {isPending && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
-                                                    <div className="min-w-0 overflow-hidden flex justify-end">
-                                                        <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
-                                                    </div>
+                                            <div key={m._id} className={`${RESULT_CARD_SHELL} ${isPending ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                                <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                                                    <span className={`${status.color} text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0`}>{getStatusLabel(status.status)}</span>
+                                                    <h3 className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0" title={m.marketName}>{m.marketName}</h3>
+                                                    {isPending && <FaExclamationTriangle className="w-3 h-3 text-amber-400 shrink-0" title="Result pending" />}
                                                 </div>
-                                                <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                    <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
-                                                    <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
-                                                    {m.betClosureTime != null && m.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>}
+                                                <p className="text-amber-400 font-mono text-[11px] sm:text-xs tracking-wide truncate mb-2" title={resultDisplay}>{resultDisplay}</p>
+                                                <div className="flex flex-col gap-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1 min-w-0">
+                                                    <p className="whitespace-nowrap"><span className="text-gray-500">Open </span>{formatTime12h(m.startingTime)}</p>
+                                                    <p className="whitespace-nowrap"><span className="text-gray-500">Close </span>{formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                    {m.betClosureTime != null && m.betClosureTime !== '' && (
+                                                        <p className="whitespace-nowrap"><span className="text-gray-500">Bet off </span>{m.betClosureTime}s</p>
+                                                    )}
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
-                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">{hasResult ? 'Edit result' : 'Add result'}</button>
+                                                <div className="grid grid-cols-2 gap-1 mt-auto pt-1 border-t border-gray-700/60">
+                                                    <button type="button" onClick={() => navigate(`/add-result/view/${m._id}`)} className="px-1.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-black rounded text-[10px] sm:text-xs font-semibold">View</button>
+                                                    <button type="button" onClick={() => openPanelForEdit(m)} className="px-1.5 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-black rounded text-[10px] sm:text-xs font-semibold">{hasResult ? 'Edit' : 'Add'}</button>
                                                 </div>
                                             </div>
                                         );
@@ -738,33 +750,30 @@ const AddResult = () => {
                         ) : markets.length === 0 ? (
                             <div className="text-center py-8 sm:py-12 text-gray-400 text-xs sm:text-sm md:text-base rounded-xl border border-gray-700 bg-gray-800/50">No markets found.</div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                            <div className={RESULT_MARKET_GRID}>
                                 {markets.map((market) => {
                                     const status = getMarketStatus(market);
                                     const resultRaw = market.displayResult || market.winNumber || (market.openingNumber && market.closingNumber ? `${market.openingNumber}-${market.closingNumber}` : '') || '';
+                                    const resultDisplay = resultRaw ? String(resultRaw).replace(/-/g, '_') : '—';
                                     const isPendingResult = mainPendingList.some((m) => String(m._id) === String(market._id) || m.marketName === market.marketName);
                                     return (
-                                        <div key={market._id} className={`bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden ${isPendingResult ? 'ring-1 ring-amber-500/50' : ''}`}>
-                                            <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
-                                                    {status.status === 'open' && 'OPEN'}
-                                                    {status.status === 'running' && 'CLOSED IS RUNNING'}
-                                                    {status.status === 'closed' && 'CLOSED'}
-                                                </div>
-                                                {isPendingResult && <FaExclamationTriangle className="w-4 h-4 text-amber-400 shrink-0" title="Result pending" />}
-                                                <div className="min-w-0 overflow-hidden flex justify-end">
-                                                    <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest">{resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}</span>
-                                                </div>
+                                        <div key={market._id} className={`${RESULT_CARD_SHELL} ${isPendingResult ? 'ring-1 ring-amber-500/50' : ''}`}>
+                                            <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                                                <span className={`${status.color} text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0`}>{getStatusLabel(status.status)}</span>
+                                                <h3 className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0" title={market.marketName}>{market.marketName}</h3>
+                                                {isPendingResult && <FaExclamationTriangle className="w-3 h-3 text-amber-400 shrink-0" title="Result pending" />}
                                             </div>
-                                            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 truncate" title={market.marketName}>{market.marketName}</h3>
-                                            <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(market.startingTime)}</p>
-                                                <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(market.closingTime)}</p>
-                                                {market.betClosureTime != null && market.betClosureTime !== '' && <p><span className="font-semibold">Bet Closure:</span> {market.betClosureTime} sec</p>}
+                                            <p className="text-amber-400 font-mono text-[11px] sm:text-xs tracking-wide truncate mb-2" title={resultDisplay}>{resultDisplay}</p>
+                                            <div className="flex flex-col gap-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1 min-w-0">
+                                                <p className="whitespace-nowrap"><span className="text-gray-500">Open </span>{formatTime12h(market.startingTime)}</p>
+                                                <p className="whitespace-nowrap"><span className="text-gray-500">Close </span>{formatTime12h(market.closingTime)}</p>
+                                                {market.betClosureTime != null && market.betClosureTime !== '' && (
+                                                    <p className="whitespace-nowrap"><span className="text-gray-500">Bet off </span>{market.betClosureTime}s</p>
+                                                )}
                                             </div>
-                                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                <button type="button" onClick={() => navigate(`/add-result/view/${market._id}`)} className="px-2 sm:px-3 py-2 bg-amber-600 hover:bg-amber-500 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">View</button>
-                                                <button type="button" onClick={() => openPanelForEdit(market)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit Result</button>
+                                            <div className="grid grid-cols-2 gap-1 mt-auto pt-1 border-t border-gray-700/60">
+                                                <button type="button" onClick={() => navigate(`/add-result/view/${market._id}`)} className="px-1.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-black rounded text-[10px] sm:text-xs font-semibold">View</button>
+                                                <button type="button" onClick={() => openPanelForEdit(market)} className="px-1.5 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-black rounded text-[10px] sm:text-xs font-semibold">Edit</button>
                                             </div>
                                         </div>
                                     );
