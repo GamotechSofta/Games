@@ -87,6 +87,7 @@ const Bids = () => {
     {
       key: 'bet-history',
       title: t('bids.betHistory'),
+      navLabel: t('bids.navBetHistory'),
       subtitle: t('bids.betHistorySubtitle'),
       theme: 'gold',
       color: '#d4af37',
@@ -99,6 +100,7 @@ const Bids = () => {
     {
       key: 'starline-bet-history',
       title: t('bids.starlineBetHistory'),
+      navLabel: t('bids.navStarline'),
       subtitle: t('bids.starlineBetHistorySubtitle'),
       theme: 'red',
       color: '#ef4444',
@@ -111,6 +113,7 @@ const Bids = () => {
     {
       key: 'king-bazaar-bet-history',
       title: t('bids.kingBazaarBetHistory'),
+      navLabel: t('bids.navKingBazaar'),
       subtitle: t('bids.kingBazaarBetHistorySubtitle'),
       theme: 'blue',
       color: '#3b82f6',
@@ -123,6 +126,7 @@ const Bids = () => {
     {
       key: 'game-results',
       title: t('bids.gameResults'),
+      navLabel: t('bids.navMarketResults'),
       subtitle: t('bids.gameResultsSubtitle'),
       theme: 'green',
       color: '#22c55e',
@@ -508,7 +512,7 @@ const Bids = () => {
         }
       `}</style>
       <div className="w-full max-w-full md:max-w-none md:mx-0 max-md:flex max-md:flex-col max-md:min-h-0">
-        <div className="mb-2 shrink-0 md:mb-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:items-stretch md:gap-5">
+        <div className="mb-2 shrink-0 md:mb-4 md:grid md:grid-cols-[11rem_1fr] md:items-stretch md:gap-4">
           {/* Page header */}
           <div className="flex items-center gap-3 px-1 py-2 md:mb-0">
             <button
@@ -578,6 +582,7 @@ const Bids = () => {
         </div>
 
         <ResponsiveSidebarLayout
+          sidebarSize="narrow"
           className="max-md:min-h-0 max-md:flex-1"
           sidebar={
             <MyBetsSidebar
@@ -619,7 +624,7 @@ const Bids = () => {
             {isAnyHistoryPanel ? (
               betsLoading ? (
                 <div className="mt-0 max-h-[calc(100vh-220px)] overflow-hidden">
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                       <div key={i} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-3 space-y-2 skeleton-shimmer">
                         <div className="flex justify-between gap-1">

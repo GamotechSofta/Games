@@ -76,7 +76,7 @@ export default function MyBetsBetHistoryPanel({
             {t('bids.noBetsFound')}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-x-hidden">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 overflow-x-hidden">
             {allBetsNewestFirst.map((row, idx) => {
               const { betId, betValue, gameType, points, session, verdict, createdAt, canCancel } = row;
               const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
