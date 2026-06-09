@@ -8,26 +8,28 @@
 import MarketResult from '../models/marketResult/marketResult.js';
 import Settings from '../models/settings/settings.js';
 
+const istDateFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+});
+
 /** Current date in IST as YYYY-MM-DD */
-export function getTodayIST() {
-    return new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-    }).format(new Date());
+export function getTodayIST(now = new Date()) {
+    return istDateFormatter.format(now);
 }
 
-/** Yesterday's date in IST as YYYY-MM-DD */
-function getYesterdayIST() {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    return new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-    }).format(d);
+/** Shift an IST date key (YYYY-MM-DD) by N calendar days in IST. */
+export function addDaysToIstDateKey(dateKey, deltaDays) {
+    const anchor = new Date(`${dateKey}T12:00:00+05:30`);
+    anchor.setUTCDate(anchor.getUTCDate() + deltaDays);
+    return istDateFormatter.format(anchor);
+}
+
+/** Yesterday's date in IST as YYYY-MM-DD (server-timezone safe). */
+export function getYesterdayIST(now = new Date()) {
+    return addDaysToIstDateKey(getTodayIST(now), -1);
 }
 
 function computeDisplayResult(openingNumber, closingNumber) {

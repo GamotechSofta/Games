@@ -12,7 +12,13 @@
     "create-bookie": "node scripts/createBookie.js",
     "generate-vapid": "node scripts/generateVapidKeys.js",
     "check-turn": "node scripts/checkTurnSetup.js",
-    "generate-turn-secret": "node scripts/generateTurnSecret.js"
+    "generate-turn-secret": "node scripts/generateTurnSecret.js",
+    "ensure-indexes": "node scripts/ensureIndexes.js",
+    "ensure-indexes:verify": "node scripts/ensureIndexes.js --verify-only",
+    "load-test": "node scripts/loadTestAdmin.js",
+    "security-smoke": "node scripts/securitySmokeTest.js",
+    "verify-cron": "node scripts/verifyCron.js",
+    "compute-daily-stats": "node scripts/computeDailyStats.js"
   },
   "dependencies": {
     "axios": "^1.16.1",
@@ -31,6 +37,7 @@
     "p-limit": "^7.3.0",
     "payu-sdk": "^1.1.1",
     "react-icons": "^5.5.0",
+    "redis": "^6.0.0",
     "socket.io": "^4.8.3",
     "web-push": "^3.6.7"
   },

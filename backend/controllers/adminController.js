@@ -162,6 +162,13 @@ export const adminLogin = async (req, res) => {
  */
 export const createAdmin = async (req, res) => {
     try {
+        if (String(process.env.ALLOW_BOOTSTRAP_ADMIN || '').toLowerCase() !== 'true') {
+            return res.status(404).json({
+                success: false,
+                message: 'Route not available',
+            });
+        }
+
         const { username, password } = req.body;
         
         if (!username || !password) {

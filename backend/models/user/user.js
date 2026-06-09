@@ -272,6 +272,11 @@ userSchema.index({
   createdAt: -1,
 });
 
+userSchema.index({
+  referredBy: 1,
+  createdAt: -1,
+});
+
 const User =
   mongoose.models.User ||
   mongoose.model(

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, fetchWithAuth } from '../config/api';
 
 /* ───────── Icons ───────── */
 const IconBack = () => (
@@ -87,8 +87,8 @@ const Passbook = () => {
 
     try {
       const [txRes, balRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/wallet/my-transactions?userId=${user.id}&limit=500`),
-        fetch(`${API_BASE_URL}/wallet/balance?userId=${user.id}`),
+        fetchWithAuth(`${API_BASE_URL}/wallet/my-transactions?limit=500`),
+        fetchWithAuth(`${API_BASE_URL}/wallet/balance`),
       ]);
       const txData = await txRes.json();
       const balData = await balRes.json();

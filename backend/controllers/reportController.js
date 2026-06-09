@@ -3,6 +3,8 @@ import Payment from '../models/payment/payment.js';
 import User from '../models/user/user.js';
 import Admin from '../models/admin/admin.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
+import { getBookieUserMap, aggregateDailyBetsByBookie } from '../utils/bookieUserMap.js';
+import { getMaterializedReportForDay } from '../utils/computeDailyStats.js';
 
 /** Aggregate bet amounts/payouts grouped by user's bookie (referredBy). Direct users → key `__direct__`. */
 async function aggregateBetStatsByBookie(dateFilter) {
@@ -68,6 +70,42 @@ export const getReport = async (req, res) => {
         }
         if (bookieUserIds !== null) {
             dateFilter.userId = { $in: bookieUserIds };
+        }
+
+        if (
+            startDate
+            && endDate
+            && startDate === endDate
+            && bookieUserIds === null
+            && admin?.role !== 'bookie'
+        ) {
+            const materialized = await getMaterializedReportForDay(startDate);
+            if (materialized) {
+                const revenue = materialized.betRevenue || 0;
+                const payouts = materialized.betPayouts || 0;
+                const totalBets = materialized.betCount || 0;
+                const winningBets = materialized.winningBets || 0;
+                const losingBets = materialized.losingBets || 0;
+                const activeUsers = await User.countDocuments({ isActive: true });
+                const netProfit = revenue - payouts;
+                const winRate = totalBets > 0 ? ((winningBets / totalBets) * 100).toFixed(2) : 0;
+
+                res.set('Cache-Control', 'private, max-age=60, stale-while-revalidate=120');
+                res.set('X-Report-Source', 'materialized');
+                return res.status(200).json({
+                    success: true,
+                    data: {
+                        totalRevenue: revenue,
+                        totalPayouts: payouts,
+                        netProfit,
+                        totalBets,
+                        activeUsers,
+                        winningBets,
+                        losingBets,
+                        winRate,
+                    },
+                });
+            }
         }
 
         // Total revenue (from all bets; exclude cancelled – they are refunded)
@@ -258,24 +296,11 @@ export const getRevenueReport = async (req, res) => {
         }
 
         // ---- ADMIN VIEW ----
-        const [bookies, allUsers, betStatsByBookie] = await Promise.all([
+        const [bookies, { bookieUserMap, directUserIds }, betStatsByBookie] = await Promise.all([
             Admin.find({ role: 'bookie' }).select('_id username phone commissionPercentage bookieType status').lean(),
-            User.find().select('_id referredBy source').lean(),
+            getBookieUserMap(),
             aggregateBetStatsByBookie(dateFilter),
         ]);
-
-        const bookieUserMap = {};
-        const directUserIds = [];
-
-        for (const user of allUsers) {
-            if (user.referredBy) {
-                const bId = user.referredBy.toString();
-                if (!bookieUserMap[bId]) bookieUserMap[bId] = [];
-                bookieUserMap[bId].push(user._id);
-            } else {
-                directUserIds.push(user._id);
-            }
-        }
 
         const bookieRevenues = [];
         let totalBookieCommission = 0;
@@ -387,76 +412,46 @@ export const getBookieCollectsDailyBreakdown = async (req, res) => {
             if (endDate) dateFilter.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
         }
 
-        const bookies = await Admin.find({ role: 'bookie', bookieType: 'bookie_collects' })
-            .select('_id username phone commissionPercentage')
-            .lean();
+        const [bookies, dailyByBookie, { bookieUserMap }] = await Promise.all([
+            Admin.find({ role: 'bookie', bookieType: 'bookie_collects' })
+                .select('_id username phone commissionPercentage')
+                .lean(),
+            aggregateDailyBetsByBookie(dateFilter),
+            getBookieUserMap(),
+        ]);
 
-        const allUsers = await User.find().select('_id referredBy').lean();
-        const bookieUserMap = {};
-        for (const u of allUsers) {
-            if (u.referredBy) {
-                const bid = u.referredBy.toString();
-                if (!bookieUserMap[bid]) bookieUserMap[bid] = [];
-                bookieUserMap[bid].push(u._id);
-            }
-        }
-
-        const result = [];
-
-        for (const bookie of bookies) {
-            const userIds = bookieUserMap[bookie._id.toString()] || [];
-            if (userIds.length === 0) {
-                result.push({
-                    bookieId: bookie._id,
-                    bookieName: bookie.username,
-                    bookiePhone: bookie.phone,
-                    commissionPercentage: bookie.commissionPercentage || 0,
-                    dailyBreakdown: [],
-                    totalRevenue: 0,
-                    totalAmountDue: 0,
-                });
-                continue;
-            }
-
-            const betFilter = { ...dateFilter, userId: { $in: userIds }, status: { $ne: 'cancelled' } };
-
-            const dailyAgg = await Bet.aggregate([
-                { $match: betFilter },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                        totalBetAmount: { $sum: '$amount' },
-                        count: { $sum: 1 },
-                    },
-                },
-                { $sort: { _id: -1 } },
-            ]);
-
+        const result = bookies.map((bookie) => {
+            const bId = bookie._id.toString();
+            const userIds = bookieUserMap[bId] || [];
             const commPct = bookie.commissionPercentage || 0;
-            const dailyBreakdown = dailyAgg.map((row) => {
-                const rev = row.totalBetAmount || 0;
-                const amountDue = Math.round((rev * commPct / 100) * 100) / 100;
-                return {
-                    date: row._id,
-                    revenue: Math.round(rev * 100) / 100,
-                    amountDue,
-                    betCount: row.count || 0,
-                };
-            });
+            const dayMap = dailyByBookie.get(bId) || new Map();
+
+            const dailyBreakdown = [...dayMap.entries()]
+                .map(([date, stats]) => {
+                    const rev = stats.totalBetAmount || 0;
+                    const amountDue = Math.round((rev * commPct / 100) * 100) / 100;
+                    return {
+                        date,
+                        revenue: Math.round(rev * 100) / 100,
+                        amountDue,
+                        betCount: stats.count || 0,
+                    };
+                })
+                .sort((a, b) => b.date.localeCompare(a.date));
 
             const totalRevenue = dailyBreakdown.reduce((s, d) => s + d.revenue, 0);
             const totalAmountDue = dailyBreakdown.reduce((s, d) => s + d.amountDue, 0);
 
-            result.push({
+            return {
                 bookieId: bookie._id,
                 bookieName: bookie.username,
                 bookiePhone: bookie.phone,
                 commissionPercentage: commPct,
                 dailyBreakdown,
-                totalRevenue,
-                totalAmountDue,
-            });
-        }
+                totalRevenue: userIds.length === 0 ? 0 : totalRevenue,
+                totalAmountDue: userIds.length === 0 ? 0 : totalAmountDue,
+            };
+        });
 
         return res.status(200).json({ success: true, data: result });
     } catch (error) {
@@ -482,65 +477,39 @@ export const getAdminCollectsDailyBreakdown = async (req, res) => {
             if (endDate) dateFilter.createdAt.$lte = new Date(endDate + 'T23:59:59.999Z');
         }
 
-        const bookies = await Admin.find({ role: 'bookie', bookieType: 'admin_collects' })
-            .select('_id username phone commissionPercentage')
-            .lean();
+        const [bookies, dailyByBookie, { bookieUserMap }] = await Promise.all([
+            Admin.find({ role: 'bookie', bookieType: 'admin_collects' })
+                .select('_id username phone commissionPercentage')
+                .lean(),
+            aggregateDailyBetsByBookie(dateFilter),
+            getBookieUserMap(),
+        ]);
 
-        const allUsers = await User.find().select('_id referredBy').lean();
-        const bookieUserMap = {};
-        for (const u of allUsers) {
-            if (u.referredBy) {
-                const bid = u.referredBy.toString();
-                if (!bookieUserMap[bid]) bookieUserMap[bid] = [];
-                bookieUserMap[bid].push(u._id);
-            }
-        }
-
-        const result = [];
-
-        for (const bookie of bookies) {
-            const userIds = bookieUserMap[bookie._id.toString()] || [];
-            if (userIds.length === 0) {
-                result.push({
-                    bookieId: bookie._id,
-                    bookieName: bookie.username,
-                    dailyBreakdown: [],
-                });
-                continue;
-            }
-
-            const betFilter = { ...dateFilter, userId: { $in: userIds }, status: { $ne: 'cancelled' } };
-
-            const dailyAgg = await Bet.aggregate([
-                { $match: betFilter },
-                {
-                    $group: {
-                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                        totalBetAmount: { $sum: '$amount' },
-                        count: { $sum: 1 },
-                    },
-                },
-                { $sort: { _id: -1 } },
-            ]);
-
+        const result = bookies.map((bookie) => {
+            const bId = bookie._id.toString();
+            const userIds = bookieUserMap[bId] || [];
             const commPct = bookie.commissionPercentage || 0;
-            const dailyBreakdown = dailyAgg.map((row) => {
-                const rev = row.totalBetAmount || 0;
-                const commission = Math.round((rev * commPct / 100) * 100) / 100;
-                return {
-                    date: row._id,
-                    revenue: Math.round(rev * 100) / 100,
-                    commission,
-                    betCount: row.count || 0,
-                };
-            });
+            const dayMap = dailyByBookie.get(bId) || new Map();
 
-            result.push({
+            const dailyBreakdown = [...dayMap.entries()]
+                .map(([date, stats]) => {
+                    const rev = stats.totalBetAmount || 0;
+                    const commission = Math.round((rev * commPct / 100) * 100) / 100;
+                    return {
+                        date,
+                        revenue: Math.round(rev * 100) / 100,
+                        commission,
+                        betCount: stats.count || 0,
+                    };
+                })
+                .sort((a, b) => b.date.localeCompare(a.date));
+
+            return {
                 bookieId: bookie._id,
                 bookieName: bookie.username,
-                dailyBreakdown,
-            });
-        }
+                dailyBreakdown: userIds.length === 0 ? [] : dailyBreakdown,
+            };
+        });
 
         return res.status(200).json({ success: true, data: result });
     } catch (error) {

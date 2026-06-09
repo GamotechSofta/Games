@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 /** Format HH:mm to 12-hour with AM/PM (e.g. "01:00" → "1:00 AM", "13:30" → "1:30 PM") */
 function formatTime12h(timeStr) {
@@ -30,7 +31,7 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [marketToDelete, setMarketToDelete] = useState(null);
     const [marketToEdit, setMarketToEdit] = useState(null);
     const [nowMs, setNowMs] = useState(() => Date.now());
@@ -39,15 +40,6 @@ const MarketList = ({ markets, onEdit, onDelete, apiBaseUrl, authFetch }) => {
         const interval = setInterval(() => setNowMs(Date.now()), 60000);
         return () => clearInterval(interval);
     }, []);
-
-    useEffect(() => {
-        authFetch(`${apiBaseUrl}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
-    }, [apiBaseUrl, authFetch]);
 
     const performDelete = async (marketId, secretDeclarePasswordValue, skipConfirm = false) => {
         if (!skipConfirm && !window.confirm('Are you sure you want to delete this market?')) return;

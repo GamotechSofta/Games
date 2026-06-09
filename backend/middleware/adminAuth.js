@@ -1,6 +1,7 @@
 import Admin from '../models/admin/admin.js';
 import { verifyToken } from '../utils/jwt.js';
 import { adminHasTelecallerAccess } from '../utils/telecallerAccess.js';
+import { checkSpecificAdminAccess } from './specificAdminTabs.js';
 
 const adminJwtCache = new Map();
 const ADMIN_JWT_CACHE_TTL_MS = 30 * 1000;
@@ -21,10 +22,7 @@ function pruneAdminJwtCache(now = Date.now()) {
 }
 
 /**
- * Middleware to verify admin/bookie authentication.
- * Supports:
- * 1. Bearer JWT token (preferred - no password in browser)
- * 2. Basic Auth (fallback - for backward compatibility)
+ * Middleware to verify admin/bookie authentication via Bearer JWT.
  */
 export const verifyAdmin = async (req, res, next) => {
     if (typeof next !== 'function') {
@@ -43,56 +41,38 @@ export const verifyAdmin = async (req, res, next) => {
                 const cached = adminJwtCache.get(cacheKey);
                 if (cached && Date.now() - cached.at < ADMIN_JWT_CACHE_TTL_MS) {
                     req.admin = cached.admin;
+                    const tabCheck = checkSpecificAdminAccess(req);
+                    if (!tabCheck.allowed) {
+                        return res.status(403).json({
+                            success: false,
+                            message: tabCheck.message || 'Access denied',
+                        });
+                    }
                     return next();
                 }
 
                 const admin = await Admin.findById(decoded.id)
-                    .select('username role bookieType commissionPercentage status uiTheme')
+                    .select('username role bookieType commissionPercentage status uiTheme allowedTabs')
                     .lean();
                 if (admin) {
                     adminJwtCache.set(cacheKey, { admin, at: Date.now() });
                     req.admin = admin;
+                    const tabCheck = checkSpecificAdminAccess(req);
+                    if (!tabCheck.allowed) {
+                        return res.status(403).json({
+                            success: false,
+                            message: tabCheck.message || 'Access denied',
+                        });
+                    }
                     return next();
                 }
             }
         }
 
-        // 2. Fallback: Basic Auth
-        let username, password;
-        if (authHeader && authHeader.startsWith('Basic ')) {
-            try {
-                const credentials = Buffer.from(authHeader.replace('Basic ', ''), 'base64').toString('ascii');
-                [username, password] = credentials.split(':');
-            } catch (err) {
-                // Invalid base64
-            }
-        }
-        if (!username || !password) {
-            username = req.body?.username;
-            password = req.body?.password;
-        }
-        if (!username || !password) {
-            return res.status(401).json({
-                success: false,
-                message: 'Admin authentication required',
-            });
-        }
-        const admin = await Admin.findOne({ username });
-        if (!admin) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid admin credentials',
-            });
-        }
-        const isPasswordValid = await admin.comparePassword(password);
-        if (!isPasswordValid) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid admin credentials',
-            });
-        }
-        req.admin = admin;
-        next();
+        return res.status(401).json({
+            success: false,
+            message: 'Admin authentication required',
+        });
     } catch (error) {
         return res.status(500).json({ success: false, message: error.message });
     }

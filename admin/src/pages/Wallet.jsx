@@ -3,6 +3,7 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaWallet, FaPlus, FaMinus, FaExchangeAlt, FaBuilding, FaSearch, FaTimes } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import PaginationBar from '../components/PaginationBar';
 
 const Wallet = () => {
     const navigate = useNavigate();
@@ -10,6 +11,11 @@ const Wallet = () => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('wallets');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 50 });
+    const [summary, setSummary] = useState({ totalBalance: 0, totalWallets: 0 });
+    const [bookieNames, setBookieNames] = useState([]);
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     const [searchQuery, setSearchQuery] = useState('');
     const [sourceFilter, setSourceFilter] = useState(''); // '', 'direct', 'admin_collects', 'bookie_collects'
@@ -22,16 +28,51 @@ const Wallet = () => {
     const [adjusting, setAdjusting] = useState(false);
 
     useEffect(() => {
-        if (activeTab === 'wallets') fetchWallets();
-        else fetchTransactions();
-    }, [activeTab]);
+        const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+        return () => clearTimeout(t);
+    }, [searchQuery]);
 
-    const fetchWallets = async () => {
+    useEffect(() => {
+        setPage(1);
+    }, [activeTab, debouncedSearch, sourceFilter, bookieFilter, sortBy]);
+
+    useEffect(() => {
+        adminFetch(`${API_BASE_URL}/admin/bookies`)
+            .then((res) => res.json())
+            .then((json) => {
+                if (json.success && Array.isArray(json.data)) {
+                    setBookieNames(json.data.map((b) => b.username).filter(Boolean).sort());
+                }
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        if (activeTab === 'wallets') fetchWallets(page);
+    }, [activeTab, page, debouncedSearch, sourceFilter, bookieFilter, sortBy]);
+
+    useEffect(() => {
+        if (activeTab === 'transactions') fetchTransactions(page);
+    }, [activeTab, page]);
+
+    const fetchWallets = async (pageNum = 1) => {
         try {
             setLoading(true);
-            const response = await adminFetch(`${API_BASE_URL}/wallet/all`);
+            const params = new URLSearchParams({
+                page: String(pageNum),
+                limit: '50',
+                sort: sortBy,
+            });
+            if (debouncedSearch) params.set('search', debouncedSearch);
+            if (sourceFilter) params.set('source', sourceFilter);
+            if (bookieFilter) params.set('bookie', bookieFilter);
+            const response = await adminFetch(`${API_BASE_URL}/wallet/all?${params}`);
             const data = await response.json();
-            if (data.success) setWallets(data.data);
+            if (data.success) {
+                setWallets(data.data || []);
+                if (data.pagination) setPagination(data.pagination);
+                if (data.summary) setSummary(data.summary);
+            }
         } catch (err) {
             console.error('Error fetching wallets:', err);
         } finally {
@@ -39,12 +80,19 @@ const Wallet = () => {
         }
     };
 
-    const fetchTransactions = async () => {
+    const fetchTransactions = async (pageNum = 1) => {
         try {
             setLoading(true);
-            const response = await adminFetch(`${API_BASE_URL}/wallet/transactions`);
+            const params = new URLSearchParams({
+                page: String(pageNum),
+                limit: '50',
+            });
+            const response = await adminFetch(`${API_BASE_URL}/wallet/transactions?${params}`);
             const data = await response.json();
-            if (data.success) setTransactions(data.data);
+            if (data.success) {
+                setTransactions(data.data || []);
+                if (data.pagination) setPagination(data.pagination);
+            }
         } catch (err) {
             console.error('Error fetching transactions:', err);
         } finally {
@@ -94,71 +142,21 @@ const Wallet = () => {
     };
 
     const isBookieCollects = (wallet) => wallet.userBookieType === 'bookie_collects';
-    const totalBalance = wallets.reduce((s, w) => s + (w.balance || 0), 0);
+    const totalBalance = summary.totalBalance ?? 0;
 
-    // Unique bookie names for dropdown
-    const bookieNames = [...new Set(wallets.filter(w => w.userBookieName).map(w => w.userBookieName))].sort();
-    // Bookies filtered by source type
-    const filteredBookieNames = sourceFilter === 'bookie_collects'
-        ? [...new Set(wallets.filter(w => w.userBookieType === 'bookie_collects' && w.userBookieName).map(w => w.userBookieName))].sort()
-        : sourceFilter === 'admin_collects'
-            ? [...new Set(wallets.filter(w => w.userBookieType === 'admin_collects' && w.userBookieName).map(w => w.userBookieName))].sort()
-            : bookieNames;
+    const filteredBookieNames = bookieNames;
 
     const hasActiveFilters = searchQuery || sourceFilter || bookieFilter;
 
-    const filteredWallets = (() => {
-        let result = wallets;
-
-        // Source filter
-        if (sourceFilter) {
-            result = result.filter(w => {
-                if (sourceFilter === 'direct') return w.userBookieType === 'direct';
-                if (sourceFilter === 'admin_collects') return w.userBookieType === 'admin_collects';
-                if (sourceFilter === 'bookie_collects') return w.userBookieType === 'bookie_collects';
-                return true;
-            });
-        }
-
-        // Bookie name filter
-        if (bookieFilter) {
-            result = result.filter(w => w.userBookieName === bookieFilter);
-        }
-
-        // Search
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
-            result = result.filter(w =>
-                (w.userId?.username || '').toLowerCase().includes(q)
-                || (w.userId?.email || '').toLowerCase().includes(q)
-                || (w.userBookieName || '').toLowerCase().includes(q)
-            );
-        }
-
-        // Sort
-        result = [...result].sort((a, b) => {
-            switch (sortBy) {
-                case 'balance_asc': return (a.balance || 0) - (b.balance || 0);
-                case 'name_asc': return (a.userId?.username || '').localeCompare(b.userId?.username || '');
-                case 'name_desc': return (b.userId?.username || '').localeCompare(a.userId?.username || '');
-                case 'balance_desc':
-                default: return (b.balance || 0) - (a.balance || 0);
-            }
-        });
-
-        return result;
-    })();
+    const filteredWallets = wallets;
 
     const filteredTransactions = (() => {
-        let result = transactions;
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
-            result = result.filter(t =>
-                (t.userId?.username || '').toLowerCase().includes(q)
-                || (t.description || '').toLowerCase().includes(q)
-            );
-        }
-        return result;
+        if (!searchQuery.trim()) return transactions;
+        const q = searchQuery.toLowerCase();
+        return transactions.filter((t) =>
+            (t.userId?.username || '').toLowerCase().includes(q)
+            || (t.description || '').toLowerCase().includes(q),
+        );
     })();
 
     const clearAllFilters = () => {
@@ -189,7 +187,7 @@ const Wallet = () => {
                         </div>
                         <div className="text-right">
                             <p className="text-xs text-gray-500 uppercase tracking-wider">Total Wallets</p>
-                            <p className="text-xl sm:text-2xl font-bold text-white mt-1">{wallets.length}</p>
+                            <p className="text-xl sm:text-2xl font-bold text-white mt-1">{summary.totalWallets ?? wallets.length}</p>
                         </div>
                     </div>
                 </div>
@@ -305,7 +303,7 @@ const Wallet = () => {
                     <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
                         {hasActiveFilters && (
                             <div className="px-5 py-2.5 bg-gray-900/50 border-b border-gray-700/50 text-xs text-gray-400 flex flex-wrap items-center gap-2">
-                                <span>Showing <span className="text-white font-semibold">{filteredWallets.length}</span> of {wallets.length} wallets</span>
+                                <span>Showing <span className="text-white font-semibold">{filteredWallets.length}</span> on this page (total {summary.totalWallets ?? 0})</span>
                                 {sourceFilter && (
                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                         sourceFilter === 'direct' ? 'bg-blue-500/20 text-blue-300' :
@@ -451,6 +449,8 @@ const Wallet = () => {
                         </div>
                     </div>
                 )}
+
+                <PaginationBar pagination={pagination} onPageChange={setPage} />
             </div>
 
             {/* Adjust Balance Modal */}

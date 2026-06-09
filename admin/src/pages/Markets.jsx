@@ -8,6 +8,7 @@ import KingBazaarManagement from './KingBazaarManagement';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { FaChartBar, FaStar, FaCrown } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const TABS = [
     { id: 'regular', label: 'Regular Market', shortLabel: 'Regular', icon: FaChartBar },
@@ -27,7 +28,7 @@ const Markets = () => {
     const [showAddPasswordModal, setShowAddPasswordModal] = useState(false);
     const [addSecretPassword, setAddSecretPassword] = useState('');
     const [addPasswordError, setAddPasswordError] = useState('');
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const navigate = useNavigate();
 
     const mainMarkets = markets || [];
@@ -67,15 +68,6 @@ const Markets = () => {
     }, [navigate, location.pathname]);
 
     useRefreshOnMarketReset(fetchMarkets);
-
-    useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
-    }, []);
 
     const handleLogout = () => {
         clearAdminAuth();

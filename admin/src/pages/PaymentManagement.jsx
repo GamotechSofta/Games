@@ -3,6 +3,7 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaArrowDown, FaArrowUp, FaClock, FaFilter, FaEye, FaCheck, FaTimes, FaImage, FaWallet } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const PaymentManagement = () => {
     const navigate = useNavigate();
@@ -20,7 +21,7 @@ const PaymentManagement = () => {
     const [actionModal, setActionModal] = useState({ show: false, payment: null, action: '' });
     const [adminRemarks, setAdminRemarks] = useState('');
     const [processing, setProcessing] = useState(false);
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [secretPassword, setSecretPassword] = useState('');
     const [actionPasswordError, setActionPasswordError] = useState('');
 
@@ -36,14 +37,6 @@ const PaymentManagement = () => {
     }, [pageTab, filters.status]);
 
     useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
-
-        // Fetch bookies for filter dropdown
         adminFetch(`${API_BASE_URL}/admin/bookies`)
             .then((res) => res.json())
             .then((json) => {

@@ -4,6 +4,7 @@ import AdminLayout from '../components/AdminLayout';
 import MarketForm from '../components/MarketForm';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const safeNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const formatTime = (timeStr) => {
@@ -106,7 +107,7 @@ const KingBazaarManagement = ({ embedded = false }) => {
     const [deleteGroupPassword, setDeleteGroupPassword] = useState('');
     const [deleteGroupPasswordError, setDeleteGroupPasswordError] = useState('');
     const [deleteGroupLoading, setDeleteGroupLoading] = useState(false);
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [showActionPasswordModal, setShowActionPasswordModal] = useState(false);
     const [actionPassword, setActionPassword] = useState('');
     const [actionPasswordError, setActionPasswordError] = useState('');
@@ -180,13 +181,6 @@ const KingBazaarManagement = ({ embedded = false }) => {
         const key = (activeTab || '').toString().trim().toLowerCase();
         if (key) fetchMarkets();
     }, [activeTab]);
-
-    useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => { if (json.success) setHasSecretDeclarePassword(!!json.hasSecretDeclarePassword); })
-            .catch(() => setHasSecretDeclarePassword(false));
-    }, []);
 
     useEffect(() => {
         const t = setInterval(() => setTick(Date.now()), 60000);

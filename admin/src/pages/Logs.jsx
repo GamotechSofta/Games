@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
-import { setupVisibilityRefresh } from '../utils/onlineActivity';
 
 const ACTION_LABELS = {
     admin_login: 'Admin Login',
@@ -37,8 +36,8 @@ const TYPE_LABELS = {
     system: 'System',
 };
 
-/** Background refresh interval while this browser tab is visible. */
-const LOGS_POLL_MS = 60 * 1000;
+/** Background refresh interval while auto-refresh is on and tab is visible. */
+const LOGS_POLL_MS = 3 * 60 * 1000;
 
 const Logs = () => {
     const navigate = useNavigate();
@@ -52,6 +51,7 @@ const Logs = () => {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
+    const [autoRefresh, setAutoRefresh] = useState(true);
 
     const fetchLogs = async (showLoader = true) => {
         if (showLoader) setLoading(true);
@@ -85,7 +85,7 @@ const Logs = () => {
         let intervalId = null;
 
         const startPolling = () => {
-            if (intervalId) return;
+            if (!autoRefresh || intervalId) return;
             intervalId = setInterval(() => fetchLogs(false), LOGS_POLL_MS);
         };
 
@@ -114,7 +114,7 @@ const Logs = () => {
             stopPolling();
             document.removeEventListener('visibilitychange', onVisibilityChange);
         };
-    }, [navigate, page, filterType, sortOrder]);
+    }, [navigate, page, filterType, sortOrder, autoRefresh]);
 
     const handleLogout = () => {
         clearAdminAuth();
@@ -168,7 +168,8 @@ const Logs = () => {
         <AdminLayout onLogout={handleLogout} title="Logs">
             <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Activity Logs</h1>
             <p className="text-gray-400 mb-4 sm:mb-6 text-sm">
-                All activity from admin, bookie and player (frontend) – auto-refreshes every 60 seconds while this tab is active.
+                All activity from admin, bookie and player (frontend).
+                {autoRefresh ? ' Auto-refreshes every 3 minutes while this tab is active.' : ' Auto-refresh is off — use Refresh to update.'}
             </p>
 
             {/* Filters */}
@@ -204,6 +205,17 @@ const Logs = () => {
                     className="px-3 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg text-sm font-medium w-full disabled:opacity-50"
                 >
                     Refresh
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setAutoRefresh((on) => !on)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium w-full border ${
+                        autoRefresh
+                            ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30'
+                            : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                    }`}
+                >
+                    Auto-refresh: {autoRefresh ? 'On' : 'Off'}
                 </button>
                 <button
                     type="button"

@@ -5,6 +5,8 @@ import { FaUserSlash, FaUserCheck, FaUserPlus, FaSearch } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 import { setupVisibilityRefresh } from '../utils/onlineActivity';
 import OnlineStatusBadge from '../components/OnlineStatusBadge';
+import PaginationBar from '../components/PaginationBar';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const ALL_TABS = [
     { id: 'all', label: 'All Players', value: 'all' },
@@ -28,11 +30,14 @@ const AllUsers = () => {
     const [success, setSuccess] = useState('');
     const [togglingId, setTogglingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [pendingAction, setPendingAction] = useState(null);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 50 });
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     const getAdminRole = () => {
         try {
@@ -51,34 +56,58 @@ const AllUsers = () => {
         return Array.isArray(json.data) ? json.data : [];
     };
 
-    const fetchData = async (showLoader = true) => {
+    const USER_LIST_TABS = {
+        all: 'all',
+        super_admin_users: 'super_admin',
+        bookie_users: 'bookie',
+    };
+
+    const fetchBookieUsers = async () => {
+        const res = await adminFetch(`${API_BASE_URL}/users?filter=bookie&limit=200`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || 'Failed to fetch bookie players');
+        const users = Array.isArray(json.data) ? json.data : [];
+        setBookieUsersList(users);
+        return users;
+    };
+
+    const fetchUserList = async (filter, setter, label, pageNum, search) => {
+        const params = new URLSearchParams({
+            filter,
+            page: String(pageNum),
+            limit: '50',
+        });
+        if (search) params.set('search', search);
+        const res = await adminFetch(`${API_BASE_URL}/users?${params}`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || `Failed to fetch ${label}`);
+        setter(Array.isArray(json.data) ? json.data : []);
+        if (json.pagination) setPagination(json.pagination);
+    };
+
+    const fetchTabData = async (tab, showLoader = true, pageNum = page) => {
         const isSuperAdmin = getAdminRole() === 'super_admin';
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const requests = [
-                adminFetch(`${API_BASE_URL}/users?filter=all`),
-                adminFetch(`${API_BASE_URL}/users?filter=super_admin`),
-                adminFetch(`${API_BASE_URL}/users?filter=bookie`),
-            ];
-            if (isSuperAdmin) {
-                requests.push(adminFetch(`${API_BASE_URL}/admin/bookies`));
-                requests.push(adminFetch(`${API_BASE_URL}/admin/super-admins`));
-            }
-
-            const results = await Promise.all(requests);
-
-            setAllUsers(await parseUsersResponse(results[0], 'all players'));
-            setSuperAdminUsersList(await parseUsersResponse(results[1], 'super admin players'));
-            setBookieUsersList(await parseUsersResponse(results[2], 'bookie players'));
-
-            if (isSuperAdmin && results.length >= 5) {
-                const bookiesJson = await results[3].json();
-                const superAdminsJson = await results[4].json();
-                if (!bookiesJson.success) throw new Error(bookiesJson.message || 'Failed to fetch bookies');
-                if (!superAdminsJson.success) throw new Error(superAdminsJson.message || 'Failed to fetch super admins');
-                setAllBookies(Array.isArray(bookiesJson.data) ? bookiesJson.data : []);
-                setSuperAdminsList(Array.isArray(superAdminsJson.data) ? superAdminsJson.data : []);
+            if (tab === 'all') {
+                await fetchUserList('all', setAllUsers, 'all players', pageNum, debouncedSearch);
+            } else if (tab === 'super_admin_users') {
+                await fetchUserList('super_admin', setSuperAdminUsersList, 'super admin players', pageNum, debouncedSearch);
+            } else if (tab === 'bookie_users') {
+                await fetchUserList('bookie', setBookieUsersList, 'bookie players', pageNum, debouncedSearch);
+            } else if (tab === 'all_bookies') {
+                if (!isSuperAdmin) return;
+                const res = await adminFetch(`${API_BASE_URL}/admin/bookies`);
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message || 'Failed to fetch bookies');
+                setAllBookies(Array.isArray(json.data) ? json.data : []);
+            } else if (tab === 'super_admins') {
+                if (!isSuperAdmin) return;
+                const res = await adminFetch(`${API_BASE_URL}/admin/super-admins`);
+                const json = await res.json();
+                if (!json.success) throw new Error(json.message || 'Failed to fetch super admins');
+                setSuperAdminsList(Array.isArray(json.data) ? json.data : []);
             }
         } catch (err) {
             if (showLoader) setError(err?.message || 'Failed to fetch data');
@@ -87,22 +116,45 @@ const AllUsers = () => {
         }
     };
 
+    const handleToggleBookieExpand = async (bookieId) => {
+        if (expandedBookieId === bookieId) {
+            setExpandedBookieId(null);
+            return;
+        }
+        if (bookieUsersList.length === 0) {
+            setLoading(true);
+            setError('');
+            try {
+                await fetchBookieUsers();
+            } catch (err) {
+                setError(err?.message || 'Failed to load bookie players');
+                return;
+            } finally {
+                setLoading(false);
+            }
+        }
+        setExpandedBookieId(bookieId);
+    };
+
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+        return () => clearTimeout(t);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeTab, debouncedSearch]);
+
     useEffect(() => {
         const admin = localStorage.getItem('admin');
         if (!admin) {
             navigate('/');
             return;
         }
-        fetchData(true);
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
+        fetchTabData(activeTab, true, page);
 
-        return setupVisibilityRefresh(() => fetchData(false), 5 * 60 * 1000);
-    }, [navigate]);
+        return setupVisibilityRefresh(() => fetchTabData(activeTab, false, page), 5 * 60 * 1000);
+    }, [navigate, activeTab, page, debouncedSearch]);
 
     const handleLogout = () => {
         clearAdminAuth();
@@ -124,7 +176,7 @@ const AllUsers = () => {
                 setPendingAction(null);
                 setSecretPassword('');
                 setSuccess(`Player ${data.data.isActive ? 'unsuspended' : 'suspended'} successfully`);
-                fetchData(false);
+                fetchTabData(activeTab, false, page);
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 if (data.code === 'INVALID_SECRET_DECLARE_PASSWORD') {
@@ -155,7 +207,7 @@ const AllUsers = () => {
                 setPendingAction(null);
                 setSecretPassword('');
                 setSuccess(`Bookie ${data.data.status === 'active' ? 'unsuspended' : 'suspended'} successfully`);
-                fetchData(false);
+                fetchTabData(activeTab, false, page);
                 setTimeout(() => setSuccess(''), 3000);
             } else {
                 if (data.code === 'INVALID_SECRET_DECLARE_PASSWORD') {
@@ -214,17 +266,19 @@ const AllUsers = () => {
     };
 
     const list = getCurrentList();
-    const isUserList = ['all', 'super_admin_users', 'bookie_users'].includes(activeTab);
+    const isUserList = Object.keys(USER_LIST_TABS).includes(activeTab);
 
     const q = searchQuery.trim().toLowerCase();
-    const filteredList = q
-        ? list.filter((item) => {
-            const username = (item.username || '').toLowerCase();
-            const email = (item.email || '').toLowerCase();
-            const phone = (item.phone || '').toString();
-            return username.includes(q) || email.includes(q) || phone.includes(q);
-        })
-        : list;
+    const filteredList = isUserList
+        ? list
+        : q
+            ? list.filter((item) => {
+                const username = (item.username || '').toLowerCase();
+                const email = (item.email || '').toLowerCase();
+                const phone = (item.phone || '').toString();
+                return username.includes(q) || email.includes(q) || phone.includes(q);
+            })
+            : list;
 
     const getUsersForBookie = (bookieId) => {
         return bookieUsersList.filter(
@@ -270,7 +324,7 @@ const AllUsers = () => {
                     {ALL_TABS.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
+                            onClick={() => { setActiveTab(tab.id); setPage(1); }}
                             className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm sm:text-base ${
                                 activeTab === tab.id
                                     ? 'bg-yellow-500 text-black'
@@ -385,7 +439,7 @@ const AllUsers = () => {
                                                             </button>
                                                             <button
                                                                 type="button"
-                                                                onClick={() => setExpandedBookieId(isExpanded ? null : bookie._id)}
+                                                                onClick={() => handleToggleBookieExpand(bookie._id)}
                                                                 className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-yellow-500/90 hover:bg-yellow-500 text-black transition-colors"
                                                             >
                                                                 {isExpanded ? 'Hide Players' : 'View Players'}
@@ -502,7 +556,7 @@ const AllUsers = () => {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setExpandedBookieId(isExpanded ? null : bookie._id)}
+                                                    onClick={() => handleToggleBookieExpand(bookie._id)}
                                                     className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-yellow-500/90 hover:bg-yellow-500 text-black"
                                                 >
                                                     {isExpanded ? 'Hide' : 'View'} Players
@@ -684,7 +738,14 @@ const AllUsers = () => {
                 )}
             </div>
 
-            {!loading && list.length > 0 && (
+            {isUserList && (
+                <PaginationBar
+                    pagination={pagination}
+                    onPageChange={(p) => setPage(p)}
+                />
+            )}
+
+            {!loading && list.length > 0 && !isUserList && (
                 <p className="mt-4 text-gray-400 text-sm">
                     Showing {filteredList.length} {ALL_TABS.find(t => t.id === activeTab)?.label?.toLowerCase()}
                     {searchQuery && filteredList.length !== list.length && (

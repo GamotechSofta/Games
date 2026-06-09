@@ -18,6 +18,7 @@ import BottomNavbar from '../components/BottomNavbar';
 import Home from '../pages/Home';
 import AuthModal from '../components/auth/AuthModal';
 import ProtectedRoute from './ProtectedRoute';
+import AdminPrivateRoute from '../admin/AdminPrivateRoute';
 import { clearUserAuth, getUserToken, isTokenExpired } from '../utils/auth';
 import { CallProvider } from '../context/CallContext';
 import CallSessionOverlay from '../components/call/CallSessionOverlay';
@@ -315,9 +316,9 @@ export default function ProtectedApp() {
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/protected-example" element={<ProtectedRoute><ProtectedDemo /></ProtectedRoute>} />
             <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />
-            <Route path="/admin-panel/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin-panel/games" element={<GameManager />} />
-            <Route path="/admin-panel/transactions" element={<Transactions />} />
+            <Route path="/admin-panel/dashboard" element={<AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>} />
+            <Route path="/admin-panel/games" element={<AdminPrivateRoute><GameManager /></AdminPrivateRoute>} />
+            <Route path="/admin-panel/transactions" element={<AdminPrivateRoute><Transactions /></AdminPrivateRoute>} />
           </Routes>
         </Suspense>
       </Layout>

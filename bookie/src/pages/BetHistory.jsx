@@ -81,12 +81,12 @@ const BetHistory = () => {
     const fetchBets = async () => {
         try {
             setLoading(true);
-            const params = new URLSearchParams();
+            const params = new URLSearchParams({ limit: '200' });
             if (startDate && endDate) {
                 params.append('startDate', startDate);
                 params.append('endDate', endDate);
             }
-            const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
+            const url = `${API_BASE_URL}/bets/history?${params}`;
             const response = await bookieFetch(url);
             const data = await response.json();
             if (data.success) setBets(data.data);

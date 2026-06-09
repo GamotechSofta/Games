@@ -3,6 +3,7 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaPlus, FaTimes, FaEye, FaEyeSlash, FaCopy } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const BookieManagement = () => {
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ const BookieManagement = () => {
 
     const [formLoading, setFormLoading] = useState(false);
     const [togglingId, setTogglingId] = useState(null);
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
@@ -59,15 +60,6 @@ const BookieManagement = () => {
 
     useEffect(() => {
         fetchBookies();
-    }, []);
-
-    useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
     }, []);
 
     // Handle form input change

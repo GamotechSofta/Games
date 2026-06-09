@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import PaginationBar from '../components/PaginationBar';
 
 const RANGES = [
     { id: 'all', label: 'All' },
@@ -94,6 +95,8 @@ const BetHistory = () => {
     const [customEnd, setCustomEnd] = useState('');
     const [filter, setFilter] = useState('all');
     const [searchBetId, setSearchBetId] = useState('');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0, limit: 50 });
 
     const { startDate, endDate, label } = getDateRange(dateRange, customStart, customEnd);
 
@@ -114,23 +117,30 @@ const BetHistory = () => {
     });
 
     useEffect(() => {
-        fetchBets();
-    }, [dateRange, customStart, customEnd]);
+        setPage(1);
+    }, [dateRange, customStart, customEnd, filter]);
 
-    const fetchBets = async () => {
+    useEffect(() => {
+        fetchBets(page);
+    }, [dateRange, customStart, customEnd, page]);
+
+    const fetchBets = async (pageNum = 1) => {
         try {
             setLoading(true);
-            const params = new URLSearchParams();
+            const params = new URLSearchParams({
+                page: String(pageNum),
+                limit: '50',
+            });
             if (startDate && endDate) {
                 params.append('startDate', startDate);
                 params.append('endDate', endDate);
             }
 
-            const url = params.toString() ? `${API_BASE_URL}/bets/history?${params}` : `${API_BASE_URL}/bets/history`;
-            const response = await adminFetch(url);
+            const response = await adminFetch(`${API_BASE_URL}/bets/history?${params}`);
             const data = await response.json();
             if (data.success) {
-                setBets(data.data);
+                setBets(data.data || []);
+                if (data.pagination) setPagination(data.pagination);
             }
         } catch (err) {
             console.error('Error fetching bets:', err);
@@ -294,6 +304,8 @@ const BetHistory = () => {
                             </div>
                         </div>
                     )}
+
+                    <PaginationBar pagination={pagination} onPageChange={setPage} />
         </AdminLayout>
     );
 };

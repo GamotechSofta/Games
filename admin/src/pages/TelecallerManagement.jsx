@@ -3,6 +3,7 @@ import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaPlus, FaTimes, FaToggleOn, FaToggleOff, FaEye, FaEyeSlash, FaCopy } from 'react-icons/fa';
 import { adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 import TelecallerCallProgressModal from '../components/TelecallerCallProgressModal';
 
 const TelecallerManagement = () => {
@@ -25,7 +26,7 @@ const TelecallerManagement = () => {
     const [togglingId, setTogglingId] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showEditPassword, setShowEditPassword] = useState(false);
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [createdPasswords, setCreatedPasswords] = useState({});
     const [revealedPasswords, setRevealedPasswords] = useState({});
     const [showRevealModal, setShowRevealModal] = useState(false);
@@ -57,15 +58,6 @@ const TelecallerManagement = () => {
 
     useEffect(() => {
         fetchList();
-    }, []);
-
-    useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecretDeclarePassword(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecretDeclarePassword(false));
     }, []);
 
     const copyToClipboard = (text) => {

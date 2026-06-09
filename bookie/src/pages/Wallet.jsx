@@ -64,7 +64,7 @@ const Wallet = () => {
     const fetchWallets = async () => {
         try {
             setLoading(true);
-            const response = await bookieFetch(`${API_BASE_URL}/wallet/all`);
+            const response = await bookieFetch(`${API_BASE_URL}/wallet/all?limit=200`);
             const data = await response.json();
             if (data.success) setWallets(data.data);
         } catch (err) {
@@ -75,7 +75,7 @@ const Wallet = () => {
     };
 
     const fetchWalletTransactions = async () => {
-        const response = await bookieFetch(`${API_BASE_URL}/wallet/transactions`);
+        const response = await bookieFetch(`${API_BASE_URL}/wallet/transactions?limit=200`);
         const data = await response.json();
         if (data.success) setTransactions(data.data || []);
     };

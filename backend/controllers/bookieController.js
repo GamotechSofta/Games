@@ -86,7 +86,7 @@ export const bookieLogin = async (req, res) => {
 
 /**
  * Bookie heartbeat - checks if account is still active (for auto-logout when suspended)
- * Requires verifyAdmin (bookie Basic Auth)
+ * Requires verifyAdmin (bookie Bearer JWT)
  */
 export const bookieHeartbeat = async (req, res) => {
     try {

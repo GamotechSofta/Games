@@ -27,12 +27,16 @@ const walletLimiter = rateLimit({
     },
 });
 
-// Security for transaction lookup: allow admin auth OR shared secret header.
+const isProd = () => String(process.env.NODE_ENV || '').toLowerCase() === 'production';
+
+// Transaction lookup: admin JWT always allowed; x-gap-secret only in non-production.
 const verifyLookupAccess = async (req, res, next) => {
-    const headerSecret = String(req.headers['x-gap-secret'] || '').trim();
-    const expectedSecret = String(process.env.GAP_LOOKUP_SECRET || '').trim();
-    if (expectedSecret && headerSecret && headerSecret === expectedSecret) {
-        return next();
+    if (!isProd()) {
+        const headerSecret = String(req.headers['x-gap-secret'] || '').trim();
+        const expectedSecret = String(process.env.GAP_LOOKUP_SECRET || '').trim();
+        if (expectedSecret && headerSecret && headerSecret === expectedSecret) {
+            return next();
+        }
     }
     return verifyAdmin(req, res, next);
 };

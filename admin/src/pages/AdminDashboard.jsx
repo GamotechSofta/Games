@@ -127,8 +127,6 @@ const AdminDashboard = () => {
     const [customOpen, setCustomOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [adminRole, setAdminRole] = useState('');
-    const [pendingWithdrawCount, setPendingWithdrawCount] = useState(0);
-
     const getFromTo = () => {
         if (customMode && customFrom && customTo) return { from: customFrom, to: customTo };
         const preset = PRESETS.find((p) => p.id === datePreset);
@@ -148,20 +146,7 @@ const AdminDashboard = () => {
             setAdminRole(parsed.role || '');
         } catch (_) {}
         fetchDashboardStats();
-        fetchPendingWithdrawCount();
     }, [navigate]);
-
-    const fetchPendingWithdrawCount = async () => {
-        try {
-            const res = await adminFetch(`${API_BASE_URL}/payments/pending-count`);
-            const json = await res.json();
-            if (json.success) {
-                setPendingWithdrawCount(Number(json.data?.withdrawals) || 0);
-            }
-        } catch {
-            /* keep last count */
-        }
-    };
 
     const fetchDashboardStats = async (rangeOverride, options = {}) => {
         const isRefresh = options.refresh === true;
@@ -186,7 +171,6 @@ const AdminDashboard = () => {
             const data = await response.json();
             if (data.success) setStats(data.data);
             else setError('Failed to fetch dashboard stats');
-            await fetchPendingWithdrawCount();
         } catch (err) {
             setError('Network error. Please check if the server is running.');
         } finally {
@@ -223,10 +207,7 @@ const AdminDashboard = () => {
 
     const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount || 0);
 
-    const pendingWithdrawals = Math.max(
-        pendingWithdrawCount,
-        Number(stats?.payments?.pendingWithdrawals) || 0
-    );
+    const pendingWithdrawals = Number(stats?.payments?.pendingWithdrawals) || 0;
     const helpDeskOpen = stats?.helpDesk?.open || 0;
     const marketsPendingResultList = stats?.marketsPendingResultList || [];
     const starlinePendingList = marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline');

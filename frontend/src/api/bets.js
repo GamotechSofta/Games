@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, fetchWithAuth } from '../config/api';
 import { queryClient } from '../queryClient';
 import { redirectToLoginIf401 } from '../utils/auth';
 import { clearSessionCache, createSharedFetcher, getSessionCache, setSessionCache } from '../utils/sessionCache';
@@ -226,7 +226,7 @@ export async function getBalance({ force = false } = {}) {
   }
 
   return runSharedRequest(cacheKey, async () => {
-    const response = await fetch(`${API_BASE_URL}/wallet/balance?userId=${encodeURIComponent(userId)}`);
+    const response = await fetchWithAuth(`${API_BASE_URL}/wallet/balance`);
     if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
     const data = await response.json();
@@ -248,8 +248,8 @@ export async function getMyWalletTransactions(limit = 200) {
   if (!userId) {
     return { success: false, message: 'Please log in' };
   }
-  const url = `${API_BASE_URL}/wallet/my-transactions?userId=${encodeURIComponent(userId)}&limit=${encodeURIComponent(limit)}&includeBet=1`;
-  const response = await fetch(url);
+  const url = `${API_BASE_URL}/wallet/my-transactions?limit=${encodeURIComponent(limit)}&includeBet=1`;
+  const response = await fetchWithAuth(url);
   if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
 
   const data = await response.json();

@@ -16,6 +16,8 @@ const walletSchema = new mongoose.Schema({
     timestamps: true,
 });
 
+walletSchema.index({ balance: -1 });
+
 const walletTransactionSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,

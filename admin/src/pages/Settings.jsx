@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const Settings = () => {
     const navigate = useNavigate();
@@ -12,7 +13,7 @@ const Settings = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [statusMsg, setStatusMsg] = useState('');
-    const [hasSecret, setHasSecret] = useState(false);
+    const { hasSecretDeclarePassword: hasSecret, setHasSecretDeclarePassword } = useAdminSettings();
 
     // Payment limits (admin-only: min/max deposit & withdrawal)
     const [limits, setLimits] = useState({ minDeposit: 100, maxDeposit: 50000, minWithdrawal: 500, maxWithdrawal: 25000 });
@@ -21,14 +22,6 @@ const Settings = () => {
     const [limitsSecretPassword, setLimitsSecretPassword] = useState('');
 
     useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => {
-                if (json.success) setHasSecret(json.hasSecretDeclarePassword || false);
-            })
-            .catch(() => setHasSecret(false));
-
-        // Fetch payment limits (admin-set)
         adminFetch(`${API_BASE_URL}/payments/limits`)
             .then((res) => res.json())
             .then((json) => {
@@ -76,7 +69,7 @@ const Settings = () => {
                 setForgotSecret(false);
                 setSecretDeclarePassword('');
                 setConfirmPassword('');
-                setHasSecret(true);
+                setHasSecretDeclarePassword(true);
                 setStatusMsg('Secret declare password set successfully');
             } else {
                 setStatusMsg(json.message || 'Failed to set password');

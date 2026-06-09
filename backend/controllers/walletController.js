@@ -6,49 +6,150 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { toClientWalletTransaction } from '../utils/paymentDisplay.js';
+import { parsePagination, paginationMeta, escapeRegex } from '../utils/pagination.js';
+
+function intersectIds(allowed, filtered) {
+    if (filtered === null) return allowed;
+    if (allowed === null) return filtered;
+    const set = new Set(allowed.map((id) => String(id)));
+    return filtered.filter((id) => set.has(String(id)));
+}
+
+async function getFilteredUserIds({ search, source, bookieName }) {
+    const clauses = [];
+    const searchTrim = String(search || '').trim();
+    if (searchTrim) {
+        const re = new RegExp(escapeRegex(searchTrim), 'i');
+        clauses.push({
+            $or: [{ username: re }, { email: re }, { phone: re }],
+        });
+    }
+
+    const bookieLabel = String(bookieName || '').trim();
+    if (bookieLabel) {
+        const bookie = await Admin.findOne({ role: 'bookie', username: bookieLabel }).select('_id').lean();
+        if (!bookie) return [];
+        clauses.push({ referredBy: bookie._id });
+    } else if (source === 'direct') {
+        clauses.push({ $or: [{ referredBy: null }, { referredBy: { $exists: false } }] });
+    } else if (source === 'admin_collects' || source === 'bookie_collects') {
+        const bookies = await Admin.find({ role: 'bookie', bookieType: source }).select('_id').lean();
+        if (!bookies.length) return [];
+        clauses.push({ referredBy: { $in: bookies.map((b) => b._id) } });
+    }
+
+    if (!clauses.length) return null;
+
+    const userQuery = clauses.length === 1 ? clauses[0] : { $and: clauses };
+    const users = await User.find(userQuery).select('_id').lean();
+    return users.map((u) => u._id);
+}
+
+async function enrichWalletsWithBookieInfo(wallets) {
+    const bookieIds = [...new Set(
+        wallets.filter((w) => w.userId?.referredBy).map((w) => String(w.userId.referredBy)),
+    )];
+    const bookieMap = {};
+    if (bookieIds.length > 0) {
+        const bookieDocs = await Admin.find({ _id: { $in: bookieIds } }).select('_id username bookieType').lean();
+        for (const b of bookieDocs) {
+            bookieMap[String(b._id)] = b;
+        }
+    }
+    return wallets.map((w) => {
+        const obj = { ...w };
+        if (w.userId?.referredBy) {
+            const bookie = bookieMap[String(w.userId.referredBy)];
+            obj.userBookieType = bookie?.bookieType || 'admin_collects';
+            obj.userBookieName = bookie?.username || '';
+        } else {
+            obj.userBookieType = 'direct';
+            obj.userBookieName = '';
+        }
+        return obj;
+    });
+}
+
+function walletSortSpec(sortBy) {
+    switch (sortBy) {
+        case 'balance_asc': return { balance: 1 };
+        case 'name_asc': return { 'userId.username': 1 };
+        case 'name_desc': return { 'userId.username': -1 };
+        case 'balance_desc':
+        default: return { balance: -1 };
+    }
+}
 
 export const getAllWallets = async (req, res) => {
     try {
-        const query = {};
+        const { page, limit, skip } = parsePagination(req.query);
+        const search = String(req.query.search || '').trim();
+        const source = String(req.query.source || '').trim();
+        const bookieName = String(req.query.bookie || req.query.bookieName || '').trim();
+        const sortBy = String(req.query.sort || 'balance_desc');
+
+        const walletQuery = {};
         const bookieUserIds = await getBookieUserIds(req.admin);
         if (bookieUserIds !== null) {
-            query.userId = { $in: bookieUserIds };
+            walletQuery.userId = { $in: bookieUserIds };
         }
-        const wallets = await Wallet.find(query)
-            .populate('userId', 'username email referredBy')
-            .sort({ balance: -1 })
-            .lean();
 
-        // For admin view: enrich each wallet with the user's bookie type
+        const filteredUserIds = await getFilteredUserIds({ search, source, bookieName });
+        if (filteredUserIds !== null) {
+            const ids = intersectIds(bookieUserIds, filteredUserIds);
+            if (!ids || ids.length === 0) {
+                res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
+                return res.status(200).json({
+                    success: true,
+                    data: [],
+                    pagination: paginationMeta(page, limit, 0),
+                    summary: { totalBalance: 0, totalWallets: 0 },
+                });
+            }
+            walletQuery.userId = { $in: ids };
+        }
+
+        const sortSpec = walletSortSpec(sortBy);
+        const nameSort = sortBy === 'name_asc' || sortBy === 'name_desc';
+
+        const [wallets, total, balanceAgg] = await Promise.all([
+            Wallet.find(walletQuery)
+                .populate('userId', 'username email referredBy')
+                .sort(nameSort ? { balance: -1 } : sortSpec)
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Wallet.countDocuments(walletQuery),
+            Wallet.aggregate([
+                { $match: walletQuery },
+                { $group: { _id: null, total: { $sum: '$balance' } } },
+            ]),
+        ]);
+
+        let data = wallets;
         if (req.admin?.role === 'super_admin') {
-            const enriched = [];
-            // Collect unique bookie IDs
-            const bookieIds = [...new Set(wallets.filter(w => w.userId?.referredBy).map(w => String(w.userId.referredBy)))];
-            const bookieMap = {};
-            if (bookieIds.length > 0) {
-                const bookieDocs = await Admin.find({ _id: { $in: bookieIds } }).select('_id username bookieType').lean();
-                for (const b of bookieDocs) {
-                    bookieMap[String(b._id)] = b;
-                }
-            }
-            for (const w of wallets) {
-                const obj = { ...w };
-                if (w.userId?.referredBy) {
-                    const bookie = bookieMap[String(w.userId.referredBy)];
-                    obj.userBookieType = bookie?.bookieType || 'admin_collects';
-                    obj.userBookieName = bookie?.username || '';
-                } else {
-                    obj.userBookieType = 'direct';
-                    obj.userBookieName = '';
-                }
-                enriched.push(obj);
-            }
-            res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
-            return res.status(200).json({ success: true, data: enriched });
+            data = await enrichWalletsWithBookieInfo(wallets);
+        }
+
+        if (nameSort) {
+            data = [...data].sort((a, b) => {
+                const nameA = (a.userId?.username || '').toLowerCase();
+                const nameB = (b.userId?.username || '').toLowerCase();
+                const cmp = nameA.localeCompare(nameB);
+                return sortBy === 'name_asc' ? cmp : -cmp;
+            });
         }
 
         res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
-        res.status(200).json({ success: true, data: wallets });
+        res.status(200).json({
+            success: true,
+            data,
+            pagination: paginationMeta(page, limit, total),
+            summary: {
+                totalBalance: balanceAgg[0]?.total ?? 0,
+                totalWallets: total,
+            },
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -56,7 +157,8 @@ export const getAllWallets = async (req, res) => {
 
 export const getTransactions = async (req, res) => {
     try {
-        const { userId } = req.query;
+        const { userId, startDate, endDate } = req.query;
+        const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 500 });
         const query = {};
         const bookieUserIds = await getBookieUserIds(req.admin);
         if (bookieUserIds !== null) {
@@ -65,16 +167,31 @@ export const getTransactions = async (req, res) => {
         if (userId) {
             query.userId = userId;
         }
-        const transactions = await WalletTransaction.find(query)
-            .populate('userId', 'username email')
-            .sort({ createdAt: -1 })
-            .limit(1000)
-            .lean();
+        if (startDate || endDate) {
+            query.createdAt = {};
+            if (startDate) query.createdAt.$gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = end;
+            }
+        }
+
+        const [transactions, total] = await Promise.all([
+            WalletTransaction.find(query)
+                .populate('userId', 'username email')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            WalletTransaction.countDocuments(query),
+        ]);
 
         res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
         res.status(200).json({
             success: true,
             data: transactions.map((t) => toClientWalletTransaction(t)),
+            pagination: paginationMeta(page, limit, total),
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -88,9 +205,9 @@ export const getTransactions = async (req, res) => {
  */
 export const getMyTransactions = async (req, res) => {
     try {
-        const userId = req.body?.userId || req.query?.userId;
+        const userId = req.user?._id || req.user?.id;
         if (!userId) {
-            return res.status(400).json({ success: false, message: 'userId is required' });
+            return res.status(401).json({ success: false, message: 'Authentication required' });
         }
         const limitRaw = req.query?.limit ?? req.body?.limit;
         let limit = Number(limitRaw);
@@ -375,11 +492,11 @@ export const setBalance = async (req, res) => {
  */
 export const getBalance = async (req, res) => {
     try {
-        const userId = req.body?.userId || req.query?.userId;
+        const userId = req.user?._id || req.user?.id;
         if (!userId) {
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
-                message: 'userId is required',
+                message: 'Authentication required',
             });
         }
 

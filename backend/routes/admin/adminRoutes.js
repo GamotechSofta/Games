@@ -1,4 +1,5 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { 
     adminLogin, 
     createAdmin, 
@@ -29,8 +30,20 @@ import { verifyAdmin, verifySuperAdmin } from '../../middleware/adminAuth.js';
 
 const router = express.Router();
 
-router.post('/login', adminLogin);
-router.post('/create', createAdmin); // For initial admin setup
+const adminLoginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: Number(process.env.ADMIN_LOGIN_RATE_LIMIT || 10),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many login attempts. Please try again later.' },
+});
+
+router.post('/login', adminLoginLimiter, adminLogin);
+
+const allowBootstrapAdmin = String(process.env.ALLOW_BOOTSTRAP_ADMIN || '').toLowerCase() === 'true';
+if (allowBootstrapAdmin) {
+    router.post('/create', createAdmin);
+}
 
 // Secret declare password: status/verify for any admin (super_admin + specific_admin); set own only for super_admin
 router.get('/me/secret-declare-password-status', verifyAdmin, getSecretDeclarePasswordStatus);

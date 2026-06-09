@@ -10,6 +10,7 @@ import { isBettingAllowed } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
+import { parsePagination, paginationMeta } from '../utils/pagination.js';
 import { getTodayIST } from '../utils/resultReset.js';
 
 const DB_QUERY_MS = 12000;
@@ -372,6 +373,7 @@ export const getMyBetHistory = async (req, res) => {
 export const getBetHistory = async (req, res) => {
     try {
         const { userId, marketId, status, startDate, endDate } = req.query;
+        const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 200 });
         const query = {};
 
         const bookieUserIds = await getBookieUserIds(req.admin);
@@ -392,14 +394,23 @@ export const getBetHistory = async (req, res) => {
             if (endDate) query.createdAt.$lte = new Date(endDate);
         }
 
-        const bets = await Bet.find(query)
-            .populate('userId', 'username email')
-            .populate({ path: 'marketId', select: 'marketName marketType', model: Market })
-            .sort({ createdAt: -1 })
-            .limit(1000)
-            .lean();
+        const [bets, total] = await Promise.all([
+            Bet.find(query)
+                .populate('userId', 'username email')
+                .populate({ path: 'marketId', select: 'marketName marketType', model: Market })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Bet.countDocuments(query),
+        ]);
 
-        res.status(200).json({ success: true, data: bets });
+        res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=20');
+        res.status(200).json({
+            success: true,
+            data: bets,
+            pagination: paginationMeta(page, limit, total),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

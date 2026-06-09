@@ -4,6 +4,9 @@ import http from 'http';
 import dotenv from 'dotenv';
 import cron from 'node-cron';
 import connectDB, { isDbReady } from './config/db_Connection.js';
+import { initAppCache } from './utils/appCache.js';
+import { requireDevToolsAccess } from './utils/devToolsGate.js';
+import { computeDailyStatsForDate, getYesterdayStatsDateKey } from './utils/computeDailyStats.js';
 import marketRoutes from './routes/market/marketRoutes.js';
 import adminRoutes from './routes/admin/adminRoutes.js';
 import bookieRoutes from './routes/bookie/bookieRoutes.js';
@@ -29,6 +32,7 @@ import { ensureResultsResetForNewDay } from './utils/resultReset.js';
 import Market from './models/market/market.js';
 import cors from 'cors';
 import compression from 'compression';
+import helmet from 'helmet';
 import path from 'path';
 import { getCorsOptions, logCorsConfig, parseAllowedOrigins } from './config/cors.js';
 import { initPlayerSocket } from './socket/playerSocket.js';
@@ -71,6 +75,17 @@ function validateEnvConfig() {
         }
     }
 
+    const jwtSecret = process.env.JWT_SECRET || '';
+    if (isProd && (!jwtSecret || jwtSecret === 'default-secret-change-in-production')) {
+        warnings.push('JWT_SECRET is missing or still the default — set a strong secret in production');
+    }
+    if (isProd && String(process.env.ALLOW_BOOTSTRAP_ADMIN || '').toLowerCase() === 'true') {
+        warnings.push('ALLOW_BOOTSTRAP_ADMIN=true in production — disable after initial admin setup');
+    }
+    if (isProd && String(process.env.GAP_LOOKUP_SECRET || '').trim()) {
+        warnings.push('GAP_LOOKUP_SECRET is set but x-gap-secret bypass is disabled in production (admin JWT required)');
+    }
+
     if (warnings.length > 0) {
         const level = isProd ? '[WARN][PROD]' : '[WARN]';
         for (const w of warnings) console.warn(`${level} ${w}`);
@@ -83,6 +98,10 @@ logCorsConfig({ isProd });
 app.set('trust proxy', 1);
 app.set('etag', false);
 
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+}));
 app.use(cors(getCorsOptions({ isProd })));
 app.use(compression({
   threshold: 1024,
@@ -126,13 +145,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-app.get('/test-ip', (req, res) => {
-    if (isProd) {
-        return res.status(404).json({
-            success: false,
-            message: 'Route not available',
-        });
-    }
+app.get('/test-ip', requireDevToolsAccess, (req, res) => {
     res.json({
         'req.ip': req.ip ?? null,
         'req.headers[\'x-forwarded-for\']': req.headers['x-forwarded-for'] ?? null,
@@ -140,13 +153,7 @@ app.get('/test-ip', (req, res) => {
     });
 });
 
-app.get('/test-reset', async (req, res) => {
-    if (isProd) {
-        return res.status(404).json({
-            success: false,
-            message: 'Route not available',
-        });
-    }
+app.get('/test-reset', requireDevToolsAccess, async (req, res) => {
     const now = new Date();
     const istTime = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
@@ -208,7 +215,19 @@ cron.schedule('30 18 * * *', async () => {
         console.error('[CRON] Market reset job failed:', error.message);
     }
 }, {
-    timezone: 'UTC'
+    timezone: 'UTC',
+});
+
+cron.schedule('45 18 * * *', async () => {
+    try {
+        const dateKey = getYesterdayStatsDateKey();
+        await computeDailyStatsForDate(dateKey);
+        console.log(`[CRON] Daily stats computed for IST day ${dateKey}`);
+    } catch (error) {
+        console.error('[CRON] Daily stats job failed:', error.message);
+    }
+}, {
+    timezone: 'UTC',
 });
 
 process.on('unhandledRejection', (reason) => {
@@ -222,6 +241,7 @@ process.on('uncaughtException', (err) => {
 async function startServer() {
     try {
         await connectDB();
+        await initAppCache();
 
         const httpServer = http.createServer(app);
         httpServer.requestTimeout = 120000;

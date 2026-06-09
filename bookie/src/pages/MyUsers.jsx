@@ -19,7 +19,7 @@ const MyUsers = () => {
         if (showLoader) setLoading(true);
         if (showLoader) setError('');
         try {
-            const response = await bookieFetch(`${API_BASE_URL}/users`);
+            const response = await bookieFetch(`${API_BASE_URL}/users?limit=200`);
             const data = await response.json();
             if (data.success) {
                 setUsers(data.data || []);

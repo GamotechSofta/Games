@@ -7,6 +7,8 @@ import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
 import { generateUserToken } from '../utils/jwt.js';
+import { parsePagination, paginationMeta, escapeRegex } from '../utils/pagination.js';
+import { invalidateBookieUserMapCache } from '../utils/bookieUserMap.js';
 
 const ONLINE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const DB_QUERY_MS = 12000;
@@ -355,6 +357,9 @@ export const userSignup = async (req, res) => {
             const bookie = await Admin.findById(referredBy).select('uiTheme').lean();
             signupData.bookieTheme = bookie?.uiTheme || { themeId: 'default' };
         }
+
+        await invalidateBookieUserMapCache();
+
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -510,6 +515,8 @@ export const createUser = async (req, res) => {
             });
         }
 
+        await invalidateBookieUserMapCache();
+
         res.status(201).json({
             success: true,
             message: 'User created successfully',
@@ -540,7 +547,8 @@ export const createUser = async (req, res) => {
  */
 export const getUsers = async (req, res) => {
     try {
-        const { filter = 'all' } = req.query;
+        const { filter = 'all', search = '' } = req.query;
+        const { page, limit, skip } = parsePagination(req.query);
         const bookieUserIds = await getBookieUserIds(req.admin);
         const query = {};
 
@@ -554,26 +562,48 @@ export const getUsers = async (req, res) => {
             query.referredBy = { $ne: null, $exists: true };
         }
 
-        let users = await User.find(query)
-            .select('username email phone role isActive source referredBy lastActiveAt createdAt +lastLoginIp +lastLoginDeviceId +loginDevices')
-            .populate('referredBy', 'username')
-            .sort(filter === 'bookie' ? { referredBy: 1, createdAt: -1 } : { createdAt: -1 })
-            .limit(500)
-            .lean();
-
-        if (filter === 'bookie' && users.length > 0) {
-            users.sort((a, b) => {
-                const bookieA = a.referredBy?.username || '';
-                const bookieB = b.referredBy?.username || '';
-                if (bookieA !== bookieB) return bookieA.localeCompare(bookieB);
-                return new Date(b.createdAt) - new Date(a.createdAt);
-            });
+        const searchTrim = String(search || '').trim();
+        if (searchTrim) {
+            const re = new RegExp(escapeRegex(searchTrim), 'i');
+            const searchClause = {
+                $or: [
+                    { username: re },
+                    { email: re },
+                    { phone: re },
+                ],
+            };
+            if (query.$or) {
+                query.$and = [{ $or: query.$or }, searchClause];
+                delete query.$or;
+            } else {
+                Object.assign(query, searchClause);
+            }
         }
 
-        users = await addWalletBalanceToUsers(users);
-        users = addOnlineStatus(users);
+        const sort = filter === 'bookie'
+            ? { referredBy: 1, createdAt: -1 }
+            : { createdAt: -1 };
 
-        res.status(200).json({ success: true, data: users });
+        const [users, total] = await Promise.all([
+            User.find(query)
+                .select('username email phone role isActive source referredBy lastActiveAt createdAt')
+                .populate('referredBy', 'username')
+                .sort(sort)
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            User.countDocuments(query),
+        ]);
+
+        let enriched = await addWalletBalanceToUsers(users);
+        enriched = addOnlineStatus(enriched);
+
+        res.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=20');
+        res.status(200).json({
+            success: true,
+            data: enriched,
+            pagination: paginationMeta(page, limit, total),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -747,6 +777,8 @@ export const deletePlayer = async (req, res) => {
             details: `Player "${username}" deleted`,
             ip: getClientIp(req),
         });
+
+        await invalidateBookieUserMapCache();
 
         res.status(200).json({
             success: true,

@@ -158,8 +158,8 @@ const PlayerDetail = () => {
         setLoadingTab(true);
         try {
             const [betsRes, txRes] = await Promise.all([
-                bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}`),
-                bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`),
+                bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}&limit=200`),
+                bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}&startDate=${statementFrom}&endDate=${statementTo}&limit=200`),
             ]);
             const betsData = await betsRes.json();
             const txData = await txRes.json();
@@ -186,12 +186,7 @@ const PlayerDetail = () => {
                     kind: 'bet',
                 }));
 
-            const txRows = txList
-                .filter((t) => {
-                    const d = new Date(t.createdAt);
-                    return d >= start && d <= end;
-                })
-                .map((t) => ({
+            const txRows = txList.map((t) => ({
                     date: new Date(t.createdAt),
                     type: 'Wallet',
                     name: t.description || t._id?.slice(-6),
@@ -230,7 +225,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}`);
+            const res = await bookieFetch(`${API_BASE_URL}/wallet/transactions?userId=${userId}&limit=200`);
             const data = await res.json();
             setWalletTx(data.success ? (data.data || []).reverse() : []);
         } catch (err) {
@@ -244,7 +239,7 @@ const PlayerDetail = () => {
         if (!userId) return;
         setLoadingTab(true);
         try {
-            const res = await bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}`);
+            const res = await bookieFetch(`${API_BASE_URL}/bets/history?userId=${userId}&limit=200`);
             const data = await res.json();
             setBets(data.success ? data.data || [] : []);
         } catch (err) {

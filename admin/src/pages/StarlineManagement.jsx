@@ -4,6 +4,7 @@ import AdminLayout from '../components/AdminLayout';
 import MarketForm from '../components/MarketForm';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { useAdminSettings } from '../context/AdminSettingsContext';
 
 const safeNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const formatTime = (timeStr) => {
@@ -99,7 +100,7 @@ const StarlineManagement = ({ embedded = false }) => {
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [secretPassword, setSecretPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');
-    const [hasSecretDeclarePassword, setHasSecretDeclarePassword] = useState(false);
+    const { hasSecretDeclarePassword } = useAdminSettings();
     const [deleteMarket, setDeleteMarket] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deletePassword, setDeletePassword] = useState('');
@@ -180,13 +181,6 @@ const StarlineManagement = ({ embedded = false }) => {
         const key = (activeTab || '').toString().trim().toLowerCase();
         if (key) fetchMarkets();
     }, [activeTab]);
-
-    useEffect(() => {
-        adminFetch(`${API_BASE_URL}/admin/me/secret-declare-password-status`)
-            .then((res) => res.json())
-            .then((json) => { if (json.success) setHasSecretDeclarePassword(!!json.hasSecretDeclarePassword); })
-            .catch(() => setHasSecretDeclarePassword(false));
-    }, []);
 
     useEffect(() => {
         const t = setInterval(() => setTick(Date.now()), 60000);

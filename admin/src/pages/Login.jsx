@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ADMIN_AUTH_UPDATED_EVENT } from '../context/AdminSettingsContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3010/api/v1';
 
@@ -47,6 +48,7 @@ const Login = () => {
                 const { token, ...adminData } = data.data;
                 localStorage.setItem('admin', JSON.stringify(adminData));
                 localStorage.setItem('adminToken', token);
+                window.dispatchEvent(new Event(ADMIN_AUTH_UPDATED_EVENT));
                 navigate('/dashboard');
             } else {
                 setError(data.message || 'Login failed');

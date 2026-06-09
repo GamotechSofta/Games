@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, fetchWithAuth } from '../config/api';
 
 const Wallet = () => {
     const [balance, setBalance] = useState(0);
@@ -15,7 +15,7 @@ const Wallet = () => {
                 const userId = user?._id || user?.id;
                 if (!userId) throw new Error('Please login first');
 
-                const res = await fetch(`${API_BASE_URL}/wallet/balance?userId=${encodeURIComponent(userId)}`);
+                const res = await fetchWithAuth(`${API_BASE_URL}/wallet/balance`);
                 const data = await res.json();
                 if (!res.ok || !data?.success) throw new Error(data?.message || 'Failed to fetch balance');
                 setBalance(Number(data?.data?.balance || data?.balance || 0));
