@@ -179,7 +179,7 @@ const AddFund = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M2 12h20" />
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 2c3.5 3.5 3.5 16.5 0 20" />
                                 </svg>
-                                <span className="font-semibold tracking-wide truncate">GoldenBets.com</span>
+                                <span className="font-semibold tracking-wide truncate">Aakda</span>
                             </div>
                             <div className="bg-gradient-to-r from-[#d4af37] via-[#cca84d] to-[#b8941f] px-3 sm:px-4 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-3">
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black/25 border border-black/20 flex items-center justify-center shrink-0">
