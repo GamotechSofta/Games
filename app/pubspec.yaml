@@ -1,0 +1,55 @@
+name: app
+description: "Aakda Flutter client."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  shared_preferences: ^2.3.3
+  url_launcher: ^6.3.1
+  intl: ^0.20.2
+  flutter_svg: ^2.2.4
+  image_picker: ^1.2.1
+  share_plus: ^12.0.1
+  http_parser: ^4.1.2
+  webview_flutter: ^4.13.1
+  easy_refresh: ^3.5.0
+  webview_flutter_android: ^4.12.0
+  webview_flutter_wkwebview: ^3.25.1
+  google_fonts: ^6.2.1
+  flutter_dotenv: ^6.0.1
+  socket_io_client: ^3.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/images/home/favIcon.png
+  remove_alpha_ios: true
+  background_color_ios: "#0d1117"
+  web:
+    generate: true
+    image_path: assets/images/home/favIcon.png
+    background_color: "#0d1117"
+    theme_color: "#0d1117"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/images/
+    - assets/icons/
+    - assets/images/home/
+    - assets/images/bid_options/
