@@ -22,7 +22,7 @@ const MOBILE_HOME_BANNERS = [
 
 const QUICK_LINKS = [
   { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/games?category=highEarning' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
   { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
   { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
 ];

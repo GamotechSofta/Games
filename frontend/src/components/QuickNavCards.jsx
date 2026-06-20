@@ -49,7 +49,7 @@ const quickLinks = [
     layout: 'plain',
     labelKey: 'sidebar.markets',
     subtitleKey: 'markets.tapToPlay',
-    path: '/',
+    path: '/markets',
     Icon: MdShowChart,
   },
   {

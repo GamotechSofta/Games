@@ -10,7 +10,7 @@ import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './h
 
 const CATEGORIES = [
   { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
-  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/games?category=highEarning' },
+  { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
   { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
   { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
 ];
@@ -137,10 +137,7 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
 
       <div className="mx-auto grid w-full max-w-[980px] grid-cols-4 gap-2.5 xl:max-w-[1040px] xl:gap-3">
         {CATEGORIES.map((cat) => {
-          const isHome = location.pathname === '/';
-          const active = isHome
-            ? cat.id === 'markets'
-            : categoryPathActive(cat, location.pathname, location.search);
+          const active = categoryPathActive(cat, location.pathname, location.search);
 
           return (
             <HomeCategoryCard
