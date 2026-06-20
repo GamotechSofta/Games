@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMoon, HiSun, HiChevronDown } from 'react-icons/hi';
@@ -97,6 +97,62 @@ function LanguageBottomSheet({ open, onClose, activeCode, onSelect, title }) {
   );
 }
 
+function CollapsedLanguageFlyout({ anchor, open, onClose, activeCode, onSelect, title }) {
+  if (!open || !anchor || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <>
+      <button
+        type="button"
+        className="fixed inset-0 z-[110]"
+        aria-label="Close"
+        onClick={onClose}
+      />
+      <div
+        className="fixed z-[130] min-w-[220px]"
+        style={{ bottom: anchor.bottom, left: anchor.left }}
+        role="listbox"
+        aria-label={title}
+      >
+        <div
+          className="custom-scrollbar-light dark:custom-scrollbar overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-white/[0.08] dark:bg-[#1a1a1a] dark:shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
+          style={{ maxHeight: anchor.maxHeight }}
+        >
+          <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
+            {title}
+          </p>
+          {LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              onClick={() => onSelect(lang.code)}
+              className={[
+                'flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[13px] transition-colors',
+                activeCode === lang.code
+                  ? 'bg-red-50 font-semibold text-[#c62828] dark:bg-[#d4af37]/15 dark:text-[#e8c547]'
+                  : 'text-gray-600 hover:bg-gray-50 dark:text-white/70 dark:hover:bg-white/[0.05]',
+              ].join(' ')}
+            >
+              <LanguageIcon code={lang.code} className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{lang.label}</span>
+              {activeCode === lang.code && (
+                <svg className="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+                  <path
+                    fillRule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
+
 function MenuPanel({ children, placement }) {
   const position =
     placement === 'right'
@@ -118,15 +174,37 @@ export default function SidebarLocaleSettings({ collapsed, horizontal = false })
   const { t, i18n } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const [langOpen, setLangOpen] = useState(false);
+  const langBtnRef = useRef(null);
+  const [collapsedMenuAnchor, setCollapsedMenuAnchor] = useState(null);
 
   const activeCode = normalizeLanguageCode(i18n.language);
   const currentLang = LANGUAGES.find((l) => l.code === activeCode) || LANGUAGES[0];
   const ThemeIcon = theme === 'light' ? HiSun : HiMoon;
 
+  const updateCollapsedMenuAnchor = useCallback(() => {
+    if (!langBtnRef.current) return;
+    const rect = langBtnRef.current.getBoundingClientRect();
+    setCollapsedMenuAnchor({
+      bottom: window.innerHeight - rect.bottom,
+      left: rect.right + 8,
+      maxHeight: Math.min(280, Math.max(160, rect.bottom - 12)),
+    });
+  }, []);
+
+  const closeLanguageMenu = useCallback(() => {
+    setLangOpen(false);
+    setCollapsedMenuAnchor(null);
+  }, []);
+
+  const openLanguageMenu = useCallback(() => {
+    if (collapsed) updateCollapsedMenuAnchor();
+    setLangOpen(true);
+  }, [collapsed, updateCollapsedMenuAnchor]);
+
   const selectLanguage = async (langCode) => {
     await ensureLocaleLoaded(langCode);
     await i18n.changeLanguage(langCode);
-    setLangOpen(false);
+    closeLanguageMenu();
   };
 
   const btnClass = collapsed
@@ -162,20 +240,19 @@ export default function SidebarLocaleSettings({ collapsed, horizontal = false })
       </button>
 
       <div
-        className={`relative ${horizontal ? 'min-w-0 flex-1' : ''} ${langOpen && !horizontal ? 'z-[120]' : ''}`}
-        onMouseEnter={() => collapsed && setLangOpen(true)}
-        onMouseLeave={() => collapsed && setLangOpen(false)}
+        className={`relative ${horizontal ? 'min-w-0 flex-1' : ''} ${langOpen && !horizontal && !collapsed ? 'z-[120]' : ''}`}
       >
         <button
+          ref={langBtnRef}
           type="button"
           onClick={() => {
             if (collapsed) {
-              setLangOpen(true);
+              if (langOpen) closeLanguageMenu();
+              else openLanguageMenu();
               return;
             }
             setLangOpen((v) => !v);
           }}
-          onMouseEnter={() => collapsed && setLangOpen(true)}
           className={btnClass}
           aria-label={t('header.language')}
           aria-expanded={langOpen}
@@ -195,7 +272,16 @@ export default function SidebarLocaleSettings({ collapsed, horizontal = false })
         {horizontal ? (
           <LanguageBottomSheet
             open={langOpen}
-            onClose={() => setLangOpen(false)}
+            onClose={closeLanguageMenu}
+            activeCode={activeCode}
+            onSelect={selectLanguage}
+            title={t('language.selectLanguage')}
+          />
+        ) : collapsed ? (
+          <CollapsedLanguageFlyout
+            anchor={collapsedMenuAnchor}
+            open={langOpen}
+            onClose={closeLanguageMenu}
             activeCode={activeCode}
             onSelect={selectLanguage}
             title={t('language.selectLanguage')}
@@ -203,14 +289,12 @@ export default function SidebarLocaleSettings({ collapsed, horizontal = false })
         ) : (
           langOpen && (
             <>
-              {!collapsed && (
-                <button
-                  type="button"
-                  className="fixed inset-0 z-[110]"
-                  aria-label="Close"
-                  onClick={() => setLangOpen(false)}
-                />
-              )}
+              <button
+                type="button"
+                className="fixed inset-0 z-[110]"
+                aria-label="Close"
+                onClick={closeLanguageMenu}
+              />
               <MenuPanel placement={menuPlacement}>
                 <p className="dashboard-nav-label-sm border-b border-gray-100 px-3 py-2 text-gray-500 dark:border-white/[0.06] dark:text-white/45">
                   {t('language.selectLanguage')}
