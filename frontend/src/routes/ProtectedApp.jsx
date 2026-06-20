@@ -106,6 +106,7 @@ const ScrollToTop = () => {
 
 const Layout = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isDesktop } = useBreakpoint();
   const onPanelChange = useDashboardNav();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
@@ -181,6 +182,13 @@ const Layout = ({ children }) => {
     };
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (isDesktop || hasUser || isAdminPanel) return;
+    if (location.pathname !== '/') {
+      navigate({ pathname: '/', search: location.search }, { replace: true });
+    }
+  }, [isDesktop, hasUser, isAdminPanel, location.pathname, location.search, navigate]);
+
   if (isAdminPanel) return <>{children}</>;
 
   // Logged-out users: show the home page behind a non-dismissible login/sign up popup.
@@ -190,7 +198,15 @@ const Layout = ({ children }) => {
     if (hasUser) return node;
     return (
       <>
-        <div className="pointer-events-none select-none" aria-hidden>
+        <div
+          className={[
+            'pointer-events-none select-none',
+            !isDesktop
+              ? 'fixed inset-0 z-0 h-[100dvh] max-h-[100dvh] w-full overflow-hidden overscroll-none touch-none'
+              : 'h-full w-full overflow-hidden',
+          ].join(' ')}
+          aria-hidden
+        >
           {node}
         </div>
         <AuthModal />
