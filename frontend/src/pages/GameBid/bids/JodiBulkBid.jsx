@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import QuickPointsRow from './QuickPointsRow';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
-import { bidClearBtn } from '../../../styles/appTheme';
-import { BidDesktopStats } from '../BidInlineStats';
+import { useBettingWindow } from '../BettingWindowContext';
+import { bidClearBtn, bidStatLabel, bidStatValue, bidSubmitBtn } from '../../../styles/appTheme';
 
 const DIGITS = Array.from({ length: 10 }, (_, i) => String(i));
 const sanitizePoints = (v) => (v ?? '').toString().replace(/\D/g, '').slice(0, 6);
 
 const JodiBulkBid = ({ market, title }) => {
+    const { t } = useTranslation();
+    const { allowed: bettingAllowed } = useBettingWindow();
     const cellRefs = useRef({});
     const pendingFocusRef = useRef(null);
 
@@ -205,7 +208,7 @@ const JodiBulkBid = ({ market, title }) => {
     const blockInputDesktopClass = 'no-spinner h-8 w-full min-w-0 rounded-md border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d] px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20';
     const cellInputMobileClass = (hasBet) => `no-spinner h-6 sm:h-7 w-full rounded-[2px] px-0.5 sm:px-1 text-center text-[10px] sm:text-xs font-semibold text-gray-900 dark:text-red-200 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-gray-50 dark:bg-[#1b1d22]' : 'border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d]'}`;
     const cellInputDesktopClass = (hasBet) => `no-spinner h-8 w-full min-w-0 rounded-l-none rounded-r-md px-2 text-center text-[11px] font-semibold text-gray-900 dark:text-red-200 placeholder:text-center placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-red-400 dark:focus:ring-white/20 ${hasBet ? 'border border-red-300 dark:border-white/25 bg-gray-50 dark:bg-[#1b1d22]' : 'border border-gray-200 dark:border-white/20 bg-white dark:bg-[#17191d]'}`;
-    const cellBadgeClass = (hasBet) => `h-8 w-8 rounded-l-md rounded-r-none px-1 text-[10px] font-bold tracking-wide ${hasBet ? 'bg-red-600 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
+    const cellBadgeClass = (hasBet) => `h-8 w-6 min-w-[24px] max-w-[24px] rounded-l-md rounded-r-none px-0 text-[9px] font-bold tracking-tight ${hasBet ? 'bg-red-600 text-white' : 'bg-gradient-to-br from-red-700 to-red-600 text-white'}`;
 
     const applyRow = (r, pts) => {
         const p = Number(pts);
@@ -372,12 +375,10 @@ const JodiBulkBid = ({ market, title }) => {
             displayDate={displayDate}
             selectedDate={selectedDate}
             setSelectedDate={handleDateChange}
-            showInlineStats
-            extraHeader={<BidDesktopStats count={rows.length} amount={totalPoints} />}
             onSubmit={handleSubmitBet}
             submitLabel="Submit Bet"
             walletBalance={walletBefore}
-            hideFooter={false}
+            hideFooter
             compactContent
             contentPaddingClass="pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-6"
         >
@@ -401,6 +402,26 @@ const JodiBulkBid = ({ market, title }) => {
                     <button type="button" onClick={handleFormClear} className={clearBtnClass}>
                         Clear
                     </button>
+                    <div className="hidden md:flex items-center gap-4 shrink-0 ml-1 pl-3 border-l border-gray-200 dark:border-white/15">
+                        <div className="text-center min-w-[3rem]">
+                            <div className={`${bidStatLabel} normal-case text-[11px]`}>{t('gameBid.bets', { defaultValue: 'Bets' })}</div>
+                            <div className={`${bidStatValue} text-base leading-tight tabular-nums`}>{rows.length}</div>
+                        </div>
+                        <div className="text-center min-w-[3rem]">
+                            <div className={`${bidStatLabel} normal-case text-[11px]`}>{t('gameBid.points', { defaultValue: 'Points' })}</div>
+                            <div className={`${bidStatValue} text-base leading-tight tabular-nums`}>{totalPoints}</div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleSubmitBet}
+                            disabled={!canSubmit || !bettingAllowed}
+                            className={`shrink-0 py-2 px-5 rounded-xl text-sm font-bold ${bidSubmitBtn} ${
+                                canSubmit && bettingAllowed ? '' : 'opacity-50 cursor-not-allowed'
+                            }`}
+                        >
+                            {t('gameBid.submitBet', { defaultValue: 'Submit Bet' })}
+                        </button>
+                    </div>
                 </div>
                 <div className={panelClass}>
                     <div className={mobileGridClass}>
@@ -514,7 +535,7 @@ const JodiBulkBid = ({ market, title }) => {
                                 BLOCK
                             </div>
                             {visibleDigits.map((c) => (
-                                <div key={`desktop-col-${c}`} className="grid grid-cols-[32px_minmax(0,1fr)] gap-0 min-w-0">
+                                <div key={`desktop-col-${c}`} className="grid grid-cols-[24px_minmax(0,1fr)] gap-0 min-w-0">
                                     <div />
                                     <input
                                         type="text"
@@ -579,7 +600,7 @@ const JodiBulkBid = ({ market, title }) => {
                                         const key = `${r}${c}`;
                                         const hasBet = Number(cells[key] || 0) > 0;
                                         return (
-                                            <div key={`desktop-${key}`} className="ml-8 grid w-[calc(100%-32px)] grid-cols-[32px_minmax(0,1fr)] min-w-0">
+                                            <div key={`desktop-${key}`} className="ml-6 grid w-[calc(100%-24px)] grid-cols-[24px_minmax(0,1fr)] min-w-0">
                                                 <button
                                                     type="button"
                                                     onClick={() => applyQuickPointToCell(key)}
