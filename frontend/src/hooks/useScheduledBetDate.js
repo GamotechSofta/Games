@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getTomorrowIST, isBettingAllowed } from '../utils/marketTiming';
+import { getTodayIST, getTomorrowIST, isBettingAllowed } from '../utils/marketTiming';
 import {
   getBetDisplayDate,
   getInitialBetDateIso,
@@ -29,11 +29,20 @@ export function useScheduledBetDate() {
   const [selectedDate, setSelectedDateState] = useState(() => getInitialBetDateIso(scheduleForTomorrow));
 
   useEffect(() => {
-    if (!scheduleForTomorrow) return;
-    const tomorrow = getTomorrowIST();
-    setSelectedDateState(tomorrow);
+    if (scheduleForTomorrow) {
+      const tomorrow = getTomorrowIST();
+      setSelectedDateState(tomorrow);
+      try {
+        localStorage.setItem('betSelectedDate', tomorrow);
+      } catch {
+        // ignore
+      }
+      return;
+    }
+    const today = getTodayIST();
+    setSelectedDateState(today);
     try {
-      localStorage.setItem('betSelectedDate', tomorrow);
+      localStorage.removeItem('betSelectedDate');
     } catch {
       // ignore
     }
@@ -42,15 +51,19 @@ export function useScheduledBetDate() {
   const setSelectedDate = useCallback((nextDate) => {
     setSelectedDateState(nextDate);
     try {
-      localStorage.setItem('betSelectedDate', nextDate);
+      if (scheduleForTomorrow) {
+        localStorage.setItem('betSelectedDate', nextDate);
+      } else {
+        localStorage.removeItem('betSelectedDate');
+      }
     } catch {
       // ignore
     }
-  }, []);
+  }, [scheduleForTomorrow]);
 
   const scheduledDateForApi = useMemo(
-    () => resolveScheduledDateForPlaceBet(scheduleForTomorrow, selectedDate),
-    [scheduleForTomorrow, selectedDate],
+    () => resolveScheduledDateForPlaceBet(scheduleForTomorrow),
+    [scheduleForTomorrow],
   );
 
   const reviewDateText = useMemo(

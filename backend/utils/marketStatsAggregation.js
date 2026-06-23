@@ -66,12 +66,17 @@ export function buildMarketStatsMatch({
     startOfTomorrowIST,
     endOfTomorrowIST,
 }) {
-    const oid = mongoose.Types.ObjectId.isValid(String(marketId))
-        ? new mongoose.Types.ObjectId(String(marketId))
-        : marketId;
+    const idStr = String(marketId);
+    const oid = mongoose.Types.ObjectId.isValid(idStr)
+        ? new mongoose.Types.ObjectId(idStr)
+        : null;
+
+    const marketIdClause = oid
+        ? { $or: [{ marketId: oid }, { marketId: idStr }] }
+        : { marketId: idStr };
 
     const match = {
-        marketId: oid,
+        ...marketIdClause,
         status: { $ne: 'cancelled' },
         $or: [
             {

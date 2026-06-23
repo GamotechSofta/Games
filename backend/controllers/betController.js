@@ -172,23 +172,37 @@ export const placeBet = async (req, res) => {
         let scheduledDateObj = null;
         let isScheduled = false;
         if (scheduledDate) {
-            scheduledDateObj = new Date(scheduledDate);
+            const schedStr = String(scheduledDate).trim().slice(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(schedStr)) {
+                scheduledDateObj = new Date(`${schedStr}T00:00:00+05:30`);
+            } else {
+                scheduledDateObj = new Date(scheduledDate);
+            }
             if (isNaN(scheduledDateObj.getTime())) {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid scheduledDate format',
                 });
             }
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-            scheduledDateObj.setHours(0, 0, 0, 0);
-            if (scheduledDateObj < now) {
+            const schedKey = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(scheduledDateObj);
+            const todayKey = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+            }).format(new Date());
+            if (schedKey < todayKey) {
                 return res.status(400).json({
                     success: false,
                     message: 'Scheduled date must be today or in the future',
                 });
             }
-            isScheduled = true;
+            isScheduled = schedKey > todayKey;
         }
 
         let wallet = await Wallet.findOneAndUpdate(
@@ -216,8 +230,8 @@ export const placeBet = async (req, res) => {
         }
 
         const betDocs = sanitized.map(({ betType, betNumber, amount, betOn }) => ({
-            userId,
-            marketId,
+            userId: new mongoose.Types.ObjectId(userId),
+            marketId: new mongoose.Types.ObjectId(marketId),
             betOn,
             betType,
             betNumber,

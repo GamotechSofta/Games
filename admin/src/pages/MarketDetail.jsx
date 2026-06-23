@@ -19,6 +19,36 @@ const formatTime = (timeStr) => {
 
 const formatNum = (n) => (n != null && Number.isFinite(n) ? Number(n).toLocaleString('en-IN') : '0');
 
+const countMarketStatsBets = (stats) => {
+    if (!stats) return 0;
+    return (
+        (stats.singleDigit?.totalBets ?? 0) +
+        (stats.jodi?.totalBets ?? 0) +
+        (stats.singlePatti?.totalBets ?? 0) +
+        (stats.doublePatti?.totalBets ?? 0) +
+        (stats.triplePatti?.totalBets ?? 0) +
+        (stats.halfSangam?.totalBets ?? 0) +
+        (stats.fullSangam?.totalBets ?? 0)
+    );
+};
+
+const countOpenSessionBets = (stats) => {
+    if (!stats) return 0;
+    const open = stats.bySession?.open || stats;
+    return (
+        (open.singleDigit?.totalBets ?? 0) +
+        (open.singlePatti?.totalBets ?? 0) +
+        (open.doublePatti?.totalBets ?? 0) +
+        (open.triplePatti?.totalBets ?? 0)
+    );
+};
+
+const countCloseSessionBets = (stats) => {
+    if (!stats) return 0;
+    const close = stats.bySession?.close || stats;
+    return countMarketStatsBets(close);
+};
+
 /** Remove "testing market" from King Bazaar/Starline market names for display */
 const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
 
@@ -926,10 +956,32 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
             const d = statsJson.data;
             const isStartline = d?.market?.marketType === 'startline';
             const hasOpenDeclared = d?.market?.openingNumber && /^\d{3}$/.test(String(d.market.openingNumber));
+            const todayStats = d?.byDate?.today ?? d;
+            const tomorrowStats = d?.byDate?.tomorrow;
+            const todayBetCount = countMarketStatsBets(todayStats);
+            const tomorrowBetCount = countMarketStatsBets(tomorrowStats);
+            const todayOpenBets = countOpenSessionBets(todayStats);
+            const todayCloseBets = countCloseSessionBets(todayStats);
+
             if (initialStatusSetForMarketId.current !== marketId) {
                 initialStatusSetForMarketId.current = marketId;
             }
-            setStatusView(isStartline ? 'open' : (hasOpenDeclared ? 'closed' : 'open'));
+
+            if (tomorrowBetCount > 0 && todayBetCount === 0) {
+                setDateView('tomorrow');
+            } else {
+                setDateView('today');
+            }
+
+            if (isStartline) {
+                setStatusView('open');
+            } else if (hasOpenDeclared) {
+                setStatusView('closed');
+            } else if (todayOpenBets === 0 && todayCloseBets > 0) {
+                setStatusView('closed');
+            } else {
+                setStatusView('open');
+            }
             setSinglePattiSummary(statsJson.data?.singlePattiSummary || null);
         } catch (err) {
             setError('Network error. Please try again.');

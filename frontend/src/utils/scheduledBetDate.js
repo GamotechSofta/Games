@@ -3,22 +3,13 @@ import { formatDateDisplay, getTodayIST, getTomorrowIST } from './marketTiming';
 /** Default date picker value (YYYY-MM-DD, IST). */
 export function getInitialBetDateIso(scheduleForTomorrow = false) {
   if (scheduleForTomorrow) return getTomorrowIST();
-  try {
-    const saved = localStorage.getItem('betSelectedDate');
-    const today = getTodayIST();
-    if (saved && /^\d{4}-\d{2}-\d{2}$/.test(saved) && saved > today) return saved;
-  } catch {
-    // ignore
-  }
   return getTodayIST();
 }
 
-/** API scheduledDate when placing bet (null = today / immediate window). */
-export function resolveScheduledDateForPlaceBet(scheduleForTomorrow, selectedDate) {
-  const today = getTodayIST();
+/** API scheduledDate when placing bet (null = today's run, not scheduled). */
+export function resolveScheduledDateForPlaceBet(scheduleForTomorrow) {
   if (scheduleForTomorrow) return getTomorrowIST();
-  const iso = String(selectedDate || '').trim().slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(iso) && iso > today ? iso : null;
+  return null;
 }
 
 /** dd/mm/yyyy for review modal title. */
