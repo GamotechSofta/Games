@@ -3,6 +3,7 @@ import Bet from '../models/bet/bet.js';
 import Market from '../models/market/market.js';
 import { getRatesMap } from '../models/rate/rate.js';
 import { isSinglePatti, isDoublePatti } from './singlePattiUtils.js';
+import { getAllChartPannas } from './chartPannaCatalog.js';
 import {
     computeDeclaredOpenWinPayout,
     computeClosePreviewFromBets,
@@ -223,94 +224,29 @@ function formatPattiDisplay(patti, profitPct) {
     return `${patti} (${profitPct.toFixed(2)}%)`;
 }
 
-/**
- * Scan played chart pannas and compute house profit % if each were declared as the session result.
- * @param {string} marketId
- * @param {{ session?: 'open'|'close', dateBucket?: 'today'|'tomorrow', bookieUserIds?: string[]|null, targetProfit?: number, tolerance?: number, playedPattis?: string[] }} options
- */
-export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
-    const oid = toObjectId(marketId);
-    const session = options.session === 'close' ? 'close' : 'open';
-    const dateBucket = options.dateBucket === 'tomorrow' ? 'tomorrow' : 'today';
-    const targetProfit = Number(options.targetProfit);
-    const tolerance = Number(options.tolerance) || 0;
-    const bookieUserIds = options.bookieUserIds;
-    const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
-
-    const emptyResult = {
-        session,
-        dateBucket,
-        stakeTotal: 0,
-        loss: { count: 0, minPercent: null, maxPercent: null, pattis: [] },
-        bands: PROFIT_BANDS.map((b) => ({ band: b.label, pattis: [] })),
-        matches: [],
-        viewLabel: session === 'open' ? 'Open bets only' : 'Closed bets only',
-    };
-
-    if (!oid) return emptyResult;
-
-    const market = await Market.findById(oid).select('startingTime openingNumber').lean();
-    if (!market) return emptyResult;
-
-    const todayKey = toDateKeyIST(new Date());
-    const tomorrowKey = getTomorrowKeyIST(todayKey);
-    const startMin = parseHHMMForSession(market.startingTime);
-    const marketIdStr = String(marketId).trim();
-
-    const match = {
-        $or: [{ marketId: oid }, { marketId: marketIdStr }],
-        status: { $ne: 'cancelled' },
-        ...buildDateBucketFilter(dateBucket),
-    };
-    if (hasBookieFilter) match.userId = { $in: bookieUserIds };
-
-    const allBets = await Bet.find(match).lean();
-    const dateFilteredBets = allBets.filter(
-        (b) => getBetDateBucket(b, todayKey, tomorrowKey) === dateBucket,
-    );
-    const scopedBets = dateFilteredBets.filter(
-        (b) => resolveBetSession(b, startMin) === session,
-    );
-
-    const rates = await getRatesMap();
-
+function collectPlayedPannas(scopedBets, extraPattis = []) {
     const playedPannas = new Set();
     for (const bet of scopedBets) {
         const p3 = extractChartPannaFromBet(bet);
         if (p3) playedPannas.add(p3);
     }
-    for (const raw of options.playedPattis || []) {
+    for (const raw of extraPattis) {
         const p3 = normalizeChartPanna3(raw);
         if (p3) playedPannas.add(p3);
     }
+    return playedPannas;
+}
 
-    const open3Declared = (market.openingNumber || '').toString();
-    let stakeTotal = 0;
-
-    if (session === 'open') {
-        stakeTotal = round2(
-            dateFilteredBets
-                .filter((b) => resolveBetSession(b, startMin) === 'open')
-                .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
-        );
-    } else {
-        if (!/^\d{3}$/.test(open3Declared)) {
-            return { ...emptyResult, error: 'Open result must be declared before scanning close-session profit.' };
-        }
-        stakeTotal = round2(
-            dateFilteredBets
-                .filter((b) => isCloseSettlePoolBet(b))
-                .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
-        );
-    }
-
-    const openDeclareBets = dateFilteredBets.filter(
-        (b) => (b.betOn || '').toString().toLowerCase() !== 'close',
-    );
-
+function computePannaResults(candidates, {
+    session,
+    stakeTotal,
+    openDeclareBets,
+    dateFilteredBets,
+    open3Declared,
+    rates,
+}) {
     const pannaResults = [];
-
-    for (const panna of playedPannas) {
+    for (const panna of candidates) {
         let profit;
         let profitPct;
 
@@ -333,9 +269,11 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
 
         pannaResults.push({ patti: panna, profit, profitPercent: profitPct });
     }
-
     pannaResults.sort((a, b) => b.profitPercent - a.profitPercent);
+    return pannaResults;
+}
 
+function buildBandsFromResults(pannaResults) {
     const lossPattis = pannaResults.filter((r) => isHouseLoss(r.profit));
     const loss = {
         count: lossPattis.length,
@@ -367,27 +305,137 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
         pattis: bandMap[b.label] || [],
     }));
 
-    const matches = Number.isFinite(targetProfit)
-        ? pannaResults
-            .filter((r) => matchesTarget(r.profitPercent, targetProfit, tolerance))
-            .map((r) => ({
-                patti: r.patti,
-                profitPercent: r.profitPercent,
-                display: formatPattiDisplay(r.patti, r.profitPercent),
-            }))
-        : [];
-
     return {
-        session,
-        dateBucket,
-        stakeTotal,
-        totalCalculated: pannaResults.length,
+        loss,
+        bands,
         allPattis: pannaResults.map((r) => ({
             patti: r.patti,
             profit: r.profit,
             profitPercent: r.profitPercent,
             display: formatPattiDisplay(r.patti, r.profitPercent),
         })),
+    };
+}
+
+function buildMatchesFromResults(pannaResults, targetProfit, tolerance) {
+    if (!Number.isFinite(targetProfit)) return [];
+    return pannaResults
+        .filter((r) => matchesTarget(r.profitPercent, targetProfit, tolerance))
+        .sort((a, b) => {
+            const da = Math.abs(round2(a.profitPercent) - round2(targetProfit));
+            const db = Math.abs(round2(b.profitPercent) - round2(targetProfit));
+            return da - db || b.profitPercent - a.profitPercent;
+        })
+        .map((r) => ({
+            patti: r.patti,
+            profitPercent: r.profitPercent,
+            display: formatPattiDisplay(r.patti, r.profitPercent),
+        }));
+}
+
+/**
+ * House profit scan for Market Detail.
+ * - Find pannas: played chart pannas only (target ± tolerance)
+ * - Bucket table: all chart pannas (SP list + valid double + triple)
+ */
+export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
+    const oid = toObjectId(marketId);
+    const session = options.session === 'close' ? 'close' : 'open';
+    const dateBucket = options.dateBucket === 'tomorrow' ? 'tomorrow' : 'today';
+    const targetProfit = Number(options.targetProfit);
+    const tolerance = Number(options.tolerance) || 0;
+    const bookieUserIds = options.bookieUserIds;
+    const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
+
+    const emptyResult = {
+        session,
+        dateBucket,
+        stakeTotal: 0,
+        loss: { count: 0, minPercent: null, maxPercent: null, pattis: [] },
+        bands: PROFIT_BANDS.map((b) => ({ band: b.label, pattis: [] })),
+        matches: [],
+        playedCount: 0,
+        chartPannaCount: getAllChartPannas().length,
+        totalCalculated: getAllChartPannas().length,
+        allPattis: [],
+        viewLabel: session === 'open' ? 'Open bets only' : 'Closed bets only',
+    };
+
+    if (!oid) return emptyResult;
+
+    const market = await Market.findById(oid).select('startingTime openingNumber').lean();
+    if (!market) return emptyResult;
+
+    const todayKey = toDateKeyIST(new Date());
+    const tomorrowKey = getTomorrowKeyIST(todayKey);
+    const startMin = parseHHMMForSession(market.startingTime);
+    const marketIdStr = String(marketId).trim();
+
+    const match = {
+        $or: [{ marketId: oid }, { marketId: marketIdStr }],
+        status: { $ne: 'cancelled' },
+        ...buildDateBucketFilter(dateBucket),
+    };
+    if (hasBookieFilter) match.userId = { $in: bookieUserIds };
+
+    const allBets = await Bet.find(match).lean();
+    const dateFilteredBets = allBets.filter(
+        (b) => getBetDateBucket(b, todayKey, tomorrowKey) === dateBucket,
+    );
+    const scopedBets = dateFilteredBets.filter(
+        (b) => resolveBetSession(b, startMin) === session,
+    );
+
+    const rates = await getRatesMap();
+    const playedPannas = collectPlayedPannas(scopedBets, options.playedPattis || []);
+    const chartPannas = getAllChartPannas();
+
+    const open3Declared = (market.openingNumber || '').toString();
+    let stakeTotal = 0;
+
+    if (session === 'open') {
+        stakeTotal = round2(
+            dateFilteredBets
+                .filter((b) => resolveBetSession(b, startMin) === 'open')
+                .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
+        );
+    } else {
+        if (!/^\d{3}$/.test(open3Declared)) {
+            return { ...emptyResult, error: 'Open result must be declared before scanning close-session profit.' };
+        }
+        stakeTotal = round2(
+            dateFilteredBets
+                .filter((b) => isCloseSettlePoolBet(b))
+                .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
+        );
+    }
+
+    const openDeclareBets = dateFilteredBets.filter(
+        (b) => (b.betOn || '').toString().toLowerCase() !== 'close',
+    );
+
+    const scanCtx = {
+        session,
+        stakeTotal,
+        openDeclareBets,
+        dateFilteredBets,
+        open3Declared,
+        rates,
+    };
+
+    const playedResults = computePannaResults([...playedPannas], scanCtx);
+    const chartResults = computePannaResults(chartPannas, scanCtx);
+    const { loss, bands, allPattis } = buildBandsFromResults(chartResults);
+    const matches = buildMatchesFromResults(playedResults, targetProfit, tolerance);
+
+    return {
+        session,
+        dateBucket,
+        stakeTotal,
+        playedCount: playedResults.length,
+        chartPannaCount: chartResults.length,
+        totalCalculated: chartResults.length,
+        allPattis,
         loss,
         bands,
         matches,

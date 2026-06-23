@@ -772,22 +772,63 @@ const TargetHouseProfitSection = ({
         return s;
     }, [scanData?.matches]);
 
-    const renderPattiCell = (pattis) => {
+    const pattiTypeLabel = (patti) => {
+        const s = String(patti || '');
+        if (!/^\d{3}$/.test(s)) return 'Single patti';
+        if (s[0] === s[1] && s[1] === s[2]) return 'Triple patti';
+        if (s[0] === s[1] || s[1] === s[2] || s[0] === s[2]) return 'Double patti';
+        return 'Single patti';
+    };
+
+    const profitByPatti = useMemo(() => {
+        const map = new Map();
+        for (const row of scanData?.allPattis || []) {
+            map.set(String(row.patti), Number(row.profit) || 0);
+        }
+        return map;
+    }, [scanData?.allPattis]);
+
+    const renderPattiGroups = (pattis) => {
         if (!pattis?.length) return <span className="text-gray-500">—</span>;
+        const grouped = {
+            'Single patti': [],
+            'Double patti': [],
+            'Triple patti': [],
+        };
+        for (const p of pattis) {
+            const label = pattiTypeLabel(p.patti);
+            grouped[label].push(p);
+        }
+
         return (
-            <div className="flex flex-wrap gap-1.5">
-                {pattis.map((p) => (
-                    <span
-                        key={p.patti}
-                        className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${
-                            matchSet.has(p.patti)
-                                ? 'border-amber-400 bg-amber-500/20 text-amber-300 font-semibold'
-                                : 'border-gray-600 bg-gray-700/50 text-gray-200'
-                        }`}
-                    >
-                        {p.display || `${p.patti} (${Number(p.profitPercent).toFixed(2)}%)`}
-                    </span>
-                ))}
+            <div className="space-y-2.5">
+                {Object.entries(grouped).map(([label, items]) => {
+                    if (!items.length) return null;
+                    return (
+                        <div key={label}>
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-300 mb-1">{label}</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {items.map((p) => {
+                                    const profitPct = Number(p.profitPercent) || 0;
+                                    const profit = profitByPatti.get(String(p.patti)) ?? 0;
+                                    const profitSign = profit > 0 ? '+' : '';
+                                    return (
+                                        <span
+                                            key={`${label}-${p.patti}`}
+                                            className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${
+                                                matchSet.has(p.patti)
+                                                    ? 'border-amber-400 bg-amber-500/20 text-amber-300 font-semibold'
+                                                    : 'border-gray-600 bg-gray-700/50 text-gray-200'
+                                            }`}
+                                        >
+                                            {p.patti} · {profitPct % 1 === 0 ? profitPct.toFixed(0) : profitPct.toFixed(2)}% · ₹{profitSign}{formatNum(profit)}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         );
     };
@@ -796,9 +837,9 @@ const TargetHouseProfitSection = ({
         <div className="space-y-4">
             <SectionCard title="Target house profit %">
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    Enter target house profit % (e.g. 60). We only check 3-digit pannas that players actually played (panna / patti tickets).
-                    Result numbers are only those played numbers whose declare preview hits your target. Tolerance 0 means exact match on the same
-                    two-decimal % as the table below (e.g. 9.58). This scan always uses open-session bets (opening declare preview).
+                    <strong className="text-gray-300">Find pannas</strong> checks only 3-digit pannas that players actually played (panna / patti tickets).
+                    For each played panna we simulate declare preview: house profit % = (total bet pool − total payout) / total bet pool × 100.
+                    Results matching target ± tolerance are highlighted in the bucket table below.
                 </p>
                 <div className="flex flex-wrap items-end gap-3 mb-3">
                     <label className="flex flex-col gap-1 min-w-[120px]">
@@ -843,8 +884,11 @@ const TargetHouseProfitSection = ({
                 )}
                 {scanData?.matches?.length > 0 && (
                     <p className="text-xs text-amber-400 mt-2">
-                        {scanData.matches.length} panna{scanData.matches.length !== 1 ? 's' : ''} match target ± tolerance (highlighted below).
+                        {scanData.matches.length} played panna{scanData.matches.length !== 1 ? 's' : ''} match target ± tolerance (highlighted in table below).
                     </p>
+                )}
+                {!scanLoading && scanData && scanData.playedCount === 0 && (
+                    <p className="text-xs text-gray-500 mt-2">No played chart pannas in this view yet — Find pannas will be empty until players bet on patti numbers.</p>
                 )}
             </SectionCard>
 
@@ -853,15 +897,17 @@ const TargetHouseProfitSection = ({
                 subtitle="Open-session bets only (opening declare preview)."
             >
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100. Within each band, pattis are sorted by actual profit % (highest first).
-                    If the house would lose on some chart outcomes, they appear in the red Loss section above 0–10%, with count and % range.
-                    Only chart pannas are included (SP single list, valid double, triple).
+                    <strong className="text-gray-300">Bucket table</strong> scans all chart pannas (SP single list, valid double, triple) — not played-only.
+                    Each panna is checked with the same declare preview formula. Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100.
+                    Within each band, pattis are sorted by actual profit % (highest first). Loss outcomes (profit &lt; 0) appear in the red section above 0–10%.
                 </p>
                 {!scanLoading && scanData && (
                     <p className="text-xs text-amber-400/90 mb-3">
-                        {scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} played patti
-                        {(scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} auto-calculated
-                        {playedPattis.length > 0 && ` (from ${playedPattis.length} on this page)`}.
+                        {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} chart panna
+                        {(scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} auto-calculated
+                        {scanData.playedCount != null && (
+                            <> · {scanData.playedCount} played on this market{playedPattis.length > 0 ? ` (${playedPattis.length} from page stats)` : ''}</>
+                        )}.
                     </p>
                 )}
 
@@ -873,16 +919,15 @@ const TargetHouseProfitSection = ({
 
                 {!scanLoading && scanData?.loss?.count > 0 && (
                     <div className="mb-3 rounded-lg border border-red-700/60 bg-red-900/20 p-3">
-                        <p className="text-sm font-semibold text-red-400 mb-1">
-                            Loss ({scanData.loss.count} patti{scanData.loss.count !== 1 ? 's' : ''}
+                        <p className="text-sm font-semibold text-red-400 mb-1">Loss</p>
+                        <p className="text-[11px] text-red-300/90 mb-1.5">House profit below 0%</p>
+                        <p className="text-xs text-red-300/90 mb-2">
+                            {scanData.loss.count} panna outcome{scanData.loss.count !== 1 ? 's' : ''}
                             {scanData.loss.minPercent != null && scanData.loss.maxPercent != null && (
-                                <span className="font-normal text-red-300/90">
-                                    {' '}· {scanData.loss.minPercent.toFixed(2)}% to {scanData.loss.maxPercent.toFixed(2)}%
-                                </span>
+                                <> · house profit % from {scanData.loss.minPercent.toFixed(2)}% to {scanData.loss.maxPercent.toFixed(2)}%</>
                             )}
-                            )
                         </p>
-                        {renderPattiCell(scanData.loss.pattis)}
+                        {renderPattiGroups(scanData.loss.pattis)}
                     </div>
                 )}
 
@@ -910,7 +955,7 @@ const TargetHouseProfitSection = ({
                                 ]).map((row) => (
                                     <tr key={row.band} className="border-b border-gray-700 align-top">
                                         <td className="py-2 px-2.5 font-medium text-amber-400 whitespace-nowrap">{row.band}</td>
-                                        <td className="py-2 px-2.5">{renderPattiCell(row.pattis)}</td>
+                                        <td className="py-2 px-2.5">{renderPattiGroups(row.pattis)}</td>
                                     </tr>
                                 ))}
                             </tbody>
