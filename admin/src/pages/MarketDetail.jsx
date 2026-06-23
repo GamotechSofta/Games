@@ -117,9 +117,29 @@ const isSinglePatti = (patti) => {
 
 /** Ank = (d1+d2+d3) % 10 — same as user-side grouping */
 const getAnk = (patti) => {
-    const s = String(patti).trim();
-    if (s.length !== 3 || !/^\d{3}$/.test(s)) return null;
+    const s = normalizePattiKey(patti);
+    if (!s) return null;
     return (Number(s[0]) + Number(s[1]) + Number(s[2])) % 10;
+};
+
+/** API keys may be unpadded (e.g. "12" vs "012"); panels always use 3-digit patti. */
+const normalizePattiKey = (patti) => {
+    const s = String(patti ?? '').trim();
+    if (/^\d{1,3}$/.test(s)) return s.padStart(3, '0');
+    if (/^\d{3}$/.test(s)) return s;
+    return null;
+};
+
+const normalizePattiItems = (items = {}) => {
+    const out = {};
+    for (const [rawKey, v] of Object.entries(items || {})) {
+        const key = normalizePattiKey(rawKey);
+        if (!key) continue;
+        if (!out[key]) out[key] = { amount: 0, count: 0 };
+        out[key].amount += Number(v?.amount ?? v?.totalAmount) || 0;
+        out[key].count += Number(v?.count ?? v?.totalBets ?? v?.totalCount) || 0;
+    }
+    return out;
 };
 
 /** Same Single Panna list by sum digit (0–9) as user side (SinglePanaBulkBid) */
@@ -146,8 +166,8 @@ const buildSinglePattiByAnk = (items = {}) => {
         byAnk[key] = { pattis: (SINGLE_PANA_BY_ANK[key] || []).map((p) => ({ patti: p, amount: 0, count: 0 })), totalAmount: 0, totalBets: 0 };
     }
     for (const [patti, v] of Object.entries(items)) {
-        const pattiStr = String(patti ?? '').trim();
-        if (pattiStr.length !== 3 || !/^\d{3}$/.test(pattiStr)) continue;
+        const pattiStr = normalizePattiKey(patti);
+        if (!pattiStr) continue;
         const ank = getAnk(pattiStr);
         if (ank === null) continue;
         const key = String(ank);
@@ -218,8 +238,8 @@ const buildDoublePattiByAnk = (items = {}) => {
         byAnk[key] = { pattis: (DOUBLE_PANA_BY_ANK[key] || []).map((p) => ({ patti: p, amount: 0, count: 0 })), totalAmount: 0, totalBets: 0 };
     }
     for (const [patti, v] of Object.entries(items)) {
-        const pattiStr = String(patti ?? '').trim();
-        if (pattiStr.length !== 3 || !/^\d{3}$/.test(pattiStr)) continue;
+        const pattiStr = normalizePattiKey(patti);
+        if (!pattiStr) continue;
         const ank = getAnk(pattiStr);
         if (ank === null) continue;
         const key = String(ank);
@@ -247,6 +267,47 @@ const getDoublePattiTotalsFromByAnk = (byAnk) => {
     }
     return { totalAmount, totalBets };
 };
+
+const sumBucketItems = (items = {}) => {
+    let totalAmount = 0;
+    let totalBets = 0;
+    for (const v of Object.values(items || {})) {
+        totalAmount += Number(v?.amount ?? v?.totalAmount) || 0;
+        totalBets += Number(v?.count ?? v?.totalBets ?? v?.totalCount) || 0;
+    }
+    return { totalAmount, totalBets };
+};
+
+const sumSingleDigitBucket = (bucket = {}) => {
+    const fromDigits = sumBucketItems(bucket.digits);
+    return {
+        totalAmount: Math.max(Number(bucket?.totalAmount) || 0, fromDigits.totalAmount),
+        totalBets: Math.max(Number(bucket?.totalBets) || 0, fromDigits.totalBets),
+    };
+};
+
+/** Max of API bucket total, sum(items), and ank-derived totals — 0 is valid, not a signal to skip. */
+const getViewCategoryTotals = (bucket, derivedTotals = {}) => {
+    const fromItems = sumBucketItems(bucket?.items);
+    const fromApi = {
+        totalAmount: Number(bucket?.totalAmount) || 0,
+        totalBets: Number(bucket?.totalBets) || 0,
+    };
+    const fromDerived = {
+        totalAmount: Number(derivedTotals?.totalAmount) || 0,
+        totalBets: Number(derivedTotals?.totalBets) || 0,
+    };
+    return {
+        totalAmount: Math.max(fromApi.totalAmount, fromItems.totalAmount, fromDerived.totalAmount),
+        totalBets: Math.max(fromApi.totalBets, fromItems.totalBets, fromDerived.totalBets),
+    };
+};
+
+const countPattiBucketBets = (stats) => (
+    (stats?.singlePatti?.totalBets ?? 0) +
+    (stats?.doublePatti?.totalBets ?? 0) +
+    (stats?.triplePatti?.totalBets ?? 0)
+);
 
 /** Parse Half Sangam key "156-6" or "6-156" into human-readable label */
 const getHalfSangamLabel = (key) => {
@@ -981,6 +1042,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     /** 'today' | 'tomorrow' – which day's bets to show in overview */
     const [dateView, setDateView] = useState('today');
     const initialStatusSetForMarketId = React.useRef(null);
+    const userPickedStatusView = React.useRef(false);
 
     const fetchStats = async () => {
         if (!marketId) return;
@@ -1008,8 +1070,10 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
             const todayOpenBets = countOpenSessionBets(todayStats);
             const todayCloseBets = countCloseSessionBets(todayStats);
 
-            if (initialStatusSetForMarketId.current !== marketId) {
+            const isNewMarket = initialStatusSetForMarketId.current !== marketId;
+            if (isNewMarket) {
                 initialStatusSetForMarketId.current = marketId;
+                userPickedStatusView.current = false;
             }
 
             if (tomorrowBetCount > 0 && todayBetCount === 0) {
@@ -1018,14 +1082,31 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                 setDateView('today');
             }
 
-            if (isStartline) {
-                setStatusView('open');
-            } else if (hasOpenDeclared) {
-                setStatusView('closed');
-            } else if (todayOpenBets === 0 && todayCloseBets > 0) {
-                setStatusView('closed');
-            } else {
-                setStatusView('open');
+            if (!userPickedStatusView.current) {
+                const todayStatsBySession = todayStats?.bySession;
+                const openPattiBets = countPattiBucketBets(todayStatsBySession?.open);
+                const closePattiBets = countPattiBucketBets(todayStatsBySession?.close);
+
+                if (isStartline) {
+                    setStatusView('open');
+                } else if (hasOpenDeclared) {
+                    // Prefer the session that actually has patti/digit bets visible
+                    if (todayOpenBets > 0 && todayCloseBets === 0) {
+                        setStatusView('open');
+                    } else if (todayCloseBets > 0 && todayOpenBets === 0) {
+                        setStatusView('closed');
+                    } else if (openPattiBets > 0 && closePattiBets === 0) {
+                        setStatusView('open');
+                    } else if (closePattiBets > 0 && openPattiBets === 0) {
+                        setStatusView('closed');
+                    } else {
+                        setStatusView(todayCloseBets >= todayOpenBets ? 'closed' : 'open');
+                    }
+                } else if (todayOpenBets === 0 && todayCloseBets > 0) {
+                    setStatusView('closed');
+                } else {
+                    setStatusView('open');
+                }
             }
             setSinglePattiSummary(statsJson.data?.singlePattiSummary || null);
         } catch (err) {
@@ -1061,8 +1142,18 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     const isKingBazaarMarket = data?.market?.marketType === 'king';
     const viewStats = (isStartlineMarket ? 'open' : statusView) === 'open' ? statsOpen : statsClose;
 
-    const viewSinglePattiItems = viewStats?.singlePatti?.items || {};
-    const viewDoublePattiItems = viewStats?.doublePatti?.items || {};
+    const viewSinglePattiItems = useMemo(
+        () => normalizePattiItems(viewStats?.singlePatti?.items),
+        [viewStats?.singlePatti?.items],
+    );
+    const viewDoublePattiItems = useMemo(
+        () => normalizePattiItems(viewStats?.doublePatti?.items),
+        [viewStats?.doublePatti?.items],
+    );
+    const viewTriplePattiItems = useMemo(
+        () => normalizePattiItems(viewStats?.triplePatti?.items),
+        [viewStats?.triplePatti?.items],
+    );
     const playedOpenPattis = useMemo(
         () => collectPlayedPattis(
             statsOpen?.singlePatti?.items,
@@ -1070,6 +1161,14 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
             statsOpen?.triplePatti?.items,
         ),
         [statsOpen?.singlePatti?.items, statsOpen?.doublePatti?.items, statsOpen?.triplePatti?.items],
+    );
+    const playedClosePattis = useMemo(
+        () => collectPlayedPattis(
+            statsClose?.singlePatti?.items,
+            statsClose?.doublePatti?.items,
+            statsClose?.triplePatti?.items,
+        ),
+        [statsClose?.singlePatti?.items, statsClose?.doublePatti?.items, statsClose?.triplePatti?.items],
     );
 
     // Single/Double Patti totals for the selected date (Today/Tomorrow) — used for grand total
@@ -1083,6 +1182,19 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
     const singlePattiTotalsForView = useMemo(() => getSinglePattiTotalsFromByAnk(singlePattiByAnkForView), [singlePattiByAnkForView]);
     const doublePattiByAnkForView = useMemo(() => buildDoublePattiByAnk(viewDoublePattiItems), [viewDoublePattiItems]);
     const doublePattiTotalsForView = useMemo(() => getDoublePattiTotalsFromByAnk(doublePattiByAnkForView), [doublePattiByAnkForView]);
+
+    const singlePattiViewTotals = useMemo(
+        () => getViewCategoryTotals(viewStats?.singlePatti, singlePattiTotalsForView),
+        [viewStats?.singlePatti, singlePattiTotalsForView],
+    );
+    const doublePattiViewTotals = useMemo(
+        () => getViewCategoryTotals(viewStats?.doublePatti, doublePattiTotalsForView),
+        [viewStats?.doublePatti, doublePattiTotalsForView],
+    );
+    const triplePattiViewTotals = useMemo(
+        () => getViewCategoryTotals(viewStats?.triplePatti, sumBucketItems(viewTriplePattiItems)),
+        [viewStats?.triplePatti, viewTriplePattiItems],
+    );
 
     // Sanity check: Ank grouping matches user side
     useEffect(() => {
@@ -1162,44 +1274,50 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
     // Section data by view (Open/Closed): show session-specific bets in all sections
     const singleDigitDisplay = viewStats?.singleDigit || { digits: {}, totalAmount: 0, totalBets: 0 };
+    const singleDigitViewTotals = sumSingleDigitBucket(singleDigitDisplay);
     // Jodi + Full Sangam + Half Sangam should show in Closed view (close category, settled at closing).
-    // Do NOT include them in Open totals (openTotalAmount/openTotalBets remain unchanged).
     const jodiDisplay = statsClose?.jodi || { items: {}, totalAmount: 0, totalBets: 0 };
-    const triplePattiDisplay = viewStats?.triplePatti || { items: {}, totalAmount: 0, totalBets: 0 };
-    // Half Sangam uses cross-side matching (OpenPana+CloseAnk or OpenAnk+ClosePana) - settled at close
+    const jodiViewTotals = getViewCategoryTotals(jodiDisplay);
+    const triplePattiDisplay = {
+        ...(viewStats?.triplePatti || { items: {}, totalAmount: 0, totalBets: 0 }),
+        items: viewTriplePattiItems,
+        totalAmount: triplePattiViewTotals.totalAmount,
+        totalBets: triplePattiViewTotals.totalBets,
+    };
     const halfSangamDisplay = statsClose?.halfSangam || { items: {}, totalAmount: 0, totalBets: 0 };
     const fullSangamDisplay = statsClose?.fullSangam || { items: {}, totalAmount: 0, totalBets: 0 };
+    const halfSangamViewTotals = getViewCategoryTotals(halfSangamDisplay);
+    const fullSangamViewTotals = getViewCategoryTotals(fullSangamDisplay);
 
-    // Open view: open-session bets only (Single Digit, Patti) - Half Sangam is NOT included (settled at close)
     const openTotalAmount =
-        (singleDigitDisplay?.totalAmount ?? 0) +
-        (singlePattiTotalsForView?.totalAmount ?? 0) +
-        (doublePattiTotalsForView?.totalAmount ?? 0) +
-        (triplePattiDisplay?.totalAmount ?? 0);
+        singleDigitViewTotals.totalAmount +
+        singlePattiViewTotals.totalAmount +
+        doublePattiViewTotals.totalAmount +
+        triplePattiViewTotals.totalAmount;
     const openTotalBets =
-        (singleDigitDisplay?.totalBets ?? 0) +
-        (singlePattiTotalsForView?.totalBets ?? 0) +
-        (doublePattiTotalsForView?.totalBets ?? 0) +
-        (triplePattiDisplay?.totalBets ?? 0);
-    // Closed view: close bets + Half Sangam (cross-side matching, settled at close)
+        singleDigitViewTotals.totalBets +
+        singlePattiViewTotals.totalBets +
+        doublePattiViewTotals.totalBets +
+        triplePattiViewTotals.totalBets;
     const closedTotalAmount =
-        (singleDigitDisplay?.totalAmount ?? 0) +
-        (jodiDisplay?.totalAmount ?? 0) +
-        (singlePattiTotalsForView?.totalAmount ?? 0) +
-        (doublePattiTotalsForView?.totalAmount ?? 0) +
-        (triplePattiDisplay?.totalAmount ?? 0) +
-        (halfSangamDisplay?.totalAmount ?? 0) +
-        (fullSangamDisplay?.totalAmount ?? 0);
+        singleDigitViewTotals.totalAmount +
+        jodiViewTotals.totalAmount +
+        singlePattiViewTotals.totalAmount +
+        doublePattiViewTotals.totalAmount +
+        triplePattiViewTotals.totalAmount +
+        halfSangamViewTotals.totalAmount +
+        fullSangamViewTotals.totalAmount;
     const closedTotalBets =
-        (singleDigitDisplay?.totalBets ?? 0) +
-        (jodiDisplay?.totalBets ?? 0) +
-        (singlePattiTotalsForView?.totalBets ?? 0) +
-        (doublePattiTotalsForView?.totalBets ?? 0) +
-        (triplePattiDisplay?.totalBets ?? 0) +
-        (halfSangamDisplay?.totalBets ?? 0) +
-        (fullSangamDisplay?.totalBets ?? 0);
-    // Starline: only open bets; King Bazaar: show combined total (First Digit + Second Digit + Jodi)
+        singleDigitViewTotals.totalBets +
+        jodiViewTotals.totalBets +
+        singlePattiViewTotals.totalBets +
+        doublePattiViewTotals.totalBets +
+        triplePattiViewTotals.totalBets +
+        halfSangamViewTotals.totalBets +
+        fullSangamViewTotals.totalBets;
     const effectiveView = isStartline ? 'open' : statusView;
+    const alternateSessionStats = effectiveView === 'open' ? statsClose : statsOpen;
+    const alternatePattiBets = countPattiBucketBets(alternateSessionStats);
     const kingBazaarTotalAmount = (statsOpen?.singleDigit?.totalAmount ?? 0) + (statsClose?.singleDigit?.totalAmount ?? 0) + (jodiDisplay?.totalAmount ?? 0);
     const kingBazaarTotalBets = (statsOpen?.singleDigit?.totalBets ?? 0) + (statsClose?.singleDigit?.totalBets ?? 0) + (jodiDisplay?.totalBets ?? 0);
     const displayAmount = isKingBazaar ? kingBazaarTotalAmount : (effectiveView === 'open' ? openTotalAmount : closedTotalAmount);
@@ -1207,6 +1325,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
     const handleStatusViewChange = (e) => {
         if (isStartline) return;
+        userPickedStatusView.current = true;
         const v = e.target.value;
         if (v === 'open') setStatusView('open');
         else if (v === 'closed') setStatusView('closed');
@@ -1283,6 +1402,27 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                 <p className="font-mono text-base sm:text-lg font-semibold text-white">₹{formatNum(displayAmount)}</p>
                                 <p className="text-[11px] text-gray-500">{formatNum(displayBets)} bets</p>
                                 <p className="text-[10px] text-gray-500">({isKingBazaar ? 'All bets' : (effectiveView === 'open' ? 'Open bets only' : 'Closed bets only')})</p>
+                                {!isKingBazaar && (
+                                    <p className="text-[10px] text-gray-500 mt-1 leading-relaxed">
+                                        Digit ₹{formatNum(singleDigitViewTotals.totalAmount)}
+                                        {' · '}SP ₹{formatNum(singlePattiViewTotals.totalAmount)}
+                                        {' · '}DP ₹{formatNum(doublePattiViewTotals.totalAmount)}
+                                        {' · '}TP ₹{formatNum(triplePattiViewTotals.totalAmount)}
+                                        {effectiveView === 'closed' && (
+                                            <>
+                                                {' · '}Jodi ₹{formatNum(jodiViewTotals.totalAmount)}
+                                                {(halfSangamViewTotals.totalAmount > 0 || fullSangamViewTotals.totalAmount > 0) && (
+                                                    <> · Sangam ₹{formatNum(halfSangamViewTotals.totalAmount + fullSangamViewTotals.totalAmount)}</>
+                                                )}
+                                            </>
+                                        )}
+                                    </p>
+                                )}
+                                {!isKingBazaar && alternatePattiBets > 0 && countPattiBucketBets(viewStats) === 0 && (
+                                    <p className="text-[10px] text-amber-400/90 mt-1">
+                                        Patti bets are in <strong>{effectiveView === 'open' ? 'Closed' : 'Open'}</strong> session — switch View above.
+                                    </p>
+                                )}
                             </div>
                         </div>
                         {!isStartline && !isKingBazaar && (
@@ -1387,8 +1527,8 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                             columns={DIGITS}
                             getAmount={(d) => formatNum(singleDigitDisplay.digits?.[d]?.amount)}
                             getCount={(d) => singleDigitDisplay.digits?.[d]?.count ?? 0}
-                            totalAmount={singleDigitDisplay.totalAmount}
-                            totalBets={singleDigitDisplay.totalBets}
+                            totalAmount={singleDigitViewTotals.totalAmount}
+                            totalBets={singleDigitViewTotals.totalBets}
                         />
                     )}
 
@@ -1678,12 +1818,13 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                 {!isKingBazaar && (
                     <TargetHouseProfitSection
-                        key={`house-profit-${dateView}`}
+                        key={`house-profit-${dateView}-${effectiveView}-${displayAmount}`}
                         marketId={marketId}
-                        session="open"
+                        session={effectiveView === 'closed' ? 'close' : 'open'}
                         dateBucket={dateView}
-                        viewLabel="Open bets only"
-                        playedPattis={playedOpenPattis}
+                        viewLabel={effectiveView === 'open' ? 'Open bets only' : 'Closed bets only'}
+                        viewStakeTotal={displayAmount}
+                        playedPattis={effectiveView === 'open' ? playedOpenPattis : playedClosePattis}
                     />
                 )}
 

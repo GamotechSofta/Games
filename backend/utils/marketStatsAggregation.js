@@ -75,9 +75,7 @@ export function buildMarketStatsMatch({
         ? { $or: [{ marketId: oid }, { marketId: idStr }] }
         : { marketId: idStr };
 
-    const match = {
-        ...marketIdClause,
-        status: { $ne: 'cancelled' },
+    const dateBucketClause = {
         $or: [
             {
                 createdAt: { $gte: startOfTodayIST, $lte: endOfTodayIST },
@@ -86,6 +84,11 @@ export function buildMarketStatsMatch({
             { scheduledDate: { $gte: startOfTodayIST, $lte: endOfTodayIST } },
             { scheduledDate: { $gte: startOfTomorrowIST, $lte: endOfTomorrowIST } },
         ],
+    };
+
+    const match = {
+        status: { $ne: 'cancelled' },
+        $and: [marketIdClause, dateBucketClause],
     };
 
     if (bookieUserIds !== null && bookieUserIds.length > 0) {
@@ -204,6 +207,7 @@ export function buildClassificationStages(startMin, todayKey, tomorrowKey) {
                                     ['jodi', 'full-sangam', 'half-sangam'],
                                 ],
                             },
+                            betOnNorm: { $ifNull: ['$betOn', 'open'] },
                         },
                         in: {
                             $cond: [
@@ -213,24 +217,25 @@ export function buildClassificationStages(startMin, todayKey, tomorrowKey) {
                                     $switch: {
                                         branches: [
                                             {
-                                                case: { $eq: ['$betOn', 'close'] },
+                                                case: { $eq: ['$$betOnNorm', 'close'] },
                                                 then: 'close',
                                             },
                                             {
-                                                case: { $eq: ['$betOn', 'open'] },
+                                                case: { $eq: ['$$betOnNorm', 'open'] },
                                                 then: 'open',
                                             },
                                         ],
                                         default: {
                                             $cond: [
+                                                { $ne: [startMinConst, -1] },
                                                 {
-                                                    $and: [
-                                                        { $ne: [startMinConst, -1] },
+                                                    $cond: [
                                                         { $lt: ['$betMin', startMinConst] },
+                                                        'open',
+                                                        'close',
                                                     ],
                                                 },
                                                 'open',
-                                                'close',
                                             ],
                                         },
                                     },
@@ -451,6 +456,10 @@ export function buildClassificationStages(startMin, todayKey, tomorrowKey) {
                         default: '$category',
                     },
                 },
+            },
+        },
+        {
+            $addFields: {
                 itemKey: {
                     $switch: {
                         branches: [
@@ -663,8 +672,17 @@ function foldGroupedRows(rows, dateBucket, sessionMode) {
         if (id.dateBucket !== dateBucket) continue;
 
         const category = id.category;
-        const key = id.itemKey;
+        let key = id.itemKey;
         if (!category || key == null) continue;
+
+        if (
+            category === 'singlePatti' ||
+            category === 'doublePatti' ||
+            category === 'triplePatti'
+        ) {
+            const s = String(key).trim();
+            if (/^\d+$/.test(s)) key = s.padStart(3, '0');
+        }
 
         let amount = row.totalAmount || 0;
         let count = row.totalCount || 0;

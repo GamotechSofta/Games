@@ -372,9 +372,11 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     const marketIdStr = String(marketId).trim();
 
     const match = {
-        $or: [{ marketId: oid }, { marketId: marketIdStr }],
         status: { $ne: 'cancelled' },
-        ...buildDateBucketFilter(dateBucket),
+        $and: [
+            { $or: [{ marketId: oid }, { marketId: marketIdStr }] },
+            buildDateBucketFilter(dateBucket),
+        ],
     };
     if (hasBookieFilter) match.userId = { $in: bookieUserIds };
 
