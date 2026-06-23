@@ -15,6 +15,25 @@ import { getTodayIST } from '../utils/resultReset.js';
 
 const DB_QUERY_MS = 12000;
 
+/** Admin bet history: startDate/endDate are YYYY-MM-DD IST; endDate is exclusive. */
+function buildCreatedAtFilterIST(startDate, endDate) {
+    if (!startDate && !endDate) return null;
+    const filter = {};
+    if (startDate) {
+        const s = String(startDate).trim().slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            filter.$gte = new Date(`${s}T00:00:00+05:30`);
+        }
+    }
+    if (endDate) {
+        const e = String(endDate).trim().slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(e)) {
+            filter.$lt = new Date(`${e}T00:00:00+05:30`);
+        }
+    }
+    return Object.keys(filter).length ? filter : null;
+}
+
 const VALID_BET_TYPES = [
     'single',
     'jodi',
@@ -402,10 +421,9 @@ export const getBetHistory = async (req, res) => {
         }
         if (marketId) query.marketId = marketId;
         if (status) query.status = status;
-        if (startDate || endDate) {
-            query.createdAt = {};
-            if (startDate) query.createdAt.$gte = new Date(startDate);
-            if (endDate) query.createdAt.$lte = new Date(endDate);
+        const createdAtFilter = buildCreatedAtFilterIST(startDate, endDate);
+        if (createdAtFilter) {
+            query.createdAt = createdAtFilter;
         }
 
         const [bets, total] = await Promise.all([

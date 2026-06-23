@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { addDaysIST, getTodayIST, startOfMonthIST, startOfWeekIST } from '../utils/istDate';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
@@ -16,58 +17,53 @@ const RANGES = [
 ];
 
 function getDateRange(rangeId, customStart = '', customEnd = '') {
-    const toYMD = (d) => d.toISOString().slice(0, 10);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayIST = getTodayIST();
+    const tomorrowIST = addDaysIST(todayIST, 1);
 
     if (rangeId === 'all') {
         return { startDate: '', endDate: '', label: 'All' };
     }
     if (rangeId === 'custom') {
         if (customStart && customEnd) {
-            const end = new Date(customEnd);
-            end.setDate(end.getDate() + 1);
-            return { startDate: customStart, endDate: toYMD(end), label: `${customStart} to ${customEnd}` };
+            return {
+                startDate: customStart,
+                endDate: addDaysIST(customEnd, 1),
+                label: `${customStart} to ${customEnd}`,
+            };
         }
         return { startDate: '', endDate: '', label: 'Custom' };
     }
 
     switch (rangeId) {
         case 'today':
-            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+            return { startDate: todayIST, endDate: tomorrowIST, label: 'Today' };
         case 'yesterday': {
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
-            return { startDate: toYMD(yesterday), endDate: toYMD(today), label: 'Yesterday' };
+            const yesterdayIST = addDaysIST(todayIST, -1);
+            return { startDate: yesterdayIST, endDate: todayIST, label: 'Yesterday' };
         }
         case 'this_week': {
-            const day = today.getDay();
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-            return { startDate: toYMD(monday), endDate: toYMD(tomorrow), label: 'This Week' };
+            const mondayIST = startOfWeekIST(todayIST);
+            return { startDate: mondayIST, endDate: tomorrowIST, label: 'This Week' };
         }
         case 'last_week': {
-            const day = today.getDay();
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-            const lastMonday = new Date(monday);
-            lastMonday.setDate(monday.getDate() - 7);
-            return { startDate: toYMD(lastMonday), endDate: toYMD(monday), label: 'Last Week' };
+            const mondayIST = startOfWeekIST(todayIST);
+            const lastMondayIST = addDaysIST(mondayIST, -7);
+            return { startDate: lastMondayIST, endDate: mondayIST, label: 'Last Week' };
         }
         case 'this_month': {
-            const first = new Date(today.getFullYear(), today.getMonth(), 1);
-            const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-            return { startDate: toYMD(first), endDate: toYMD(nextMonth), label: 'This Month' };
+            const firstIST = startOfMonthIST(todayIST);
+            const [y, m] = todayIST.split('-').map(Number);
+            const nextFirst = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            return { startDate: firstIST, endDate: nextFirst, label: 'This Month' };
         }
         case 'last_month': {
-            const firstThis = new Date(today.getFullYear(), today.getMonth(), 1);
-            const firstLast = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            return { startDate: toYMD(firstLast), endDate: toYMD(firstThis), label: 'Last Month' };
+            const firstThisIST = startOfMonthIST(todayIST);
+            const [y, m] = todayIST.split('-').map(Number);
+            const firstLastIST = m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, '0')}-01`;
+            return { startDate: firstLastIST, endDate: firstThisIST, label: 'Last Month' };
         }
         default:
-            return { startDate: toYMD(today), endDate: toYMD(tomorrow), label: 'Today' };
+            return { startDate: todayIST, endDate: tomorrowIST, label: 'Today' };
     }
 }
 
