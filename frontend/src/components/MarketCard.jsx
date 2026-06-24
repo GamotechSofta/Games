@@ -1,8 +1,9 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../context/ThemeContext';
+import { isBettingAllowed } from '../utils/marketTiming';
 
 const toMarketNameKey = (name) => {
   if (!name || typeof name !== 'string') return '';
@@ -49,6 +50,33 @@ function MarketCard({ market }) {
 
   const isOpen = market.status === 'open' || market.status === 'running';
   const isClosed = market.status === 'closed';
+  const isRunningClose = market.status === 'running';
+
+  const [closeOnlyWindow, setCloseOnlyWindow] = useState(
+    () => isOpen && isBettingAllowed(market)?.closeOnly === true,
+  );
+
+  useEffect(() => {
+    if (!isOpen) {
+      setCloseOnlyWindow(false);
+      return undefined;
+    }
+    const tick = () => {
+      setCloseOnlyWindow(isBettingAllowed(market)?.closeOnly === true);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [market, isOpen]);
+
+  const isCloseSessionRunning = isRunningClose || (isOpen && closeOnlyWindow);
 
   const handleClick = () => {
     if (isOpen) {
@@ -66,8 +94,9 @@ function MarketCard({ market }) {
   const displayName = t(`markets.names.${toMarketNameKey(market.gameName)}`, {
     defaultValue: market.gameName,
   });
-  const tomorrowLabel = t('markets.runningForTomorrow', { defaultValue: 'Running For Tomorrow' });
+  const tomorrowLabel = t('markets.runningForTomorrow', { defaultValue: 'Running for tomorrow' });
   const openLabel = t('markets.marketIsOpen', { defaultValue: 'MARKET IS OPEN' });
+  const closeRunningLabel = t('markets.runningForClose', { defaultValue: 'Running for close' });
 
   const resultValue = market.result || '***-**-***';
   const [openTime = '--', closeTime = '--'] = (market.timeRange || '').split(' - ');
@@ -333,6 +362,27 @@ function MarketCard({ market }) {
             }}
           >
             <span className="market-tomorrow-label-text">{tomorrowLabel}</span>
+          </div>
+        ) : isCloseSessionRunning ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '7px 8px',
+              fontSize: 10,
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              background: isDarkMode ? '#c2410c' : '#ea580c',
+              borderTop: isDarkMode
+                ? '1px solid rgba(251,146,60,0.35)'
+                : '1px solid rgba(194,65,12,0.35)',
+            }}
+          >
+            <span>{closeRunningLabel}</span>
           </div>
         ) : (
           <div

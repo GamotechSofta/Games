@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { textPrimary } from '../styles/appTheme';
 import useLiveMarket from '../hooks/useLiveMarket';
+import { isBettingAllowed } from '../utils/marketTiming';
+import { isCloseDeclarationGame } from '../utils/closeDeclarationBets';
 
 import { BID_OPTION_IMAGES, assetUrl } from '../config/homeAssets';
 
@@ -46,6 +48,32 @@ const BidOptions = () => {
     return name.includes('starline') || name.includes('startline') || name.includes('star line') || name.includes('start line');
   })();
   const isStarline = inferredStarline;
+  const scheduleForTomorrow =
+    location.state?.scheduleForTomorrow === true ||
+    (market?.status === 'closed' && !isStarline && !isKingBazaar);
+  const [closeOnlyWindow, setCloseOnlyWindow] = useState(
+    () => !scheduleForTomorrow && isBettingAllowed(market)?.closeOnly === true,
+  );
+
+  useEffect(() => {
+    if (scheduleForTomorrow) {
+      setCloseOnlyWindow(false);
+      return undefined;
+    }
+    const tick = () => {
+      setCloseOnlyWindow(isBettingAllowed(market)?.closeOnly === true);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [market, scheduleForTomorrow]);
 
   // Redirect to home if no market (direct URL access or refresh)
   useEffect(() => {
@@ -417,18 +445,11 @@ const BidOptions = () => {
       })
     : options;
 
-  const visibleOptions = (!isStarline && isRunning)
+  const visibleOptions = (!isStarline && (isRunning || closeOnlyWindow))
     ? visibleOptionsBase.filter((opt) => {
         const t = (opt.title || '').toLowerCase().trim();
-        // Support both legacy (A/B) and current (O/C) naming.
-        // When running (close session only), hide options that need open session data
-        const hideWhenRunning = new Set([
-          'jodi',
-          'jodi bulk',
-          'full sangam',
-          'half sangam',
-        ]);
-        return !hideWhenRunning.has(t);
+        // After open time (or when open is declared), hide Jodi / Sangam options.
+        return !isCloseDeclarationGame(t);
       })
     : visibleOptionsBase;
 

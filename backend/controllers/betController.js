@@ -6,7 +6,7 @@ import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { getRatesMap } from '../models/rate/rate.js';
 import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
-import { isBettingAllowed } from '../utils/marketTiming.js';
+import { isBettingAllowed, isCloseDeclarationBetType } from '../utils/marketTiming.js';
 import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
@@ -155,6 +155,19 @@ export const placeBet = async (req, res) => {
                     message: timing.message || 'Betting is not allowed for this market at this time.',
                     code: 'BETTING_CLOSED',
                 });
+            }
+            if (timing.closeOnly) {
+                for (const b of bets) {
+                    const betType = (b.betType || '').toString().trim().toLowerCase();
+                    if (isCloseDeclarationBetType(betType)) {
+                        return res.status(400).json({
+                            success: false,
+                            message:
+                                'Jodi and Sangam bets close at open time. You can place close session patti/digit bets until market closing time.',
+                            code: 'CLOSE_DECLARATION_BETS_CLOSED',
+                        });
+                    }
+                }
             }
         }
 

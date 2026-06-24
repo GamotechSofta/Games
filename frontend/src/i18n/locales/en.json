@@ -704,6 +704,7 @@
     "tapToPlay": "Tap to Play",
     "noMarketsAvailable": "No markets available",
     "marketIsOpen": "MARKET IS OPEN",
+    "runningForClose": "Running for close",
     "closingIsRunning": "CLOSING IS RUNNING",
     "marketClosed": "MARKET CLOSED",
     "runningForTomorrow": "Running for tomorrow",
