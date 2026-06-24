@@ -16,6 +16,7 @@ import {
     payuRedirect,
     getPaymentLimitsAdmin,
     updatePaymentLimits,
+    getFundsHistory,
 } from '../../controllers/paymentController.js';
 import { verifyAdmin } from '../../middleware/adminAuth.js';
 
@@ -56,6 +57,7 @@ router.get('/my-withdrawals', getMyWithdrawals);
 // ===== Admin APIs =====
 router.get('/limits', verifyAdmin, getPaymentLimitsAdmin);
 router.patch('/limits', verifyAdmin, updatePaymentLimits);
+router.get('/funds-history', verifyAdmin, getFundsHistory);
 router.get('/', verifyAdmin, getPayments);
 router.get('/pending-count', verifyAdmin, getPendingCount);
 router.post('/:id/approve', verifyAdmin, approvePayment);

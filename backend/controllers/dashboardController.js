@@ -9,6 +9,7 @@ import HelpDesk from '../models/helpDesk/helpDesk.js';
 import { getBookieUserIds } from '../utils/bookieFilter.js';
 import { isBettingClosed } from '../utils/marketTiming.js';
 import { appCacheGet, appCacheSet, appCacheDelByPrefix, isRedisCacheEnabled } from '../utils/appCache.js';
+import { sumManualWalletDeposits, sumManualWalletWithdrawals } from '../utils/paymentStatsAggregation.js';
 
 const DASHBOARD_CACHE_PREFIX = 'dashboard:';
 const DASHBOARD_CACHE_TTL_MS = Number(process.env.DASHBOARD_CACHE_TTL_MS || 30_000);
@@ -132,45 +133,49 @@ async function aggregateBetStats(betMatchNoCancelled, dateMatch, betFilter) {
 }
 
 async function aggregatePaymentStats(paymentFilter, dateMatch) {
-    const [row] = await Payment.aggregate([
-        {
-            $facet: {
-                deposits: [
-                    {
-                        $match: {
-                            type: 'deposit',
-                            status: { $in: ['approved', 'completed'] },
-                            ...dateMatch,
-                            ...paymentFilter,
+    const [row, manualDeposits, manualWithdrawals] = await Promise.all([
+        Payment.aggregate([
+            {
+                $facet: {
+                    deposits: [
+                        {
+                            $match: {
+                                type: 'deposit',
+                                status: { $in: ['approved', 'completed'] },
+                                ...dateMatch,
+                                ...paymentFilter,
+                            },
                         },
-                    },
-                    { $group: { _id: null, total: { $sum: '$amount' } } },
-                ],
-                withdrawals: [
-                    {
-                        $match: {
-                            type: 'withdrawal',
-                            status: { $in: ['approved', 'completed'] },
-                            ...dateMatch,
-                            ...paymentFilter,
+                        { $group: { _id: null, total: { $sum: '$amount' } } },
+                    ],
+                    withdrawals: [
+                        {
+                            $match: {
+                                type: 'withdrawal',
+                                status: { $in: ['approved', 'completed'] },
+                                ...dateMatch,
+                                ...paymentFilter,
+                            },
                         },
-                    },
-                    { $group: { _id: null, total: { $sum: '$amount' } } },
-                ],
-                totalPayments: [{ $match: paymentFilter }, { $count: 'n' }],
-                pendingDeposits: [
-                    { $match: { type: 'deposit', status: 'pending', ...paymentFilter } },
-                    { $count: 'n' },
-                ],
+                        { $group: { _id: null, total: { $sum: '$amount' } } },
+                    ],
+                    totalPayments: [{ $match: paymentFilter }, { $count: 'n' }],
+                    pendingDeposits: [
+                        { $match: { type: 'deposit', status: 'pending', ...paymentFilter } },
+                        { $count: 'n' },
+                    ],
+                },
             },
-        },
+        ]),
+        sumManualWalletDeposits(paymentFilter, dateMatch),
+        sumManualWalletWithdrawals(paymentFilter, dateMatch),
     ]);
 
     return {
-        totalDeposits: facetSum(row, 'deposits'),
-        totalWithdrawals: facetSum(row, 'withdrawals'),
-        totalPayments: facetCount(row, 'totalPayments'),
-        pendingDeposits: facetCount(row, 'pendingDeposits'),
+        totalDeposits: facetSum(row[0], 'deposits') + manualDeposits,
+        totalWithdrawals: facetSum(row[0], 'withdrawals') + manualWithdrawals,
+        totalPayments: facetCount(row[0], 'totalPayments'),
+        pendingDeposits: facetCount(row[0], 'pendingDeposits'),
     };
 }
 

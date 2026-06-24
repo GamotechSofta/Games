@@ -343,7 +343,7 @@ const AllUsers = () => {
                     <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                         type="text"
-                        placeholder="Search by name, email or phone..."
+                        placeholder="Search by name or phone..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={`w-full pl-10 py-2.5 bg-gray-700/80 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all text-sm sm:text-base ${searchQuery ? 'pr-10' : 'pr-4'}`}
@@ -463,7 +463,6 @@ const AllUsers = () => {
                                                                                 <tr>
                                                                                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase w-10">#</th>
                                                                                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase">Name</th>
-                                                                                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase">Email</th>
                                                                                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase hidden lg:table-cell">Phone</th>
                                                                                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
                                                                                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 uppercase">Wallet</th>
@@ -479,7 +478,6 @@ const AllUsers = () => {
                                                                                         <td className="px-4 py-2.5 font-medium">
                                                                                             <Link to={`/all-users/${u._id}`} className="text-yellow-400 hover:text-yellow-300 hover:underline">{u.username}</Link>
                                                                                         </td>
-                                                                                        <td className="px-4 py-2.5 text-gray-300 truncate max-w-[120px] lg:max-w-[160px]">{u.email || '—'}</td>
                                                                                         <td className="px-4 py-2.5 text-gray-300 hidden lg:table-cell">{u.phone || '—'}</td>
                                                                                         <td className="px-4 py-2.5">
                                                                                             <OnlineStatusBadge user={u} variant="compact" />
@@ -585,8 +583,7 @@ const AllUsers = () => {
                                                                     </span>
                                                                 </div>
                                                             </div>
-                                                            <p className="text-gray-400 text-xs truncate mb-2">{u.email || '—'}</p>
-                                                            <div className="flex items-center justify-between text-xs">
+                                                            <div className="flex items-center justify-between text-xs mt-1">
                                                                 <span className="text-green-400 font-mono">₹{Number(u.walletBalance ?? 0).toLocaleString('en-IN')}</span>
                                                                 <button
                                                                     type="button"
@@ -621,12 +618,11 @@ const AllUsers = () => {
                             </div>
                         )}
                         <div className="overflow-x-auto">
-                        <table className="w-full text-sm min-w-[800px]">
+                        <table className="w-full text-sm min-w-[680px]">
                             <thead className="bg-gray-700">
                                 <tr>
                                     <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase w-8">#</th>
                                     <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Name</th>
-                                    <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Email</th>
                                     <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Phone</th>
                                     <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Role</th>
                                     <th className="px-2 sm:px-3 py-2 sm:py-3 text-left text-xs font-medium text-gray-300 uppercase">Wallet</th>
@@ -647,7 +643,6 @@ const AllUsers = () => {
                                                 <span className="text-white truncate block max-w-[120px]">{item.username}</span>
                                             )}
                                         </td>
-                                        <td className="px-2 sm:px-3 py-2 sm:py-3 text-gray-300 truncate max-w-[140px]">{item.email || '—'}</td>
                                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-gray-300">{item.phone || '—'}</td>
                                         <td className="px-2 sm:px-3 py-2 sm:py-3">
                                             {(activeTab === 'super_admins') ? (

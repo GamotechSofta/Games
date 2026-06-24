@@ -20,6 +20,7 @@ import {
     FaUserShield,
     FaGamepad,
     FaHeadset,
+    FaExchangeAlt,
 } from 'react-icons/fa';
 
 const MENU_GROUPS = [
@@ -48,6 +49,7 @@ const MENU_GROUPS = [
         items: [
             { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
             { path: '/payment-management', label: 'Transactions', icon: FaCreditCard },
+            { path: '/deposit-withdrawal-history', label: 'Deposit & Withdrawal History', icon: FaExchangeAlt },
             { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
             { path: '/wallet', label: 'Wallet', icon: FaWallet },
         ],
@@ -115,6 +117,7 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
             return location.pathname === '/revenue' || location.pathname.startsWith('/revenue/');
         }
         if (path === '/daily-settlement') return location.pathname === '/daily-settlement';
+        if (path === '/deposit-withdrawal-history') return location.pathname === '/deposit-withdrawal-history';
         return location.pathname === path;
     };
 

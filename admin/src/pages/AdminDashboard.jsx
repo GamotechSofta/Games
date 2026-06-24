@@ -15,6 +15,9 @@ import {
     FaClipboardList,
     FaArrowRight,
     FaExclamationTriangle,
+    FaArrowDown,
+    FaArrowUp,
+    FaCoins,
 } from 'react-icons/fa';
 
 import { API_BASE_URL, adminFetch, clearAdminAuth } from '../utils/api';
@@ -249,6 +252,27 @@ const AdminDashboard = () => {
     }
 
     const displayLabel = customMode && customFrom && customTo ? formatRangeLabel(customFrom, customTo) : (PRESETS.find((p) => p.id === datePreset)?.label || 'All');
+    const totalDeposits = Number(stats?.payments?.totalDeposits) || 0;
+    const totalWithdrawals = Number(stats?.payments?.totalWithdrawals) || 0;
+    const totalProfit = totalDeposits - totalWithdrawals;
+
+    const buildFundsHistorySearch = (type) => {
+        const params = new URLSearchParams({ type });
+        if (customMode && customFrom && customTo) {
+            params.set('from', customFrom);
+            params.set('to', customTo);
+        } else if (datePreset === 'all') {
+            params.set('all', '1');
+        } else {
+            const preset = PRESETS.find((p) => p.id === datePreset);
+            const range = preset ? preset.getRange() : PRESETS[1].getRange();
+            if (range.from && range.to) {
+                params.set('from', range.from);
+                params.set('to', range.to);
+            }
+        }
+        return params.toString();
+    };
 
     return (
         <AdminLayout onLogout={handleLogout} title="Dashboard">
@@ -365,14 +389,60 @@ const AdminDashboard = () => {
                 )}
             </div>
 
+            {/* Deposit / Withdrawal / Profit */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <Link
+                    to={`/deposit-withdrawal-history?${buildFundsHistorySearch('deposit')}`}
+                    className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-xl p-5 border border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-lg hover:shadow-emerald-500/10 transition-all cursor-pointer group"
+                >
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-400 group-hover:text-emerald-300">Total Deposit</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono mt-1 whitespace-nowrap">{formatCurrency(totalDeposits)}</p>
+                            <p className="text-xs text-gray-500 mt-1">{displayLabel} · Click for history</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/30">
+                            <FaArrowDown className="w-6 h-6 text-emerald-400" />
+                        </div>
+                    </div>
+                </Link>
+                <Link
+                    to={`/deposit-withdrawal-history?${buildFundsHistorySearch('withdrawal')}`}
+                    className="bg-gradient-to-br from-red-500/10 to-red-600/5 rounded-xl p-5 border border-red-500/30 hover:border-red-400/60 hover:shadow-lg hover:shadow-red-500/10 transition-all cursor-pointer group"
+                >
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-400 group-hover:text-red-300">Total Withdrawal</p>
+                            <p className="text-2xl sm:text-3xl font-bold text-red-400 font-mono mt-1 whitespace-nowrap">{formatCurrency(totalWithdrawals)}</p>
+                            <p className="text-xs text-gray-500 mt-1">{displayLabel} · Click for history</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0 group-hover:bg-red-500/30">
+                            <FaArrowUp className="w-6 h-6 text-red-400" />
+                        </div>
+                    </div>
+                </Link>
+                <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 rounded-xl p-5 border border-amber-500/30">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-400">Total Profit</p>
+                            <p className={`text-2xl sm:text-3xl font-bold font-mono mt-1 whitespace-nowrap ${totalProfit >= 0 ? 'text-amber-400' : 'text-red-400'}`}>{formatCurrency(totalProfit)}</p>
+                            <p className="text-xs text-gray-500 mt-1">Deposit − Withdrawal · {displayLabel}</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <FaCoins className="w-6 h-6 text-amber-400" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Primary KPIs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
                 <div className="min-w-0 overflow-hidden bg-gradient-to-br from-green-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-green-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Revenue</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Bet Amount</p>
                     <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-green-400 font-mono whitespace-nowrap">{formatCurrency(stats?.revenue?.total)}</p>
                 </div>
                 <div className="min-w-0 overflow-hidden bg-gradient-to-br from-red-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-red-500/30">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Payouts</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 break-words">Total Win Amount</p>
                     <p className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-red-400 font-mono whitespace-nowrap">{formatCurrency(stats?.revenue?.payouts)}</p>
                 </div>
                 <div className="min-w-0 overflow-hidden bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl p-3 sm:p-5 border border-blue-500/30">
@@ -395,8 +465,8 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
                 {/* Revenue Details */}
                 <SectionCard title="Revenue & Payouts" description="Selected period" icon={FaMoneyBillWave} linkTo="/reports" linkLabel="Reports">
-                    <StatRow label="Total Revenue" value={formatCurrency(stats?.revenue?.total)} colorClass="text-green-400" />
-                    <StatRow label="Total Payouts" value={formatCurrency(stats?.revenue?.payouts)} colorClass="text-red-400" />
+                    <StatRow label="Total Bet Amount" value={formatCurrency(stats?.revenue?.total)} colorClass="text-green-400" />
+                    <StatRow label="Total Win Amount" value={formatCurrency(stats?.revenue?.payouts)} colorClass="text-red-400" />
                     <StatRow label="Total Net Profit" value={formatCurrency(stats?.revenue?.netProfit)} colorClass="text-blue-400" />
                 </SectionCard>
 
@@ -426,9 +496,14 @@ const AdminDashboard = () => {
                 </SectionCard>
 
                 {/* Payments */}
-                <SectionCard title="Transactions" description="Deposits (auto) & withdrawals" icon={FaCreditCard} linkTo="/payment-management" linkLabel="Manage Transactions">
-                    <StatRow label="Deposits (period)" value={formatCurrency(stats?.payments?.totalDeposits)} colorClass="text-green-400" />
-                    <StatRow label="Withdrawals (period)" value={formatCurrency(stats?.payments?.totalWithdrawals)} colorClass="text-red-400" />
+                <SectionCard title="Transactions" description="Deposits & withdrawals" icon={FaCreditCard} linkTo="/payment-management" linkLabel="Manage Transactions">
+                    <Link to={`/deposit-withdrawal-history?${buildFundsHistorySearch('deposit')}`} className="block rounded-lg hover:bg-gray-700/40 -mx-2 px-2 transition-colors">
+                        <StatRow label="Total Deposit" value={formatCurrency(totalDeposits)} colorClass="text-green-400" subValue="View history →" />
+                    </Link>
+                    <Link to={`/deposit-withdrawal-history?${buildFundsHistorySearch('withdrawal')}`} className="block rounded-lg hover:bg-gray-700/40 -mx-2 px-2 transition-colors">
+                        <StatRow label="Total Withdrawal" value={formatCurrency(totalWithdrawals)} colorClass="text-red-400" subValue="View history →" />
+                    </Link>
+                    <StatRow label="Total Profit" value={formatCurrency(totalProfit)} colorClass={totalProfit >= 0 ? 'text-amber-400' : 'text-red-400'} />
                     <StatRow label="Pending Withdraw Requests" value={pendingWithdrawals} colorClass={pendingWithdrawals > 0 ? 'text-amber-400' : 'text-gray-400'} />
                 </SectionCard>
 
@@ -459,14 +534,14 @@ const AdminDashboard = () => {
                     <FaMoneyBillWave className="w-4 h-4 text-amber-500" />
                     Revenue Summary for Selected Period
                 </h3>
-                <p className="text-xs text-gray-500 mb-4">Total revenue in the selected date range.</p>
+                <p className="text-xs text-gray-500 mb-4">Total bet amount in the selected date range.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                        <p className="text-gray-400 text-sm mb-1">Total Revenue</p>
+                        <p className="text-gray-400 text-sm mb-1">Total Bet Amount</p>
                         <p className="text-xl font-bold text-green-400 font-mono">{formatCurrency(stats?.revenue?.total)}</p>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
-                        <p className="text-gray-400 text-sm mb-1">Total Payouts</p>
+                        <p className="text-gray-400 text-sm mb-1">Total Win Amount</p>
                         <p className="text-xl font-bold text-red-400 font-mono">{formatCurrency(stats?.revenue?.payouts)}</p>
                     </div>
                     <div className="bg-gray-700/50 rounded-lg p-4 border border-gray-600">

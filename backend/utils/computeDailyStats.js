@@ -3,6 +3,7 @@ import Payment from '../models/payment/payment.js';
 import User from '../models/user/user.js';
 import DailyStats from '../models/stats/dailyStats.js';
 import { getTodayIST, addDaysToIstDateKey } from './resultReset.js';
+import { sumManualWalletDeposits, sumManualWalletWithdrawals } from './paymentStatsAggregation.js';
 
 /** IST calendar day boundaries (matches market midnight reset). */
 export function dateKeyToRange(dateKey) {
@@ -36,7 +37,7 @@ export async function computeDailyStatsForDate(dateKey) {
     const revenueFilter = { ...dateMatch, status: { $ne: 'cancelled' } };
     const wonFilter = { status: 'won', ...dateMatch };
 
-    const [betFacet, paymentFacet, newUsers] = await Promise.all([
+    const [betFacet, paymentFacet, manualDeposits, manualWithdrawals, newUsers] = await Promise.all([
         Bet.aggregate([
             { $match: dateMatch },
             {
@@ -81,6 +82,8 @@ export async function computeDailyStatsForDate(dateKey) {
                 },
             },
         ]),
+        sumManualWalletDeposits({}, dateMatch),
+        sumManualWalletWithdrawals({}, dateMatch),
         User.countDocuments(dateMatch),
     ]);
 
@@ -94,8 +97,8 @@ export async function computeDailyStatsForDate(dateKey) {
         betCount: betRow.totalBets?.[0]?.n || 0,
         winningBets: betRow.winningBets?.[0]?.n || 0,
         losingBets: betRow.losingBets?.[0]?.n || 0,
-        totalDeposits: payRow.deposits?.[0]?.total || 0,
-        totalWithdrawals: payRow.withdrawals?.[0]?.total || 0,
+        totalDeposits: (payRow.deposits?.[0]?.total || 0) + manualDeposits,
+        totalWithdrawals: (payRow.withdrawals?.[0]?.total || 0) + manualWithdrawals,
         newUsers,
         computedAt: new Date(),
     };

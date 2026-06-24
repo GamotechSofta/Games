@@ -14,6 +14,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const Revenue = lazy(() => import('./pages/Revenue'));
 const BookieDetail = lazy(() => import('./pages/BookieDetail'));
 const PaymentManagement = lazy(() => import('./pages/PaymentManagement'));
+const DepositWithdrawalHistory = lazy(() => import('./pages/DepositWithdrawalHistory'));
 const DailySettlement = lazy(() => import('./pages/DailySettlement'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const HelpDesk = lazy(() => import('./pages/HelpDesk'));
@@ -88,6 +89,7 @@ const App = () => {
                     <Route path="/revenue/:bookieId" element={<PrivateRoute><BookieDetail /></PrivateRoute>} />
                     <Route path="/top-winners" element={<PrivateRoute><TopWinners /></PrivateRoute>} />
                     <Route path="/payment-management" element={<PrivateRoute><PaymentManagement /></PrivateRoute>} />
+                    <Route path="/deposit-withdrawal-history" element={<PrivateRoute><DepositWithdrawalHistory /></PrivateRoute>} />
                     <Route path="/daily-settlement" element={<PrivateRoute><DailySettlement /></PrivateRoute>} />
                     <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
                     <Route path="/help-desk" element={<PrivateRoute><HelpDesk /></PrivateRoute>} />

@@ -17,6 +17,9 @@ import {
 } from '../utils/payuService.js';
 import logger from '../utils/logger.js';
 import { toClientPayment } from '../utils/paymentDisplay.js';
+import { parsePagination, paginationMeta } from '../utils/pagination.js';
+import { getAdminDateRange } from '../utils/adminDateRange.js';
+import { fetchFundsHistory } from '../utils/paymentStatsAggregation.js';
 
 // ============ CONFIG API ============
 
@@ -741,6 +744,45 @@ export const getPayments = async (req, res) => {
                 limit,
                 count: payments.length,
             },
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Admin/Bookie: unified deposit or withdrawal history (payments + manual wallet adjustments).
+ * Query: type=deposit|withdrawal, from, to, all=1, page, limit
+ */
+export const getFundsHistory = async (req, res) => {
+    try {
+        const kind = String(req.query.type || 'deposit').toLowerCase() === 'withdrawal' ? 'withdrawal' : 'deposit';
+        const { from, to, all } = req.query;
+        const allTime = all === '1' || all === 'true';
+        const { dateMatch } = getAdminDateRange(from, to, allTime);
+        const { page, limit, skip } = parsePagination(req.query, { defaultLimit: 50, maxLimit: 200 });
+
+        const bookieUserIds = await getBookieUserIds(req.admin);
+        const paymentFilter = bookieUserIds !== null ? { userId: { $in: bookieUserIds } } : {};
+
+        const { items, total, totalAmount } = await fetchFundsHistory({
+            kind,
+            paymentFilter,
+            dateMatch,
+            page,
+            limit,
+            skip,
+        });
+
+        res.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30');
+        res.status(200).json({
+            success: true,
+            data: {
+                type: kind,
+                items,
+                totalAmount,
+            },
+            pagination: paginationMeta(page, limit, total),
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
