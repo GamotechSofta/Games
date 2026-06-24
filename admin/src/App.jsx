@@ -10,16 +10,12 @@ const Markets = lazy(() => import('./pages/Markets'));
 const AddUser = lazy(() => import('./pages/AddUser'));
 const AddMarket = lazy(() => import('./pages/AddMarket'));
 const BetHistory = lazy(() => import('./pages/BetHistory'));
-const Reports = lazy(() => import('./pages/Reports'));
 const Revenue = lazy(() => import('./pages/Revenue'));
-const BookieDetail = lazy(() => import('./pages/BookieDetail'));
 const PaymentManagement = lazy(() => import('./pages/PaymentManagement'));
 const DepositWithdrawalHistory = lazy(() => import('./pages/DepositWithdrawalHistory'));
-const DailySettlement = lazy(() => import('./pages/DailySettlement'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const HelpDesk = lazy(() => import('./pages/HelpDesk'));
 const Logs = lazy(() => import('./pages/Logs'));
-const BookieManagement = lazy(() => import('./pages/BookieManagement'));
 const AllUsers = lazy(() => import('./pages/AllUsers'));
 const PlayerDetail = lazy(() => import('./pages/PlayerDetail'));
 const PlayerDevices = lazy(() => import('./pages/PlayerDevices'));
@@ -84,13 +80,13 @@ const App = () => {
                     <Route path="/add-user" element={<PrivateRoute><AddUser /></PrivateRoute>} />
                     <Route path="/add-market" element={<PrivateRoute><AddMarket /></PrivateRoute>} />
                     <Route path="/bet-history" element={<PrivateRoute><BetHistory /></PrivateRoute>} />
-                    <Route path="/reports" element={<PrivateRoute><Reports /></PrivateRoute>} />
+                    <Route path="/reports" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/revenue" element={<PrivateRoute><Revenue /></PrivateRoute>} />
-                    <Route path="/revenue/:bookieId" element={<PrivateRoute><BookieDetail /></PrivateRoute>} />
+                    <Route path="/revenue/:bookieId" element={<Navigate to="/revenue" replace />} />
                     <Route path="/top-winners" element={<PrivateRoute><TopWinners /></PrivateRoute>} />
                     <Route path="/payment-management" element={<PrivateRoute><PaymentManagement /></PrivateRoute>} />
                     <Route path="/deposit-withdrawal-history" element={<PrivateRoute><DepositWithdrawalHistory /></PrivateRoute>} />
-                    <Route path="/daily-settlement" element={<PrivateRoute><DailySettlement /></PrivateRoute>} />
+                    <Route path="/daily-settlement" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
                     <Route path="/help-desk" element={<PrivateRoute><HelpDesk /></PrivateRoute>} />
                     <Route path="/logs" element={<PrivateRoute><Logs /></PrivateRoute>} />
@@ -98,8 +94,8 @@ const App = () => {
                     <Route path="/all-users/:userId" element={<PrivateRoute><PlayerDetail /></PrivateRoute>} />
                     <Route path="/all-users/:userId/devices" element={<PrivateRoute><PlayerDevices /></PrivateRoute>} />
                     <Route path="/suspend-player" element={<Navigate to="/all-users" replace />} />
-                    <Route path="/suspend-bookie" element={<Navigate to="/bookie-management" replace />} />
-                    <Route path="/bookie-management" element={<PrivateRoute><BookieManagement /></PrivateRoute>} />
+                    <Route path="/suspend-bookie" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/bookie-management" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/game-management" element={<PrivateRoute><GameManagement /></PrivateRoute>} />
                     <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
                     <Route path="/specific-admin" element={<PrivateRoute><SpecificAdminManagement /></PrivateRoute>} />

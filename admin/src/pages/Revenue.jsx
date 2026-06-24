@@ -71,8 +71,7 @@ const formatNumber = (n) => {
 };
 
 const TABS = [
-    { id: 'direct', label: 'Admin Direct Users collects', icon: FaUserShield, color: 'blue', desc: 'Players registered directly with admin (no bookie)' },
-    { id: 'admin_collects', label: 'Bookie users Collects', icon: FaHandHoldingUsd, color: 'emerald', desc: 'Players under bookies — admin collects bets, pays bookie commission' },
+    { id: 'direct', label: 'Admin Direct Users collects', icon: FaUserShield, color: 'blue', desc: 'Players registered directly with admin' },
 ];
 
 // ======================== SUMMARY CARDS ========================
@@ -347,7 +346,7 @@ const Revenue = () => {
                         <FaMoneyBillWave className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500 shrink-0" />
                         Revenue
                     </h1>
-                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Revenue — Admin direct users and bookie players</p>
+                    <p className="text-gray-400 text-xs sm:text-sm mt-1">Revenue from admin direct players</p>
                 </div>
 
                 {/* Date filters */}
@@ -387,7 +386,7 @@ const Revenue = () => {
                 {!loading && data && overallSummary && (
                     <div className="rounded-xl border-2 border-amber-500/40 bg-gradient-to-br from-gray-800/90 to-gray-900/90 p-4 sm:p-5 shadow-lg shadow-amber-500/5">
                         <p className="text-xs font-bold text-amber-400 uppercase tracking-widest mb-3 sm:mb-4">Overall</p>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 px-3 py-3 sm:px-4 sm:py-4">
                                 <p className="text-[10px] sm:text-xs font-semibold text-blue-300/90 uppercase tracking-wide">Bets</p>
                                 <p className="text-lg sm:text-2xl font-bold text-blue-400 mt-1">{formatCurrency(overallSummary.grandTotalBets)}</p>
@@ -395,10 +394,6 @@ const Revenue = () => {
                             <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-3 sm:px-4 sm:py-4">
                                 <p className="text-[10px] sm:text-xs font-semibold text-red-300/90 uppercase tracking-wide">Payouts</p>
                                 <p className="text-lg sm:text-2xl font-bold text-red-400 mt-1">{formatCurrency(overallSummary.grandTotalPayouts)}</p>
-                            </div>
-                            <div className="rounded-lg border border-orange-500/40 bg-orange-500/10 px-3 py-3 sm:px-4 sm:py-4">
-                                <p className="text-[10px] sm:text-xs font-semibold text-orange-300/90 uppercase tracking-wide">Bookie Commission</p>
-                                <p className="text-lg sm:text-2xl font-bold text-orange-400 mt-1">{formatCurrency(overallSummary.totalBookieCommission)}</p>
                             </div>
                             <div className={`rounded-lg border-2 px-3 py-3 sm:px-4 sm:py-4 col-span-2 lg:col-span-1 ${
                                 overallSummary.totalAdminProfit >= 0
@@ -424,60 +419,16 @@ const Revenue = () => {
                     </div>
                 ) : data ? (
                     <>
-                        {/* Tabs */}
-                        <div className="flex flex-wrap gap-2">
-                            {TABS.map((tab) => {
-                                const Icon = tab.icon;
-                                const isActive = activeTab === tab.id;
-                                const colorMap = {
-                                    blue: isActive ? 'bg-blue-600 text-white border-blue-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
-                                    emerald: isActive ? 'bg-emerald-600 text-white border-emerald-500' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600',
-                                };
-                                return (
-                                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border-2 text-xs sm:text-sm font-semibold transition-all ${colorMap[tab.color]}`}
-                                    >
-                                        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        {tab.label}
-                                    </button>
-                                );
-                            })}
+                        <DirectSummaryCards stats={direct || { totalBetAmount: 0, totalPayouts: 0, adminProfit: 0 }} />
+                        <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
+                            <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
+                                <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
+                                    <FaUserShield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                                    Admin Direct Users collects
+                                </h2>
+                            </div>
+                            <DirectUsersSection stats={direct} />
                         </div>
-
-                        {/* Tab description */}
-                        <p className="text-xs text-gray-500 -mt-2">{TABS.find(t => t.id === activeTab)?.desc}</p>
-
-                        {/* Tab Content */}
-                        {activeTab === 'direct' && (
-                            <>
-                                <DirectSummaryCards stats={direct || { totalBetAmount: 0, totalPayouts: 0, adminProfit: 0 }} />
-                                <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
-                                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
-                                        <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
-                                            <FaUserShield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
-                                            Admin Direct Users collects
-                                        </h2>
-                                    </div>
-                                    <DirectUsersSection stats={direct} />
-                                </div>
-                            </>
-                        )}
-
-                        {activeTab === 'admin_collects' && (
-                            <>
-                                <AdminCollectsSummaryCards summary={acSummary} />
-                                <div className="bg-gray-800/80 rounded-xl border border-gray-700/80 overflow-hidden">
-                                    <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-700/80">
-                                        <h2 className="text-sm sm:text-lg font-semibold text-white flex items-center gap-2">
-                                            <FaHandHoldingUsd className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
-                                            Bookie users Collects — Breakdown
-                                        </h2>
-                                        <p className="text-[11px] text-gray-500 mt-0.5">Players under bookies. Admin collects bets and pays bookie commission %.</p>
-                                    </div>
-                                    <AdminCollectsTable bookies={bookieUsersBookies} />
-                                </div>
-                            </>
-                        )}
 
                         {/* Print */}
                         <div className="flex flex-wrap gap-3">
@@ -507,23 +458,6 @@ const Revenue = () => {
 
                     <h3 className="text-lg font-semibold mt-4 mb-2">Admin Direct Users collects</h3>
                     <p>Bets: {formatCurrency(direct?.totalBetAmount)} | Payouts: {formatCurrency(direct?.totalPayouts)} | Profit: {formatCurrency(direct?.adminProfit)}</p>
-
-                    <h3 className="text-lg font-semibold mt-4 mb-2">Bookie users Collects</h3>
-                    <table className="w-full text-sm border-collapse mb-4">
-                        <thead><tr className="border-b-2 border-gray-300">
-                            <th className="text-left py-2">Bookie</th><th className="text-right py-2">Bets</th><th className="text-right py-2">Payouts</th>
-                            <th className="text-center py-2">Comm %</th><th className="text-right py-2">Commission</th><th className="text-right py-2">Admin Profit</th>
-                        </tr></thead>
-                        <tbody>
-                            {bookieUsersBookies.map((b) => (
-                                <tr key={b.bookieId} className="border-b border-gray-200">
-                                    <td className="py-1.5">{b.bookieName}</td><td className="text-right py-1.5">{formatCurrency(b.totalBetAmount)}</td>
-                                    <td className="text-right py-1.5">{formatCurrency(b.totalPayouts)}</td><td className="text-center py-1.5">{b.commissionPercentage}%</td>
-                                    <td className="text-right py-1.5">{formatCurrency(b.bookieShare)}</td><td className="text-right py-1.5">{formatCurrency(b.adminProfit)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
 
                     <div className="border-t-2 border-gray-400 pt-2 font-bold">
                         Overall: Bets {formatCurrency(overallSummary?.grandTotalBets)} | Payouts {formatCurrency(overallSummary?.grandTotalPayouts)} | Total Net Profit {formatCurrency(overallSummary?.totalAdminProfit)}

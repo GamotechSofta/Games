@@ -290,7 +290,6 @@ const AddUser = () => {
                                         required
                                     >
                                         <option value="user">Player</option>
-                                        <option value="bookie">Bookie</option>
                                     </select>
                                 </div>
                                 <div>

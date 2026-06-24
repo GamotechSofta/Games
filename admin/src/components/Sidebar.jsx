@@ -29,7 +29,6 @@ const MENU_GROUPS = [
         items: [
             { path: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
             { path: '/all-users', label: 'All Players', icon: FaUserFriends },
-            { path: '/bookie-management', label: 'Bookie Accounts', icon: FaUsers },
             { path: '/markets', label: 'Markets', icon: FaChartBar },
         ],
     },
@@ -39,7 +38,6 @@ const MENU_GROUPS = [
             { path: '/add-result', label: 'Add Result', icon: FaEdit },
             { path: '/update-rate', label: 'Update Rate', icon: FaCoins },
             { path: '/bet-history', label: 'Bet History', icon: FaHistory },
-            { path: '/reports', label: 'Report', icon: FaChartLine },
             { path: '/game-management', label: 'Games', icon: FaGamepad },
             { path: '/logs', label: 'Logs', icon: FaClipboardList },
         ],
@@ -47,10 +45,8 @@ const MENU_GROUPS = [
     {
         title: 'Financials',
         items: [
-            { path: '/revenue', label: 'Revenue', icon: FaMoneyBillWave },
             { path: '/payment-management', label: 'Transactions', icon: FaCreditCard },
             { path: '/deposit-withdrawal-history', label: 'Deposit & Withdrawal History', icon: FaExchangeAlt },
-            { path: '/daily-settlement', label: 'Daily Settlement', icon: FaMoneyBillWave },
             { path: '/wallet', label: 'Wallet', icon: FaWallet },
         ],
     },
@@ -111,10 +107,6 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
         }
         if (path === '/add-result') {
             return location.pathname === path || location.pathname.startsWith(`${path}/`);
-        }
-        if (path === '/reports') return location.pathname === '/reports';
-        if (path === '/revenue') {
-            return location.pathname === '/revenue' || location.pathname.startsWith('/revenue/');
         }
         if (path === '/daily-settlement') return location.pathname === '/daily-settlement';
         if (path === '/deposit-withdrawal-history') return location.pathname === '/deposit-withdrawal-history';

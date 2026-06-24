@@ -11,8 +11,6 @@ import { useAdminSettings } from '../context/AdminSettingsContext';
 const ALL_TABS = [
     { id: 'all', label: 'All Players', value: 'all' },
     { id: 'super_admins', label: 'All Super Admins', value: 'super_admins' },
-    { id: 'all_bookies', label: 'All Bookies', value: 'all_bookies' },
-    { id: 'bookie_users', label: 'All Bookies Players', value: 'bookie_users' },
     { id: 'super_admin_users', label: 'Super Admin Players', value: 'super_admin_users' },
 ];
 

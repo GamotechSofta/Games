@@ -1,14 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowDown, FaArrowUp, FaClock, FaFilter, FaEye, FaCheck, FaTimes, FaImage, FaWallet } from 'react-icons/fa';
+import { FaArrowDown, FaArrowUp, FaClock, FaEye, FaCheck, FaTimes, FaImage, FaCreditCard, FaSyncAlt } from 'react-icons/fa';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 import { useAdminSettings } from '../context/AdminSettingsContext';
+
+const formatCurrency = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(n) || 0);
+
+const valueSizeClass = (value) => {
+    const len = String(value ?? '').length;
+    if (len > 13) return 'text-sm sm:text-base md:text-lg';
+    if (len > 10) return 'text-base sm:text-lg md:text-xl';
+    return 'text-lg sm:text-xl md:text-2xl';
+};
+
+const StatCard = ({ label, value, tone = 'slate', active, onClick, sub }) => {
+    const tones = {
+        amber: {
+            wrap: active ? 'border-amber-500/70 bg-amber-950/40 ring-1 ring-amber-500/30' : 'border-amber-500/40 bg-amber-950/30 hover:border-amber-400/60',
+            value: 'text-amber-300',
+            label: 'text-amber-100/80',
+        },
+        emerald: {
+            wrap: active ? 'border-emerald-500/70 bg-emerald-950/40 ring-1 ring-emerald-500/30' : 'border-emerald-500/40 bg-emerald-950/30 hover:border-emerald-400/60',
+            value: 'text-emerald-300',
+            label: 'text-emerald-100/80',
+        },
+        violet: {
+            wrap: active ? 'border-violet-500/70 bg-violet-950/40 ring-1 ring-violet-500/30' : 'border-violet-500/40 bg-violet-950/30 hover:border-violet-400/60',
+            value: 'text-violet-300',
+            label: 'text-violet-100/80',
+        },
+        sky: {
+            wrap: active ? 'border-sky-500/70 bg-sky-950/40 ring-1 ring-sky-500/30' : 'border-sky-500/40 bg-sky-950/30 hover:border-sky-400/60',
+            value: 'text-sky-300',
+            label: 'text-sky-100/80',
+        },
+        slate: {
+            wrap: 'border-gray-600/60 bg-gray-800/60',
+            value: 'text-white',
+            label: 'text-gray-300',
+        },
+    };
+    const t = tones[tone] || tones.slate;
+    const Tag = onClick ? 'button' : 'div';
+    return (
+        <Tag
+            type={onClick ? 'button' : undefined}
+            onClick={onClick}
+            className={`rounded-xl border p-3.5 sm:p-4 text-left w-full transition-all ${t.wrap} ${onClick ? 'cursor-pointer' : ''}`}
+        >
+            <p className={`text-[11px] sm:text-xs font-semibold uppercase tracking-wide ${t.label}`}>{label}</p>
+            <p className={`font-bold font-mono tabular-nums mt-1 leading-tight break-words ${valueSizeClass(value)} ${t.value}`}>{value}</p>
+            {sub && <p className="text-[10px] sm:text-xs text-gray-500 mt-1">{sub}</p>}
+        </Tag>
+    );
+};
 
 const PaymentManagement = () => {
     const navigate = useNavigate();
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [pendingCounts, setPendingCounts] = useState({ deposits: 0, withdrawals: 0, total: 0 });
     const [pageTab, setPageTab] = useState('withdrawals'); // withdrawals = default | payu = successful deposits log
     const [filters, setFilters] = useState({
@@ -45,9 +98,9 @@ const PaymentManagement = () => {
             .catch(() => {});
     }, []);
 
-    const fetchPayments = async () => {
+    const fetchPayments = async (silent = false) => {
         try {
-            setLoading(true);
+            if (!silent) setLoading(true);
             const queryParams = new URLSearchParams();
             queryParams.append('view', pageTab === 'withdrawals' ? 'withdrawals' : 'payu_log');
             if (pageTab === 'withdrawals' && filters.status) queryParams.append('status', filters.status);
@@ -61,7 +114,16 @@ const PaymentManagement = () => {
         } catch (err) {
             console.error('Error fetching payments:', err);
         } finally {
-            setLoading(false);
+            if (!silent) setLoading(false);
+        }
+    };
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([fetchPayments(true), fetchPendingCounts()]);
+        } finally {
+            setRefreshing(false);
         }
     };
 
@@ -175,239 +237,195 @@ const PaymentManagement = () => {
 
     return (
         <AdminLayout onLogout={handleLogout} title="Transactions">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
-                    <FaWallet className="text-amber-500" />
-                    Transactions
-                </h1>
-                <p className="mt-2 text-gray-400 text-sm sm:text-base max-w-2xl">
-                    Deposits are added automatically after successful payment. This page shows completed deposit transactions only — no manual deposit approval.
-                </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-6">
-                <button
-                    type="button"
-                    onClick={() => { setPageTab('withdrawals'); setFilters({ status: 'pending', bookieId: '' }); }}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${pageTab === 'withdrawals' ? 'bg-purple-600 text-white border-purple-500' : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-gray-500'}`}
-                >
-                    Withdrawal Requests
-                    {pendingCounts.withdrawals > 0 && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded-full bg-amber-500 text-black text-xs">{pendingCounts.withdrawals}</span>
-                    )}
-                </button>
-                <button
-                    type="button"
-                    onClick={() => { setPageTab('payu'); setFilters({ status: '', bookieId: '' }); }}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${pageTab === 'payu' ? 'bg-amber-500 text-black border-amber-500' : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-gray-500'}`}
-                >
-                    Deposits (Success)
-                </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                {pageTab === 'payu' ? (
-                    <>
-                        <div className="rounded-xl p-5 border-2 border-emerald-500/40 bg-emerald-500/10">
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Successful Deposits</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-emerald-400 mt-1">{payments.length}</p>
-                            <p className="text-xs text-gray-500 mt-1">Listed below</p>
-                        </div>
-                        <div className="rounded-xl p-5 border-2 border-gray-700 bg-gray-800/80">
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Amount (listed)</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-white mt-1">₹{payuTotalAmount.toLocaleString('en-IN')}</p>
-                        </div>
-                        <div className="rounded-xl p-5 border-2 border-gray-700 bg-gray-800/80">
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Pending Withdrawals</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-purple-400 mt-1">{pendingCounts.withdrawals}</p>
-                            <p className="text-xs text-gray-500 mt-1">Use Withdrawal Requests tab</p>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div
-                            className={`rounded-xl p-5 border-2 transition-all cursor-pointer ${filters.status === 'pending' ? 'border-amber-500 bg-amber-500/10' : 'border-gray-700 bg-gray-800/80 hover:border-gray-600'}`}
-                            onClick={() => setFilters({ ...filters, status: 'pending' })}
-                        >
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Pending Withdrawals</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-amber-400 mt-1">{pendingCounts.withdrawals}</p>
-                        </div>
-                        <div
-                            className={`rounded-xl p-5 border-2 transition-all cursor-pointer ${filters.status === '' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/80 hover:border-gray-600'}`}
-                            onClick={() => setFilters({ ...filters, status: '' })}
-                        >
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">All Withdrawals</p>
-                            <p className="text-2xl sm:text-3xl font-bold text-blue-400 mt-1">{payments.length}</p>
-                        </div>
-                        <div className="rounded-xl p-5 border-2 border-gray-700 bg-gray-800/80">
-                            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Status</p>
-                            <p className="text-sm text-gray-400 mt-2">{pendingRequireAction ? 'Action required on pending' : 'All clear'}</p>
-                        </div>
-                    </>
-                )}
-            </div>
-
-            {/* Filters */}
-            <div className="bg-gray-800/80 rounded-xl p-4 sm:p-5 mb-6 border border-gray-700">
-                <div className="flex items-center gap-2 mb-3">
-                    <FaFilter className="text-gray-500 w-4 h-4" />
-                    <span className="text-sm font-medium text-gray-400">Filter Payments</span>
-                    {hasActiveFilters && (
-                        <span className="ml-2 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs">
-                            Filters active
+            <div className="space-y-4 sm:space-y-5">
+                {/* Header: title + tabs + refresh */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white flex items-center gap-2 sm:gap-3 shrink-0">
+                        <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <FaCreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
                         </span>
-                    )}
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                    {pageTab === 'withdrawals' && (
-                    <div className="flex-1 sm:max-w-[180px]">
-                        <label className="block text-xs text-gray-500 mb-1">Status</label>
-                        <select
-                            value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-amber-500/50"
-                        >
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                    )}
-                    {bookies.length > 0 && (
-                    <div className="flex-1 sm:max-w-[220px]">
-                        <label className="block text-xs text-gray-500 mb-1">Bookie</label>
-                        <select
-                            value={filters.bookieId}
-                            onChange={(e) => setFilters({ ...filters, bookieId: e.target.value })}
-                            className="w-full px-4 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-amber-500/50"
-                        >
-                            <option value="">All Bookies</option>
-                            {bookies.map((b) => (
-                                <option key={b._id} value={b._id}>{b.username}</option>
-                            ))}
-                        </select>
-                    </div>
-                    )}
-                    <div className="flex items-end">
+                        Transactions
+                    </h1>
+                    <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => setFilters({ status: pageTab === 'withdrawals' ? 'pending' : '', bookieId: '' })}
-                            className="px-4 py-2.5 bg-gray-600 hover:bg-gray-500 rounded-lg text-white text-sm font-medium transition-colors"
+                            onClick={() => { setPageTab('withdrawals'); setFilters({ status: 'pending', bookieId: '' }); }}
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-semibold border whitespace-nowrap transition-colors ${
+                                pageTab === 'withdrawals'
+                                    ? 'bg-violet-600 text-white border-violet-500'
+                                    : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-gray-500'
+                            }`}
                         >
-                            Clear Filters
+                            Withdrawals
+                            {pendingCounts.withdrawals > 0 && (
+                                <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-black text-xs">{pendingCounts.withdrawals}</span>
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setPageTab('payu'); setFilters({ status: '', bookieId: '' }); }}
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-semibold border whitespace-nowrap transition-colors ${
+                                pageTab === 'payu'
+                                    ? 'bg-emerald-600 text-white border-emerald-500'
+                                    : 'bg-gray-800 text-gray-300 border-gray-600 hover:border-gray-500'
+                            }`}
+                        >
+                            Deposits
                         </button>
                     </div>
+                    <button
+                        type="button"
+                        onClick={handleRefresh}
+                        className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gray-700 hover:bg-amber-500/20 border border-gray-600 text-gray-200 text-sm ml-auto shrink-0"
+                    >
+                        <FaSyncAlt className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </button>
                 </div>
-            </div>
 
-            {/* Summary bar */}
-            {!loading && (
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                    <p className="text-sm text-gray-400">
-                        Showing <span className="font-semibold text-white">{filteredPayments.length}</span> payment{filteredPayments.length !== 1 ? 's' : ''}
-                        {hasActiveFilters && (
-                            <span className="ml-2 text-amber-400">(filtered)</span>
-                        )}
-                    </p>
-                    {pageTab === 'withdrawals' && pendingRequireAction && filteredPayments.some((p) => p.status === 'pending') && (
-                        <p className="text-xs text-amber-400 flex items-center gap-2">
-                            <FaClock className="w-3.5 h-3.5" />
-                            Some payments need your approval
-                        </p>
+                {/* Summary cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    {pageTab === 'payu' ? (
+                        <>
+                            <StatCard label="Successful Deposits" value={payments.length} tone="emerald" sub="Listed below" />
+                            <StatCard label="Total Amount" value={formatCurrency(payuTotalAmount)} tone="sky" />
+                            <StatCard
+                                label="Pending Withdrawals"
+                                value={pendingCounts.withdrawals}
+                                tone="violet"
+                                sub="Switch to Withdrawals tab"
+                                onClick={() => { setPageTab('withdrawals'); setFilters({ status: 'pending', bookieId: '' }); }}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <StatCard
+                                label="Pending Withdrawals"
+                                value={pendingCounts.withdrawals}
+                                tone="amber"
+                                active={filters.status === 'pending'}
+                                onClick={() => setFilters({ ...filters, status: 'pending' })}
+                            />
+                            <StatCard
+                                label="All Withdrawals"
+                                value={payments.length}
+                                tone="sky"
+                                active={filters.status === ''}
+                                onClick={() => setFilters({ ...filters, status: '' })}
+                            />
+                            <StatCard
+                                label="Status"
+                                value={pendingRequireAction ? 'Action needed' : 'All clear'}
+                                tone={pendingRequireAction ? 'amber' : 'emerald'}
+                                sub={pendingRequireAction ? 'Approve or reject pending' : 'No pending requests'}
+                            />
+                        </>
                     )}
                 </div>
-            )}
 
-            {/* Payments Table */}
-            {loading ? (
-                <div className="text-center py-16 bg-gray-800/50 rounded-xl border border-gray-700">
-                    <div className="animate-spin rounded-full h-12 w-12 border-2 border-amber-500 border-t-transparent mx-auto mb-4"></div>
-                    <p className="text-gray-400">Loading payments...</p>
-                    <p className="text-gray-500 text-sm mt-1">Please wait</p>
-                </div>
-            ) : (
-                <div className="overflow-x-auto -mx-4 sm:mx-0 rounded-xl border border-gray-700 overflow-hidden">
-                    <div className="bg-gray-800/80 min-w-[1080px]">
-                        <table className="w-full text-sm table-fixed">
-                            <thead className="bg-gray-900/80">
-                                <tr>
-                                    <th className="w-[90px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Ref ID</th>
-                                    <th className="w-[180px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Player</th>
-                                    <th className="w-[100px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</th>
-                                    <th className="w-[110px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Amount</th>
-                                    <th className="w-[200px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        Payment Info
-                                    </th>
-                                    <th className="w-[120px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                                    <th className="w-[170px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</th>
-                                    <th className="w-[180px] px-4 py-3.5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                        <span className="block">Actions</span>
-                                        <span className="block font-normal normal-case text-gray-500 mt-0.5">View / Approve / Reject</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-700">
+                {/* Filters — one row */}
+                {pageTab === 'withdrawals' && (
+                    <div className="rounded-xl border border-gray-700/80 bg-gray-800/50 p-3 sm:p-4">
+                        <div className="flex flex-nowrap items-center gap-2 sm:gap-3 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <span className="text-xs text-gray-400 shrink-0 whitespace-nowrap font-semibold uppercase tracking-wider">Status</span>
+                            <select
+                                value={filters.status}
+                                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                                className="px-2 sm:px-3 py-1.5 sm:py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-xs sm:text-sm shrink-0 focus:ring-2 focus:ring-amber-500/40"
+                            >
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            {hasActiveFilters && (
+                                <button
+                                    type="button"
+                                    onClick={() => setFilters({ status: 'pending', bookieId: '' })}
+                                    className="px-3 py-1.5 sm:py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white text-xs sm:text-sm font-medium shrink-0 whitespace-nowrap"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                            {!loading && pendingRequireAction && filteredPayments.some((p) => p.status === 'pending') && (
+                                <span className="text-xs text-amber-400 flex items-center gap-1.5 shrink-0 whitespace-nowrap ml-auto">
+                                    <FaClock className="w-3.5 h-3.5" />
+                                    Needs approval
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Summary bar */}
+                {!loading && (
+                    <p className="text-xs sm:text-sm text-gray-400">
+                        Showing <span className="font-semibold text-white">{filteredPayments.length}</span> payment{filteredPayments.length !== 1 ? 's' : ''}
+                        {hasActiveFilters && <span className="text-amber-400 ml-1">(filtered)</span>}
+                    </p>
+                )}
+
+                {/* Table */}
+                {loading ? (
+                    <div className="text-center py-16 rounded-xl border border-gray-700 bg-gray-800/40">
+                        <div className="animate-spin rounded-full h-10 w-10 border-2 border-amber-500 border-t-transparent mx-auto mb-3" />
+                        <p className="text-gray-400 text-sm">Loading payments...</p>
+                    </div>
+                ) : (
+                    <div className="rounded-xl border border-gray-700 overflow-hidden bg-gray-800/60">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[900px]">
+                                <thead>
+                                    <tr className="border-b border-gray-700 text-left text-gray-400 uppercase text-xs">
+                                        <th className="px-4 py-3">Ref</th>
+                                        <th className="px-4 py-3">Player</th>
+                                        <th className="px-4 py-3">Type</th>
+                                        <th className="px-4 py-3 text-right">Amount</th>
+                                        <th className="px-4 py-3">Payment Info</th>
+                                        <th className="px-4 py-3">Status</th>
+                                        <th className="px-4 py-3">Date</th>
+                                        <th className="px-4 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                 {filteredPayments.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-16 text-center">
-                                            <div className="max-w-sm mx-auto">
-                                                <FaWallet className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                                                <p className="text-gray-400 font-medium mb-1">No payments found</p>
-                                                <p className="text-gray-500 text-sm">
-                                                    {hasActiveFilters
-                                                        ? 'Try clearing filters or change your filter criteria.'
-                                                        : pageTab === 'payu'
-                                                            ? 'Successful deposits will appear here after players complete payment.'
-                                                            : 'Withdrawal requests will appear here when players request a withdrawal.'}
-                                                </p>
-                                                {hasActiveFilters && (
-                                                    <button
-                                                        onClick={() => setFilters({ status: '', bookieId: '' })}
-                                                        className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-white text-sm font-medium"
-                                                    >
-                                                        Clear Filters
-                                                    </button>
-                                                )}
-                                            </div>
+                                        <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                                            <FaCreditCard className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                                            <p className="font-medium text-gray-400 mb-1">No payments found</p>
+                                            <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                                                {hasActiveFilters
+                                                    ? 'Try clearing filters.'
+                                                    : pageTab === 'payu'
+                                                        ? 'Successful deposits appear here after payment.'
+                                                        : 'Withdrawal requests appear when players request withdrawal.'}
+                                            </p>
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredPayments.map((payment) => (
-                                        <tr key={payment._id} className="hover:bg-gray-700/50">
-                                            <td className="px-4 py-4 text-xs text-gray-400 whitespace-nowrap">
+                                        <tr key={payment._id} className="border-b border-gray-700/60 hover:bg-gray-700/30">
+                                            <td className="px-4 py-3 text-xs text-gray-400 font-mono whitespace-nowrap">
                                                 #{payment._id.slice(-6).toUpperCase()}
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <div className="truncate">
-                                                    <p className="font-medium text-white truncate">
-                                                        {payment.userId?.username || 'Unknown'}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 truncate">
-                                                        {payment.userId?.email || payment.userId?.phone || ''}
-                                                    </p>
-                                                    {payment.bookieId && (
-                                                        <p className="text-[10px] mt-0.5 truncate">
-                                                            <span className={`px-1.5 py-0.5 rounded ${payment.bookieId.bookieType === 'bookie_collects' ? 'bg-purple-900/40 text-purple-400' : 'bg-blue-900/40 text-blue-400'}`}>
-                                                                {payment.bookieId.username}
-                                                            </span>
-                                                        </p>
-                                                    )}
+                                            <td className="px-4 py-3">
+                                                <div className="text-white font-medium">{payment.userId?.username || 'Unknown'}</div>
+                                                <div className="text-xs text-gray-500 truncate max-w-[160px]">
+                                                    {payment.userId?.phone || payment.userId?.email || ''}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getTypeBadge(payment.type)}`}>
-                                                    {payment.type === 'deposit' ? '↓ Deposit' : '↑ Withdraw'}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getTypeBadge(payment.type)}`}>
+                                                    {payment.type === 'deposit' ? 'Deposit' : 'Withdraw'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className={`font-semibold ${payment.type === 'deposit' ? 'text-green-400' : 'text-purple-400'}`}>
-                                                    {payment.type === 'deposit' ? '+' : '-'} ₹{payment.amount?.toLocaleString()}
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                <span className={`font-mono font-semibold ${payment.type === 'deposit' ? 'text-emerald-400' : 'text-violet-400'}`}>
+                                                    {payment.type === 'deposit' ? '+' : '−'}{formatCurrency(payment.amount)}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td className="px-4 py-3 max-w-[200px]">
                                                 {payment.type === 'deposit' ? (
                                                     <div className="space-y-1.5">
                                                         {payment.upiTransactionId && (
@@ -458,52 +476,53 @@ const PaymentManagement = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${getStatusBadge(payment.status)}`}>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap ${getStatusBadge(payment.status)}`}>
                                                     {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                                                 </span>
                                                 {payment.adminRemarks && payment.status !== 'pending' && (
-                                                    <p className="text-xs text-gray-500 mt-1 truncate" title={payment.adminRemarks}>
+                                                    <p className="text-xs text-gray-500 mt-1 truncate max-w-[140px]" title={payment.adminRemarks}>
                                                         {payment.adminRemarks}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4 text-xs text-gray-400">
-                                                <p className="whitespace-nowrap">{formatDate(payment.createdAt)}</p>
+                                            <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">
+                                                <p>{formatDate(payment.createdAt)}</p>
                                                 {payment.processedAt && payment.status !== 'pending' && (
-                                                    <p className="text-gray-500 whitespace-nowrap text-[10px] mt-0.5">
+                                                    <p className="text-gray-500 text-[10px] mt-0.5">
                                                         Done: {formatDate(payment.processedAt)}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <div className="flex flex-wrap gap-2">
+                                            <td className="px-4 py-3 text-right">
+                                                <div className="inline-flex flex-wrap justify-end gap-1.5">
                                                     <button
+                                                        type="button"
                                                         onClick={() => setDetailModal({ show: true, payment })}
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600/20 border border-blue-500/40 hover:bg-blue-600/30 rounded-lg text-xs font-medium text-blue-400 transition-colors"
-                                                        title="View full payment details"
+                                                        className="inline-flex items-center gap-1 px-2 py-1.5 bg-sky-600/20 border border-sky-500/40 hover:bg-sky-600/30 rounded-lg text-xs font-medium text-sky-400"
+                                                        title="View details"
                                                     >
-                                                        <FaEye className="w-3.5 h-3.5 shrink-0" /> View Details
+                                                        <FaEye className="w-3 h-3" /> View
                                                     </button>
                                                     {pageTab === 'withdrawals' && payment.status === 'pending' ? (
                                                         <>
                                                             <button
+                                                                type="button"
                                                                 onClick={() => openActionModal(payment, 'approve')}
-                                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg text-xs font-medium text-white transition-colors"
-                                                                title="Approve – add money to player wallet"
+                                                                className="inline-flex items-center gap-1 px-2 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-medium text-white"
                                                             >
-                                                                <FaCheck className="w-3.5 h-3.5 shrink-0" /> Approve
+                                                                <FaCheck className="w-3 h-3" /> Approve
                                                             </button>
                                                             <button
+                                                                type="button"
                                                                 onClick={() => openActionModal(payment, 'reject')}
-                                                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-red-600 hover:bg-red-700 rounded-lg text-xs font-medium text-white transition-colors"
-                                                                title="Reject – decline this request"
+                                                                className="inline-flex items-center gap-1 px-2 py-1.5 bg-rose-600 hover:bg-rose-500 rounded-lg text-xs font-medium text-white"
                                                             >
-                                                                <FaTimes className="w-3.5 h-3.5 shrink-0" /> Reject
+                                                                <FaTimes className="w-3 h-3" /> Reject
                                                             </button>
                                                         </>
                                                     ) : (
-                                                        <span className="text-xs text-gray-500 italic">Processed</span>
+                                                        <span className="text-xs text-gray-500">—</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -515,19 +534,20 @@ const PaymentManagement = () => {
                     </div>
                 </div>
             )}
+            </div>
 
             {/* Action Modal */}
             {actionModal.show && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 border border-gray-700 shadow-2xl">
+                    <div className="bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 border border-gray-700 shadow-2xl">
                         <div className="flex items-center gap-3 mb-4">
                             {actionModal.action === 'approve' ? (
-                                <div className="w-10 h-10 rounded-full bg-green-600/20 flex items-center justify-center">
-                                    <FaCheck className="w-5 h-5 text-green-400" />
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                    <FaCheck className="w-5 h-5 text-emerald-400" />
                                 </div>
                             ) : (
-                                <div className="w-10 h-10 rounded-full bg-red-600/20 flex items-center justify-center">
-                                    <FaTimes className="w-5 h-5 text-red-400" />
+                                <div className="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0">
+                                    <FaTimes className="w-5 h-5 text-rose-400" />
                                 </div>
                             )}
                             <div>
@@ -540,12 +560,10 @@ const PaymentManagement = () => {
                             </div>
                         </div>
                         
-                        <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-gray-400">Amount</span>
-                                <span className="text-xl font-bold text-white">
-                                    ₹{actionModal.payment?.amount?.toLocaleString()}
-                                </span>
+                        <div className="rounded-xl border border-gray-700 bg-gray-900/50 p-4 mb-4">
+                            <div className="flex justify-between items-center mb-2 gap-3">
+                                <span className="text-gray-400 text-sm">Amount</span>
+                                <span className="text-lg font-bold font-mono text-white">{formatCurrency(actionModal.payment?.amount)}</span>
                             </div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-gray-400">Player</span>
@@ -683,7 +701,7 @@ const PaymentManagement = () => {
             {/* Detail Modal */}
             {detailModal.show && detailModal.payment && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-800 rounded-xl max-w-lg w-full p-6 border border-gray-700 max-h-[90vh] overflow-y-auto shadow-2xl">
+                    <div className="bg-gray-800 rounded-2xl max-w-lg w-full p-5 sm:p-6 border border-gray-700 max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${detailModal.payment.type === 'deposit' ? 'bg-green-600/20' : 'bg-purple-600/20'}`}>
@@ -716,9 +734,7 @@ const PaymentManagement = () => {
                         <div className="bg-gray-900 rounded-lg p-4 mb-4">
                             <div className="flex justify-between items-center mb-3">
                                 <span className="text-gray-400">Amount</span>
-                                <span className="text-2xl font-bold text-white">
-                                    ₹{detailModal.payment.amount?.toLocaleString()}
-                                </span>
+                                <span className="text-2xl font-bold font-mono text-white">{formatCurrency(detailModal.payment.amount)}</span>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                                 <span className="text-gray-400">Status</span>
@@ -865,12 +881,6 @@ const PaymentManagement = () => {
                                         <span className="text-white">{detailModal.payment.processedBy.username} <span className="text-xs text-gray-500">({detailModal.payment.processedByType || 'admin'})</span></span>
                                     </div>
                                 )}
-                                {detailModal.payment.bookieId && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-500">Bookie</span>
-                                        <span className="text-white">{detailModal.payment.bookieId?.username || '—'} <span className="text-xs text-gray-500">({detailModal.payment.bookieId?.bookieType === 'bookie_collects' ? 'Collects' : 'Admin Collects'})</span></span>
-                                    </div>
-                                )}
                                 {detailModal.payment.adminRemarks && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">Admin Remarks</span>
@@ -888,11 +898,7 @@ const PaymentManagement = () => {
                             >
                                 Close
                             </button>
-                            {detailModal.payment.bookieId?.bookieType === 'bookie_collects' ? (
-                                <span className="flex-1 px-4 py-2 bg-purple-600/20 border border-purple-500/40 rounded-lg text-purple-400 font-medium text-center text-sm">
-                                    Bookie Manages This Payment
-                                </span>
-                            ) : detailModal.payment.status === 'pending' ? (
+                            {detailModal.payment.status === 'pending' ? (
                                 <>
                                     <button
                                         onClick={() => {
