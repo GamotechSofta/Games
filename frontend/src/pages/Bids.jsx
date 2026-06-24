@@ -13,6 +13,7 @@ import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBet
 import { getBidOptionLabel } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
+import BetHistoryFilterModalPortal from '../components/BetHistoryFilterModalPortal';
 import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 import {
   evaluateBet,
@@ -586,17 +587,8 @@ const Bids = () => {
         />
       </div>
 
-      {/* Desktop Bet History Filter modal */}
-      {isDesktopFilterOpen ? (
-        <div className="fixed inset-0 z-[999] hidden md:flex items-center justify-center px-3 sm:px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/60"
-            aria-label="Close filter"
-            onClick={() => setIsDesktopFilterOpen(false)}
-          />
-
-          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-amber-200/50 dark:border-amber-500/20 bg-white dark:bg-[#1a1a1c]">
+      <BetHistoryFilterModalPortal open={isDesktopFilterOpen} onClose={() => setIsDesktopFilterOpen(false)}>
+          <div className="w-full rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-amber-200/50 dark:border-amber-500/20 bg-white dark:bg-[#1a1a1c]">
             <div className="bg-gradient-to-r from-[#d4af37] to-amber-600 text-black text-center py-4 text-xl font-extrabold border-b border-amber-700/20">
               {t('bids.filterBy')}
             </div>
@@ -690,8 +682,7 @@ const Bids = () => {
               </div>
             </div>
           </div>
-        </div>
-      ) : null}
+      </BetHistoryFilterModalPortal>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMyBetsData from '../hooks/useMyBetsData';
+import BetHistoryFilterModalPortal from '../components/BetHistoryFilterModalPortal';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 import {
@@ -643,17 +644,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         </div>
       </div>
 
-      {/* Filter modal (as per screenshot) */}
-      {isFilterOpen ? (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center px-3 sm:px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/60"
-            aria-label="Close filter"
-            onClick={() => setIsFilterOpen(false)}
-          />
-
-          <div className="relative w-full max-w-md rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124]">
+      <BetHistoryFilterModalPortal open={isFilterOpen} onClose={() => setIsFilterOpen(false)}>
+          <div className="w-full rounded-[28px] overflow-hidden shadow-[0_25px_80px_rgba(0,0,0,0.65)] border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124]">
             <div className={betHistoryModalHeader}>
               {t('bids.filterType')}
             </div>
@@ -771,8 +763,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               </div>
             </div>
           </div>
-        </div>
-      ) : null}
+      </BetHistoryFilterModalPortal>
 
     </div>
   );
