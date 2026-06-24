@@ -97,9 +97,6 @@ export const betHistoryPrimaryBtn =
 export const betHistoryModalHeader =
   `bg-gray-50 dark:bg-[#141416] text-gray-900 dark:text-white text-center py-4 text-xl sm:text-2xl font-extrabold border-b ${borderDivider}`;
 
-export const betHistoryCancelBtn =
-  'inline-flex items-center justify-center gap-1 rounded-lg px-2 py-1.5 text-[10px] sm:text-xs font-semibold min-h-[36px] border border-red-600 bg-red-600 text-white hover:bg-red-700 hover:border-red-700 dark:border-red-500 dark:bg-red-600 dark:hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait transition-colors';
-
 export const betHistorySectionTitle = `text-base font-bold ${bidAccent} mb-3`;
 
 export const betHistoryFilterOption =

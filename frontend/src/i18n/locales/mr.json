@@ -278,7 +278,7 @@
   "bids": {
     "myBets": "माझे बेट",
     "betHistory": "बेट इतिहास",
-    "betHistorySubtitle": "तुम्ही तुमचा मार्केट बेट इतिहास पाहू शकता",
+    "betHistorySubtitle": "सर्व मार्केट्सचा तुमचा बेट इतिहास (गेल्या ३ दिवस)",
     "gameResults": "मार्केट निकाल",
     "gameResultsSubtitle": "तुम्ही तुमचा मार्केट निकाल इतिहास पाहू शकता",
     "starlineBetHistory": "स्टारलाइन बेट इतिहास",

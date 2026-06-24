@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { cancelBet, updateUserBalance } from '../api/bets';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import useMyBetsData from '../hooks/useMyBetsData';
 import { getBidOptionLabel, getBidOptionKey, BID_OPTION_FILTER_ORDER } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 import {
-  betHistoryCancelBtn,
   betHistoryContentPanel,
   betHistoryCopyToast,
   betHistoryEmpty,
@@ -16,8 +14,6 @@ import {
   betHistoryIndexLabel,
   betHistoryLoadMoreBtn,
   betHistoryModalHeader,
-  betHistoryModalShell,
-  betHistoryModalTitleBar,
   betHistoryPageWrap,
   betHistoryPrimaryBtn,
   betHistorySectionTitle,
@@ -34,11 +30,10 @@ import {
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
 import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 import {
-  canCancelBet,
   evaluateBet,
   inferBetKind,
-  isKingBazaarMarketName,
-  isStarlineMarketName,
+  isBetInMarketScope,
+  isMarketInScope,
   normalizeMarketName,
 } from '../utils/betEvaluation';
 
@@ -97,9 +92,9 @@ const renderBetNumber = (val) => {
 
 const HISTORY_SCOPE_TABS = [
   {
-    scope: 'main',
+    scope: 'all',
     path: '/bet-history',
-    labelKey: 'markets.markets',
+    labelKey: 'common.all',
     ariaLabelKey: 'bids.betHistory',
     activeClass:
       'border-red-600 bg-red-50 text-red-800 dark:bg-red-500/15 dark:text-red-200 shadow-[0_0_0_1px_rgba(220,38,38,0.2)]',
@@ -182,41 +177,33 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     loadMore,
     hasMore,
     isFetching,
-  } = useMyBetsData();
+  } = useMyBetsData({ fetchAll: true });
   const [visibleCount, setVisibleCount] = useState(BETS_DISPLAY_PAGE);
-  const [cancellingBetId, setCancellingBetId] = useState(null);
-  const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
-  const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
   const [copyToast, setCopyToast] = useState('');
 
+  useEffect(() => {
+    invalidateBetsData();
+  }, [invalidateBetsData]);
+
   // Scope behavior:
-  // - default (null/empty): MAIN markets only (exclude starline/king)
+  // - default (null/empty): ALL markets (main + starline + king)
   // - "starline"/"startline": only starline/startline markets
   // - "king": only king bazaar markets
   const scopeRaw = (marketScope || '').toString().trim().toLowerCase();
-  const scope = scopeRaw || 'main';
+  const scope = scopeRaw || 'all';
   const historySubtitleKey =
     scope === 'starline' || scope === 'startline'
       ? 'bids.starlineBetHistorySubtitle'
       : scope === 'king'
         ? 'bids.kingBazaarBetHistorySubtitle'
         : 'bids.betHistorySubtitle';
-  const inScope = (marketTitle) => {
-    if (scope === 'starline' || scope === 'startline') return isStarlineMarketName(marketTitle);
-    if (scope === 'king') return isKingBazaarMarketName(marketTitle);
-    if (scope === 'main') return !isStarlineMarketName(marketTitle) && !isKingBazaarMarketName(marketTitle);
-    return true;
-  };
+  const inScope = (bet) => isBetInMarketScope(bet, scope);
 
   const { userId, bets } = useMemo(() => {
     const u = safeParse(localStorage.getItem('user') || 'null', null);
     const uid = u?._id || u?.id || u?.userId || u?.userid || u?.user_id || u?.uid || null;
     
-    // Filter API bets by scope
-    const scoped = (historyBets || []).filter((bet) => {
-      const marketTitle = bet?.marketId?.marketName || '';
-      return inScope(marketTitle);
-    });
+    const scoped = (historyBets || []).filter((bet) => inScope(bet));
 
     return { userId: uid, bets: scoped };
   }, [scope, historyBets]);
@@ -242,74 +229,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
   useEffect(() => {
     setVisibleCount(BETS_DISPLAY_PAGE);
   }, [statusTabFilter, selectedSessions, selectedStatuses, selectedMarkets, selectedBidOptions, scope]);
-
-  const handleCancelBetClick = (betId) => {
-    if (!betId) return;
-    setConfirmCancelBetId(betId);
-  };
-
-  const handleCancelBetConfirm = async (id) => {
-    const betId = id ?? confirmCancelBetId;
-    setConfirmCancelBetId(null);
-    if (!betId) return;
-    await handleCancelBet(typeof betId === 'string' ? betId : (betId?._id ?? betId?.$oid ?? String(betId)));
-  };
-
-  // Handle cancel bet (after confirmation)
-  const handleCancelBet = async (betIdParam) => {
-    const betId = typeof betIdParam === 'string' ? betIdParam : (betIdParam?._id ?? betIdParam?.$oid ?? String(betIdParam || ''));
-    if (!betId) return;
-
-    setCancellingBetId(betId);
-    setCancelMessage({ type: '', text: '' });
-
-    try {
-      const result = await cancelBet(betId);
-      
-      if (result.success) {
-        // Update user balance
-        if (result.data?.newBalance != null) {
-          updateUserBalance(result.data.newBalance);
-        }
-        
-        // Show success message
-        setCancelMessage({
-          type: 'success',
-          text: `Bet cancelled successfully. ₹${result.data?.refundedAmount || 0} refunded to your wallet.`
-        });
-        
-        // Refresh bet list
-        invalidateBetsData();
-        
-        // Clear message after 5 seconds
-        setTimeout(() => {
-          setCancelMessage({ type: '', text: '' });
-        }, 5000);
-      } else {
-        // Show error message
-        setCancelMessage({
-          type: 'error',
-          text: result.message || 'Failed to cancel bet'
-        });
-        
-        // Clear message after 5 seconds
-        setTimeout(() => {
-          setCancelMessage({ type: '', text: '' });
-        }, 5000);
-      }
-    } catch (error) {
-      setCancelMessage({
-        type: 'error',
-        text: error.message || 'Failed to cancel bet'
-      });
-      
-      setTimeout(() => {
-        setCancelMessage({ type: '', text: '' });
-      }, 5000);
-    } finally {
-      setCancellingBetId(null);
-    }
-  };
 
   const marketByName = useMemo(() => {
     const map = new Map();
@@ -347,13 +266,8 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
     
     // Filter by scope using marketType when available
     const filtered = Array.from(uniqueMap.values()).filter((item) => {
-      const isStar = item.type === 'startline' || (item.type == null && isStarlineMarketName(item.name));
-      const isKing = item.type === 'king' || (item.type == null && isKingBazaarMarketName(item.name));
-      
-      if (scope === 'starline' || scope === 'startline') return isStar;
-      if (scope === 'king') return isKing;
-      if (scope === 'main') return !isStar && !isKing;
-      return true;
+      if (scope === 'all') return true;
+      return isMarketInScope(item.name, item.type, scope);
     });
     
     filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -385,7 +299,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           status,
           createdAt,
           verdict,
-          canCancel: status === 'pending' ? canCancelBet(bet, t) : { canCancel: false, reason: `Status is ${status}` },
         };
       }
       
@@ -397,8 +310,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         session,
         ratesMap,
       });
-
-      const cancelCheck = canCancelBet(bet, t);
 
       const bidOptionKey = getBidOptionKey(betType, betNumber);
       return {
@@ -414,7 +325,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         status,
         createdAt,
         verdict: computed,
-        canCancel: cancelCheck,
       };
     }), [flat, marketByName, ratesMap, t]);
 
@@ -549,53 +459,10 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
           onNavigate={(path) => navigate(path)}
         />
 
-        {/* Cancel message */}
-        {cancelMessage.text && (
-          <div className={`mb-4 rounded-xl px-4 py-3 text-sm ${
-            cancelMessage.type === 'success'
-              ? 'bg-green-50 border border-green-500/30 text-green-800 dark:bg-green-500/10 dark:text-green-200'
-              : 'bg-red-50 border border-red-500/30 text-red-800 dark:bg-red-500/10 dark:text-red-200'
-          }`}>
-            {cancelMessage.text}
-          </div>
-        )}
-
         {/* Bet ID copied toast */}
         {copyToast && (
           <div className={betHistoryCopyToast}>
             {copyToast}
-          </div>
-        )}
-
-        {/* Cancel bet confirmation modal (mobile + desktop) */}
-        {confirmCancelBetId && (
-          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
-            <div className={betHistoryModalShell}>
-              <div className={betHistoryModalTitleBar}>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{t('bids.cancelBetTitle')}</h3>
-              </div>
-              <div className="p-5 space-y-4">
-                <p className="text-gray-600 dark:text-gray-300 text-sm">
-                  {t('bids.cancelBetConfirm')}
-                </p>
-                <div className="flex gap-3 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmCancelBetId(null)}
-                    className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/20 text-gray-900 dark:text-white font-semibold hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
-                  >
-                    {t('bids.noKeepBet')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
-                    className={`flex-1 py-3 ${betHistoryPrimaryBtn}`}
-                  >
-                    {t('bids.yesCancel')}
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -630,7 +497,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               {/* Mobile: 2x2 grid, each bet = one card */}
               <div className="md:hidden grid grid-cols-2 gap-3 overflow-x-hidden">
                 {visibleBets.map((row, idx) => {
-                  const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
+                  const { betId, points, session, betNumber, verdict, createdAt, marketTitle, gameType } = row;
                   const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                   const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                   const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
@@ -686,19 +553,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                         <span className="text-gray-500 dark:text-gray-400 shrink-0">{t('bids.timeLabel')}</span>
                         <span className="text-gray-600 dark:text-gray-300 truncate">{formatTxnTime(createdAt)}</span>
                       </div>
-                      {verdict?.state === 'pending' && canCancel?.canCancel && (
-                        <div className="pt-1.5 border-t border-gray-200 dark:border-white/10">
-                          <button
-                            type="button"
-                            onClick={() => handleCancelBetClick(betId)}
-                            disabled={cancellingBetId === betId}
-                            title={t('bids.cancelAndRefund')}
-                            className={`w-full ${betHistoryCancelBtn}`}
-                          >
-                            {cancellingBetId === betId ? <><svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t('bids.cancelling')}</> : <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> {t('bids.cancelAndRefund')}</>}
-                          </button>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -718,12 +572,11 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                       <th className={`${betHistoryTh} text-right`}>{t('bids.pointsLabel')}</th>
                       <th className={`${betHistoryTh} text-center`}>{t('bids.statusLabel')}</th>
                       <th className={betHistoryTh}>{t('bids.dateTimeLabel')}</th>
-                      <th className={`${betHistoryTh} text-center w-32`}>{t('bids.actionLabel')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {visibleBets.map((row, idx) => {
-                      const { betId, points, session, betNumber, verdict, createdAt, canCancel, marketTitle, gameType } = row;
+                      const { betId, points, session, betNumber, verdict, createdAt, marketTitle, gameType } = row;
                       const isScheduled = row.bet?.scheduledDate || row.bet?.isScheduled;
                       const scheduledDateStr = formatScheduledDate(row.bet?.scheduledDate);
                       const betValue = betNumber != null ? renderBetNumber(betNumber) : '-';
@@ -767,29 +620,6 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
                             )}
                           </td>
                           <td className="py-3 px-3 lg:py-4 lg:px-4 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">{formatTxnTime(createdAt)}</td>
-                          <td className="py-3 px-3 lg:py-4 lg:px-4 text-center">
-                            {verdict?.state === 'pending' && canCancel?.canCancel ? (
-                              <button
-                                type="button"
-                                onClick={() => handleCancelBetClick(betId)}
-                                disabled={cancellingBetId === betId}
-                                title={t('bids.cancelAndRefund')}
-                                className={`${betHistoryCancelBtn} active:scale-[0.98]`}
-                              >
-                                {cancellingBetId === betId ? (
-                                  <><svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>{t('bids.cancelling')}</span></>
-                                ) : (
-                                  <><svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>{t('bids.cancelBet')}</span></>
-                                )}
-                              </button>
-                            ) : verdict?.state === 'cancelled' ? (
-                              <svg className="w-6 h-6 text-red-500 mx-auto inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" title="Cancelled">
-                                <path d="M18 6L6 18M6 6l12 12" />
-                              </svg>
-                            ) : (
-                              <span className="text-gray-500 text-xs">—</span>
-                            )}
-                          </td>
                         </tr>
                       );
                     })}

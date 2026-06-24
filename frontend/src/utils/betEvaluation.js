@@ -20,10 +20,46 @@ export const isStarlineMarketName = (marketTitle) => {
   return k.includes('starline') || k.includes('startline') || k.includes('star line') || k.includes('start line');
 };
 
+/** King Bazaar only — not every main market whose name contains "bazar". */
 export const isKingBazaarMarketName = (marketTitle) => {
   const k = normalizeMarketName(marketTitle);
-  return k.includes('king') || k.includes('bazaar') || k.includes('bazar');
+  if (!k) return false;
+  if (k.includes('king bazaar') || k.includes('king bazar') || k.includes('kingbazaar') || k.includes('kingbazar')) {
+    return true;
+  }
+  if (/\bking\b/.test(k) && /\bbaz(aa?r|ar)\b/.test(k)) return true;
+  if (/^king[-\s]/.test(k)) return true;
+  return false;
 };
+
+/** Prefer marketType from API; fall back to name heuristics. */
+export function getBetMarketCategory(betOrMarket) {
+  const market =
+    betOrMarket?.marketId && typeof betOrMarket.marketId === 'object'
+      ? betOrMarket.marketId
+      : betOrMarket;
+  const type = (market?.marketType || '').toString().toLowerCase();
+  if (type === 'startline') return 'starline';
+  if (type === 'king') return 'king';
+  const name = (market?.marketName || betOrMarket?.marketName || '').toString();
+  if (isStarlineMarketName(name)) return 'starline';
+  if (isKingBazaarMarketName(name)) return 'king';
+  return 'main';
+}
+
+export function isBetInMarketScope(bet, scope) {
+  const s = (scope || '').toString().trim().toLowerCase();
+  if (!s || s === 'all') return true;
+  const cat = getBetMarketCategory(bet);
+  if (s === 'starline' || s === 'startline') return cat === 'starline';
+  if (s === 'king') return cat === 'king';
+  if (s === 'main') return cat === 'main';
+  return true;
+}
+
+export function isMarketInScope(marketName, marketType, scope) {
+  return isBetInMarketScope({ marketId: { marketName, marketType } }, scope);
+}
 
 export function inferBetKind(betNumberRaw) {
   const s = (betNumberRaw ?? '').toString().trim();

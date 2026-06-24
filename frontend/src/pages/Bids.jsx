@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { cancelBet, updateUserBalance } from '../api/bets';
 import useMyBetsData from '../hooks/useMyBetsData';
 import useMarketResultHistory from '../hooks/useMarketResultHistory';
 import ResultDatePicker from '../components/ResultDatePicker';
@@ -16,11 +15,10 @@ import { backBtn } from '../styles/appTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
 import { matchesBetStatusTabFilter } from '../utils/betStatusFilter';
 import {
-  canCancelBet,
   evaluateBet,
   inferBetKind,
-  isKingBazaarMarketName,
-  isStarlineMarketName,
+  isBetInMarketScope,
+  isMarketInScope,
   normalizeMarketName,
 } from '../utils/betEvaluation';
 
@@ -160,7 +158,7 @@ const Bids = () => {
   const isKingBazaarBetHistoryPanel = activeTitle === t('bids.kingBazaarBetHistory');
   const isGameResultsPanel = activeTitle === t('bids.gameResults');
   const rightPanelTitle = activeTitle === t('bids.gameResults') ? t('bids.marketResultHistory') : activeTitle;
-  const historyScope = isStarlineBetHistoryPanel ? 'starline' : isKingBazaarBetHistoryPanel ? 'king' : 'main';
+  const historyScope = isStarlineBetHistoryPanel ? 'starline' : isKingBazaarBetHistoryPanel ? 'king' : 'all';
   const isAnyHistoryPanel = isBetHistoryPanel || isStarlineBetHistoryPanel || isKingBazaarBetHistoryPanel;
 
   // Desktop Bet History filters (desktop panel inside My Bets)
@@ -178,12 +176,17 @@ const Bids = () => {
     ratesMap,
     markets,
     loading: betsLoading,
+    isFetching: betsFetching,
+    hasMore: betsHasMore,
+    loadMore: loadMoreBets,
     invalidate: invalidateBetsData,
     refetch: refetchBetsData,
-  } = useMyBetsData();
-  const [cancellingBetId, setCancellingBetId] = useState(null);
-  const [cancelMessage, setCancelMessage] = useState({ type: '', text: '' });
-  const [confirmCancelBetId, setConfirmCancelBetId] = useState(null);
+  } = useMyBetsData({ fetchAll: true });
+
+  useEffect(() => {
+    if (!isAnyHistoryPanel) return;
+    invalidateBetsData();
+  }, [isAnyHistoryPanel, invalidateBetsData]);
 
   // Keep selected desktop panel on refresh (via ?tab=...) and sync activeTitle when language changes
   useEffect(() => {
@@ -257,71 +260,6 @@ const Bids = () => {
 
   useRefreshOnMarketReset(refetchBetsData);
 
-  const handleCancelBetClick = (betId) => {
-    if (!betId) return;
-    setConfirmCancelBetId(betId);
-  };
-
-  const handleCancelBetConfirm = async (id) => {
-    const betId = id ?? confirmCancelBetId;
-    setConfirmCancelBetId(null);
-    if (!betId) return;
-    await handleCancelBet(typeof betId === 'string' ? betId : (betId?._id ?? betId?.$oid ?? String(betId)));
-  };
-
-  const handleCancelBet = async (betIdParam) => {
-    const betId = typeof betIdParam === 'string' ? betIdParam : (betIdParam?._id ?? betIdParam?.$oid ?? String(betIdParam || ''));
-    if (!betId) return;
-
-    setCancellingBetId(betId);
-    setCancelMessage({ type: '', text: '' });
-
-    try {
-      const result = await cancelBet(betId);
-      
-      if (result.success) {
-        // Update user balance
-        if (result.data?.newBalance != null) {
-          updateUserBalance(result.data.newBalance);
-        }
-        
-        // Show success message
-        setCancelMessage({
-          type: 'success',
-          text: t('bids.cancelBetSuccess', { amount: result.data?.refundedAmount || 0 })
-        });
-        
-        invalidateBetsData();
-        
-        // Clear message after 5 seconds
-        setTimeout(() => {
-          setCancelMessage({ type: '', text: '' });
-        }, 5000);
-      } else {
-        // Show error message
-        setCancelMessage({
-          type: 'error',
-          text: result.message || t('bids.cancelBetFailed')
-        });
-        
-        setTimeout(() => {
-          setCancelMessage({ type: '', text: '' });
-        }, 5000);
-      }
-    } catch (error) {
-      setCancelMessage({
-        type: 'error',
-        text: error.message || t('bids.cancelBetFailed')
-      });
-      
-      setTimeout(() => {
-        setCancelMessage({ type: '', text: '' });
-      }, 5000);
-    } finally {
-      setCancellingBetId(null);
-    }
-  };
-
   const marketByName = useMemo(() => {
     const map = new Map();
     for (const m of markets || []) {
@@ -383,10 +321,9 @@ const Bids = () => {
         statusLabel, 
         marketType,
         createdAt: bet.createdAt,
-        canCancel: bet.status === 'pending' ? canCancelBet(bet, t) : { canCancel: false, reason: '' },
       };
     });
-  }, [desktopBetHistory.items, marketByName, ratesMap]);
+  }, [desktopBetHistory.items, marketByName, ratesMap, t]);
 
   const marketOptions = useMemo(() => {
     // Get markets from API with their marketType
@@ -397,7 +334,10 @@ const Bids = () => {
     
     // Get markets from history (name only, no type)
     const fromHistory = (desktopBetHistory.items || [])
-      .map((x) => ({ name: (x?.marketTitle || '').toString().trim(), type: null }))
+      .map((x) => ({
+        name: (x?.marketId?.marketName || '').toString().trim(),
+        type: x?.marketId?.marketType || null,
+      }))
       .filter((x) => x.name);
     
     // Merge and deduplicate
@@ -412,12 +352,8 @@ const Bids = () => {
     
     // Filter by history scope
     const filtered = Array.from(uniqueMap.values()).filter((item) => {
-      if (!isAnyHistoryPanel) return true;
-      const isStar = item.type === 'startline' || (item.type == null && isStarlineMarketName(item.name));
-      const isKing = item.type === 'king' || (item.type == null && isKingBazaarMarketName(item.name));
-      if (historyScope === 'starline') return isStar;
-      if (historyScope === 'king') return isKing;
-      return !isStar && !isKing;
+      if (!isAnyHistoryPanel || historyScope === 'all') return true;
+      return isMarketInScope(item.name, item.type, historyScope);
     });
     
     filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -425,20 +361,10 @@ const Bids = () => {
   }, [markets, desktopBetHistory.items, isAnyHistoryPanel, historyScope]);
 
   const filteredDesktopRows = useMemo(() => {
-    const effectiveSelectedMarkets = isAnyHistoryPanel
-      ? (historyScope === 'starline'
-          ? (selectedMarkets || []).filter((k) => isStarlineMarketName(k))
-          : historyScope === 'king'
-            ? (selectedMarkets || []).filter((k) => isKingBazaarMarketName(k))
-            : (selectedMarkets || []).filter((k) => !isStarlineMarketName(k) && !isKingBazaarMarketName(k)))
-      : selectedMarkets;
+    const effectiveSelectedMarkets = selectedMarkets;
     const rows = (desktopRows || []).filter((row) => {
-      if (isAnyHistoryPanel) {
-        const isStar = row.marketType === 'startline' || (row.marketType == null && isStarlineMarketName(row.market));
-        const isKing = row.marketType === 'king' || (row.marketType == null && isKingBazaarMarketName(row.market));
-        if (historyScope === 'starline' && !isStar) return false;
-        if (historyScope === 'king' && !isKing) return false;
-        if (historyScope === 'main' && (isStar || isKing)) return false;
+      if (isAnyHistoryPanel && historyScope !== 'all' && !isBetInMarketScope(row.bet, historyScope)) {
+        return false;
       }
       if (!matchesBetStatusTabFilter(row.verdict?.state, statusTabFilter)) return false;
       if (selectedSessions.length > 0 && !selectedSessions.includes(row.session)) return false;
@@ -644,10 +570,10 @@ const Bids = () => {
                 <MyBetsBetHistoryPanel
                   desktopBetHistoryUid={desktopBetHistory.uid}
                   groupedDesktopByMarket={groupedDesktopByMarket}
-                  cancelMessage={cancelMessage}
-                  onCancelBetClick={handleCancelBetClick}
-                  cancellingBetId={cancellingBetId}
                   formatTxnTime={formatTxnTime}
+                  hasMore={betsHasMore}
+                  isFetching={betsFetching}
+                  onLoadMore={loadMoreBets}
                 />
               )
             ) : activeTitle === t('bids.gameResults') ? (
@@ -670,34 +596,6 @@ const Bids = () => {
           ) : null}
         />
       </div>
-
-      {/* Cancel bet confirmation (mobile + desktop) */}
-      {confirmCancelBetId && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/70">
-          <div className="w-full max-w-sm rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1c] shadow-2xl p-5 space-y-4">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Cancel bet?</h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Are you sure you want to cancel this bet? The amount will be refunded to your wallet.
-            </p>
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setConfirmCancelBetId(null)}
-                className="flex-1 py-3 rounded-xl border border-white/20 text-gray-900 dark:text-white font-semibold hover:bg-white/10 transition-colors"
-              >
-                No, keep bet
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCancelBetConfirm(confirmCancelBetId)}
-                className="flex-1 py-3 rounded-xl bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
-              >
-                Yes, cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Desktop Bet History Filter modal */}
       {isDesktopFilterOpen ? (

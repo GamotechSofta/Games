@@ -29,6 +29,7 @@ export function useMyBetsData({
   days = DEFAULT_DAYS,
   limit = MY_BETS_PAGE_SIZE,
   enabled = true,
+  fetchAll = false,
 } = {}) {
   const dispatch = useAppDispatch();
   const userId = readUserId();
@@ -42,6 +43,16 @@ export function useMyBetsData({
     if (!enabled || !userId) return;
     void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false }));
   }, [dispatch, enabled, userId, days, limit]);
+
+  useEffect(() => {
+    if (!fetchAll || !enabled || !userId || !hasMore || isFetching) return;
+    void dispatch(fetchMyBetsDataThunk({
+      days,
+      limit,
+      skip: bets.length,
+      append: true,
+    }));
+  }, [fetchAll, enabled, userId, hasMore, isFetching, bets.length, dispatch, days, limit]);
 
   const invalidate = useCallback(() => {
     if (userId) clearBetHistorySessionCache(userId);
@@ -58,6 +69,11 @@ export function useMyBetsData({
     }));
   }, [dispatch, userId, hasMore, isFetching, days, limit, bets.length]);
 
+  const refetch = useCallback(() => {
+    if (userId) clearBetHistorySessionCache(userId);
+    void dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false, force: true }));
+  }, [dispatch, userId, days, limit]);
+
   return {
     bets,
     ratesMap,
@@ -66,7 +82,7 @@ export function useMyBetsData({
     loading: enabled && Boolean(userId) && loading && !bets.length,
     isFetching,
     error: error || '',
-    refetch: () => dispatch(fetchMyBetsDataThunk({ days, limit, skip: 0, append: false, force: true })),
+    refetch,
     loadMore,
     invalidate,
   };

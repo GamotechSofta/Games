@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getMyBetHistory, getRatesCurrent } from '../../api/bets';
 import { BET_HISTORY_DAYS } from '../../utils/userDataCache';
 
-export const MY_BETS_PAGE_SIZE = 50;
+export const MY_BETS_PAGE_SIZE = 200;
 
 function parseFetchArg(arg) {
   if (arg && typeof arg === 'object') {
