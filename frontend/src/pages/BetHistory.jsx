@@ -467,7 +467,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
         )}
 
         {/* One card per bet, newest first (no market grouping) */}
-        <div className={`${betHistoryContentPanel} p-3 sm:p-4 space-y-4`}>
+        <div className={`${betHistoryContentPanel} p-3 sm:p-4 space-y-4 pb-6`}>
           {betsLoading ? (
             <div className="grid grid-cols-2 gap-3 overflow-x-hidden">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
@@ -559,7 +559,7 @@ const BetHistory = ({ pageTitle, marketScope = null } = {}) => {
               </div>
 
               {/* Desktop: table, one row per bet */}
-              <div className={`hidden md:block overflow-x-auto ${betHistoryTableShell}`}>
+              <div className={`hidden md:block overflow-x-auto overscroll-x-contain ${betHistoryTableShell}`}>
                 <table className="w-full min-w-[640px] lg:min-w-[720px] border-collapse text-sm lg:text-base">
                   <thead>
                     <tr className={betHistoryThead}>

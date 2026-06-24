@@ -14,7 +14,7 @@ import {
 export { textMuted, textPrimary, surface, surfaceElevated, bidAccent };
 
 export const betHistoryPageWrap =
-  `${pageShell} min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom,0px))] ${mobilePageTopPad}`;
+  `${pageShell} min-h-screen pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-8 ${mobilePageTopPad}`;
 
 export const betHistoryContentPanel =
   `rounded-2xl border ${borderDefault} bg-white dark:bg-[#1a1a1c] shadow-sm dark:shadow-[0_12px_24px_rgba(0,0,0,0.35)]`;

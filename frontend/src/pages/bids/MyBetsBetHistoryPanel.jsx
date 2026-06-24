@@ -56,7 +56,7 @@ export default function MyBetsBetHistoryPanel({
         </div>
       )}
 
-      <div className="max-h-[calc(100vh-220px)] overflow-y-auto hide-scrollbar">
+      <div className="pb-4">
         {!desktopBetHistoryUid ? (
           <div className={betHistoryEmpty}>
             {t('bids.loginToSeeHistory')}

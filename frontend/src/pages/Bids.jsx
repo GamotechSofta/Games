@@ -424,19 +424,8 @@ const Bids = () => {
 
   return (
     <div
-      className="w-full text-gray-900 pt-3 max-md:overflow-x-visible max-md:overflow-y-hidden max-md:overscroll-none max-md:pb-0 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] dark:text-white md:pt-4 md:pb-6 px-4 sm:px-4 md:px-4"
+      className="w-full text-gray-900 pt-3 max-md:overflow-x-visible max-md:pb-0 max-md:pl-[max(1rem,env(safe-area-inset-left,0px))] max-md:pr-[max(1rem,env(safe-area-inset-right,0px))] dark:text-white md:pt-4 md:pb-6 px-4 sm:px-4 md:px-4"
     >
-      <style>{`
-        .hide-scrollbar {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-          width: 0;
-          height: 0;
-        }
-      `}</style>
       <div className="w-full max-w-full md:max-w-none md:mx-0 max-md:flex max-md:flex-col max-md:min-h-0">
         <div className="mb-2 shrink-0 md:mb-4 md:grid md:grid-cols-[11rem_1fr] md:items-stretch md:gap-4">
           {/* Page header */}
@@ -549,7 +538,7 @@ const Bids = () => {
 
             {isAnyHistoryPanel ? (
               betsLoading ? (
-                <div className="mt-0 max-h-[calc(100vh-220px)] overflow-hidden">
+                <div className="mt-0">
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                       <div key={i} className="rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#202124] p-3 space-y-2 skeleton-shimmer">
