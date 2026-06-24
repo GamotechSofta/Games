@@ -1,16 +1,15 @@
-import React, { memo, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { HiMiniArrowRight } from 'react-icons/hi2';
-import {
-  MdLocalFireDepartment,
-} from 'react-icons/md';
+import { MdLocalFireDepartment } from 'react-icons/md';
 import ResponsiveCloudinaryImage from '../ResponsiveCloudinaryImage';
 import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './HomeCategoryCard';
 import { MarketsCategoryIcon } from './homeCategoryIcons';
 import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
 import useMainMarkets from '../../hooks/useMainMarkets';
+import { sortMarketsPopularFirst } from '../../utils/marketSearch';
 import MarketCard from '../MarketCard';
 
 const MOBILE_HOME_BANNERS = [
@@ -34,17 +33,9 @@ const MARKET_CARD_SKELETON_BASE_CLASS =
 const ALL_MARKETS_GRID_CLASS =
   'grid grid-cols-2 gap-2.5 pb-1 md:grid-cols-5 md:gap-3';
 
-/** Popular Markets on mobile: 2 rows, horizontal scroll — ~2.25 columns visible (peek on next). */
+/** Popular Markets on mobile: 2 rows, horizontal scroll */
 const POPULAR_MARKETS_MOBILE_SCROLL_CLASS =
   'scrollbar-hidden grid grid-flow-col grid-rows-2 auto-cols-[calc((100%-0.78125rem)/2.25)] gap-x-2.5 gap-y-2.5 overflow-x-auto pb-1 min-[375px]:gap-x-2.5 min-[375px]:gap-y-2.5';
-
-const toMarketNameKey = (name) =>
-  (name || '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+(\w)/g, (_, c) => c.toUpperCase())
-    .replace(/^\w/, (c) => c.toLowerCase());
 
 function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction }) {
   return (
@@ -67,7 +58,7 @@ function SectionHeader({ icon: Icon, iconClassName, title, actionLabel, onAction
   );
 }
 
-function HeroBanner({ t, navigate, index, setIndex, isLight }) {
+function HeroBanner({ index, setIndex }) {
   useEffect(() => {
     if (MOBILE_HOME_BANNERS.length <= 1) return undefined;
 
@@ -122,20 +113,28 @@ function HeroBanner({ t, navigate, index, setIndex, isLight }) {
 
 export default function MobileHomeDashboard() {
   const { t } = useTranslation();
-  const { isLight } = useTheme();
+  useTheme();
   const navigate = useNavigate();
   const [heroIndex, setHeroIndex] = useState(0);
-  const { markets, loading } = useMainMarkets();
+  const { markets, loading, refetch } = useMainMarkets();
 
-  const popularMarkets = useMemo(() => markets.filter((market) => market.showInPopular), [markets]);
-  const allMarketsExceptPopular = useMemo(
-    () => markets.filter((market) => !market.showInPopular),
+  useEffect(() => {
+    void refetch(true);
+  }, [refetch]);
+
+  const popularMarkets = useMemo(
+    () => markets.filter((market) => market.showInPopular),
+    [markets],
+  );
+  /** Full list: popular + non-popular (never exclude popular from All Markets) */
+  const allMarkets = useMemo(
+    () => sortMarketsPopularFirst(markets),
     [markets],
   );
 
   return (
     <div className="w-full pb-8">
-      <HeroBanner t={t} navigate={navigate} index={heroIndex} setIndex={setHeroIndex} isLight={isLight} />
+      <HeroBanner index={heroIndex} setIndex={setHeroIndex} />
 
       <div className="mx-auto w-full max-w-[1440px] space-y-5 px-2.5 pt-3 min-[375px]:px-3 sm:px-4 lg:px-6 xl:px-8">
         <div className="grid grid-cols-2 gap-2 pt-0.5 min-[375px]:gap-2.5 min-[480px]:gap-3">
@@ -180,7 +179,7 @@ export default function MobileHomeDashboard() {
           </div>
         )}
 
-        {(loading || allMarketsExceptPopular.length > 0) && (
+        {(loading || allMarkets.length > 0) && (
           <div>
             <SectionHeader
               icon={MarketsCategoryIcon}
@@ -198,15 +197,13 @@ export default function MobileHomeDashboard() {
               </div>
             ) : (
               <div className={ALL_MARKETS_GRID_CLASS}>
-                {allMarketsExceptPopular.map((market) => (
+                {allMarkets.map((market) => (
                   <MarketCard key={market.id} market={market} />
                 ))}
               </div>
             )}
           </div>
         )}
-
-
       </div>
     </div>
   );

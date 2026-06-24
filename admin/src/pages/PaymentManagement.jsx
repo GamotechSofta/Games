@@ -65,7 +65,7 @@ const PaymentManagement = () => {
     const [pendingCounts, setPendingCounts] = useState({ deposits: 0, withdrawals: 0, total: 0 });
     const [pageTab, setPageTab] = useState('withdrawals'); // withdrawals = default | payu = successful deposits log
     const [filters, setFilters] = useState({
-        status: 'pending',
+        status: '',
         bookieId: '',
     });
     const [bookies, setBookies] = useState([]); // all bookies for the filter dropdown
@@ -249,7 +249,7 @@ const PaymentManagement = () => {
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => { setPageTab('withdrawals'); setFilters({ status: 'pending', bookieId: '' }); }}
+                            onClick={() => { setPageTab('withdrawals'); setFilters({ status: '', bookieId: '' }); }}
                             className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-semibold border whitespace-nowrap transition-colors ${
                                 pageTab === 'withdrawals'
                                     ? 'bg-violet-600 text-white border-violet-500'
@@ -294,7 +294,7 @@ const PaymentManagement = () => {
                                 value={pendingCounts.withdrawals}
                                 tone="violet"
                                 sub="Switch to Withdrawals tab"
-                                onClick={() => { setPageTab('withdrawals'); setFilters({ status: 'pending', bookieId: '' }); }}
+                                onClick={() => { setPageTab('withdrawals'); setFilters({ status: '', bookieId: '' }); }}
                             />
                         </>
                     ) : (
@@ -342,7 +342,7 @@ const PaymentManagement = () => {
                             {hasActiveFilters && (
                                 <button
                                     type="button"
-                                    onClick={() => setFilters({ status: 'pending', bookieId: '' })}
+                                    onClick={() => setFilters({ status: '', bookieId: '' })}
                                     className="px-3 py-1.5 sm:py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white text-xs sm:text-sm font-medium shrink-0 whitespace-nowrap"
                                 >
                                     Clear

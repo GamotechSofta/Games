@@ -246,10 +246,13 @@ export const getMarkets = async (req, res) => {
         const popularOnly =
             ['1', 'true', 'yes'].includes((req.query.popularOnly || '').toString().toLowerCase());
         const fieldsPreset = (req.query.fields || '').toString().toLowerCase();
+        const isHomeFields = fieldsPreset === 'home';
         const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
+        const maxLimit = isHomeFields ? 500 : 100;
+        const defaultLimit = isHomeFields ? 500 : 100;
         const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
-            ? Math.min(parsedLimit, 100)
-            : 100;
+            ? Math.min(parsedLimit, maxLimit)
+            : defaultLimit;
 
         const filter = {};
         if (marketTypeFilter === 'main') {
@@ -274,12 +277,37 @@ export const getMarkets = async (req, res) => {
             marketTypeFilter === 'starline' ||
             marketTypeFilter === 'king';
 
-        let query = Market.find(filter)
-            .select(MARKET_LIST_FIELDS)
-            .sort({ startingTime: 1 })
-            .limit(limit);
+        let markets;
+        const mergePopularIntoAll =
+            !popularOnly &&
+            marketTypeFilter === 'main' &&
+            !starlineGroupFilter &&
+            !kingBazaarGroupFilter;
 
-        const markets = await query.lean();
+        if (mergePopularIntoAll) {
+            const popularFilter = { ...filter, showInPopular: true };
+            const popularMarkets = await Market.find(popularFilter)
+                .select(MARKET_LIST_FIELDS)
+                .sort({ startingTime: 1 })
+                .lean();
+            const popularIds = popularMarkets.map((m) => m._id);
+            const restLimit = Math.max(0, limit - popularMarkets.length);
+            let restMarkets = [];
+            if (restLimit > 0) {
+                restMarkets = await Market.find({ ...filter, _id: { $nin: popularIds } })
+                    .select(MARKET_LIST_FIELDS)
+                    .sort({ startingTime: 1 })
+                    .limit(restLimit)
+                    .lean();
+            }
+            markets = [...popularMarkets, ...restMarkets];
+        } else {
+            markets = await Market.find(filter)
+                .select(MARKET_LIST_FIELDS)
+                .sort({ startingTime: 1 })
+                .limit(limit)
+                .lean();
+        }
         const data = attachDisplayResults(markets);
         res.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
         res.set('Pragma', 'no-cache');

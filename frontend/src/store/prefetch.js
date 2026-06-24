@@ -6,7 +6,7 @@ import { fetchMyBetsDataThunk } from './slices/myBetsSlice';
 import { fetchWalletBalanceThunk } from './slices/walletSlice';
 
 export function prefetchMainMarketsStore(popularOnly = false) {
-  return store.dispatch(fetchMainMarketsThunk(popularOnly));
+  return store.dispatch(fetchMainMarketsThunk({ popularOnly, force: false }));
 }
 
 export function prefetchPaymentConfigStore() {

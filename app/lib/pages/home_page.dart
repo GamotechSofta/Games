@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future<void> _fetchMarkets() async {
     try {
-      final all = await MarketsService.instance.fetchMarkets();
+      final all = await MarketsService.instance.fetchAllMarketsWithPopular();
       if (mounted) {
         setState(() {
           _rawMarkets = all;
@@ -84,8 +84,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  List<Map<String, dynamic>> get _popularMarkets =>
-      _rawMarkets.where(MarketsService.isShowInPopular).toList();
+  List<Map<String, dynamic>> get _allMarketsSorted {
+    final popular = <Map<String, dynamic>>[];
+    final rest = <Map<String, dynamic>>[];
+    for (final m in _rawMarkets) {
+      if (MarketsService.isShowInPopular(m)) {
+        popular.add(m);
+      } else {
+        rest.add(m);
+      }
+    }
+    return [...popular, ...rest];
+  }
 
   List<String> _parseMobileBanners(Map<String, dynamic>? body) {
     if (body == null) return const [];
@@ -206,7 +216,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final wide = MediaQuery.sizeOf(context).width >= 768;
-    final popularMarkets = _popularMarkets;
+    final allMarkets = _allMarketsSorted;
     const marketRowSpacing = 8.0;
     const marketColSpacing = 8.0;
     const horizontalPadding = 16.0;
@@ -220,8 +230,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     double marketRowHeight(double cellWidth) =>
         cellWidth * (wide ? 0.70 : 0.72);
 
-    final popularCellWidth = marketCellWidth(2);
-    final popularRowHeight = marketRowHeight(popularCellWidth);
     final allMarketsColumns = wide ? 4 : 2;
     final allMarketsCellWidth = marketCellWidth(allMarketsColumns);
     final allMarketsRowHeight = marketRowHeight(allMarketsCellWidth);
@@ -272,49 +280,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         else ...[
           SliverToBoxAdapter(
             child: _SectionHeader(
-              title: 'Popular Markets',
-              onAction: () {},
-              actionLabel: 'View All',
-            ),
-          ),
-          if (popularMarkets.isNotEmpty)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: marketRowSpacing,
-                  crossAxisSpacing: marketColSpacing,
-                  mainAxisExtent: popularRowHeight,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _marketCard(
-                    context,
-                    popularMarkets[index],
-                    fillCell: true,
-                  ),
-                  childCount: popularMarkets.length,
-                ),
-              ),
-            )
-          else
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
-                child: Center(
-                  child: Text(
-                    'No popular markets right now',
-                    style: TextStyle(
-                      color: AppColors.goldMuted,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          SliverToBoxAdapter(
-            child: _SectionHeader(
               title: 'All Markets',
               onAction: () {},
               actionLabel: '',
@@ -332,10 +297,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               delegate: SliverChildBuilderDelegate(
                 (context, index) => _marketCard(
                   context,
-                  _rawMarkets[index],
+                  allMarkets[index],
                   fillCell: true,
                 ),
-                childCount: _rawMarkets.length,
+                childCount: allMarkets.length,
               ),
             ),
           ),

@@ -1,8 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { filterMarketsByQuery, toMarketNameKey } from '../utils/marketSearch';
-import { MdLocalFireDepartment } from 'react-icons/md';
+import { filterMarketsByQuery, sortMarketsPopularFirst, toMarketNameKey } from '../utils/marketSearch';
+import { FaThLarge } from 'react-icons/fa';
 import useMainMarkets from '../hooks/useMainMarkets';
 import MarketCard from './MarketCard';
 import { MARKET_SECTION_THEME } from '../config/dashboardTheme';
@@ -52,7 +52,7 @@ function MarketRow({ title, icon: Icon, section, markets, titleKey, showAction =
   );
 }
 
-export default function MarketSections({ searchQuery = '', viewMode = '' }) {
+export default function MarketSections({ searchQuery = '' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { markets, loading, error, refetch } = useMainMarkets();
@@ -69,12 +69,11 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
 
   const isSearching = Boolean(searchQuery.trim());
 
-  const normalizedViewMode = String(viewMode || '').trim().toLowerCase();
-  const allMarkets = filteredMarkets;
-  const visibleMarkets =
-    normalizedViewMode === 'popular'
-      ? allMarkets.filter((market) => market.showInPopular)
-      : allMarkets;
+  const allMarkets = useMemo(
+    () => sortMarketsPopularFirst(filteredMarkets),
+    [filteredMarkets],
+  );
+  const visibleMarkets = allMarkets;
 
   const gridSkeleton = (
     <div className={ALL_MARKETS_GRID_CLASS}>
@@ -130,9 +129,9 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
         {filteredMarkets.length > 0 ? (
           <MarketRow
             titleKey="dashboard.searchResults"
-            icon={MdLocalFireDepartment}
+            icon={FaThLarge}
             section="popular"
-            markets={filteredMarkets}
+            markets={sortMarketsPopularFirst(filteredMarkets)}
             showAction={false}
             layout="grid"
           />
@@ -157,10 +156,10 @@ export default function MarketSections({ searchQuery = '', viewMode = '' }) {
   return (
     <div id="market-sections">
       <MarketRow
-          titleKey={normalizedViewMode === 'popular' ? 'dashboard.popularMarkets' : 'dashboard.allMarkets'}
-        icon={MdLocalFireDepartment}
+        titleKey="dashboard.allMarkets"
+        icon={FaThLarge}
         section="popular"
-          markets={visibleMarkets}
+        markets={visibleMarkets}
         showAction={false}
         layout="grid"
       />

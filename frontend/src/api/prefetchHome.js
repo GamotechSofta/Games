@@ -3,7 +3,10 @@ import { getBalance } from './bets';
 import { prefetchMainMarketsStore } from '../store/prefetch';
 
 export function prefetchMainMarkets() {
-  return prefetchMainMarketsStore(false);
+  return Promise.all([
+    prefetchMainMarketsStore(false),
+    prefetchMainMarketsStore(true),
+  ]);
 }
 
 export function prefetchWalletBalance() {

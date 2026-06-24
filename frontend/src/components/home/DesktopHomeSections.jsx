@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment } from 'react-icons/md';
 import { FaThLarge } from 'react-icons/fa';
-import { filterMarketsByQuery, toMarketNameKey } from '../../utils/marketSearch';
+import { filterMarketsByQuery, sortMarketsPopularFirst, toMarketNameKey } from '../../utils/marketSearch';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import MarketCard from '../MarketCard';
 import { MARKET_SECTION_THEME } from '../../config/dashboardTheme';
@@ -98,8 +98,10 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   const isSearching = Boolean(searchQuery.trim());
 
-  const popularMarkets = filteredMarkets.filter((market) => market.showInPopular).slice(0, 12);
-  const allMarkets = filteredMarkets;
+  const allMarkets = useMemo(
+    () => sortMarketsPopularFirst(filteredMarkets),
+    [filteredMarkets],
+  );
 
   if (isSearching) {
     return (
@@ -132,19 +134,6 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   return (
     <div id="market-sections" className="mx-auto w-full max-w-[1440px] space-y-1 px-4 lg:px-6 xl:px-8">
-      {loading ? (
-        <MarketRowSkeleton />
-      ) : (
-        <MarketRow
-          titleKey="dashboard.popularMarkets"
-          fallbackTitle="Popular Markets"
-          icon={MdLocalFireDepartment}
-          section="popular"
-          markets={popularMarkets}
-          onAction={() => navigate('/markets?view=all')}
-        />
-      )}
-
       {loading ? (
         <MarketRowSkeleton scrollable={false} gapClass="gap-4" />
       ) : (
