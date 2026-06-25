@@ -14,6 +14,7 @@ import DoublePanaBulkBid from './bids/DoublePanaBulkBid';
 import TriplePanaBid from './bids/TriplePanaBid';
 import FullSangamBid from './bids/FullSangamBid';
 import HalfSangamBid from './bids/HalfSangamBid';
+import SangamBid from './bids/SangamBid';
 import SpMotorBid from './bids/SpMotorBid';
 import DpMotorBid from './bids/DpMotorBid';
 import SpDpMotorBid from './bids/SpDpMotorBid';
@@ -37,6 +38,7 @@ const BID_COMPONENTS = {
     'triple pana bulk': TriplePanaBid,
     'full sangam': FullSangamBid,
     'half sangam': HalfSangamBid,
+    sangam: SangamBid,
     'sp motor': SpMotorBid,
     'sp common': SpCommonBid,
     'cp': CpCommonBid,

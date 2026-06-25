@@ -434,21 +434,31 @@ const separateHalfSangamFormats = (items) => {
 };
 
 /** Half Sangam O section: Open Pana + Close Ank (Format A) */
-const HalfSangamOSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
+const HalfSangamOSection = ({
+    items = {},
+    totalAmount = 0,
+    totalBets = 0,
+    title = 'Half Sangam (O)',
+    subtitle = 'Open Pana + Close Ank',
+    hideExplainer = false,
+    matrixLabel = 'Open Pana × Close Ank Matrix',
+}) => {
     const entries = Object.entries(items).sort(([a], [b]) => String(a).localeCompare(b));
     const formatA = buildHalfSangamFormatAMatrix(items);
     const hasFormatA = formatA.openPanas.length > 0;
     return (
-        <SectionCard title="Half Sangam (O)" subtitle="Open Pana + Close Ank">
-            <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
-                <p className="text-sm font-semibold text-yellow-500 mb-1">What is Half Sangam (O)?</p>
-                <p className="text-gray-300 text-sm leading-relaxed">
-                    Half Sangam (O) = <strong className="text-white">Open Pana + Close Ank</strong><br />
-                    <span className="text-gray-400">Format:</span> <span className="font-mono">XXX-Y</span> (e.g. <span className="font-mono">156-6</span>)<br />
-                    <span className="text-gray-400">• XXX = Open Pana (3-digit)</span><br />
-                    <span className="text-gray-400">• Y = Close Ank (1-digit, derived from Close Pana)</span>
-                </p>
-            </div>
+        <SectionCard title={title} subtitle={subtitle}>
+            {!hideExplainer && (
+                <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
+                    <p className="text-sm font-semibold text-yellow-500 mb-1">What is Half Sangam (O)?</p>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                        Half Sangam (O) = <strong className="text-white">Open Pana + Close Ank</strong><br />
+                        <span className="text-gray-400">Format:</span> <span className="font-mono">XXX-Y</span> (e.g. <span className="font-mono">156-6</span>)<br />
+                        <span className="text-gray-400">• XXX = Open Pana (3-digit)</span><br />
+                        <span className="text-gray-400">• Y = Close Ank (1-digit, derived from Close Pana)</span>
+                    </p>
+                </div>
+            )}
             <div className="flex flex-wrap items-center gap-2 mb-3 pb-3 border-b border-gray-700">
                 <span className="text-gray-400 text-sm">Total Amount:</span>
                 <span className="font-mono font-semibold text-amber-400">₹{formatNum(totalAmount)}</span>
@@ -462,7 +472,7 @@ const HalfSangamOSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
                 <>
                     {hasFormatA && (
                         <div className="mb-6">
-                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">Open Pana × Close Ank Matrix</p>
+                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2">{matrixLabel}</p>
                             <div className="overflow-x-auto rounded-xl border border-gray-700 bg-gray-800">
                                 <table className="w-full text-sm border-collapse min-w-[320px]">
                                     <thead>
@@ -649,6 +659,23 @@ const HalfSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
                 totalBets={separated.formatB.totalBets}
             />
         </>
+    );
+};
+
+/** Starline Sangam — Pana + Close Ank (stored as half-sangam in close session bucket) */
+const StarlineSangamSection = ({ items = {}, totalAmount = 0, totalBets = 0 }) => {
+    const separated = separateHalfSangamFormats(items);
+    const sangam = separated.formatA;
+    return (
+        <HalfSangamOSection
+            items={sangam.items}
+            totalAmount={sangam.totalAmount || totalAmount}
+            totalBets={sangam.totalBets || totalBets}
+            title="Sangam"
+            subtitle="Pana + Close Ank"
+            hideExplainer
+            matrixLabel="Pana × Close Ank Matrix"
+        />
     );
 };
 
@@ -903,7 +930,7 @@ const TargetHouseProfitSection = ({
                             <div className="flex flex-wrap gap-1.5">
                                 {items.map((p) => {
                                     const profitPct = Number(p.profitPercent) || 0;
-                                    const profit = profitByPatti.get(String(p.patti)) ?? 0;
+                                    const profit = p.profit != null ? Number(p.profit) : (profitByPatti.get(String(p.patti)) ?? 0);
                                     const profitSign = profit > 0 ? '+' : '';
                                     return (
                                         <span
@@ -931,7 +958,9 @@ const TargetHouseProfitSection = ({
             <SectionCard title="Target house profit %">
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
                     <strong className="text-gray-300">Find pannas</strong> checks only 3-digit pannas that players actually played (panna / patti tickets).
-                    For each played panna we simulate declare preview: house profit % = (total bet pool − total payout) / total bet pool × 100.
+                    For each played panna we simulate the same logic as <strong className="text-gray-300">Add Result → Check</strong>:
+                    profit ₹ = Total bet amount on market (Open) − Total win on patti;
+                    house profit % = profit ÷ Total bet amount on market (Open) × 100.
                     Results matching target ± tolerance are highlighted in the bucket table below.
                 </p>
                 <div className="flex flex-wrap items-end gap-3 mb-3">
@@ -990,12 +1019,14 @@ const TargetHouseProfitSection = ({
                 subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — all chart patti outcomes with profit or loss %`}
             >
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    <strong className="text-gray-300">Bucket table</strong> scans all chart pannas (single, double, triple) — not played-only.
-                    Each patti is checked with the same declare preview formula and grouped by house profit % band (0–10, 11–20, … 91–100).
-                    Loss outcomes (profit &lt; 0) appear in the red section above. Played pattis on this market are used only for target matching above.
+                    <strong className="text-gray-300">Same as Add Result Check.</strong> Open view: profit ₹ = market open stake − patti/ank win payout (Starline Sangam included).
+                    Close view: profit ₹ = close settle pool − close win payout.
+                    House profit % = profit ÷ stake pool × 100. Each chip shows patti · % · ₹ profit/loss.
                 </p>
                 {!scanLoading && scanData && (
                     <p className="text-xs text-amber-400/90 mb-3">
+                        Stake pool (open market bets) ₹{formatNum(scanData.stakeTotal ?? 0)}
+                        {' · '}
                         {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} chart patti
                         {(scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} calculated
                         {scanData.playedCount != null && (
@@ -1326,12 +1357,14 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         singleDigitViewTotals.totalAmount +
         singlePattiViewTotals.totalAmount +
         doublePattiViewTotals.totalAmount +
-        triplePattiViewTotals.totalAmount;
+        triplePattiViewTotals.totalAmount +
+        (isStartline ? halfSangamViewTotals.totalAmount : 0);
     const openTotalBets =
         singleDigitViewTotals.totalBets +
         singlePattiViewTotals.totalBets +
         doublePattiViewTotals.totalBets +
-        triplePattiViewTotals.totalBets;
+        triplePattiViewTotals.totalBets +
+        (isStartline ? halfSangamViewTotals.totalBets : 0);
     const closedTotalAmount =
         singleDigitViewTotals.totalAmount +
         jodiViewTotals.totalAmount +
@@ -1449,7 +1482,10 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                         {' · '}SP ₹{formatNum(singlePattiViewTotals.totalAmount)}
                                         {' · '}DP ₹{formatNum(doublePattiViewTotals.totalAmount)}
                                         {' · '}TP ₹{formatNum(triplePattiViewTotals.totalAmount)}
-                                        {effectiveView === 'closed' && (
+                                        {isStartline && halfSangamViewTotals.totalAmount > 0 && (
+                                            <> · Sangam ₹{formatNum(halfSangamViewTotals.totalAmount)}</>
+                                        )}
+                                        {effectiveView === 'closed' && !isStartline && (
                                             <>
                                                 {' · '}Jodi ₹{formatNum(jodiViewTotals.totalAmount)}
                                                 {(halfSangamViewTotals.totalAmount > 0 || fullSangamViewTotals.totalAmount > 0) && (
@@ -1842,8 +1878,15 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                     />
                     )}
 
-                    {effectiveView === 'closed' && !isKingBazaar && (
+                    {effectiveView === 'closed' && !isKingBazaar && !isStartline && (
                     <HalfSangamSection
+                        items={halfSangamDisplay.items}
+                        totalAmount={halfSangamDisplay.totalAmount}
+                        totalBets={halfSangamDisplay.totalBets}
+                    />
+                    )}
+                    {isStartline && !isKingBazaar && (
+                    <StarlineSangamSection
                         items={halfSangamDisplay.items}
                         totalAmount={halfSangamDisplay.totalAmount}
                         totalBets={halfSangamDisplay.totalBets}

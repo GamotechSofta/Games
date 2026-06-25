@@ -100,6 +100,7 @@ const BidOptions = () => {
       'Half Sangam': t('gameRate.halfSangam'),
       'Half Sangam (O)': t('gameRate.halfSangamOpen'),
       'Half Sangam (C)': t('gameRate.halfSangamClose'),
+      Sangam: t('gameRate.sangam', { defaultValue: 'Sangam' }),
       'Odd Even': 'Odd Even',
       'SP Common': 'SP Common',
       'DP Common': 'DP Common',
@@ -123,6 +124,7 @@ const BidOptions = () => {
     'Double Pana Bulk',
     'Triple Pana',
     'Half Sangam',
+    'Sangam',
     'Full Sangam',
     'SP Common',
     'DP Common',
@@ -385,6 +387,20 @@ const BidOptions = () => {
     },
   ];
 
+  const starlineSangamOption = {
+    id: 'starline-sangam',
+    title: 'Sangam',
+    displayTitle: 'Sangam',
+    icon: (
+      <img
+        src={HALF_SANGAM_IMAGE}
+        alt="Sangam"
+        className="w-full h-full object-contain"
+        loading="lazy"
+      />
+    ),
+  };
+
   if (!market) {
     return null; // Will redirect via useEffect
   }
@@ -421,28 +437,21 @@ const BidOptions = () => {
         },
       ]
     : isStarline
-    ? options.filter((opt) => {
-        const t = (opt.title || '').toString().trim();
-        const allowed = new Set([
-          'Single Digit',
-          'Odd Even',
-          'SP Common',
-          'CP',
-          'DP Common',
-          'Chart Game',
-          'Single Pana',
-          'Single Pana Bulk',
-          'Double Pana',
-          'Double Pana Bulk',
-          'Triple Pana',
-          'Half Sangam',
-          'SP Motor',
-          'DP Motor',
-          'SP DP Motor',
-          'SP DP T Motor',
-        ]);
-        return allowed.has(t);
-      })
+    ? [
+        ...options.filter((opt) => {
+          const t = (opt.title || '').toString().trim();
+          const allowed = new Set([
+            'Single Digit',
+            'Single Pana',
+            'Single Pana Bulk',
+            'Double Pana',
+            'Double Pana Bulk',
+            'Triple Pana',
+          ]);
+          return allowed.has(t);
+        }),
+        starlineSangamOption,
+      ]
     : options;
 
   const visibleOptions = (!isStarline && (isRunning || closeOnlyWindow))

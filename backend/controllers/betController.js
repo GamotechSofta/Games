@@ -53,6 +53,22 @@ const VALID_BET_TYPES = [
 ];
 const THREE_DIGITS = /^\d{3}$/;
 
+/** Bet types not offered on Starline markets (UI + API). */
+const STARLINE_DISALLOWED_BET_TYPES = new Set([
+    'full-sangam',
+    'jodi',
+    'sp-common',
+    'dp-common',
+    'cp-common',
+    'sp-motor',
+    'dp-motor',
+    'sp-dp-motor',
+    'sp-dp-motor-dp',
+    'sp-dp-motor-tp',
+    'odd-even',
+    'chart-game',
+]);
+
 const normalizeBetOn = (v) => {
     const s = String(v ?? '').trim().toLowerCase();
     if (!s) return null;
@@ -196,6 +212,13 @@ export const placeBet = async (req, res) => {
                         'Invalid Half Sangam format. Use Open Half "PPP-A" (e.g. 234-6) or Close Half "A-PPP" (e.g. 9-222).',
                 });
             }
+            if (market?.marketType === 'startline' && STARLINE_DISALLOWED_BET_TYPES.has(betType)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This bet type is not available for Starline markets.',
+                    code: 'STARLINE_BET_TYPE_NOT_ALLOWED',
+                });
+            }
             totalAmount += amount;
             sanitized.push({ betType, betNumber, amount, betOn });
         }
@@ -291,7 +314,7 @@ export const placeBet = async (req, res) => {
             if (s === 'single') return 'Single Ank';
             if (s === 'jodi') return 'Jodi';
             if (s === 'panna') return 'Panna';
-            if (s === 'half-sangam') return 'Half Sangam';
+            if (s === 'half-sangam') return market.marketType === 'startline' ? 'Sangam' : 'Half Sangam';
             if (s === 'full-sangam') return 'Full Sangam';
             if (s === 'sp-common') return 'SP Common';
             if (s === 'dp-common') return 'DP Common';
@@ -599,7 +622,7 @@ export const cancelBet = async (req, res) => {
             if (s === 'single') return 'Single Ank';
             if (s === 'jodi') return 'Jodi';
             if (s === 'panna') return 'Panna';
-            if (s === 'half-sangam') return 'Half Sangam';
+            if (s === 'half-sangam') return market.marketType === 'startline' ? 'Sangam' : 'Half Sangam';
             if (s === 'full-sangam') return 'Full Sangam';
             if (s === 'sp-common') return 'SP Common';
             if (s === 'dp-common') return 'DP Common';

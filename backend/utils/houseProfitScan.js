@@ -5,9 +5,11 @@ import { getRatesMap } from '../models/rate/rate.js';
 import { isSinglePatti, isDoublePatti } from './singlePattiUtils.js';
 import { getAllChartPannas } from './chartPannaCatalog.js';
 import {
-    computeDeclaredOpenWinPayout,
     computeClosePreviewFromBets,
+    computeOpenDeclarePreviewProfitFromBets,
+    resolveMarketSessionForBet,
     isCloseSettlePoolBet,
+    getOpenCloseMarketBetTotals,
 } from './settleBets.js';
 import { toDateKeyIST, getTomorrowKeyIST } from './marketStatsAggregation.js';
 
@@ -68,36 +70,8 @@ function parseHHMMForSession(t) {
     return hh * 60 + mm;
 }
 
-function minutesISTForSession(dt) {
-    try {
-        const hhmm = new Date(dt).toLocaleTimeString('en-GB', {
-            timeZone: 'Asia/Kolkata',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        });
-        const [hh, mm] = String(hhmm).split(':');
-        const h = Number(hh);
-        const m = Number(mm);
-        if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-        return h * 60 + m;
-    } catch {
-        return null;
-    }
-}
-
-function resolveBetSession(bet, startMin) {
-    const betType = (bet?.betType || '').toString().trim().toLowerCase();
-    let session =
-        (betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam')
-            ? 'close'
-            : ((bet?.betOn === 'close') ? 'close' : (bet?.betOn === 'open' ? 'open' : null));
-    if (!session && startMin != null && bet?.createdAt) {
-        const betMin = minutesISTForSession(bet.createdAt);
-        if (betMin != null) session = betMin < startMin ? 'open' : 'close';
-    }
-    if (!session) session = 'open';
-    return session;
+function resolveBetSession(bet, startMin, marketType) {
+    return resolveMarketSessionForBet(bet, startMin, marketType);
 }
 
 function getBetDateBucket(bet, todayKey, tomorrowKey) {
@@ -181,16 +155,18 @@ function extractChartPannaFromBet(bet) {
     return p3;
 }
 
-function computeOpenWinPayoutForPanna(bets, panna, rates) {
+function computeOpenProfitForPanna(allOpenBets, halfSangamBets, panna, rates, stakeTotal, isStartline) {
     const open3 = panna.padStart(3, '0');
     const lastDigitOpen = digitFromPatti(open3);
-    let totalWinAmountOnPatti = 0;
-    for (const bet of bets) {
-        if ((bet.betOn || '').toString().toLowerCase() === 'close') continue;
-        if ((bet.status || '').toString().toLowerCase() !== 'pending') continue;
-        totalWinAmountOnPatti += computeDeclaredOpenWinPayout(bet, open3, lastDigitOpen, rates);
-    }
-    return round2(totalWinAmountOnPatti);
+    return computeOpenDeclarePreviewProfitFromBets(
+        allOpenBets,
+        halfSangamBets,
+        open3,
+        lastDigitOpen,
+        rates,
+        stakeTotal,
+        { isStartline },
+    );
 }
 
 function profitPercent(profit, stakeBase) {
@@ -257,10 +233,12 @@ function collectPlayedPannas(scopedBets, extraPattis = []) {
 function computePannaResults(candidates, {
     session,
     stakeTotal,
-    openDeclareBets,
+    allOpenBets,
+    halfSangamBets,
     dateFilteredBets,
     open3Declared,
     rates,
+    isStartline,
 }) {
     const pannaResults = [];
     for (const panna of candidates) {
@@ -268,9 +246,16 @@ function computePannaResults(candidates, {
         let profitPct;
 
         if (session === 'open') {
-            const winPayout = computeOpenWinPayoutForPanna(openDeclareBets, panna, rates);
-            profit = round2(stakeTotal - winPayout);
-            profitPct = profitPercent(profit, stakeTotal);
+            const preview = computeOpenProfitForPanna(
+                allOpenBets,
+                halfSangamBets,
+                panna,
+                rates,
+                stakeTotal,
+                isStartline,
+            );
+            profit = preview.profit;
+            profitPct = profitPercent(profit, preview.totalBetAmountMarketOpen);
         } else {
             const close3 = panna.padStart(3, '0');
             const preview = computeClosePreviewFromBets(dateFilteredBets, {
@@ -298,6 +283,7 @@ function buildBandsFromResults(pannaResults) {
         maxPercent: lossPattis.length ? Math.max(...lossPattis.map((r) => r.profitPercent)) : null,
         pattis: lossPattis.map((r) => ({
             patti: r.patti,
+            profit: r.profit,
             profitPercent: r.profitPercent,
             display: formatPattiDisplay(r.patti, r.profitPercent),
         })),
@@ -311,6 +297,7 @@ function buildBandsFromResults(pannaResults) {
         if (bandLabel && bandMap[bandLabel]) {
             bandMap[bandLabel].push({
                 patti: r.patti,
+                profit: r.profit,
                 profitPercent: r.profitPercent,
                 display: formatPattiDisplay(r.patti, r.profitPercent),
             });
@@ -380,8 +367,10 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
 
     if (!oid) return emptyResult;
 
-    const market = await Market.findById(oid).select('startingTime openingNumber').lean();
+    const market = await Market.findById(oid).select('startingTime openingNumber marketType').lean();
     if (!market) return emptyResult;
+
+    const isStartline = market.marketType === 'startline';
 
     const todayKey = toDateKeyIST(new Date());
     const tomorrowKey = getTomorrowKeyIST(todayKey);
@@ -402,7 +391,7 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
         (b) => getBetDateBucket(b, todayKey, tomorrowKey) === dateBucket,
     );
     const scopedBets = dateFilteredBets.filter(
-        (b) => resolveBetSession(b, startMin) === session,
+        (b) => resolveBetSession(b, startMin, market.marketType) === session,
     );
 
     const rates = await getRatesMap();
@@ -413,11 +402,18 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     let stakeTotal = 0;
 
     if (session === 'open') {
-        stakeTotal = round2(
-            dateFilteredBets
-                .filter((b) => resolveBetSession(b, startMin) === 'open')
-                .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
-        );
+        if (dateBucket === 'today') {
+            const totals = await getOpenCloseMarketBetTotals(marketId, {
+                bookieUserIds: hasBookieFilter ? bookieUserIds : undefined,
+            });
+            stakeTotal = totals.totalBetAmountMarketOpen;
+        } else {
+            stakeTotal = round2(
+                dateFilteredBets
+                    .filter((b) => resolveBetSession(b, startMin, market.marketType) === 'open')
+                    .reduce((sum, b) => sum + (Number(b.amount) || 0), 0),
+            );
+        }
     } else {
         if (!/^\d{3}$/.test(open3Declared)) {
             return { ...emptyResult, error: 'Open result must be declared before scanning close-session profit.' };
@@ -429,17 +425,22 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
         );
     }
 
-    const openDeclareBets = dateFilteredBets.filter(
+    const allOpenBets = dateFilteredBets.filter(
         (b) => (b.betOn || '').toString().toLowerCase() !== 'close',
+    );
+    const halfSangamBets = dateFilteredBets.filter(
+        (b) => (b.betType || '').toString().toLowerCase() === 'half-sangam',
     );
 
     const scanCtx = {
         session,
         stakeTotal,
-        openDeclareBets,
+        allOpenBets,
+        halfSangamBets,
         dateFilteredBets,
         open3Declared,
         rates,
+        isStartline,
     };
 
     const playedResults = computePannaResults([...playedPannas], scanCtx);

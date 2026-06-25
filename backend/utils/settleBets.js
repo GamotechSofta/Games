@@ -119,6 +119,23 @@ export function halfSangamMatchesDeclaredResult(parsed, open3, lastDigitOpen, cl
     return false;
 }
 
+/** Starline Sangam (open-half): declared pana + ank from same result — same payout as Half Sangam. */
+export function halfSangamMatchesStarlineOpenResult(parsed, open3, lastDigitOpen) {
+    if (!parsed || parsed.format !== 'open-half') return false;
+    const declaredOpen = normalizePana3(open3);
+    if (!declaredOpen || lastDigitOpen == null) return false;
+    return parsed.openPana === declaredOpen && parsed.closeAnk === lastDigitOpen;
+}
+
+function computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates) {
+    const parsed = parseHalfSangamBetNumber(bet.betNumber);
+    if (!parsed || !halfSangamMatchesStarlineOpenResult(parsed, open3, lastDigitOpen)) {
+        return 0;
+    }
+    const amount = Number(bet.amount) || 0;
+    return amount > 0 ? amount * getRateForKey(rates, 'halfSangam') : 0;
+}
+
 function computeHalfSangamPayout(bet, open3, close3, lastDigitOpen, lastDigitClose, rates) {
     const parsed = parseHalfSangamBetNumber(bet.betNumber);
     if (!parsed || !halfSangamMatchesDeclaredResult(parsed, open3, lastDigitOpen, close3, lastDigitClose)) {
@@ -514,9 +531,13 @@ function minutesISTForSession(dt) {
     }
 }
 
-/** Open vs Close session — same rules as admin getMarketStats */
-function resolveMarketSessionForBetTotals(bet, startMin) {
+/** Open vs Close session — same rules as admin getMarketStats / house profit scan. */
+export function resolveMarketSessionForBet(bet, startMin, marketType) {
     const betType = (bet?.betType || '').toString().trim().toLowerCase();
+    const isStartline = marketType === 'startline';
+    if (isStartline && betType === 'half-sangam' && (bet?.betOn || '').toString().toLowerCase() !== 'close') {
+        return 'open';
+    }
     let session =
         (betType === 'jodi' || betType === 'full-sangam' || betType === 'half-sangam')
             ? 'close'
@@ -529,17 +550,81 @@ function resolveMarketSessionForBetTotals(bet, startMin) {
     return session;
 }
 
+/** Total open-declare win payout if open3 were declared (patti + digit + Starline sangam). */
+export function computeOpenDeclarePreviewWinPayout(bets, open3, lastDigitOpen, rates, { isStartline = false } = {}) {
+    let total = 0;
+    for (const bet of bets) {
+        if ((bet.betOn || '').toString().toLowerCase() === 'close') continue;
+        if ((bet.status || '').toString().toLowerCase() !== 'pending') continue;
+        total += computeDeclaredOpenWinPayout(bet, open3, lastDigitOpen, rates);
+        if (isStartline && (bet.betType || '').toLowerCase() === 'half-sangam') {
+            total += computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates);
+        }
+    }
+    return Math.round(total * 100) / 100;
+}
+
+/**
+ * Same profit as previewDeclareOpen / Add Result "Check" for a hypothetical open patti.
+ * profit = totalBetAmountMarketOpen − totalWinAmountOnPatti (matching patti/ank wins + Starline sangam).
+ */
+export function computeOpenDeclarePreviewProfitFromBets(
+    allOpenBets,
+    halfSangamBets,
+    open3,
+    lastDigitOpen,
+    rates,
+    totalBetAmountMarketOpen,
+    { isStartline = false } = {},
+) {
+    let totalWinAmountOnPatti = 0;
+
+    for (const bet of allOpenBets) {
+        if ((bet.betOn || '').toString().toLowerCase() === 'close') continue;
+        const isPending = (bet.status || '').toString().toLowerCase() === 'pending';
+        const matchesPatti = betMatchesDeclaredOpenPatti(bet, open3);
+        const matchesAnk = betMatchesDeclaredOpenAnk(bet, lastDigitOpen);
+        if ((matchesPatti || matchesAnk) && isPending) {
+            const payout = computeDeclaredOpenWinPayout(bet, open3, lastDigitOpen, rates);
+            if (payout > 0) {
+                totalWinAmountOnPatti += payout;
+            }
+        }
+    }
+
+    if (isStartline && open3 && lastDigitOpen != null) {
+        for (const bet of halfSangamBets) {
+            if ((bet.status || '').toString().toLowerCase() !== 'pending') continue;
+            const payout = computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates);
+            if (payout > 0) {
+                totalWinAmountOnPatti += payout;
+            }
+        }
+    }
+
+    totalWinAmountOnPatti = Math.round(totalWinAmountOnPatti * 100) / 100;
+    const stake = Math.round((Number(totalBetAmountMarketOpen) || 0) * 100) / 100;
+    const profit = Math.round((stake - totalWinAmountOnPatti) * 100) / 100;
+    return { profit, totalWinAmountOnPatti, totalBetAmountMarketOpen: stake };
+}
+
+/** Open vs Close session — same rules as admin getMarketStats */
+function resolveMarketSessionForBetTotals(bet, startMin, marketType) {
+    return resolveMarketSessionForBet(bet, startMin, marketType);
+}
+
 /**
  * Sum of all non-cancelled bet amounts for today's run, split by Open vs Close session (admin preview / bookie scope).
  */
-async function getOpenCloseMarketBetTotals(marketId, options = {}) {
+export async function getOpenCloseMarketBetTotals(marketId, options = {}) {
     const oid = toObjectId(marketId);
     if (!oid) {
         return { totalBetAmountMarketOpen: 0, totalBetAmountMarketClose: 0 };
     }
     const marketIdStr = String(marketId).trim();
-    const market = await Market.findById(oid).select('startingTime').lean();
+    const market = await Market.findById(oid).select('startingTime marketType').lean();
     const startMin = parseHHMMForSession(market?.startingTime);
+    const marketType = market?.marketType;
     const bookieUserIds = options.bookieUserIds;
     const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
 
@@ -555,7 +640,7 @@ async function getOpenCloseMarketBetTotals(marketId, options = {}) {
     let closeSum = 0;
     for (const b of bets) {
         const amount = Number(b.amount) || 0;
-        const session = resolveMarketSessionForBetTotals(b, startMin);
+        const session = resolveMarketSessionForBetTotals(b, startMin, marketType);
         if (session === 'close') closeSum += amount;
         else openSum += amount;
     }
@@ -592,6 +677,7 @@ export async function settleOpening(marketId, openingNumber) {
     }
     const market = await Market.findById(marketId);
     if (!market) throw new Error('Market not found');
+    const isStartline = market.marketType === 'startline';
     const openNumRaw = openingNumber.toString().replace(/\D/g, '').slice(0, 3);
     const open3 = openNumRaw.padStart(3, '0');
     await Market.findByIdAndUpdate(marketId, { openingNumber: open3 });
@@ -605,7 +691,21 @@ export async function settleOpening(marketId, openingNumber) {
     ).lean();
 
     for (const bet of pendingBets) {
-        if (isJodiOrSangamBetType(bet.betType)) continue;
+        if (isJodiOrSangamBetType(bet.betType)) {
+            if (isStartline && (bet.betType || '').toLowerCase() === 'half-sangam') {
+                const payout = computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates);
+                const rounded = Math.round(payout * 100) / 100;
+                const won = rounded > 0;
+                await Bet.updateOne(
+                    { _id: bet._id },
+                    { status: won ? 'won' : 'lost', payout: rounded }
+                );
+                if (won) {
+                    await creditWalletWin(bet, market, rounded, winDescription(market, bet));
+                }
+            }
+            continue;
+        }
         if (!isBetInOpenPattiSingleDigitPool(bet)) continue;
 
         const matchesPatti = betMatchesDeclaredOpenPatti(bet, open3);
@@ -779,12 +879,25 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
     if (hasBookieFilter) matchHalfSangam.userId = { $in: bookieUserIds };
     let totalBetAmountHalfSangam = 0;
     const halfSangamBets = await Bet.find(matchHalfSangam).lean();
+    const marketDoc = await Market.findById(oid).select('marketType').lean();
+    const isStartline = marketDoc?.marketType === 'startline';
     for (const bet of halfSangamBets) {
         const amount = Number(bet.amount) || 0;
         totalBetAmountHalfSangam += amount;
         allMarketUserIds.add(bet.userId.toString());
-        // Note: Half Sangam bets are not included in totalBetAmount for open preview
-        // as they will be settled at closing time
+        if (
+            isStartline &&
+            open3 &&
+            lastDigitOpen != null &&
+            (bet.status || '').toString().toLowerCase() === 'pending'
+        ) {
+            const payout = computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates);
+            if (payout > 0) {
+                totalWinAmount += payout;
+                totalWinAmountOnPatti += payout;
+                playersWonOnPatti.add(bet.userId.toString());
+            }
+        }
     }
     totalBetAmountHalfSangam = Math.round(totalBetAmountHalfSangam * 100) / 100;
 
@@ -1026,6 +1139,8 @@ export async function previewDeclareClose(marketId, closingNumber, options = {})
 export async function getWinningBetsForOpen(marketId, openingNumber, options = {}) {
     const oid = toObjectId(marketId);
     if (!oid) return { winningBets: [], totalWinAmount: 0, totalPlayersBetOnPatti: 0 };
+    const marketDoc = await Market.findById(oid).select('marketType marketName').lean();
+    const isStartline = marketDoc?.marketType === 'startline';
     const marketIdStr = String(marketId).trim();
     const bookieUserIds = options.bookieUserIds;
     const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
@@ -1069,6 +1184,33 @@ export async function getWinningBetsForOpen(marketId, openingNumber, options = {
             },
             payout: rounded,
         });
+    }
+
+    if (isStartline) {
+        const sangamBets = await Bet.find(
+            buildPendingTodayMarketFilter(
+                marketId,
+                { betType: 'half-sangam', betOn: { $ne: 'close' } },
+                hasBookieFilter ? bookieUserIds : null
+            )
+        ).lean();
+        for (const bet of sangamBets) {
+            const payout = computeStarlineHalfSangamPayout(bet, open3, lastDigitOpen, rates);
+            if (payout <= 0) continue;
+            const rounded = Math.round(payout * 100) / 100;
+            wonPlayerIds.add(bet.userId.toString());
+            winningBets.push({
+                bet: {
+                    _id: bet._id,
+                    userId: bet.userId,
+                    betType: bet.betType,
+                    betNumber: bet.betNumber,
+                    amount: bet.amount,
+                    betOn: bet.betOn,
+                },
+                payout: rounded,
+            });
+        }
     }
 
     const totalWinAmount =

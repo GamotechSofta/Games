@@ -22,6 +22,7 @@ const getGameLabels = (t) => [
   { key: 'triplePatti', label: t('gameRate.triplePatti') },
   { key: 'halfSangam', label: t('gameRate.halfSangam') },
   { key: 'fullSangam', label: t('gameRate.fullSangam') },
+  { key: 'halfSangam', label: t('gameRate.sangam', { defaultValue: 'Sangam (Starline)' }), id: 'sangam' },
 ];
 
 const GameRate = () => {
@@ -35,6 +36,7 @@ const GameRate = () => {
     srNo: idx + 1,
     game: g.label,
     rate: rateMap[g.key] ?? DEFAULT_RATES[g.key],
+    rowKey: g.id || g.key,
   }));
 
   return (
@@ -95,7 +97,7 @@ const GameRate = () => {
                   <tbody>
                     {rows.map((row, idx) => (
                       <tr
-                        key={row.game}
+                        key={row.rowKey}
                         className={`border-b border-red-100 dark:border-white/10 last:border-b-0 transition-colors hover:bg-red-50/50 dark:hover:bg-white/[0.04] ${
                           idx % 2 === 1 ? 'bg-gray-50/80 dark:bg-white/[0.02]' : 'bg-white dark:bg-transparent'
                         }`}
@@ -114,7 +116,7 @@ const GameRate = () => {
               <div className="sm:hidden divide-y divide-red-100 dark:divide-white/10">
                 {rows.map((row) => (
                   <div
-                    key={row.game}
+                    key={row.rowKey}
                     className="flex items-center gap-3 px-4 py-3.5 bg-white dark:bg-transparent active:bg-red-50/60 dark:active:bg-white/[0.04]"
                   >
                     <span

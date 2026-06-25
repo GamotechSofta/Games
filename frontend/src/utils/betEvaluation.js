@@ -83,7 +83,9 @@ export function getPayoutMultiplier(kind, betNumberRaw, ratesMap) {
   const r = ratesMap && typeof ratesMap === 'object' ? ratesMap : DEFAULT_RATES;
   if (kind === 'digit') return rateNum(r.single, DEFAULT_RATES.single);
   if (kind === 'jodi') return rateNum(r.jodi, DEFAULT_RATES.jodi);
-  if (kind === 'half-sangam-open' || kind === 'half-sangam-close') return rateNum(r.halfSangam, DEFAULT_RATES.halfSangam);
+  if (kind === 'half-sangam-open' || kind === 'half-sangam-close' || kind === 'sangam') {
+    return rateNum(r.halfSangam, DEFAULT_RATES.halfSangam);
+  }
   if (kind === 'full-sangam') return rateNum(r.fullSangam, DEFAULT_RATES.fullSangam);
   if (kind === 'panna') {
     const s = (betNumberRaw ?? '').toString().trim();
@@ -102,6 +104,7 @@ export function getPayoutMultiplier(kind, betNumberRaw, ratesMap) {
 }
 
 export function evaluateBet({ market, betNumberRaw, amount, session, ratesMap }) {
+  const isStartline = market?.marketType === 'startline';
   const opening = market?.openingNumber && /^\d{3}$/.test(String(market.openingNumber)) ? String(market.openingNumber) : null;
   const closing = market?.closingNumber && /^\d{3}$/.test(String(market.closingNumber)) ? String(market.closingNumber) : null;
   const openDigit = opening ? String(lastDigit(opening)) : null;
@@ -120,7 +123,9 @@ export function evaluateBet({ market, betNumberRaw, amount, session, ratesMap })
         : kind === 'jodi'
           ? !!jodi
           : kind === 'half-sangam-open'
-            ? !!(opening && openDigit)
+            ? isStartline
+              ? !!opening
+              : !!(opening && closing)
             : kind === 'half-sangam-close' || kind === 'full-sangam'
               ? !!(opening && closing)
               : false;
@@ -141,7 +146,9 @@ export function evaluateBet({ market, betNumberRaw, amount, session, ratesMap })
   } else if (kind === 'full-sangam') {
     won = betNumber === `${opening}-${closing}`;
   } else if (kind === 'half-sangam-open') {
-    won = betNumber === `${opening}-${openDigit}`;
+    won = isStartline
+      ? betNumber === `${opening}-${openDigit}`
+      : betNumber === `${opening}-${closeDigit}`;
   } else if (kind === 'half-sangam-close') {
     won = betNumber === `${openDigit}-${closing}`;
   }
