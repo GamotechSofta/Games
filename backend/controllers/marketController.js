@@ -1340,7 +1340,7 @@ export const getMarketStats = async (req, res) => {
 
 /**
  * GET /api/v1/markets/house-profit-scan/:id
- * Scan played chart pannas and group by house profit % bands (open/close declare preview).
+ * Scan played pannas and group by house profit % bands (open/close declare preview).
  * Query: session=open|close, dateBucket=today|tomorrow, targetProfit=, tolerance=
  */
 export const getHouseProfitScan = async (req, res) => {

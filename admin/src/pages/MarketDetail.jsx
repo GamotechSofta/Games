@@ -799,8 +799,9 @@ const collectPlayedPattis = (singleItems = {}, doubleItems = {}, tripleItems = {
     const keys = new Set();
     const add = (items) => {
         for (const [k, v] of Object.entries(items || {})) {
-            const p = String(k ?? '').trim();
-            if (!/^\d{3}$/.test(p)) continue;
+            const raw = String(k ?? '').trim();
+            if (!/^\d{1,3}$/.test(raw)) continue;
+            const p = raw.padStart(3, '0');
             if ((Number(v?.amount) || 0) > 0 || (Number(v?.count) || 0) > 0) keys.add(p);
         }
     };
@@ -835,9 +836,7 @@ const TargetHouseProfitSection = ({
                 targetProfit: String(profit ?? '0'),
                 tolerance: String(tol ?? '0'),
             });
-            if (playedPattis.length > 0) {
-                params.set('playedPattis', playedPattis.join(','));
-            }
+            params.set('playedPattis', playedPattis.join(','));
             const res = await adminFetch(
                 `${API_BASE_URL}/markets/house-profit-scan/${encodeURIComponent(marketId)}?${params}`,
             );
@@ -988,19 +987,19 @@ const TargetHouseProfitSection = ({
 
             <SectionCard
                 title="Played patti by house profit %"
-                subtitle="Open-session bets only (opening declare preview)."
+                subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — all played patti numbers on this market`}
             >
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    <strong className="text-gray-300">Bucket table</strong> scans all chart pannas (SP single list, valid double, triple) — not played-only.
-                    Each panna is checked with the same declare preview formula. Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100.
+                    <strong className="text-gray-300">Bucket table</strong> lists every patti that players actually bet on in this view (single, double, triple).
+                    Each patti is checked with the same declare preview formula. Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100.
                     Within each band, pattis are sorted by actual profit % (highest first). Loss outcomes (profit &lt; 0) appear in the red section above 0–10%.
                 </p>
                 {!scanLoading && scanData && (
                     <p className="text-xs text-amber-400/90 mb-3">
-                        {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} chart panna
-                        {(scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} auto-calculated
-                        {scanData.playedCount != null && (
-                            <> · {scanData.playedCount} played on this market{playedPattis.length > 0 ? ` (${playedPattis.length} from page stats)` : ''}</>
+                        {scanData.playedCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} played patti
+                        {(scanData.playedCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} in this view
+                        {playedPattis.length > 0 && (
+                            <> ({playedPattis.length} from market stats)</>
                         )}.
                     </p>
                 )}
@@ -1499,54 +1498,54 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                       : `Close ${market.closingNumber} — matching patti / ank bets`
                             }
                         >
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div
+                                className={`grid grid-cols-1 gap-3 ${
+                                    resultOnPatti?.open && resultOnPatti?.close ? 'sm:grid-cols-2' : ''
+                                }`}
+                            >
                                 {resultOnPatti?.open && (
-                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4 space-y-2.5">
+                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4">
                                         <p className="text-sm font-semibold text-yellow-500">Open</p>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Bet Amount</span>
-                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.open.totalBetAmount)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-3 text-sm">
-                                            <span className="text-gray-400 min-w-0 leading-snug">Bet on matching Patti + Digit</span>
-                                            <span className="font-mono text-white font-semibold shrink-0">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Win Amount</span>
-                                            <span className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Win Players</span>
-                                            <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Profit</span>
-                                            <span className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.open.profit)}</span>
+                                        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Bet Amount</p>
+                                                <p className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.open.totalBetAmount)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Win Amount</p>
+                                                <p className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.open.totalWinAmountOnPatti)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Win Players</p>
+                                                <p className="font-mono text-white font-semibold">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Profit</p>
+                                                <p className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.open.profit)}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
                                 {resultOnPatti?.close && (
-                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4 space-y-2.5">
+                                    <div className="rounded-lg bg-gray-700/40 border border-gray-600 p-3 sm:p-4">
                                         <p className="text-sm font-semibold text-yellow-500">Close</p>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Bet Amount</span>
-                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.close.totalBetAmount)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-start gap-3 text-sm">
-                                            <span className="text-gray-400 min-w-0 leading-snug">Bet on matching Patti + Digit</span>
-                                            <span className="font-mono text-white font-semibold shrink-0">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Win Amount</span>
-                                            <span className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Win Players</span>
-                                            <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center gap-2 text-sm">
-                                            <span className="text-gray-400">Total Profit</span>
-                                            <span className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.close.profit)}</span>
+                                        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Bet Amount</p>
+                                                <p className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.close.totalBetAmount)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Win Amount</p>
+                                                <p className="font-mono text-green-400 font-semibold">₹{formatNum(resultOnPatti.close.totalWinAmountOnPatti)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Win Players</p>
+                                                <p className="font-mono text-white font-semibold">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</p>
+                                            </div>
+                                            <div className="rounded border border-gray-600/70 bg-gray-800/40 px-2.5 py-2 text-sm">
+                                                <p className="text-gray-400">Total Profit</p>
+                                                <p className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.close.profit)}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -1592,20 +1591,6 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                     {!isStartline && (
                     <SectionCard title="Jodi">
-                        <div className="mb-4 p-3 sm:p-4 rounded-lg bg-gray-700/50 border border-gray-600">
-                            <p className="text-sm font-semibold text-yellow-500 mb-1">What is Jodi?</p>
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                                Jodi = 2-digit number from <strong className="text-white">last digit of Open</strong> + <strong className="text-white">last digit of Close</strong>. E.g. Open 123, Close 456 → Jodi <span className="font-mono font-bold text-amber-400">36</span>.
-                            </p>
-                            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                                <span className="text-gray-400">How to read:</span>
-                                <span className="text-amber-400 font-medium">1st digit = row (left column)</span>
-                                <span className="text-gray-500">·</span>
-                                <span className="text-amber-400 font-medium">2nd digit = column (top row)</span>
-                                <span className="text-gray-500">·</span>
-                                <span className="text-white">Jodi 36 = row 3, column 6</span>
-                            </div>
-                        </div>
                         <div className="mb-2 flex items-center gap-2 text-xs text-gray-400">
                             <span>2nd digit (column) →</span>
                         </div>

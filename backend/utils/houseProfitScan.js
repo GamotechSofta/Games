@@ -171,6 +171,9 @@ function normalizeChartPanna3(val) {
 function extractChartPannaFromBet(bet) {
     const type = (bet.betType || '').toLowerCase();
     if (!PATTI_BET_TYPES.has(type)) return null;
+    if (type === 'panna') {
+        return normalizePlayedPatti3(bet.betNumber);
+    }
     const p3 = normalizeChartPanna3(bet.betNumber);
     if (!p3) return null;
     if (type === 'sp-common' && !isSinglePatti(p3)) return null;
@@ -205,11 +208,18 @@ function isHouseLoss(profit) {
 
 function assignBand(profit, profitPct) {
     if (isHouseLoss(profit)) return 'loss';
-    for (const band of PROFIT_BANDS) {
-        if (profitPct >= band.min && profitPct <= band.max) return band.label;
-    }
-    if (profitPct > 100) return '91–100%';
-    return null;
+    const pct = round2(profitPct);
+    if (pct > 100) return '91–100%';
+    if (pct <= 10) return '0–10%';
+    if (pct <= 20) return '11–20%';
+    if (pct <= 30) return '21–30%';
+    if (pct <= 40) return '31–40%';
+    if (pct <= 50) return '41–50%';
+    if (pct <= 60) return '51–60%';
+    if (pct <= 70) return '61–70%';
+    if (pct <= 80) return '71–80%';
+    if (pct <= 90) return '81–90%';
+    return '91–100%';
 }
 
 function matchesTarget(profitPct, target, tolerance) {
@@ -224,6 +234,13 @@ function formatPattiDisplay(patti, profitPct) {
     return `${patti} (${profitPct.toFixed(2)}%)`;
 }
 
+function normalizePlayedPatti3(val) {
+    const raw = String(val ?? '').trim();
+    if (/^\d{1,3}$/.test(raw)) return raw.padStart(3, '0');
+    const m = raw.match(/(\d{3})$/);
+    return m ? m[1].padStart(3, '0') : null;
+}
+
 function collectPlayedPannas(scopedBets, extraPattis = []) {
     const playedPannas = new Set();
     for (const bet of scopedBets) {
@@ -231,7 +248,7 @@ function collectPlayedPannas(scopedBets, extraPattis = []) {
         if (p3) playedPannas.add(p3);
     }
     for (const raw of extraPattis) {
-        const p3 = normalizeChartPanna3(raw);
+        const p3 = normalizePlayedPatti3(raw);
         if (p3) playedPannas.add(p3);
     }
     return playedPannas;
@@ -335,8 +352,8 @@ function buildMatchesFromResults(pannaResults, targetProfit, tolerance) {
 
 /**
  * House profit scan for Market Detail.
- * - Find pannas: played chart pannas only (target ± tolerance)
- * - Bucket table: all chart pannas (SP list + valid double + triple)
+ * - Target finder: played chart pannas matching target ± tolerance
+ * - Bucket table: all played pannas on this market (from bets + page stats)
  */
 export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     const oid = toObjectId(marketId);
@@ -390,7 +407,6 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
 
     const rates = await getRatesMap();
     const playedPannas = collectPlayedPannas(scopedBets, options.playedPattis || []);
-    const chartPannas = getAllChartPannas();
 
     const open3Declared = (market.openingNumber || '').toString();
     let stakeTotal = 0;
@@ -426,8 +442,7 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     };
 
     const playedResults = computePannaResults([...playedPannas], scanCtx);
-    const chartResults = computePannaResults(chartPannas, scanCtx);
-    const { loss, bands, allPattis } = buildBandsFromResults(chartResults);
+    const { loss, bands, allPattis } = buildBandsFromResults(playedResults);
     const matches = buildMatchesFromResults(playedResults, targetProfit, tolerance);
 
     return {
@@ -435,8 +450,8 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
         dateBucket,
         stakeTotal,
         playedCount: playedResults.length,
-        chartPannaCount: chartResults.length,
-        totalCalculated: chartResults.length,
+        chartPannaCount: getAllChartPannas().length,
+        totalCalculated: playedResults.length,
         allPattis,
         loss,
         bands,
