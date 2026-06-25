@@ -3,7 +3,7 @@ import Bet from '../models/bet/bet.js';
 import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import { notifyPlayerWalletBalance } from './playerWalletNotify.js';
-import { getRatesMap, DEFAULT_RATES } from '../models/rate/rate.js';
+import { getRatesMap, DEFAULT_RATES, invalidateRatesCache } from '../models/rate/rate.js';
 import { isSinglePatti, isDoublePatti } from './singlePattiUtils.js';
 
 function toObjectId(id) {
@@ -467,6 +467,25 @@ function todayRunFilter() {
     };
 }
 
+/**
+ * Pending bets for today's market run only (placed today IST or scheduled for today).
+ * Use for preview, winning list, and settlement so old pending bets are excluded.
+ */
+export function buildPendingTodayMarketFilter(marketId, extra = {}, bookieUserIds = null) {
+    const oid = toObjectId(marketId);
+    const marketIdStr = String(marketId).trim();
+    const filter = {
+        status: 'pending',
+        $or: oid ? [{ marketId: oid }, { marketId: marketIdStr }] : [{ marketId: marketIdStr }],
+        $and: [todayRunFilter()],
+        ...extra,
+    };
+    if (Array.isArray(bookieUserIds) && bookieUserIds.length > 0) {
+        filter.userId = { $in: bookieUserIds };
+    }
+    return filter;
+}
+
 function parseHHMMForSession(t) {
     const s = String(t || '').trim();
     const m = s.match(/^(\d{1,2}):(\d{2})/);
@@ -573,33 +592,17 @@ export async function settleOpening(marketId, openingNumber) {
     }
     const market = await Market.findById(marketId);
     if (!market) throw new Error('Market not found');
-    const canonicalId = market._id.toString();
     const openNumRaw = openingNumber.toString().replace(/\D/g, '').slice(0, 3);
     const open3 = openNumRaw.padStart(3, '0');
     await Market.findByIdAndUpdate(marketId, { openingNumber: open3 });
 
+    invalidateRatesCache();
     const rates = await getRatesMap();
     const lastDigitOpen = digitFromPatti(open3);
 
-    const oid = toObjectId(canonicalId);
-    const marketIdStr = String(canonicalId).trim();
-
-    const endTodayIST = getTodayEndIST();
-    const pendingBets = await Bet.find({
-        status: 'pending',
-        $or: oid ? [{ marketId: oid }, { marketId: marketIdStr }] : [{ marketId: marketIdStr }],
-        betOn: { $ne: 'close' },
-        $and: [
-            {
-                $or: [
-                    { isScheduled: { $ne: true } },
-                    { scheduledDate: { $exists: false } },
-                    { scheduledDate: null },
-                    { scheduledDate: { $lte: endTodayIST } },
-                ],
-            },
-        ],
-    }).lean();
+    const pendingBets = await Bet.find(
+        buildPendingTodayMarketFilter(marketId, { betOn: { $ne: 'close' } })
+    ).lean();
 
     for (const bet of pendingBets) {
         if (isJodiOrSangamBetType(bet.betType)) continue;
@@ -639,29 +642,12 @@ export async function settleClosing(marketId, closingNumber) {
     const close3 = closeNumRaw.padStart(3, '0');
     await Market.findByIdAndUpdate(marketId, { closingNumber: close3 });
 
+    invalidateRatesCache();
     const rates = await getRatesMap();
     const lastDigitOpen = digitFromPatti(open3);
     const lastDigitClose = digitFromPatti(close3);
 
-    const canonicalId = market._id.toString();
-    const oid = toObjectId(canonicalId);
-    const marketIdStr = String(canonicalId).trim();
-    
-    const endTodayIST = getTodayEndIST();
-    const pendingBets = await Bet.find({
-        status: 'pending',
-        $or: oid ? [{ marketId: oid }, { marketId: marketIdStr }] : [{ marketId: marketIdStr }],
-        $and: [
-            {
-                $or: [
-                    { isScheduled: { $ne: true } },
-                    { scheduledDate: { $exists: false } },
-                    { scheduledDate: null },
-                    { scheduledDate: { $lte: endTodayIST } }
-                ]
-            }
-        ]
-    }).lean();
+    const pendingBets = await Bet.find(buildPendingTodayMarketFilter(marketId)).lean();
     for (const bet of pendingBets) {
         if (!isCloseSettlePoolBet(bet)) continue;
         const payout = computeCloseSettlePayout(bet, open3, close3, lastDigitOpen, lastDigitClose, rates);
@@ -753,12 +739,12 @@ export async function previewDeclareOpen(marketId, openingNumber, options = {}) 
 
         const matchesPatti = betMatchesDeclaredOpenPatti(bet, open3);
         const matchesAnk = betMatchesDeclaredOpenAnk(bet, lastDigitOpen);
-        if (matchesPatti || matchesAnk) {
+        if ((matchesPatti || matchesAnk) && isPending) {
+            const payout = computeDeclaredOpenWinPayout(bet, open3, lastDigitOpen, rates);
             totalBetAmountOnPatti += amount;
-            playersWonOnPatti.add(bet.userId.toString());
-            if (isPending) {
-                const payout = computeDeclaredOpenWinPayout(bet, open3, lastDigitOpen, rates);
+            if (payout > 0) {
                 totalWinAmountOnPatti += payout;
+                playersWonOnPatti.add(bet.userId.toString());
             }
         }
 
@@ -877,13 +863,11 @@ export function computeClosePreviewFromBets(allBetsToday, { open3, close3, lastD
         totalBetAmount += amount;
 
         const payout = computeCloseSettlePayout(bet, open3, close3, lastDigitOpen, lastDigitClose, rates);
-        if (payout > 0) {
+        if (payout > 0 && isPending) {
             totalBetAmountOnPatti += amount;
             playersWon.add(bet.userId.toString());
-            if (isPending) {
-                totalWinAmount += payout;
-                totalWinAmountOnPatti += payout;
-            }
+            totalWinAmount += payout;
+            totalWinAmountOnPatti += payout;
         }
     }
 
@@ -1050,24 +1034,13 @@ export async function getWinningBetsForOpen(marketId, openingNumber, options = {
     if (!open3) return { winningBets: [], totalWinAmount: 0, totalPlayersBetOnPatti: 0 };
     const lastDigitOpen = digitFromPatti(open3);
 
-    const endTodayIST = getTodayEndIST();
-    const matchFilter = {
-        status: 'pending',
-        $or: [{ marketId: oid }, { marketId: marketIdStr }],
-        betOn: { $ne: 'close' },
-        $and: [
-            {
-                $or: [
-                    { isScheduled: { $ne: true } },
-                    { scheduledDate: { $exists: false } },
-                    { scheduledDate: null },
-                    { scheduledDate: { $lte: endTodayIST } },
-                ],
-            },
-        ],
-    };
-    if (hasBookieFilter) matchFilter.userId = { $in: bookieUserIds };
-    const pendingBets = await Bet.find(matchFilter).lean();
+    const pendingBets = await Bet.find(
+        buildPendingTodayMarketFilter(
+            marketId,
+            { betOn: { $ne: 'close' } },
+            hasBookieFilter ? bookieUserIds : null
+        )
+    ).lean();
     const rates = await getRatesMap();
     const winningBets = [];
     const wonPlayerIds = new Set();
@@ -1124,13 +1097,9 @@ export async function getWinningBetsForClose(marketId, closingNumber, options = 
     const marketIdStr = String(marketId).trim();
     const bookieUserIds = options.bookieUserIds;
     const hasBookieFilter = Array.isArray(bookieUserIds) && bookieUserIds.length > 0;
-    const matchFilter = {
-        status: 'pending',
-        $or: [{ marketId: oid }, { marketId: marketIdStr }],
-        $and: [todayRunFilter()],
-    };
-    if (hasBookieFilter) matchFilter.userId = { $in: bookieUserIds };
-    const pendingBets = await Bet.find(matchFilter).lean();
+    const pendingBets = await Bet.find(
+        buildPendingTodayMarketFilter(marketId, {}, hasBookieFilter ? bookieUserIds : null)
+    ).lean();
     const rates = await getRatesMap();
     const lastDigitOpen = digitFromPatti(open3);
     const closeNumRaw = closingNumber.toString().replace(/\D/g, '').slice(0, 3);

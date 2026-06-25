@@ -1473,6 +1473,10 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                             <span className="text-gray-400">Total Win Players</span>
                                             <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.open.totalPlayersBetOnPatti)}</span>
                                         </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Profit</span>
+                                            <span className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.open.profit)}</span>
+                                        </div>
                                     </div>
                                 )}
                                 {resultOnPatti?.close && (
@@ -1489,6 +1493,10 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                         <div className="flex justify-between items-center gap-2 text-sm">
                                             <span className="text-gray-400">Total Win Players</span>
                                             <span className="font-mono text-white font-semibold">{formatNum(resultOnPatti.close.totalPlayersBetOnPatti)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center gap-2 text-sm">
+                                            <span className="text-gray-400">Total Profit</span>
+                                            <span className="font-mono text-yellow-400 font-semibold">₹{formatNum(resultOnPatti.close.profit)}</span>
                                         </div>
                                     </div>
                                 )}

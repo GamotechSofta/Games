@@ -745,28 +745,36 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
         for (const b of todayBets) {
             if (b.session !== 'open') continue;
             const amount = Number(b.amount) || 0;
+            const status = (b.status || '').toString().toLowerCase();
             const matchesPatti = betMatchesDeclaredOpenPatti(b, open3);
             const matchesAnk = betMatchesDeclaredOpenAnk(b, lastDigitOpen);
-            if (matchesPatti || matchesAnk) {
-                totalBetAmountOnOpenPatti += amount;
+            if (!matchesPatti && !matchesAnk) continue;
+
+            totalBetAmountOnOpenPatti += amount;
+
+            let payout = 0;
+            if (status === 'won') {
+                payout = Number(b.payout) > 0
+                    ? Number(b.payout)
+                    : computeDeclaredOpenWinPayout(b, open3, lastDigitOpen, rates);
+            } else if (status === 'pending') {
+                payout = computeDeclaredOpenWinPayout(b, open3, lastDigitOpen, rates);
+            }
+
+            if (payout > 0) {
+                totalWinAmountOnOpenPatti += payout;
                 playersOnOpenPatti.add(String(b.userId));
-                if ((b.status || '').toString().toLowerCase() === 'pending') {
-                    totalWinAmountOnOpenPatti += computeDeclaredOpenWinPayout(
-                        b,
-                        open3,
-                        lastDigitOpen,
-                        rates,
-                    );
-                }
             }
         }
 
+        totalBetAmountOnOpenPatti = Math.round(totalBetAmountOnOpenPatti * 100) / 100;
         totalWinAmountOnOpenPatti = Math.round(totalWinAmountOnOpenPatti * 100) / 100;
         resultOnPatti.open = {
-            totalBetAmountOnPatti: Math.round(totalBetAmountOnOpenPatti * 100) / 100,
+            totalBetAmountOnPatti: totalBetAmountOnOpenPatti,
             totalWinAmountOnPatti: totalWinAmountOnOpenPatti,
             totalBetsOnPatti: 0,
             totalPlayersBetOnPatti: playersOnOpenPatti.size,
+            profit: Math.round((totalBetAmountOnOpenPatti - totalWinAmountOnOpenPatti) * 100) / 100,
         };
     }
 
@@ -778,30 +786,36 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
         for (const b of todayBets) {
             if (b.session !== 'close') continue;
             const amount = Number(b.amount) || 0;
+            const status = (b.status || '').toString().toLowerCase();
             const matchesPatti = betMatchesDeclaredClosePatti(b, close3);
             const matchesAnk = betMatchesDeclaredCloseAnk(b, lastDigitClose);
-            if (matchesPatti || matchesAnk) {
-                totalBetAmountOnClosePatti += amount;
+            if (!matchesPatti && !matchesAnk) continue;
+
+            totalBetAmountOnClosePatti += amount;
+
+            let payout = 0;
+            if (status === 'won') {
+                payout = Number(b.payout) > 0
+                    ? Number(b.payout)
+                    : computeDeclaredCloseWinPayout(b, close3, lastDigitClose, rates);
+            } else if (status === 'pending') {
+                payout = computeDeclaredCloseWinPayout(b, close3, lastDigitClose, rates);
+            }
+
+            if (payout > 0) {
+                totalWinAmountOnClosePatti += payout;
                 playersOnClosePatti.add(String(b.userId));
-                if ((b.status || '').toString().toLowerCase() === 'pending') {
-                    totalWinAmountOnClosePatti += computeDeclaredCloseWinPayout(
-                        b,
-                        open3,
-                        close3,
-                        lastDigitOpen,
-                        lastDigitClose,
-                        rates,
-                    );
-                }
             }
         }
 
+        totalBetAmountOnClosePatti = Math.round(totalBetAmountOnClosePatti * 100) / 100;
         totalWinAmountOnClosePatti = Math.round(totalWinAmountOnClosePatti * 100) / 100;
         resultOnPatti.close = {
-            totalBetAmountOnPatti: Math.round(totalBetAmountOnClosePatti * 100) / 100,
+            totalBetAmountOnPatti: totalBetAmountOnClosePatti,
             totalWinAmountOnPatti: totalWinAmountOnClosePatti,
             totalBetsOnPatti: 0,
             totalPlayersBetOnPatti: playersOnClosePatti.size,
+            profit: Math.round((totalBetAmountOnClosePatti - totalWinAmountOnClosePatti) * 100) / 100,
         };
     }
 

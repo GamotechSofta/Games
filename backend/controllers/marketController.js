@@ -25,6 +25,7 @@ import {
     betMatchesDeclaredCloseAnk,
     computeDeclaredCloseWinPayout,
     parseHalfSangamBetNumber,
+    buildPendingTodayMarketFilter,
 } from '../utils/settleBets.js';
 import { scheduleMarketResetCheck } from '../utils/resultReset.js';
 import { attachDisplayResults } from '../utils/marketDisplayResult.js';
@@ -787,26 +788,25 @@ export const getWinningBetsPreviewKingBazaar = async (req, res) => {
 
         const marketId = market._id.toString();
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const { getRatesMap } = await import('../models/rate/rate.js');
+        const { getRatesMap, DEFAULT_RATES } = await import('../models/rate/rate.js');
         const rates = await getRatesMap();
         
         const getRateForKey = (ratesMap, key) => {
             if (!key) return 0;
             const val = ratesMap[key];
             if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
-            return 0;
+            return (DEFAULT_RATES[key] != null && Number.isFinite(DEFAULT_RATES[key])) ? DEFAULT_RATES[key] : 0;
         };
         
         const singleDigitRate = getRateForKey(rates, 'single');
         const jodiRate = getRateForKey(rates, 'jodi');
         const jodi = `${firstDigit}${secondDigit}`;
 
-        // Query all pending bets for this market
-        const Bet = (await import('../models/bet/bet.js')).default;
-        const baseQuery = { marketId: market._id, status: 'pending' };
-        if (bookieUserIds && bookieUserIds.length > 0) {
-            baseQuery.bookieUserId = { $in: bookieUserIds };
-        }
+        const baseQuery = buildPendingTodayMarketFilter(
+            market._id,
+            {},
+            bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null
+        );
         
         const allBets = await Bet.find(baseQuery).lean();
         const winningBets = [];
@@ -987,30 +987,26 @@ export const previewDeclareKingBazaar = async (req, res) => {
         const marketId = market._id.toString();
         const bookieUserIds = await getBookieUserIds(req.admin);
 
-        // For King Bazaar, query ALL bets for this market and calculate
-        const Bet = (await import('../models/bet/bet.js')).default;
-        const { getRatesMap } = await import('../models/rate/rate.js');
+        const { getRatesMap, DEFAULT_RATES } = await import('../models/rate/rate.js');
         
-        // Get rates from the rates collection (same as settlement logic)
         const rates = await getRatesMap();
         const getRateForKey = (ratesMap, key) => {
             if (!key) return 0;
             const val = ratesMap[key];
             if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
-            return 0;
+            return (DEFAULT_RATES[key] != null && Number.isFinite(DEFAULT_RATES[key])) ? DEFAULT_RATES[key] : 0;
         };
         
         const singleDigitRate = getRateForKey(rates, 'single');
         const jodiRate = getRateForKey(rates, 'jodi');
 
-        // Build base query for all bets (exclude cancelled so stats match market detail)
-        const baseQuery = { marketId: market._id, status: { $ne: 'cancelled' } };
-        if (bookieUserIds && bookieUserIds.length > 0) {
-            baseQuery.bookieUserId = { $in: bookieUserIds };
-        }
+        const baseQuery = buildPendingTodayMarketFilter(
+            market._id,
+            { status: 'pending' },
+            bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null
+        );
 
-        // Get ALL bets for this market
-        const allBets = await Bet.find(baseQuery);
+        const allBets = await Bet.find(baseQuery).lean();
 
         // Calculate stats
         const jodi = `${firstDigit}${secondDigit}`;
@@ -1029,6 +1025,7 @@ export const previewDeclareKingBazaar = async (req, res) => {
 
         for (const bet of allBets) {
             const amount = Number(bet.amount) || 0;
+            const isPending = (bet.status || '').toString().toLowerCase() === 'pending';
             const betType = (bet.betType || '').toString().toLowerCase().trim();
             const betNumber = (bet.betNumber || '').toString().trim();
             const betOn = (bet.betOn || '').toString().toLowerCase().trim();
@@ -1038,7 +1035,9 @@ export const previewDeclareKingBazaar = async (req, res) => {
                 poolPlayers.add(bet.userId.toString());
             }
 
-            // Check if this bet wins with the declared result
+            if (!isPending) continue;
+
+            // Check if this pending bet wins with the declared result
             if (betType === 'single') {
                 // First Digit: single digit bet on 'open' session
                 if (betNumber === firstDigit && betOn === 'open') {
