@@ -724,10 +724,26 @@ function foldGroupedRows(rows, dateBucket, sessionMode) {
     return stats;
 }
 
+/** Sum all category totals from folded session stats (matches Market Detail session totals). */
+function sumSessionStatsTotalAmount(stats) {
+    if (!stats) return 0;
+    return Math.round(
+        (
+            (stats.singleDigit?.totalAmount ?? 0) +
+            (stats.jodi?.totalAmount ?? 0) +
+            (stats.singlePatti?.totalAmount ?? 0) +
+            (stats.doublePatti?.totalAmount ?? 0) +
+            (stats.triplePatti?.totalAmount ?? 0) +
+            (stats.halfSangam?.totalAmount ?? 0) +
+            (stats.fullSangam?.totalAmount ?? 0)
+        ) * 100,
+    ) / 100;
+}
+
 /**
  * Legacy resultOnPatti + singlePattiSummary from today's lean bets (one JS pass each).
  */
-function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePatti) {
+function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePatti, openStats, closeStats) {
     const resultOnPatti = { open: null, close: null };
 
     const open3Raw = (market.openingNumber || '').toString().replace(/\D/g, '').slice(0, 3);
@@ -737,7 +753,7 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
     const lastDigitOpen = open3 ? digitFromPatti(open3) : null;
     const lastDigitClose = close3 ? digitFromPatti(close3) : null;
 
-    if (open3 && lastDigitOpen) {
+    if (open3 && lastDigitOpen != null) {
         let totalBetAmountOnOpenPatti = 0;
         let totalWinAmountOnOpenPatti = 0;
         const playersOnOpenPatti = new Set();
@@ -745,6 +761,7 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
         for (const b of todayBets) {
             if (b.session !== 'open') continue;
             const amount = Number(b.amount) || 0;
+
             const status = (b.status || '').toString().toLowerCase();
             const matchesPatti = betMatchesDeclaredOpenPatti(b, open3);
             const matchesAnk = betMatchesDeclaredOpenAnk(b, lastDigitOpen);
@@ -767,18 +784,21 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
             }
         }
 
+        const totalBetAmountMarketOpen = sumSessionStatsTotalAmount(openStats);
         totalBetAmountOnOpenPatti = Math.round(totalBetAmountOnOpenPatti * 100) / 100;
         totalWinAmountOnOpenPatti = Math.round(totalWinAmountOnOpenPatti * 100) / 100;
         resultOnPatti.open = {
+            totalBetAmount: totalBetAmountMarketOpen,
+            totalBetAmountMarketOpen,
             totalBetAmountOnPatti: totalBetAmountOnOpenPatti,
             totalWinAmountOnPatti: totalWinAmountOnOpenPatti,
             totalBetsOnPatti: 0,
             totalPlayersBetOnPatti: playersOnOpenPatti.size,
-            profit: Math.round((totalBetAmountOnOpenPatti - totalWinAmountOnOpenPatti) * 100) / 100,
+            profit: Math.round((totalBetAmountMarketOpen - totalWinAmountOnOpenPatti) * 100) / 100,
         };
     }
 
-    if (close3 && lastDigitClose) {
+    if (close3 && lastDigitClose != null) {
         let totalBetAmountOnClosePatti = 0;
         let totalWinAmountOnClosePatti = 0;
         const playersOnClosePatti = new Set();
@@ -786,6 +806,7 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
         for (const b of todayBets) {
             if (b.session !== 'close') continue;
             const amount = Number(b.amount) || 0;
+
             const status = (b.status || '').toString().toLowerCase();
             const matchesPatti = betMatchesDeclaredClosePatti(b, close3);
             const matchesAnk = betMatchesDeclaredCloseAnk(b, lastDigitClose);
@@ -808,14 +829,17 @@ function buildResultOnPattiAndSummary(todayBets, market, rates, includeSinglePat
             }
         }
 
+        const totalBetAmountMarketClose = sumSessionStatsTotalAmount(closeStats);
         totalBetAmountOnClosePatti = Math.round(totalBetAmountOnClosePatti * 100) / 100;
         totalWinAmountOnClosePatti = Math.round(totalWinAmountOnClosePatti * 100) / 100;
         resultOnPatti.close = {
+            totalBetAmount: totalBetAmountMarketClose,
+            totalBetAmountMarketClose,
             totalBetAmountOnPatti: totalBetAmountOnClosePatti,
             totalWinAmountOnPatti: totalWinAmountOnClosePatti,
             totalBetsOnPatti: 0,
             totalPlayersBetOnPatti: playersOnClosePatti.size,
-            profit: Math.round((totalBetAmountOnClosePatti - totalWinAmountOnClosePatti) * 100) / 100,
+            profit: Math.round((totalBetAmountMarketClose - totalWinAmountOnClosePatti) * 100) / 100,
         };
     }
 
@@ -892,6 +916,7 @@ export async function aggregateMarketStats({
                             amount: '$amt',
                             betOn: 1,
                             status: 1,
+                            payout: 1,
                             userId: 1,
                             session: 1,
                         },
@@ -920,6 +945,8 @@ export async function aggregateMarketStats({
         market,
         rates,
         includeSinglePatti,
+        openStats,
+        closeStats,
     );
 
     return {

@@ -49,6 +49,39 @@ const countCloseSessionBets = (stats) => {
     return countMarketStatsBets(close);
 };
 
+const sumMarketStatsTotalAmount = (stats) => {
+    if (!stats) return 0;
+    return (
+        (stats.singleDigit?.totalAmount ?? 0) +
+        (stats.jodi?.totalAmount ?? 0) +
+        (stats.singlePatti?.totalAmount ?? 0) +
+        (stats.doublePatti?.totalAmount ?? 0) +
+        (stats.triplePatti?.totalAmount ?? 0) +
+        (stats.halfSangam?.totalAmount ?? 0) +
+        (stats.fullSangam?.totalAmount ?? 0)
+    );
+};
+
+const enrichResultOnPattiSide = (side, marketSessionTotal) => {
+    const win = Number(side?.totalWinAmountOnPatti) || 0;
+    const totalBetAmount =
+        side?.totalBetAmount ??
+        side?.totalBetAmountMarketOpen ??
+        side?.totalBetAmountMarketClose ??
+        marketSessionTotal;
+    const profit =
+        side?.profit != null && Number.isFinite(Number(side.profit))
+            ? Number(side.profit)
+            : Math.round((totalBetAmount - win) * 100) / 100;
+    return {
+        totalBetAmount,
+        totalBetAmountOnPatti: Number(side?.totalBetAmountOnPatti) || 0,
+        totalWinAmountOnPatti: win,
+        totalPlayersBetOnPatti: Number(side?.totalPlayersBetOnPatti) || 0,
+        profit,
+    };
+};
+
 /** Remove "testing market" from King Bazaar/Starline market names for display */
 const stripTestingMarket = (s) => (s || '').toString().replace(/\btesting market\s*/gi, '').trim() || s;
 
@@ -1244,8 +1277,9 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         triplePatti = { items: {}, totalAmount: 0, totalBets: 0 },
         halfSangam = { items: {}, totalAmount: 0, totalBets: 0 },
         fullSangam = { items: {}, totalAmount: 0, totalBets: 0 },
-        resultOnPatti = { open: null, close: null },
     } = { ...data, ...baseData };
+
+    const rawResultOnPatti = baseData?.resultOnPatti ?? data?.resultOnPatti ?? { open: null, close: null };
 
     const hasOpen = market.openingNumber && /^\d{3}$/.test(String(market.openingNumber));
     const hasClose = market.closingNumber && /^\d{3}$/.test(String(market.closingNumber));
@@ -1315,6 +1349,14 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         triplePattiViewTotals.totalBets +
         halfSangamViewTotals.totalBets +
         fullSangamViewTotals.totalBets;
+
+    const marketOpenSessionTotal = sumMarketStatsTotalAmount(statsOpen);
+    const marketCloseSessionTotal = sumMarketStatsTotalAmount(statsClose);
+    const resultOnPatti = {
+        open: hasOpen ? enrichResultOnPattiSide(rawResultOnPatti?.open, marketOpenSessionTotal) : null,
+        close: hasClose ? enrichResultOnPattiSide(rawResultOnPatti?.close, marketCloseSessionTotal) : null,
+    };
+
     const effectiveView = isStartline ? 'open' : statusView;
     const alternateSessionStats = effectiveView === 'open' ? statsClose : statsOpen;
     const alternatePattiBets = countPattiBucketBets(alternateSessionStats);
@@ -1446,7 +1488,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                 {/* All games shown in both views; section data updates by Open/Closed (other view = blank). */}
                 <div key={`sections-${statusView}`} className="space-y-4">
-                    {!isKingBazaar && (resultOnPatti?.open || resultOnPatti?.close) && (
+                    {!isKingBazaar && (hasOpen || hasClose) && (resultOnPatti?.open || resultOnPatti?.close) && (
                         <SectionCard
                             title="Result on Patti"
                             subtitle={
@@ -1463,7 +1505,11 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                         <p className="text-sm font-semibold text-yellow-500">Open</p>
                                         <div className="flex justify-between items-center gap-2 text-sm">
                                             <span className="text-gray-400">Total Bet Amount</span>
-                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
+                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.open.totalBetAmount)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-start gap-3 text-sm">
+                                            <span className="text-gray-400 min-w-0 leading-snug">Bet on matching Patti + Digit</span>
+                                            <span className="font-mono text-white font-semibold shrink-0">₹{formatNum(resultOnPatti.open.totalBetAmountOnPatti)}</span>
                                         </div>
                                         <div className="flex justify-between items-center gap-2 text-sm">
                                             <span className="text-gray-400">Total Win Amount</span>
@@ -1484,7 +1530,11 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                                         <p className="text-sm font-semibold text-yellow-500">Close</p>
                                         <div className="flex justify-between items-center gap-2 text-sm">
                                             <span className="text-gray-400">Total Bet Amount</span>
-                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
+                                            <span className="font-mono text-amber-400 font-semibold">₹{formatNum(resultOnPatti.close.totalBetAmount)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-start gap-3 text-sm">
+                                            <span className="text-gray-400 min-w-0 leading-snug">Bet on matching Patti + Digit</span>
+                                            <span className="font-mono text-white font-semibold shrink-0">₹{formatNum(resultOnPatti.close.totalBetAmountOnPatti)}</span>
                                         </div>
                                         <div className="flex justify-between items-center gap-2 text-sm">
                                             <span className="text-gray-400">Total Win Amount</span>
