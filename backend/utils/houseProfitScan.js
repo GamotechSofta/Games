@@ -353,7 +353,7 @@ function buildMatchesFromResults(pannaResults, targetProfit, tolerance) {
 /**
  * House profit scan for Market Detail.
  * - Target finder: played chart pannas matching target ± tolerance
- * - Bucket table: all played pannas on this market (from bets + page stats)
+ * - Bucket table: all chart pannas (SP + double + triple) with profit/loss %
  */
 export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     const oid = toObjectId(marketId);
@@ -407,6 +407,7 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
 
     const rates = await getRatesMap();
     const playedPannas = collectPlayedPannas(scopedBets, options.playedPattis || []);
+    const chartPannas = getAllChartPannas();
 
     const open3Declared = (market.openingNumber || '').toString();
     let stakeTotal = 0;
@@ -442,7 +443,8 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
     };
 
     const playedResults = computePannaResults([...playedPannas], scanCtx);
-    const { loss, bands, allPattis } = buildBandsFromResults(playedResults);
+    const chartResults = computePannaResults(chartPannas, scanCtx);
+    const { loss, bands, allPattis } = buildBandsFromResults(chartResults);
     const matches = buildMatchesFromResults(playedResults, targetProfit, tolerance);
 
     return {
@@ -450,8 +452,8 @@ export async function scanPlayedPannasHouseProfit(marketId, options = {}) {
         dateBucket,
         stakeTotal,
         playedCount: playedResults.length,
-        chartPannaCount: getAllChartPannas().length,
-        totalCalculated: playedResults.length,
+        chartPannaCount: chartResults.length,
+        totalCalculated: chartResults.length,
         allPattis,
         loss,
         bands,

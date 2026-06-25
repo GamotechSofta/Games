@@ -987,19 +987,19 @@ const TargetHouseProfitSection = ({
 
             <SectionCard
                 title="Played patti by house profit %"
-                subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — all played patti numbers on this market`}
+                subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — all chart patti outcomes with profit or loss %`}
             >
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    <strong className="text-gray-300">Bucket table</strong> lists every patti that players actually bet on in this view (single, double, triple).
-                    Each patti is checked with the same declare preview formula. Rows are fixed house-profit % bands: 0–10, 11–20, … 91–100.
-                    Within each band, pattis are sorted by actual profit % (highest first). Loss outcomes (profit &lt; 0) appear in the red section above 0–10%.
+                    <strong className="text-gray-300">Bucket table</strong> scans all chart pannas (single, double, triple) — not played-only.
+                    Each patti is checked with the same declare preview formula and grouped by house profit % band (0–10, 11–20, … 91–100).
+                    Loss outcomes (profit &lt; 0) appear in the red section above. Played pattis on this market are used only for target matching above.
                 </p>
                 {!scanLoading && scanData && (
                     <p className="text-xs text-amber-400/90 mb-3">
-                        {scanData.playedCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} played patti
-                        {(scanData.playedCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} in this view
-                        {playedPattis.length > 0 && (
-                            <> ({playedPattis.length} from market stats)</>
+                        {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} chart patti
+                        {(scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} calculated
+                        {scanData.playedCount != null && (
+                            <> · {scanData.playedCount} played on this market{playedPattis.length > 0 ? ` (${playedPattis.length} from market stats)` : ''}</>
                         )}.
                     </p>
                 )}
