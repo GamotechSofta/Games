@@ -5,6 +5,7 @@ import QuickPointsRow from './QuickPointsRow';
 import BidDigitKeypad from './BidDigitKeypad';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import useGameRates, { DEFAULT_RATES } from '../../../hooks/useGameRates';
 import { bidClearBtn, bidTwoColGrid, bidSegmentControl } from '../../../styles/appTheme';
 import { BidDesktopStats } from '../BidInlineStats';
 
@@ -29,6 +30,9 @@ const EasyModeBid = ({
     const [jodiSpecialQuickSelected, setJodiSpecialQuickSelected] = useState(null);
     const lockSessionToOpen = specialModeType === 'jodi';
     const isJodiMode = specialModeType === 'jodi';
+    const isKingBazaar = market?.marketType === 'king';
+    const { rates } = useGameRates();
+    const jodiWinRate = rates?.jodi ?? DEFAULT_RATES.jodi;
     const isSinglePanaMode = specialModeType === 'singlePana';
     const isDoublePanaMode = specialModeType === 'doublePana';
     const isRedBidTheme = isJodiMode || isSinglePanaMode || isDoublePanaMode;
@@ -703,6 +707,12 @@ const EasyModeBid = ({
             setSelectedDate={handleDateChange}
         >
             <div className="md:max-w-7xl md:mx-auto space-y-2">
+                {isKingBazaar && isJodiMode && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 px-1">
+                        Win rate (Jodi):{' '}
+                        <span className="font-semibold text-red-600 dark:text-red-400">1 = {jodiWinRate}</span>
+                    </p>
+                )}
                 {showModeTabs && !desktopSplit && modeHeader}
                 {warning && (
                     <div className={`fixed top-16 sm:top-20 left-1/2 transform -translate-x-1/2 z-50 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium shadow-xl max-w-[calc(100%-2rem)] sm:max-w-md ${isRedBidTheme ? 'bg-white dark:bg-[#202329] border border-red-200 dark:border-white/20 text-red-700 dark:text-gray-200' : 'bg-white dark:bg-[#202124] border border-gray-200 dark:border-white/10 text-amber-800 dark:text-[#f2c14e]'}`}>

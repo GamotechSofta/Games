@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { getTomorrowKeyIST } from './marketStatsAggregation.js';
 import Bet from '../models/bet/bet.js';
 import Market from '../models/market/market.js';
 import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
@@ -405,6 +406,142 @@ export function computeCloseSettlePayout(bet, open3, close3, lastDigitOpen, last
 }
 
 /**
+ * King Bazaar: pending bet payout for declared first + second digit.
+ * - First digit (betOn open, single): single rate from Update Rate
+ * - Second digit (betOn close, single): single rate from Update Rate
+ * - Jodi (2-digit match): jodi rate from Update Rate
+ */
+export function normalizeKingJodi2(val) {
+    const raw = String(val ?? '').trim().replace(/\D/g, '');
+    if (!raw) return '';
+    const last2 = raw.slice(-2).padStart(2, '0');
+    return /^\d{2}$/.test(last2) ? last2 : '';
+}
+
+export function computeKingBazaarBetWinPayout(bet, firstDigit, secondDigit, rates) {
+    const amount = Number(bet?.amount) || 0;
+    if (!amount) return 0;
+
+    const betType = (bet.betType || '').toString().toLowerCase().trim();
+    const betNumber = (bet.betNumber || '').toString().trim();
+    const betOn = (bet.betOn || '').toString().toLowerCase().trim();
+    const first = String(firstDigit ?? '').trim();
+    const second = String(secondDigit ?? '').trim();
+    if (!/^[0-9]$/.test(first) || !/^[0-9]$/.test(second)) return 0;
+
+    const jodi = `${first}${second}`;
+
+    if (betType === 'single') {
+        if (betNumber === first && betOn === 'open') {
+            return amount * getRateForKey(rates, 'single');
+        }
+        if (betNumber === second && betOn === 'close') {
+            return amount * getRateForKey(rates, 'single');
+        }
+        return 0;
+    }
+
+    if (betType === 'jodi' && normalizeKingJodi2(betNumber) === jodi) {
+        return amount * getRateForKey(rates, 'jodi');
+    }
+
+    return 0;
+}
+
+function isKingBazaarPoolBet(bet) {
+    const betType = (bet.betType || '').toString().toLowerCase().trim();
+    return betType === 'single' || betType === 'jodi';
+}
+
+function isKingBazaarBetOnOutcome(bet, firstDigit, secondDigit) {
+    const first = String(firstDigit ?? '').trim();
+    const second = String(secondDigit ?? '').trim();
+    if (!/^[0-9]$/.test(first) || !/^[0-9]$/.test(second)) return false;
+
+    const betType = (bet.betType || '').toString().toLowerCase().trim();
+    const betNumber = (bet.betNumber || '').toString().trim();
+    const betOn = (bet.betOn || '').toString().toLowerCase().trim();
+    const jodi = `${first}${second}`;
+
+    if (betType === 'single' && betNumber === first && betOn === 'open') return true;
+    if (betType === 'single' && betNumber === second && betOn === 'close') return true;
+    if (betType === 'jodi' && normalizeKingJodi2(betNumber) === jodi) return true;
+    return false;
+}
+
+/**
+ * King Bazaar declare preview — same as Add Result → Check.
+ * Bet amount on patti = stake on this jodi outcome only (1st digit + 2nd digit + that jodi).
+ * Profit/Loss = bet amount on patti − players win amount.
+ */
+export function computeKingBazaarDeclareProfitFromBets(allBets, firstDigit, secondDigit, rates) {
+    let totalBetAmount = 0;
+    let totalBetAmountOnPatti = 0;
+    let totalWinAmountOnPatti = 0;
+
+    for (const bet of allBets) {
+        if (!isKingBazaarPoolBet(bet)) continue;
+        const amount = Number(bet.amount) || 0;
+        const isPending = (bet.status || '').toString().toLowerCase() === 'pending';
+        totalBetAmount += amount;
+        if (isKingBazaarBetOnOutcome(bet, firstDigit, secondDigit)) {
+            totalBetAmountOnPatti += amount;
+        }
+        if (!isPending) continue;
+        const payout = computeKingBazaarBetWinPayout(bet, firstDigit, secondDigit, rates);
+        if (payout > 0) totalWinAmountOnPatti += payout;
+    }
+
+    totalBetAmount = Math.round(totalBetAmount * 100) / 100;
+    totalBetAmountOnPatti = Math.round(totalBetAmountOnPatti * 100) / 100;
+    totalWinAmountOnPatti = Math.round(totalWinAmountOnPatti * 100) / 100;
+    const profit = Math.round((totalBetAmountOnPatti - totalWinAmountOnPatti) * 100) / 100;
+    return { profit, totalBetAmount, totalBetAmountOnPatti, totalWinAmountOnPatti };
+}
+
+/**
+ * Settle King Bazaar: store result digits and pay winners using single / jodi rates only.
+ */
+export async function settleKingBazaar(marketId, firstDigit, secondDigit) {
+    const first = String(firstDigit ?? '').trim();
+    const second = String(secondDigit ?? '').trim();
+    if (!/^[0-9]$/.test(first) || !/^[0-9]$/.test(second)) {
+        throw new Error('Both firstDigit and secondDigit must be single digits (0-9)');
+    }
+
+    const market = await Market.findById(marketId);
+    if (!market) throw new Error('Market not found');
+    if (market.marketType !== 'king') {
+        throw new Error('This settlement is only for King Bazaar markets');
+    }
+
+    const openingNumber = `${first}00`.padStart(3, '0');
+    const closingNumber = `${second}00`.padStart(3, '0');
+    await Market.findByIdAndUpdate(marketId, { openingNumber, closingNumber });
+
+    invalidateRatesCache();
+    const rates = await getRatesMap();
+    const pendingBets = await Bet.find(buildPendingTodayMarketFilter(marketId)).lean();
+
+    for (const bet of pendingBets) {
+        const betType = (bet.betType || '').toString().toLowerCase().trim();
+        let payout = 0;
+        if (betType === 'single' || betType === 'jodi') {
+            payout = computeKingBazaarBetWinPayout(bet, first, second, rates);
+        }
+        const rounded = Math.round(payout * 100) / 100;
+        const won = rounded > 0;
+        await Bet.updateOne(
+            { _id: bet._id },
+            { status: won ? 'won' : 'lost', payout: rounded },
+        );
+        if (won) {
+            await creditWalletWin(bet, market, rounded, winDescription(market, bet));
+        }
+    }
+}
+
+/**
  * ═══════════════════════════════════════════════════════════════════════════════
  * HALFSANGAM CLOSE-RESULT VALIDATION
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -484,23 +621,41 @@ function todayRunFilter() {
     };
 }
 
+function tomorrowRunFilter() {
+    const todayKey = getTodayKeyIST();
+    const tomorrowKey = getTomorrowKeyIST(todayKey);
+    const startTomorrow = new Date(`${tomorrowKey}T00:00:00+05:30`);
+    const endTomorrow = new Date(`${tomorrowKey}T23:59:59.999+05:30`);
+    return { scheduledDate: { $gte: startTomorrow, $lte: endTomorrow } };
+}
+
 /**
- * Pending bets for today's market run only (placed today IST or scheduled for today).
- * Use for preview, winning list, and settlement so old pending bets are excluded.
+ * Pending bets for a market date bucket (today | tomorrow).
+ * Today uses the same filter as Add Result → Check and settlement.
  */
-export function buildPendingTodayMarketFilter(marketId, extra = {}, bookieUserIds = null) {
+export function buildPendingMarketDateBucketFilter(marketId, dateBucket = 'today', extra = {}, bookieUserIds = null) {
     const oid = toObjectId(marketId);
     const marketIdStr = String(marketId).trim();
+    const bucket = dateBucket === 'tomorrow' ? 'tomorrow' : 'today';
+    const dateFilter = bucket === 'tomorrow' ? tomorrowRunFilter() : todayRunFilter();
     const filter = {
         status: 'pending',
         $or: oid ? [{ marketId: oid }, { marketId: marketIdStr }] : [{ marketId: marketIdStr }],
-        $and: [todayRunFilter()],
+        $and: [dateFilter],
         ...extra,
     };
     if (Array.isArray(bookieUserIds) && bookieUserIds.length > 0) {
         filter.userId = { $in: bookieUserIds };
     }
     return filter;
+}
+
+/**
+ * Pending bets for today's market run only (placed today IST or scheduled for today).
+ * Use for preview, winning list, and settlement so old pending bets are excluded.
+ */
+export function buildPendingTodayMarketFilter(marketId, extra = {}, bookieUserIds = null) {
+    return buildPendingMarketDateBucketFilter(marketId, 'today', extra, bookieUserIds);
 }
 
 function parseHHMMForSession(t) {

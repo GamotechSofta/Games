@@ -29,10 +29,12 @@ class SingleDigitBulkBidScreen extends StatefulWidget {
     super.key,
     required this.market,
     required this.title,
+    this.sessionPreset,
   });
 
   final Map<String, dynamic> market;
   final String title;
+  final String? sessionPreset;
 
   @override
   State<SingleDigitBulkBidScreen> createState() =>
@@ -50,9 +52,14 @@ class _SingleDigitBulkBidScreenState extends State<SingleDigitBulkBidScreen> {
   @override
   void initState() {
     super.initState();
-    _session = widget.market['status']?.toString() == 'running'
-        ? 'CLOSE'
-        : 'OPEN';
+    final preset = widget.sessionPreset?.toUpperCase();
+    if (preset == 'OPEN' || preset == 'CLOSE') {
+      _session = preset!;
+    } else {
+      _session = widget.market['status']?.toString() == 'running'
+          ? 'CLOSE'
+          : 'OPEN';
+    }
     _init();
   }
 
@@ -209,12 +216,16 @@ class _SingleDigitBulkBidScreenState extends State<SingleDigitBulkBidScreen> {
       (s, b) => s + (int.tryParse(b.points) ?? 0),
     );
     final tile = GameBidUi.defaultBetTileExtent(context);
+    final preset = widget.sessionPreset?.toUpperCase();
+    final lockSession = preset == 'OPEN' || preset == 'CLOSE';
     return GameBidLayout(
       market: widget.market,
       title: widget.title,
       walletBalance: _wallet,
       session: _session,
       onSessionChanged: (v) => setState(() => _session = v),
+      sessionOptionsOverride: lockSession ? [preset!] : null,
+      lockSession: lockSession,
       selectedDateYmd: _dateYmd,
       onDateChanged: (v) async {
         setState(() => _dateYmd = v);

@@ -13,6 +13,8 @@ class _BidOpt {
     required this.title,
     required this.iconAsset,
     this.gameMode,
+    this.displayTitle,
+    this.sessionPreset,
   });
 
   final double id;
@@ -20,6 +22,9 @@ class _BidOpt {
   final String iconAsset;
   /// When set (e.g. `'bulk'`), overrides inferring mode from the word "bulk" in [title].
   final String? gameMode;
+  final String? displayTitle;
+  /// King Bazaar: lock OPEN (first digit) or CLOSE (second digit).
+  final String? sessionPreset;
 }
 
 final _allOptions = <_BidOpt>[
@@ -48,6 +53,33 @@ final _allOptions = <_BidOpt>[
   const _BidOpt(id: 19, title: 'Odd Even', iconAsset: BidOptionAssets.singleDice),
   const _BidOpt(id: 20, title: 'Chart Game', iconAsset: BidOptionAssets.singlePatti),
 ];
+
+final _kingOptions = <_BidOpt>[
+  const _BidOpt(
+    id: 2,
+    title: 'Single Digit',
+    displayTitle: 'First Digit',
+    sessionPreset: 'OPEN',
+    iconAsset: BidOptionAssets.singleDice,
+    gameMode: 'bulk',
+  ),
+  const _BidOpt(
+    id: 2.1,
+    title: 'Single Digit',
+    displayTitle: 'Second Digit',
+    sessionPreset: 'CLOSE',
+    iconAsset: BidOptionAssets.singleDice,
+    gameMode: 'bulk',
+  ),
+  const _BidOpt(id: 3, title: 'Jodi', iconAsset: BidOptionAssets.doubleDice),
+  const _BidOpt(id: 4, title: 'Jodi Bulk', iconAsset: BidOptionAssets.doubleDice),
+];
+
+bool _inferKing(Map<String, dynamic>? market) {
+  if (market == null) return false;
+  final t = (market['marketType'] ?? '').toString().trim().toLowerCase();
+  return t == 'king' || t == 'king-bazaar' || t == 'kingbazaar';
+}
 
 bool _inferStarline(Map<String, dynamic>? market) {
   if (market == null) return false;
@@ -91,6 +123,7 @@ class _BidOptionsPageState extends State<BidOptionsPage> {
     }
 
     final isStarline = _inferStarline(market);
+    final isKing = _inferKing(market);
     final timing = isBettingAllowed(market);
     final isCloseOnlyWindow = timing.allowed && timing.closeOnly;
     final isRunning =
@@ -115,11 +148,13 @@ class _BidOptionsPageState extends State<BidOptionsPage> {
       'Chart Game',
     };
 
-    var visible = isStarline
+    var visible = isKing
+        ? _kingOptions
+        : isStarline
         ? _allOptions.where((o) => starlineAllowed.contains(o.title)).toList()
         : _allOptions;
 
-    if (!isStarline && isRunning) {
+    if (!isStarline && !isKing && isRunning) {
       const hideWhenRunning = {
         'jodi',
         'jodi bulk',
@@ -230,6 +265,7 @@ class _BidOptionsPageState extends State<BidOptionsPage> {
                           market: market,
                           betType: o.title,
                           gameMode: mode,
+                          sessionPreset: o.sessionPreset,
                         ),
                       );
                     },
@@ -280,7 +316,7 @@ class _BidOptionsPageState extends State<BidOptionsPage> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            o.title.toUpperCase(),
+                            (o.displayTitle ?? o.title).toUpperCase(),
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,

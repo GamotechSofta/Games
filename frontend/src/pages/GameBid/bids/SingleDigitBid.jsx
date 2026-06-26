@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import BidLayout from '../BidLayout';
 import BidReviewModal from './BidReviewModal';
 import { placeBet, updateUserBalance } from '../../../api/bets';
 import useScheduledBetDate from '../../../hooks/useScheduledBetDate';
+import useGameRates, { DEFAULT_RATES } from '../../../hooks/useGameRates';
 import { useBettingWindow } from '../BettingWindowContext';
 import { bidStatValue, bidStatCard, bidInput, bidSubmitBtn, bidFieldLabel, bidCountLabel } from '../../../styles/appTheme';
 import BidPointsPanel from './BidPointsPanel';
@@ -12,8 +14,17 @@ import BidBidsList from './BidBidsList';
 
 const SingleDigitBid = ({ market, title }) => {
     const { t } = useTranslation();
+    const location = useLocation();
+    const sessionPreset = location.state?.sessionPreset;
+    const lockSession = sessionPreset === 'OPEN' || sessionPreset === 'CLOSE';
     const { allowed: bettingAllowed } = useBettingWindow();
-    const [session, setSession] = useState(() => (market?.status === 'running' ? 'CLOSE' : 'OPEN'));
+    const { rates } = useGameRates();
+    const isKingBazaar = market?.marketType === 'king';
+    const singleWinRate = rates?.single ?? DEFAULT_RATES.single;
+    const [session, setSession] = useState(() => {
+        if (sessionPreset === 'OPEN' || sessionPreset === 'CLOSE') return sessionPreset;
+        return market?.status === 'running' ? 'CLOSE' : 'OPEN';
+    });
     const [inputPoints, setInputPoints] = useState('');
     const [bids, setBids] = useState([]);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
@@ -28,8 +39,12 @@ const SingleDigitBid = ({ market, title }) => {
 
     const isRunning = market?.status === 'running'; // "CLOSED IS RUNNING"
     useEffect(() => {
+        if (lockSession) {
+            setSession(sessionPreset);
+            return;
+        }
         if (isRunning) setSession('CLOSE');
-    }, [isRunning]);
+    }, [isRunning, lockSession, sessionPreset]);
 
     const hasInputPoints = Number(inputPoints) > 0;
     const handleQuickPointClick = (pts) => {
@@ -167,6 +182,8 @@ const SingleDigitBid = ({ market, title }) => {
             setSelectedDate={handleDateChange}
             session={session}
             setSession={setSession}
+            sessionOptionsOverride={lockSession ? [sessionPreset] : undefined}
+            lockSessionSelect={lockSession}
             onSubmit={() => setIsReviewOpen(true)}
             hideFooter={false}
             showFooterStats={false}
@@ -175,6 +192,17 @@ const SingleDigitBid = ({ market, title }) => {
             walletBalance={walletBefore}
         >
             <div className="px-3 sm:px-4 py-2 w-full max-w-full overflow-x-hidden">
+                {isKingBazaar && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 px-1">
+                        Win rate (Single Digit):{' '}
+                        <span className="font-semibold text-red-600 dark:text-red-400">1 = {singleWinRate}</span>
+                        {lockSession && (
+                            <span className="text-gray-500 dark:text-gray-400">
+                                {' '}· {sessionPreset === 'CLOSE' ? 'Second Digit' : 'First Digit'}
+                            </span>
+                        )}
+                    </p>
+                )}
                 {warning && (
                     <div className="mb-3 bg-gray-50 border border-red-200 text-red-800 dark:bg-gray-900/40 dark:border-red-500/60 dark:text-red-200 rounded-xl px-4 py-3 text-base md:mb-4">
                         {warning}

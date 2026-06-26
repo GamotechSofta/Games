@@ -27,11 +27,14 @@ class GameBidArgs {
     required this.market,
     required this.betType,
     required this.gameMode,
+    this.sessionPreset,
   });
 
   final Map<String, dynamic> market;
   final String betType;
   final String gameMode;
+  /// King Bazaar: `'OPEN'` (first digit) or `'CLOSE'` (second digit).
+  final String? sessionPreset;
 }
 
 class GameBidPage extends StatelessWidget {
@@ -53,10 +56,12 @@ class GameBidPage extends StatelessWidget {
     Map<String, dynamic>? market;
     String betType = '';
     String gameMode = 'easy';
+    String? sessionPreset;
     if (raw is GameBidArgs) {
       market = raw.market;
       betType = raw.betType;
       gameMode = raw.gameMode;
+      sessionPreset = raw.sessionPreset;
     } else if (raw is Map) {
       market = Map<String, dynamic>.from(raw);
       betType = (market['betType'] ?? '').toString();
@@ -79,7 +84,7 @@ class GameBidPage extends StatelessWidget {
     }
 
     final key = normalizeBetTypeKey(betType);
-    final child = _widgetFor(key, market, betType, gameMode);
+    final child = _widgetFor(key, market, betType, gameMode, sessionPreset);
 
     return BettingWindowScope(
       market: market,
@@ -93,11 +98,16 @@ Widget _widgetFor(
   Map<String, dynamic> market,
   String title,
   String gameMode,
+  String? sessionPreset,
 ) {
   switch (key) {
     case 'single digit':
     case 'single digit bulk':
-      return SingleDigitBulkBidScreen(market: market, title: title);
+      return SingleDigitBulkBidScreen(
+        market: market,
+        title: title,
+        sessionPreset: sessionPreset,
+      );
     case 'odd even':
       return OddEvenBidScreen(market: market, title: title);
     case 'jodi':

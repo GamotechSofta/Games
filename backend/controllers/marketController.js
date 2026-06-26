@@ -26,10 +26,14 @@ import {
     computeDeclaredCloseWinPayout,
     parseHalfSangamBetNumber,
     buildPendingTodayMarketFilter,
+    computeKingBazaarBetWinPayout,
+    computeKingBazaarDeclareProfitFromBets,
+    settleKingBazaar,
 } from '../utils/settleBets.js';
 import { scheduleMarketResetCheck } from '../utils/resultReset.js';
 import { attachDisplayResults } from '../utils/marketDisplayResult.js';
 import { scanPlayedPannasHouseProfit } from '../utils/houseProfitScan.js';
+import { scanKingBazaarHouseProfit, loadKingBazaarPendingBets } from '../utils/kingBazaarHouseProfitScan.js';
 import { notifyMarketsResultUpdated } from '../utils/marketResultNotify.js';
 
 /** Midnight reset runs on cron; do not block read APIs waiting on DB reset checks. */
@@ -788,48 +792,19 @@ export const getWinningBetsPreviewKingBazaar = async (req, res) => {
 
         const marketId = market._id.toString();
         const bookieUserIds = await getBookieUserIds(req.admin);
-        const { getRatesMap, DEFAULT_RATES } = await import('../models/rate/rate.js');
+        const { getRatesMap } = await import('../models/rate/rate.js');
         const rates = await getRatesMap();
-        
-        const getRateForKey = (ratesMap, key) => {
-            if (!key) return 0;
-            const val = ratesMap[key];
-            if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
-            return (DEFAULT_RATES[key] != null && Number.isFinite(DEFAULT_RATES[key])) ? DEFAULT_RATES[key] : 0;
-        };
-        
-        const singleDigitRate = getRateForKey(rates, 'single');
-        const jodiRate = getRateForKey(rates, 'jodi');
         const jodi = `${firstDigit}${secondDigit}`;
 
-        const baseQuery = buildPendingTodayMarketFilter(
-            market._id,
-            {},
-            bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null
-        );
-        
-        const allBets = await Bet.find(baseQuery).lean();
+        const allBets = await loadKingBazaarPendingBets(market._id, {
+            dateBucket: 'today',
+            bookieUserIds: bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null,
+        });
         const winningBets = [];
         let totalWinAmount = 0;
 
         for (const bet of allBets) {
-            const betType = (bet.betType || '').toString().toLowerCase().trim();
-            const betNumber = (bet.betNumber || '').toString().trim();
-            const betOn = (bet.betOn || '').toString().toLowerCase().trim();
-            const amount = Number(bet.amount) || 0;
-            let payout = 0;
-
-            // Check if this bet wins
-            if (betType === 'single') {
-                if (betNumber === firstDigit && betOn === 'open') {
-                    payout = amount * singleDigitRate;
-                } else if (betNumber === secondDigit && betOn === 'close') {
-                    payout = amount * singleDigitRate;
-                }
-            } else if (betType === 'jodi' && betNumber === jodi) {
-                payout = amount * jodiRate;
-            }
-
+            const payout = computeKingBazaarBetWinPayout(bet, firstDigit, secondDigit, rates);
             if (payout > 0) {
                 winningBets.push({ bet, payout });
                 totalWinAmount += payout;
@@ -987,86 +962,32 @@ export const previewDeclareKingBazaar = async (req, res) => {
         const marketId = market._id.toString();
         const bookieUserIds = await getBookieUserIds(req.admin);
 
-        const { getRatesMap, DEFAULT_RATES } = await import('../models/rate/rate.js');
-        
+        const { getRatesMap } = await import('../models/rate/rate.js');
         const rates = await getRatesMap();
-        const getRateForKey = (ratesMap, key) => {
-            if (!key) return 0;
-            const val = ratesMap[key];
-            if (val != null && Number.isFinite(Number(val)) && Number(val) >= 0) return Number(val);
-            return (DEFAULT_RATES[key] != null && Number.isFinite(DEFAULT_RATES[key])) ? DEFAULT_RATES[key] : 0;
-        };
-        
-        const singleDigitRate = getRateForKey(rates, 'single');
-        const jodiRate = getRateForKey(rates, 'jodi');
 
-        const baseQuery = buildPendingTodayMarketFilter(
-            market._id,
-            { status: 'pending' },
-            bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null
-        );
+        const allBets = await loadKingBazaarPendingBets(market._id, {
+            dateBucket: 'today',
+            bookieUserIds: bookieUserIds && bookieUserIds.length > 0 ? bookieUserIds : null,
+        });
 
-        const allBets = await Bet.find(baseQuery).lean();
-
-        // Calculate stats
-        const jodi = `${firstDigit}${secondDigit}`;
-        let totalBetAmount = 0;
-        let firstDigitBetAmount = 0;
-        let firstDigitWinAmount = 0;
-        let secondDigitBetAmount = 0;
-        let secondDigitWinAmount = 0;
-        let jodiBetAmount = 0;
-        let jodiWinAmount = 0;
-        
         const poolPlayers = new Set();
-        const firstDigitPlayers = new Set();
-        const secondDigitPlayers = new Set();
-        const jodiPlayers = new Set();
+        const winningPlayers = new Set();
 
         for (const bet of allBets) {
-            const amount = Number(bet.amount) || 0;
-            const isPending = (bet.status || '').toString().toLowerCase() === 'pending';
             const betType = (bet.betType || '').toString().toLowerCase().trim();
-            const betNumber = (bet.betNumber || '').toString().trim();
-            const betOn = (bet.betOn || '').toString().toLowerCase().trim();
-            
-            totalBetAmount += amount;
             if (bet.userId && (betType === 'single' || betType === 'jodi')) {
                 poolPlayers.add(bet.userId.toString());
             }
+            if ((bet.status || '').toString().toLowerCase() !== 'pending') continue;
 
-            if (!isPending) continue;
-
-            // Check if this pending bet wins with the declared result
-            if (betType === 'single') {
-                // First Digit: single digit bet on 'open' session
-                if (betNumber === firstDigit && betOn === 'open') {
-                    firstDigitBetAmount += amount;
-                    firstDigitWinAmount += amount * singleDigitRate;
-                    if (bet.userId) firstDigitPlayers.add(bet.userId.toString());
-                }
-                // Second Digit: single digit bet on 'close' session
-                else if (betNumber === secondDigit && betOn === 'close') {
-                    secondDigitBetAmount += amount;
-                    secondDigitWinAmount += amount * singleDigitRate;
-                    if (bet.userId) secondDigitPlayers.add(bet.userId.toString());
-                }
-            }
-            // Jodi bet
-            else if (betType === 'jodi' && betNumber === jodi) {
-                jodiBetAmount += amount;
-                jodiWinAmount += amount * jodiRate;
-                if (bet.userId) jodiPlayers.add(bet.userId.toString());
+            const payout = computeKingBazaarBetWinPayout(bet, firstDigit, secondDigit, rates);
+            if (payout > 0 && bet.userId) {
+                winningPlayers.add(bet.userId.toString());
             }
         }
 
-        // Combine winning bet stats
-        const totalBetAmountOnPatti = firstDigitBetAmount + secondDigitBetAmount + jodiBetAmount;
-        const totalWinAmountOnPatti = firstDigitWinAmount + secondDigitWinAmount + jodiWinAmount;
-        const winningPlayers = new Set([...firstDigitPlayers, ...secondDigitPlayers, ...jodiPlayers]);
-        const totalPlayersBetOnPatti = winningPlayers.size;
-        
-        const profit = totalBetAmount - totalWinAmountOnPatti;
+        const { profit, totalBetAmount, totalBetAmountOnPatti, totalWinAmountOnPatti } =
+            computeKingBazaarDeclareProfitFromBets(allBets, firstDigit, secondDigit, rates);
 
         res.status(200).json({
             success: true,
@@ -1075,7 +996,7 @@ export const previewDeclareKingBazaar = async (req, res) => {
                 totalBetAmountOnPatti,
                 totalWinAmountOnPatti,
                 noOfPlayers: poolPlayers.size,
-                totalPlayersBetOnPatti,
+                totalPlayersBetOnPatti: winningPlayers.size,
                 profit,
             },
         });
@@ -1121,13 +1042,8 @@ export const declareKingBazaar = async (req, res) => {
             return res.status(400).json({ success: false, message: 'This endpoint is only for King Bazaar markets' });
         }
 
-        // Generate opening and closing numbers that produce the desired digits
-        const openingNumber = `${first}00`;
-        const closingNumber = `${second}00`;
-
-        // Settle both open and close
-        await settleOpening(market._id.toString(), openingNumber);
-        await settleClosing(market._id.toString(), closingNumber);
+        // Settle with King Bazaar rules: 1st/2nd digit → single rate, jodi → jodi rate
+        await settleKingBazaar(market._id.toString(), first, second);
 
         if (req.admin) {
             await logActivity({
@@ -1366,14 +1282,23 @@ export const getHouseProfitScan = async (req, res) => {
             .split(',')
             .map((p) => p.trim())
             .filter(Boolean);
-        const data = await scanPlayedPannasHouseProfit(marketId, {
-            session,
-            dateBucket,
-            bookieUserIds: bookieUserIds ?? undefined,
-            targetProfit,
-            tolerance,
-            playedPattis,
-        });
+
+        const data = market.marketType === 'king'
+            ? await scanKingBazaarHouseProfit(marketId, {
+                dateBucket,
+                bookieUserIds: bookieUserIds ?? undefined,
+                targetProfit,
+                tolerance,
+                playedPattis,
+            })
+            : await scanPlayedPannasHouseProfit(marketId, {
+                session,
+                dateBucket,
+                bookieUserIds: bookieUserIds ?? undefined,
+                targetProfit,
+                tolerance,
+                playedPattis,
+            });
 
         if (data.error) {
             return res.status(400).json({ success: false, message: data.error });

@@ -838,12 +838,23 @@ const collectPlayedPattis = (singleItems = {}, doubleItems = {}, tripleItems = {
     return [...keys].sort();
 };
 
+const collectPlayedJodis = (jodiItems = {}) => {
+    const keys = new Set();
+    for (const [k, v] of Object.entries(jodiItems || {})) {
+        const raw = String(k ?? '').trim().replace(/\D/g, '').slice(0, 2);
+        if (!/^\d{2}$/.test(raw)) continue;
+        if ((Number(v?.amount) || 0) > 0 || (Number(v?.count) || 0) > 0) keys.add(raw.padStart(2, '0'));
+    }
+    return [...keys].sort();
+};
+
 const TargetHouseProfitSection = ({
     marketId,
     session,
     dateBucket,
     viewLabel,
     playedPattis = [],
+    isKingBazaar = false,
 }) => {
     const playedPattisKey = playedPattis.join(',');
     const [targetProfit, setTargetProfit] = useState('60');
@@ -858,11 +869,11 @@ const TargetHouseProfitSection = ({
         setScanError('');
         try {
             const params = new URLSearchParams({
-                session,
                 dateBucket,
                 targetProfit: String(profit ?? '0'),
                 tolerance: String(tol ?? '0'),
             });
+            if (!isKingBazaar) params.set('session', session);
             params.set('playedPattis', playedPattis.join(','));
             const res = await adminFetch(
                 `${API_BASE_URL}/markets/house-profit-scan/${encodeURIComponent(marketId)}?${params}`,
@@ -880,7 +891,7 @@ const TargetHouseProfitSection = ({
         } finally {
             setScanLoading(false);
         }
-    }, [marketId, session, dateBucket, playedPattisKey]);
+    }, [marketId, session, dateBucket, playedPattisKey, isKingBazaar]);
 
     useEffect(() => {
         runScan('60', '10');
@@ -893,6 +904,10 @@ const TargetHouseProfitSection = ({
     }, [scanData?.matches]);
 
     const pattiTypeLabel = (patti) => {
+        if (isKingBazaar) {
+            const s = String(patti || '').padStart(2, '0');
+            return s.length >= 1 ? `1st digit ${s[0]}` : 'Jodi';
+        }
         const s = String(patti || '');
         if (!/^\d{3}$/.test(s)) return 'Single patti';
         if (s[0] === s[1] && s[1] === s[2]) return 'Triple patti';
@@ -908,15 +923,99 @@ const TargetHouseProfitSection = ({
         return map;
     }, [scanData?.allPattis]);
 
-    const renderPattiGroups = (pattis) => {
-        if (!pattis?.length) return <span className="text-gray-500">—</span>;
-        const grouped = {
-            'Single patti': [],
-            'Double patti': [],
-            'Triple patti': [],
+    const allPattiSummary = useMemo(() => {
+        const rows = scanData?.allPattis || [];
+        let profitCount = 0;
+        let lossCount = 0;
+        let breakEven = 0;
+        for (const row of rows) {
+            const profit = Number(row.profit) || 0;
+            if (profit > 0) profitCount += 1;
+            else if (profit < 0) lossCount += 1;
+            else breakEven += 1;
+        }
+        return { profitCount, lossCount, breakEven, total: rows.length };
+    }, [scanData?.allPattis]);
+
+    const profitPattis = useMemo(
+        () => (scanData?.allPattis || []).filter((p) => (Number(p.profit) || 0) >= 0),
+        [scanData?.allPattis],
+    );
+
+    const profitStats = useMemo(() => {
+        if (!profitPattis.length) return { minPercent: null, maxPercent: null };
+        const pcts = profitPattis.map((p) => Number(p.profitPercent) || 0);
+        return {
+            minPercent: Math.min(...pcts),
+            maxPercent: Math.max(...pcts),
         };
+    }, [profitPattis]);
+
+    const formatProfitPct = (profitPct, forceNegative = false) => {
+        const n = Number(profitPct) || 0;
+        const abs = Math.abs(n);
+        const body = abs % 1 === 0 ? abs.toFixed(0) : abs.toFixed(2);
+        if (forceNegative || n < 0) return `-${body}%`;
+        return `${body}%`;
+    };
+
+    const formatProfitRupee = (profit, forceNegative = false) => {
+        const n = Number(profit) || 0;
+        const abs = Math.abs(n);
+        if (forceNegative || n < 0) return `₹ -${formatNum(abs)}`;
+        if (n > 0) return `₹ +${formatNum(n)}`;
+        return '₹ 0';
+    };
+
+    const renderPattiChip = (p, chipKey, chipVariant = 'default') => {
+        const profitPct = Number(p.profitPercent) || 0;
+        const profit = p.profit != null ? Number(p.profit) : (profitByPatti.get(String(p.patti)) ?? 0);
+        const isMatch = matchSet.has(p.patti);
+        const isLossChip = chipVariant === 'loss' || profit < 0;
+        const isProfitChip = chipVariant === 'profit' || profit > 0;
+
+        let tone = 'border-gray-600 bg-gray-700/50 text-gray-200';
+        if (isLossChip) tone = 'border-red-500/90 bg-red-950/50 text-red-300';
+        else if (isProfitChip) tone = 'border-green-600/70 bg-green-900/25 text-green-200';
+        if (isMatch && chipVariant !== 'loss') tone = 'border-amber-400 bg-amber-500/20 text-amber-300 font-semibold';
+
+        if (isKingBazaar) {
+            const profitLabel = profit < 0 ? 'Loss' : profit > 0 ? 'Profit' : 'Profit/Loss';
+
+            return (
+                <span
+                    key={chipKey ?? p.patti}
+                    className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${tone}`}
+                    title={`Jodi ${p.patti} — ${profitLabel} ${formatProfitRupee(profit, isLossChip)} (${formatProfitPct(profitPct, isLossChip)})`}
+                >
+                    {p.patti} · {profitLabel} {formatProfitRupee(profit, isLossChip)} · {formatProfitPct(profitPct, isLossChip)}
+                </span>
+            );
+        }
+
+        return (
+            <span
+                key={chipKey ?? p.patti}
+                className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${tone}`}
+                title={`${p.patti} — house ${isLossChip ? 'loss' : isProfitChip ? 'profit' : 'break-even'}`}
+            >
+                {p.patti} · {formatProfitPct(profitPct, isLossChip)} · {formatProfitRupee(profit, isLossChip)}
+            </span>
+        );
+    };
+
+    const renderPattiGroups = (pattis, chipVariant = 'default') => {
+        if (!pattis?.length) return <span className="text-gray-500">—</span>;
+        const grouped = isKingBazaar
+            ? Object.fromEntries([...'0123456789'].map((d) => [`1st digit ${d}`, []]))
+            : {
+                'Single patti': [],
+                'Double patti': [],
+                'Triple patti': [],
+            };
         for (const p of pattis) {
             const label = pattiTypeLabel(p.patti);
+            if (!grouped[label]) grouped[label] = [];
             grouped[label].push(p);
         }
 
@@ -927,24 +1026,8 @@ const TargetHouseProfitSection = ({
                     return (
                         <div key={label}>
                             <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-300 mb-1">{label}</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {items.map((p) => {
-                                    const profitPct = Number(p.profitPercent) || 0;
-                                    const profit = p.profit != null ? Number(p.profit) : (profitByPatti.get(String(p.patti)) ?? 0);
-                                    const profitSign = profit > 0 ? '+' : '';
-                                    return (
-                                        <span
-                                            key={`${label}-${p.patti}`}
-                                            className={`inline-flex font-mono text-xs px-1.5 py-0.5 rounded border ${
-                                                matchSet.has(p.patti)
-                                                    ? 'border-amber-400 bg-amber-500/20 text-amber-300 font-semibold'
-                                                    : 'border-gray-600 bg-gray-700/50 text-gray-200'
-                                            }`}
-                                        >
-                                            {p.patti} · {profitPct % 1 === 0 ? profitPct.toFixed(0) : profitPct.toFixed(2)}% · ₹{profitSign}{formatNum(profit)}
-                                        </span>
-                                    );
-                                })}
+                            <div className="flex flex-wrap gap-2">
+                                {items.map((p) => renderPattiChip(p, `${label}-${p.patti}`, chipVariant))}
                             </div>
                         </div>
                     );
@@ -957,11 +1040,22 @@ const TargetHouseProfitSection = ({
         <div className="space-y-4">
             <SectionCard title="Target house profit %">
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    <strong className="text-gray-300">Find pannas</strong> checks only 3-digit pannas that players actually played (panna / patti tickets).
-                    For each played panna we simulate the same logic as <strong className="text-gray-300">Add Result → Check</strong>:
-                    profit ₹ = Total bet amount on market (Open) − Total win on patti;
-                    house profit % = profit ÷ Total bet amount on market (Open) × 100.
-                    Results matching target ± tolerance are highlighted in the bucket table below.
+                    {isKingBazaar ? (
+                        <>
+                            <strong className="text-gray-300">Find jodis</strong> checks only 2-digit jodis that players actually played.
+                            For each played jodi we simulate the same logic as <strong className="text-gray-300">Add Result → Check</strong>:
+                            profit ₹ = total bet pool − total win (first digit + second digit + jodi);
+                            house profit % = profit ÷ total bet pool × 100.
+                        </>
+                    ) : (
+                        <>
+                            <strong className="text-gray-300">Find pannas</strong> checks only 3-digit pannas that players actually played (panna / patti tickets).
+                            For each played panna we simulate the same logic as <strong className="text-gray-300">Add Result → Check</strong>:
+                            profit ₹ = Total bet amount on market (Open) − Total win on patti;
+                            house profit % = profit ÷ Total bet amount on market (Open) × 100.
+                        </>
+                    )}
+                    {' '}Results matching target ± tolerance are highlighted in the bucket table below.
                 </p>
                 <div className="flex flex-wrap items-end gap-3 mb-3">
                     <label className="flex flex-col gap-1 min-w-[120px]">
@@ -994,7 +1088,7 @@ const TargetHouseProfitSection = ({
                         disabled={scanLoading}
                         className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-black font-semibold border border-amber-400 transition-colors text-sm"
                     >
-                        {scanLoading ? 'Scanning…' : 'Find pannas'}
+                        {scanLoading ? 'Scanning…' : (isKingBazaar ? 'Find jodis' : 'Find pannas')}
                     </button>
                 </div>
                 <p className="text-xs text-gray-500">
@@ -1006,31 +1100,69 @@ const TargetHouseProfitSection = ({
                 )}
                 {scanData?.matches?.length > 0 && (
                     <p className="text-xs text-amber-400 mt-2">
-                        {scanData.matches.length} played panna{scanData.matches.length !== 1 ? 's' : ''} match target ± tolerance (highlighted in table below).
+                        {scanData.matches.length} played {isKingBazaar ? 'jodi' : 'panna'}{scanData.matches.length !== 1 ? 's' : ''} match target ± tolerance (highlighted in table below).
                     </p>
                 )}
                 {!scanLoading && scanData && scanData.playedCount === 0 && (
-                    <p className="text-xs text-gray-500 mt-2">No played chart pannas in this view yet — Find pannas will be empty until players bet on patti numbers.</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                        {isKingBazaar
+                            ? 'No played jodis in this view yet — Find jodis will be empty until players bet on jodi numbers.'
+                            : 'No played chart pannas in this view yet — Find pannas will be empty until players bet on patti numbers.'}
+                    </p>
                 )}
             </SectionCard>
 
             <SectionCard
-                title="Played patti by house profit %"
-                subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — all chart patti outcomes with profit or loss %`}
+                title={isKingBazaar ? 'Played jodi by house profit %' : 'Played patti by house profit %'}
+                subtitle={`${viewLabel}${dateBucket === 'tomorrow' ? " · Tomorrow's bets" : ''} — ${isKingBazaar ? 'all jodi outcomes (00–99)' : 'all chart patti outcomes'} with profit or loss %`}
             >
                 <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                    <strong className="text-gray-300">Same as Add Result Check.</strong> Open view: profit ₹ = market open stake − patti/ank win payout (Starline Sangam included).
-                    Close view: profit ₹ = close settle pool − close win payout.
-                    House profit % = profit ÷ stake pool × 100. Each chip shows patti · % · ₹ profit/loss.
+                    {isKingBazaar ? (
+                        <>
+                            <strong className="text-gray-300">Same as Add Result → Check.</strong>
+                            {' '}<strong className="text-gray-300">Bet amount on patti</strong> = stake on this jodi only (1st digit + 2nd digit + that jodi number) — not full market pool.
+                            {' '}<strong className="text-gray-300">Profit/Loss</strong> = Bet amount on patti − Players win amount.
+                            House profit % = profit ÷ bet amount on patti × 100.
+                        </>
+                    ) : (
+                        <>
+                            <strong className="text-gray-300">Same as Add Result Check.</strong> Open view: profit ₹ = market open stake − patti/ank win payout (Starline Sangam included).
+                            Close view: profit ₹ = close settle pool − close win payout.
+                            House profit % = profit ÷ stake pool × 100. Each chip shows patti · % · ₹ profit/loss.
+                        </>
+                    )}
                 </p>
-                {!scanLoading && scanData && (
+                {!scanLoading && scanData && scanData.stakeTotal === 0 && (
                     <p className="text-xs text-amber-400/90 mb-3">
-                        Stake pool (open market bets) ₹{formatNum(scanData.stakeTotal ?? 0)}
+                        No pending bets in this date view — stake pool is ₹0. Select the correct <strong className="text-amber-300">Today / Tomorrow</strong> filter above, or place bets first.
+                    </p>
+                )}
+                {!scanLoading && scanData && scanData.stakeTotal > 0 && (
+                    <p className="text-xs text-amber-400/90 mb-3">
+                        Total market pool (all 1st + 2nd + jodi bets) ₹{formatNum(scanData.stakeTotal ?? 0)}
+                        {isKingBazaar && scanData.ratesUsed && (
+                            <>
+                                {' · '}Rates: 1st digit ×{formatNum(scanData.ratesUsed.firstDigit)}
+                                {' · '}2nd digit ×{formatNum(scanData.ratesUsed.secondDigit)}
+                                {' · '}jodi ×{formatNum(scanData.ratesUsed.jodi)}
+                            </>
+                        )}
                         {' · '}
-                        {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} chart patti
+                        {scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0} {isKingBazaar ? 'jodi' : 'chart patti'}
                         {(scanData.chartPannaCount ?? scanData.totalCalculated ?? scanData.allPattis?.length ?? 0) !== 1 ? 's' : ''} calculated
                         {scanData.playedCount != null && (
                             <> · {scanData.playedCount} played on this market{playedPattis.length > 0 ? ` (${playedPattis.length} from market stats)` : ''}</>
+                        )}
+                        {allPattiSummary.total > 0 && (
+                            <>
+                                {' · '}
+                                <span className="text-green-400/90">{allPattiSummary.profitCount} profit</span>
+                                {' · '}
+                                <span className="text-red-400/90">{allPattiSummary.lossCount} loss</span>
+                                {allPattiSummary.breakEven > 0 && (
+                                    <> · {allPattiSummary.breakEven} break-even</>
+                                )}
+                            </>
                         )}.
                     </p>
                 )}
@@ -1044,46 +1176,51 @@ const TargetHouseProfitSection = ({
                 {!scanLoading && scanData?.loss?.count > 0 && (
                     <div className="mb-3 rounded-lg border border-red-700/60 bg-red-900/20 p-3">
                         <p className="text-sm font-semibold text-red-400 mb-1">Loss</p>
-                        <p className="text-[11px] text-red-300/90 mb-1.5">House profit below 0%</p>
+                        <p className="text-[11px] text-red-300/90 mb-1.5">Profit/Loss = Bet amount on patti − Players win amount (loss shown in red with minus)</p>
                         <p className="text-xs text-red-300/90 mb-2">
-                            {scanData.loss.count} panna outcome{scanData.loss.count !== 1 ? 's' : ''}
+                            {scanData.loss.count} {isKingBazaar ? 'jodi' : 'panna'} outcome{scanData.loss.count !== 1 ? 's' : ''}
                             {scanData.loss.minPercent != null && scanData.loss.maxPercent != null && (
-                                <> · house profit % from {scanData.loss.minPercent.toFixed(2)}% to {scanData.loss.maxPercent.toFixed(2)}%</>
+                                <> · house profit % from {formatProfitPct(scanData.loss.minPercent)} to {formatProfitPct(scanData.loss.maxPercent)}</>
                             )}
                         </p>
-                        {renderPattiGroups(scanData.loss.pattis)}
+                        {renderPattiGroups(scanData.loss.pattis, 'loss')}
                     </div>
                 )}
 
-                {!scanLoading && (
-                    <div className="overflow-x-auto rounded border border-gray-700 bg-gray-800">
-                        <table className="w-full text-xs sm:text-sm border-collapse">
-                            <thead>
-                                <tr className="bg-gray-700/70 border-b border-gray-600">
-                                    <th className="text-left py-2 px-2.5 font-semibold text-yellow-500 w-[100px] sm:w-[120px]">Target band</th>
-                                    <th className="text-left py-2 px-2.5 font-semibold text-yellow-500">Patti (actual profit %)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(scanData?.bands || [
-                                    { band: '0–10%', pattis: [] },
-                                    { band: '11–20%', pattis: [] },
-                                    { band: '21–30%', pattis: [] },
-                                    { band: '31–40%', pattis: [] },
-                                    { band: '41–50%', pattis: [] },
-                                    { band: '51–60%', pattis: [] },
-                                    { band: '61–70%', pattis: [] },
-                                    { band: '71–80%', pattis: [] },
-                                    { band: '81–90%', pattis: [] },
-                                    { band: '91–100%', pattis: [] },
-                                ]).map((row) => (
-                                    <tr key={row.band} className="border-b border-gray-700 align-top">
-                                        <td className="py-2 px-2.5 font-medium text-amber-400 whitespace-nowrap">{row.band}</td>
-                                        <td className="py-2 px-2.5">{renderPattiGroups(row.pattis)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                {!scanLoading && profitPattis.length > 0 && (
+                    <div className="mb-3 rounded-lg border border-green-700/50 bg-green-900/15 p-3">
+                        <p className="text-sm font-semibold text-green-400 mb-1">Profit</p>
+                        <p className="text-[11px] text-green-300/90 mb-1.5">
+                            Profit/Loss = Bet amount on patti − Players win amount (profit shown in green)
+                        </p>
+                        <p className="text-xs text-green-300/90 mb-2">
+                            {profitPattis.length} {isKingBazaar ? 'jodi' : 'panna'} outcome{profitPattis.length !== 1 ? 's' : ''}
+                            {profitStats.minPercent != null && profitStats.maxPercent != null && (
+                                <> · house profit % from {formatProfitPct(profitStats.minPercent)} to {formatProfitPct(profitStats.maxPercent)}</>
+                            )}
+                        </p>
+                        {isKingBazaar ? (
+                            renderPattiGroups(profitPattis, 'profit')
+                        ) : (
+                            <div className="overflow-x-auto rounded border border-green-800/40 bg-gray-800/60">
+                                <table className="w-full text-xs sm:text-sm border-collapse">
+                                    <thead>
+                                        <tr className="bg-gray-700/70 border-b border-gray-600">
+                                            <th className="text-left py-2 px-2.5 font-semibold text-yellow-500 w-[100px] sm:w-[120px]">Target band</th>
+                                            <th className="text-left py-2 px-2.5 font-semibold text-yellow-500">Patti (actual profit %)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(scanData?.bands || []).map((row) => (
+                                            <tr key={row.band} className="border-b border-gray-700 align-top">
+                                                <td className="py-2 px-2.5 font-medium text-amber-400 whitespace-nowrap">{row.band}</td>
+                                                <td className="py-2 px-2.5">{renderPattiGroups(row.pattis, 'profit')}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 )}
             </SectionCard>
@@ -1232,6 +1369,10 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
             statsClose?.triplePatti?.items,
         ),
         [statsClose?.singlePatti?.items, statsClose?.doublePatti?.items, statsClose?.triplePatti?.items],
+    );
+    const playedKingJodis = useMemo(
+        () => collectPlayedJodis(statsClose?.jodi?.items),
+        [statsClose?.jodi?.items],
     );
 
     // Single/Double Patti totals for the selected date (Today/Tomorrow) — used for grand total
@@ -1902,17 +2043,15 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                 </div>
 
-                {!isKingBazaar && (
-                    <TargetHouseProfitSection
-                        key={`house-profit-${dateView}-${effectiveView}-${displayAmount}`}
-                        marketId={marketId}
-                        session={effectiveView === 'closed' ? 'close' : 'open'}
-                        dateBucket={dateView}
-                        viewLabel={effectiveView === 'open' ? 'Open bets only' : 'Closed bets only'}
-                        viewStakeTotal={displayAmount}
-                        playedPattis={effectiveView === 'open' ? playedOpenPattis : playedClosePattis}
-                    />
-                )}
+                <TargetHouseProfitSection
+                    key={`house-profit-${dateView}-${isKingBazaar ? 'king' : effectiveView}-${displayAmount}`}
+                    marketId={marketId}
+                    session={isKingBazaar ? 'king' : (effectiveView === 'closed' ? 'close' : 'open')}
+                    dateBucket={dateView}
+                    viewLabel={isKingBazaar ? 'All bets' : (effectiveView === 'open' ? 'Open bets only' : 'Closed bets only')}
+                    playedPattis={isKingBazaar ? playedKingJodis : (effectiveView === 'open' ? playedOpenPattis : playedClosePattis)}
+                    isKingBazaar={isKingBazaar}
+                />
 
                 <div className="mt-8 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-3">
                     <Link

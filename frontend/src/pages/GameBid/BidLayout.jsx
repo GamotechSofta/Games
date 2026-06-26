@@ -69,6 +69,7 @@ const BidLayout = ({
             : (isToday && (isRunning || bettingCloseOnly) ? ['CLOSE'] : ['OPEN', 'CLOSE']);
 
     useEffect(() => {
+        if (lockSessionSelect) return;
         if (Array.isArray(sessionOptionsOverride) && sessionOptionsOverride.length) {
             const desired = sessionOptionsOverride[0];
             if (desired && session !== desired) setSession(desired);
@@ -77,7 +78,7 @@ const BidLayout = ({
         if (isToday && (isRunning || bettingCloseOnly) && session !== 'CLOSE') {
             setSession('CLOSE');
         }
-    }, [isToday, isRunning, bettingCloseOnly, session, setSession, sessionOptionsOverride, sessionOptions]);
+    }, [isToday, isRunning, bettingCloseOnly, session, setSession, sessionOptionsOverride, sessionOptions, lockSessionSelect]);
 
     useEffect(() => {
         const syncFromStorage = () => {
