@@ -20,6 +20,7 @@ import {
 } from 'react-icons/fa';
 
 import { API_BASE_URL, adminFetch, clearAdminAuth } from '../utils/api';
+import { MARKET_NAV_ITEMS } from '../config/marketNav';
 
 const PRESETS = [
     { id: 'all', label: 'All', getRange: () => ({ from: null, to: null }) },
@@ -279,10 +280,23 @@ const AdminDashboard = () => {
     const pendingWithdrawals = Number(stats?.payments?.pendingWithdrawals) || 0;
     const helpDeskOpen = stats?.helpDesk?.open || 0;
     const marketsPendingResultList = stats?.marketsPendingResultList || [];
-    const starlinePendingList = marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline');
-    const mainPendingList = marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() !== 'startline');
-    const starlinePendingCount = starlinePendingList.length;
-    const mainPendingCount = mainPendingList.length;
+    const marketsOverview = stats?.marketsOverview || {};
+    const regularOverview = marketsOverview.regular || {};
+    const starlineOverview = marketsOverview.starline || {};
+    const kingOverview = marketsOverview.king || {};
+
+    const regularPendingCount = Number.isFinite(Number(regularOverview.pending))
+        ? Number(regularOverview.pending)
+        : marketsPendingResultList.filter((m) => {
+            const t = (m.marketType || 'main').toString().toLowerCase();
+            return t !== 'startline' && t !== 'king';
+        }).length;
+    const starlinePendingCount = Number.isFinite(Number(starlineOverview.pending))
+        ? Number(starlineOverview.pending)
+        : marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() === 'startline').length;
+    const kingPendingCount = Number.isFinite(Number(kingOverview.pending))
+        ? Number(kingOverview.pending)
+        : marketsPendingResultList.filter((m) => (m.marketType || '').toString().toLowerCase() === 'king').length;
     const marketsPendingResult = marketsPendingResultList.length;
     if (loading) {
         return (
@@ -323,7 +337,7 @@ const AdminDashboard = () => {
     const betAmount = Number(stats?.revenue?.total) || 0;
     const winAmount = Number(stats?.revenue?.payouts) || 0;
     const bettingProfit = Number(stats?.revenue?.netProfit) || 0;
-    const hasActions = pendingWithdrawals > 0 || helpDeskOpen > 0 || starlinePendingCount > 0 || mainPendingCount > 0;
+    const hasActions = pendingWithdrawals > 0 || helpDeskOpen > 0 || starlinePendingCount > 0 || regularPendingCount > 0 || kingPendingCount > 0;
 
     const buildFundsHistorySearch = (type) => {
         const params = new URLSearchParams({ type });
@@ -433,13 +447,18 @@ const AdminDashboard = () => {
                             </Link>
                         )}
                         {starlinePendingCount > 0 && (
-                            <Link to="/markets/starline" className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
+                            <Link to="/add-result" state={{ marketType: 'starline' }} className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
                                 {starlinePendingCount} Starline Result Pending
                             </Link>
                         )}
-                        {mainPendingCount > 0 && (
+                        {regularPendingCount > 0 && (
                             <Link to="/add-result" className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
-                                {mainPendingCount} Market Result Pending
+                                {regularPendingCount} Regular Result Pending
+                            </Link>
+                        )}
+                        {kingPendingCount > 0 && (
+                            <Link to="/add-result" state={{ marketType: 'king' }} className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
+                                {kingPendingCount} King Bazaar Result Pending
                             </Link>
                         )}
                     </div>
@@ -520,6 +539,52 @@ const AdminDashboard = () => {
                 </StatsGroup>
             </div>
 
+            {/* Markets Overview — Regular / Starline / King Bazaar */}
+            <section className="mb-8">
+                <h2 className="text-sm font-semibold text-gray-400 flex items-center gap-2 mb-3 sm:mb-4">
+                    <FaChartLine className="w-4 h-4 text-amber-400 shrink-0" />
+                    Markets Overview
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                    {MARKET_NAV_ITEMS.map((item) => {
+                        const overview = marketsOverview[item.id] || {};
+                        const fallbackTotal = stats?.markets?.[item.id];
+                        const fallbackOpen = stats?.markets?.[`open${item.id.charAt(0).toUpperCase()}${item.id.slice(1)}`];
+                        const total = overview.total ?? fallbackTotal ?? 0;
+                        const open = overview.open ?? fallbackOpen ?? 0;
+                        const pending = overview.pending ?? (item.id === 'regular' ? regularPendingCount : item.id === 'starline' ? starlinePendingCount : kingPendingCount);
+                        const betAmount = Number(overview.betAmount) || 0;
+                        const winAmount = Number(overview.winAmount) || 0;
+                        const profit = Number.isFinite(Number(overview.profit)) ? Number(overview.profit) : betAmount - winAmount;
+                        const Icon = item.icon;
+                        return (
+                            <SectionCard
+                                key={item.id}
+                                title={item.label}
+                                icon={Icon}
+                                linkTo={item.path}
+                                linkLabel="Manage"
+                            >
+                                <StatRow label="Total" value={total} />
+                                <StatRow label="Open Now" value={open} colorClass="text-emerald-400" />
+                                <StatRow
+                                    label="Result Pending"
+                                    value={pending}
+                                    colorClass={pending > 0 ? 'text-amber-400' : 'text-gray-400'}
+                                />
+                                <StatRow label="Bet Amount" value={formatCurrency(betAmount)} colorClass="text-emerald-400" />
+                                <StatRow label="Total Win Amount" value={formatCurrency(winAmount)} colorClass="text-rose-400" />
+                                <StatRow
+                                    label="Profit"
+                                    value={formatCurrency(profit)}
+                                    colorClass={profit >= 0 ? 'text-sky-400' : 'text-rose-400'}
+                                />
+                            </SectionCard>
+                        );
+                    })}
+                </div>
+            </section>
+
             {/* Detail panels */}
             <section className="mb-8">
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 mb-4">
@@ -540,10 +605,10 @@ const AdminDashboard = () => {
                         <StatRow label="Pending" value={stats?.bets?.pending ?? 0} colorClass="text-amber-400" />
                     </SectionCard>
 
-                    <SectionCard title="Markets" icon={FaChartLine} linkTo="/markets" linkLabel="Open">
-                        <StatRow label="Total Markets" value={stats?.markets?.total ?? 0} />
-                        <StatRow label="Open Now" value={stats?.markets?.open ?? 0} colorClass="text-emerald-400" />
-                        <StatRow label="Result Pending" value={marketsPendingResult} colorClass={marketsPendingResult > 0 ? 'text-amber-400' : 'text-gray-400'} />
+                    <SectionCard title="All Markets" icon={FaChartLine} linkTo="/markets/regular" linkLabel="Open">
+                        <StatRow label="Total (All Types)" value={stats?.markets?.total ?? 0} />
+                        <StatRow label="Open Now (All)" value={stats?.markets?.open ?? 0} colorClass="text-emerald-400" />
+                        <StatRow label="Result Pending (All)" value={marketsPendingResult} colorClass={marketsPendingResult > 0 ? 'text-amber-400' : 'text-gray-400'} />
                     </SectionCard>
 
                     <SectionCard title="Transactions" icon={FaCreditCard} linkTo="/deposit-withdrawal-history" linkLabel="History">

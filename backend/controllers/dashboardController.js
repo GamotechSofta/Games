@@ -86,15 +86,17 @@ async function aggregateMarketCounts() {
         {
             $facet: {
                 total: [{ $count: 'n' }],
-                main: [{ $match: { marketType: { $ne: 'startline' } } }, { $count: 'n' }],
+                regular: [{ $match: { marketType: { $nin: ['startline', 'king'] } } }, { $count: 'n' }],
                 starline: [{ $match: { marketType: 'startline' } }, { $count: 'n' }],
+                king: [{ $match: { marketType: 'king' } }, { $count: 'n' }],
             },
         },
     ]);
     return {
         total: facetCount(row, 'total'),
-        main: facetCount(row, 'main'),
+        regular: facetCount(row, 'regular'),
         starline: facetCount(row, 'starline'),
+        king: facetCount(row, 'king'),
     };
 }
 
@@ -129,6 +131,91 @@ async function aggregateBetStats(betMatchNoCancelled, dateMatch, betFilter) {
         winningBets: facetCount(row, 'winningBets'),
         losingBets: facetCount(row, 'losingBets'),
         pendingBets: facetCount(row, 'pendingBets'),
+    };
+}
+
+function facetBetOverviewStats(row, key) {
+    const group = row?.[key]?.[0];
+    const betAmount = group?.betAmount ?? 0;
+    const winAmount = group?.winAmount ?? 0;
+    return {
+        betAmount,
+        winAmount,
+        profit: betAmount - winAmount,
+    };
+}
+
+async function aggregateBetStatsByMarketType(betMatchNoCancelled) {
+    const [row] = await Bet.aggregate([
+        { $match: betMatchNoCancelled },
+        {
+            $lookup: {
+                from: 'markets',
+                localField: 'marketId',
+                foreignField: '_id',
+                as: 'marketDoc',
+            },
+        },
+        { $unwind: { path: '$marketDoc', preserveNullAndEmptyArrays: true } },
+        {
+            $addFields: {
+                overviewType: {
+                    $switch: {
+                        branches: [
+                            { case: { $eq: ['$marketDoc.marketType', 'startline'] }, then: 'starline' },
+                            { case: { $eq: ['$marketDoc.marketType', 'king'] }, then: 'king' },
+                        ],
+                        default: 'regular',
+                    },
+                },
+            },
+        },
+        {
+            $facet: {
+                regular: [
+                    { $match: { overviewType: 'regular' } },
+                    {
+                        $group: {
+                            _id: null,
+                            betAmount: { $sum: '$amount' },
+                            winAmount: {
+                                $sum: { $cond: [{ $eq: ['$status', 'won'] }, '$payout', 0] },
+                            },
+                        },
+                    },
+                ],
+                starline: [
+                    { $match: { overviewType: 'starline' } },
+                    {
+                        $group: {
+                            _id: null,
+                            betAmount: { $sum: '$amount' },
+                            winAmount: {
+                                $sum: { $cond: [{ $eq: ['$status', 'won'] }, '$payout', 0] },
+                            },
+                        },
+                    },
+                ],
+                king: [
+                    { $match: { overviewType: 'king' } },
+                    {
+                        $group: {
+                            _id: null,
+                            betAmount: { $sum: '$amount' },
+                            winAmount: {
+                                $sum: { $cond: [{ $eq: ['$status', 'won'] }, '$payout', 0] },
+                            },
+                        },
+                    },
+                ],
+            },
+        },
+    ]);
+
+    return {
+        regular: facetBetOverviewStats(row, 'regular'),
+        starline: facetBetOverviewStats(row, 'starline'),
+        king: facetBetOverviewStats(row, 'king'),
     };
 }
 
@@ -215,22 +302,31 @@ async function aggregateBookieAdminCounts() {
 function computeMarketOpenStats(allMarketsForOpen, now) {
     const currentTime = now.getHours() * 60 + now.getMinutes();
     let openMarkets = 0;
-    let openMainMarkets = 0;
+    let openRegularMarkets = 0;
     let openStarlineMarkets = 0;
+    let openKingMarkets = 0;
+    let pendingRegular = 0;
+    let pendingStarline = 0;
+    let pendingKing = 0;
     const marketsPendingResultList = [];
 
     for (const m of allMarketsForOpen) {
         const startTime = parseTimeToMinutes(m.startingTime);
         const endTime = parseTimeToMinutes(m.closingTime);
         const isOpen = startTime != null && endTime != null && currentTime >= startTime && currentTime <= endTime;
+        const marketType = (m.marketType || 'main').toString().toLowerCase();
+        const isStarline = marketType === 'startline';
+        const isKing = marketType === 'king';
+
         if (isOpen) {
             openMarkets++;
-            if (m.marketType === 'startline') openStarlineMarkets++;
-            else openMainMarkets++;
+            if (isStarline) openStarlineMarkets++;
+            else if (isKing) openKingMarkets++;
+            else openRegularMarkets++;
         }
 
         if (!isBettingClosed(m, now)) continue;
-        const isStarline = m.marketType === 'startline';
+
         const needsResult = isStarline
             ? !(m.openingNumber && /^\d{3}$/.test(String(m.openingNumber)))
             : !(m.openingNumber && /^\d{3}$/.test(String(m.openingNumber))
@@ -241,13 +337,20 @@ function computeMarketOpenStats(allMarketsForOpen, now) {
                 marketName: m.marketName,
                 marketType: m.marketType || 'main',
             });
+            if (isStarline) pendingStarline++;
+            else if (isKing) pendingKing++;
+            else pendingRegular++;
         }
     }
 
     return {
         openMarkets,
-        openMainMarkets,
+        openRegularMarkets,
         openStarlineMarkets,
+        openKingMarkets,
+        pendingRegular,
+        pendingStarline,
+        pendingKing,
         marketsPendingResult: marketsPendingResultList.length,
         marketsPendingResultList,
     };
@@ -277,6 +380,7 @@ async function buildDashboardPayload(req) {
         marketCounts,
         allMarketsForOpen,
         betStats,
+        betStatsByMarketType,
         paymentStats,
         totalWalletBalance,
         helpDeskStats,
@@ -291,6 +395,7 @@ async function buildDashboardPayload(req) {
             .select('marketName marketType startingTime closingTime openingNumber closingNumber')
             .lean(),
         aggregateBetStats(betMatchNoCancelled, dateMatch, betFilter),
+        aggregateBetStatsByMarketType(betMatchNoCancelled),
         aggregatePaymentStats(paymentFilter, dateMatch),
         Wallet.aggregate([
             ...(Object.keys(walletMatch).length ? [{ $match: walletMatch }] : []),
@@ -351,10 +456,44 @@ async function buildDashboardPayload(req) {
         markets: {
             total: marketCounts.total,
             open: marketOpenStats.openMarkets,
-            main: marketCounts.main,
+            regular: marketCounts.regular,
             starline: marketCounts.starline,
-            openMain: marketOpenStats.openMainMarkets,
+            king: marketCounts.king,
+            openRegular: marketOpenStats.openRegularMarkets,
             openStarline: marketOpenStats.openStarlineMarkets,
+            openKing: marketOpenStats.openKingMarkets,
+            pendingRegular: marketOpenStats.pendingRegular,
+            pendingStarline: marketOpenStats.pendingStarline,
+            pendingKing: marketOpenStats.pendingKing,
+            // backward compatibility
+            main: marketCounts.regular,
+            openMain: marketOpenStats.openRegularMarkets,
+        },
+        marketsOverview: {
+            regular: {
+                total: marketCounts.regular,
+                open: marketOpenStats.openRegularMarkets,
+                pending: marketOpenStats.pendingRegular,
+                betAmount: betStatsByMarketType.regular.betAmount,
+                winAmount: betStatsByMarketType.regular.winAmount,
+                profit: betStatsByMarketType.regular.profit,
+            },
+            starline: {
+                total: marketCounts.starline,
+                open: marketOpenStats.openStarlineMarkets,
+                pending: marketOpenStats.pendingStarline,
+                betAmount: betStatsByMarketType.starline.betAmount,
+                winAmount: betStatsByMarketType.starline.winAmount,
+                profit: betStatsByMarketType.starline.profit,
+            },
+            king: {
+                total: marketCounts.king,
+                open: marketOpenStats.openKingMarkets,
+                pending: marketOpenStats.pendingKing,
+                betAmount: betStatsByMarketType.king.betAmount,
+                winAmount: betStatsByMarketType.king.winAmount,
+                profit: betStatsByMarketType.king.profit,
+            },
         },
         revenue: {
             total: revenue,

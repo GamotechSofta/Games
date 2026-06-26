@@ -18,7 +18,6 @@ import {
     FaCog,
     FaMoneyBillWave,
     FaUserShield,
-    FaGamepad,
     FaHeadset,
     FaExchangeAlt,
 } from 'react-icons/fa';
@@ -43,7 +42,6 @@ const MENU_GROUPS = [
             { path: '/add-result', label: 'Add Result', icon: FaEdit },
             { path: '/update-rate', label: 'Update Rate', icon: FaCoins },
             { path: '/bet-history', label: 'Bet History', icon: FaHistory },
-            { path: '/game-management', label: 'Games', icon: FaGamepad },
             { path: '/logs', label: 'Logs', icon: FaClipboardList },
         ],
     },
