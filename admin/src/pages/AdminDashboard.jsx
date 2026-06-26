@@ -433,7 +433,7 @@ const AdminDashboard = () => {
                             </Link>
                         )}
                         {starlinePendingCount > 0 && (
-                            <Link to="/markets" state={{ marketType: 'starline' }} className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
+                            <Link to="/markets/starline" className="px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-medium text-xs sm:text-sm shrink-0 whitespace-nowrap">
                                 {starlinePendingCount} Starline Result Pending
                             </Link>
                         )}

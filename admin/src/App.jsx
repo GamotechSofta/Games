@@ -70,7 +70,10 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Login />} />
                     <Route path="/dashboard" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
-                    <Route path="/markets" element={<PrivateRoute><Markets /></PrivateRoute>} />
+                    <Route path="/markets" element={<Navigate to="/markets/regular" replace />} />
+                    <Route path="/markets/regular" element={<PrivateRoute><Markets /></PrivateRoute>} />
+                    <Route path="/markets/starline" element={<PrivateRoute><Markets /></PrivateRoute>} />
+                    <Route path="/markets/king" element={<PrivateRoute><Markets /></PrivateRoute>} />
                     <Route path="/markets/:marketId" element={<PrivateRoute><MarketDetail /></PrivateRoute>} />
                     <Route path="/add-result" element={<PrivateRoute><AddResult /></PrivateRoute>} />
                     <Route path="/add-result/view/:marketId" element={<PrivateRoute><MarketDetail fromAddResult /></PrivateRoute>} />

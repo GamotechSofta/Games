@@ -604,7 +604,7 @@ const AddResult = () => {
                                 groups.length === 0 ? (
                                     <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
                                         <p className="text-gray-400 text-sm mb-4">No Starline markets yet. Add from Markets → Starline Market.</p>
-                                        <Link to="/markets" state={{ marketType: 'starline' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaStar className="w-4 h-4" /> Go to Starline Market</Link>
+                                        <Link to="/markets/starline" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaStar className="w-4 h-4" /> Go to Starline Market</Link>
                                     </div>
                                 ) : (
                                     <div className={RESULT_MARKET_GRID}>
@@ -701,7 +701,7 @@ const AddResult = () => {
                                     <div className="rounded-2xl border border-amber-500/40 bg-gray-800/50 p-6 sm:p-8 text-center">
                                         <div className="w-14 h-14 rounded-2xl bg-amber-500/20 flex items-center justify-center mx-auto mb-4"><FaCrown className="w-8 h-8 text-amber-400" /></div>
                                         <p className="text-gray-400 text-sm mb-4">No King Bazaar markets yet. Add from Markets → King Bazaar Market.</p>
-                                        <Link to="/markets" state={{ marketType: 'king' }} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaCrown className="w-4 h-4" /> Go to King Bazaar Market</Link>
+                                        <Link to="/markets/king" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-sm"><FaCrown className="w-4 h-4" /> Go to King Bazaar Market</Link>
                                     </div>
                                 ) : null
                             ) : (

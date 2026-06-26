@@ -18,7 +18,12 @@ const AdminLayout = ({ children, onLogout, title }) => {
     const role = admin.role || 'super_admin';
     const allowedTabs = Array.isArray(admin.allowedTabs) ? admin.allowedTabs : [];
 
-    const isAllowedPath = allowedTabs.some((t) => pathname === t || pathname.startsWith(t + '/'))
+    const isAllowedPath = allowedTabs.some((t) => {
+        if (t === '/markets') {
+            return pathname === '/markets' || pathname.startsWith('/markets/');
+        }
+        return pathname === t || pathname.startsWith(`${t}/`);
+    })
         || (allowedTabs.includes('/add-result') && (pathname === '/declare-confirm' || pathname === '/declare-success'));
     if (role === 'specific_admin' && allowedTabs.length > 0 && !isAllowedPath) {
         const first = allowedTabs[0];

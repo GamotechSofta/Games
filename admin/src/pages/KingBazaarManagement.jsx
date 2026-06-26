@@ -5,6 +5,12 @@ import MarketForm from '../components/MarketForm';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
 import { useAdminSettings } from '../context/AdminSettingsContext';
+import {
+    COMPACT_MARKET_GRID_CLASS,
+    COMPACT_MARKET_CARD_CLASS,
+    COMPACT_MARKET_STATUS_CLASS,
+    COMPACT_MARKET_ACTION_BTN_CLASS,
+} from '../components/compactMarketCardStyles';
 
 const safeNum = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const formatTime = (timeStr) => {
@@ -495,33 +501,43 @@ const KingBazaarManagement = ({ embedded = false }) => {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-w-0 w-full max-w-full">
+                                    <div className={COMPACT_MARKET_GRID_CLASS}>
                                         {slotsForTab.map((m) => {
                                             const status = getSlotStatus(m, tick);
                                             const resultRaw = m.displayResult || m.winNumber || (m.openingNumber && m.closingNumber ? `${m.openingNumber}-${m.closingNumber}` : '') || (m.openingNumber ? String(m.openingNumber) : '');
+                                            const resultDisplay = resultRaw ? String(resultRaw).replace(/-/g, '_') : '—';
                                             return (
-                                                <div key={m._id} className="bg-gray-800 rounded-xl border border-gray-700 p-4 sm:p-5 lg:p-6 hover:border-yellow-500/50 transition-colors min-w-0 overflow-hidden">
-                                                    <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
-                                                        <div className={`${status.color} text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full inline-block shrink-0`}>
-                                                            {status.status === 'open' && 'OPEN'}
-                                                            {status.status === 'closed' && 'CLOSED'}
-                                                        </div>
-                                                        <div className="min-w-0 overflow-hidden flex justify-end">
-                                                            <span className="text-amber-400 font-mono text-sm sm:text-base whitespace-nowrap truncate inline-block max-w-full tracking-widest" title={resultRaw}>
-                                                                {resultRaw ? String(resultRaw).replace(/-/g, '_') : ''}
-                                                            </span>
-                                                        </div>
+                                                <div key={m._id} className={COMPACT_MARKET_CARD_CLASS}>
+                                                    <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                                                        <span className={`${status.color} ${COMPACT_MARKET_STATUS_CLASS}`}>
+                                                            {status.status === 'open' ? 'OPEN' : 'CLOSED'}
+                                                        </span>
+                                                        <h3 className="text-xs sm:text-sm font-bold text-white truncate flex-1 min-w-0" title={m.marketName}>
+                                                            {formatTime12h(m.closingTime || m.startingTime)}
+                                                        </h3>
                                                     </div>
-                                                    <div className="space-y-1.5 sm:space-y-2 mb-4 text-xs sm:text-sm text-gray-300 min-w-0">
-                                                        <p className="truncate"><span className="font-semibold">Opening:</span> {formatTime12h(m.startingTime)}</p>
-                                                        <p className="truncate"><span className="font-semibold">Closing:</span> {formatTime12h(m.closingTime || m.startingTime)}</p>
+                                                    <p className="text-amber-400 font-mono text-[11px] sm:text-xs tracking-wide truncate mb-2" title={resultDisplay}>
+                                                        {resultDisplay}
+                                                    </p>
+                                                    <div className="flex flex-col gap-0.5 text-[10px] sm:text-[11px] text-gray-400 mb-2 flex-1 min-w-0">
+                                                        <p className="whitespace-nowrap">
+                                                            <span className="text-gray-500">Open </span>
+                                                            {formatTime12h(m.startingTime)}
+                                                        </p>
+                                                        <p className="whitespace-nowrap">
+                                                            <span className="text-gray-500">Close </span>
+                                                            {formatTime12h(m.closingTime || m.startingTime)}
+                                                        </p>
                                                         {m.betClosureTime != null && m.betClosureTime !== '' && (
-                                                            <p><span className="font-semibold">Bet Closure:</span> {m.betClosureTime} sec</p>
+                                                            <p className="whitespace-nowrap">
+                                                                <span className="text-gray-500">Bet off </span>
+                                                                {m.betClosureTime}s
+                                                            </p>
                                                         )}
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                                        <button type="button" onClick={() => handleEditClick(m)} className="px-2 sm:px-3 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Edit</button>
-                                                        <button type="button" onClick={() => handleDelete(m)} className="px-2 sm:px-3 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-xs sm:text-sm font-semibold min-h-[40px] sm:min-h-0">Delete</button>
+                                                    <div className="grid grid-cols-2 gap-1 mt-auto pt-1 border-t border-gray-700/60">
+                                                        <button type="button" onClick={() => handleEditClick(m)} className={`${COMPACT_MARKET_ACTION_BTN_CLASS} bg-amber-600 hover:bg-amber-500 text-black`}>Edit</button>
+                                                        <button type="button" onClick={() => handleDelete(m)} className={`${COMPACT_MARKET_ACTION_BTN_CLASS} bg-red-600/90 hover:bg-red-500 text-white`}>Delete</button>
                                                     </div>
                                                 </div>
                                             );

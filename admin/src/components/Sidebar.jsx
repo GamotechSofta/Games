@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { MARKET_NAV_ITEMS } from '../config/marketNav';
 import {
     FaTachometerAlt,
-    FaChartBar,
     FaHistory,
     FaChartLine,
     FaCreditCard,
@@ -29,7 +29,12 @@ const MENU_GROUPS = [
         items: [
             { path: '/dashboard', label: 'Dashboard', icon: FaTachometerAlt },
             { path: '/all-users', label: 'All Players', icon: FaUserFriends },
-            { path: '/markets', label: 'Markets', icon: FaChartBar },
+            ...MARKET_NAV_ITEMS.map((item) => ({
+                path: item.path,
+                label: item.label,
+                icon: item.icon,
+                marketsNav: true,
+            })),
         ],
     },
     {
@@ -79,7 +84,10 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
     const menuGroups = useMemo(() => {
         const filterItem = (item) => {
             if (item.superAdminOnly && role !== 'super_admin') return false;
-            if (role === 'specific_admin') return allowedTabs.includes(item.path);
+            if (role === 'specific_admin') {
+                if (item.marketsNav) return allowedTabs.includes('/markets');
+                return allowedTabs.includes(item.path);
+            }
             return true;
         };
 
@@ -102,8 +110,11 @@ const Sidebar = ({ onLogout, isOpen = true, onClose }) => {
 
     const isActive = (path) => {
         if (path === '/specific-admin' || path === '/telecaller-management') return location.pathname === path;
-        if (path === '/all-users' || path === '/markets') {
+        if (path === '/all-users') {
             return location.pathname === path || location.pathname.startsWith(`${path}/`);
+        }
+        if (MARKET_NAV_ITEMS.some((item) => item.path === path)) {
+            return location.pathname === path;
         }
         if (path === '/add-result') {
             return location.pathname === path || location.pathname.startsWith(`${path}/`);

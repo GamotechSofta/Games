@@ -4,6 +4,7 @@ import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaClock, FaHashtag, FaChartBar, FaEdit } from 'react-icons/fa';
 import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import { clearAdminAuth, adminFetch, API_BASE_URL } from '../utils/api';
+import { marketListPathFromType } from '../config/marketNav';
 
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const TRIPLE_PATTI_DIGITS = DIGITS.map((d) => d + d + d);
@@ -1430,7 +1431,7 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
                     {error || 'Market not found'}
                 </div>
                 <Link
-                    to={fromAddResult ? '/add-result' : '/markets'}
+                    to={fromAddResult ? '/add-result' : marketListPathFromType(market?.marketType)}
                     className="inline-flex items-center gap-2 mt-4 px-4 py-2.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-black font-semibold transition-colors"
                 >
                     <FaArrowLeft /> {fromAddResult ? 'Back to Add Result' : 'Back to Markets'}
@@ -1550,8 +1551,16 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
         <AdminLayout onLogout={handleLogout} title={fromAddResult && (isStartline || isKingBazaar) ? `Add Result - ${stripTestingMarket(market.marketName)}` : fromAddResult ? 'Add Result - View' : 'Market Detail'}>
             <div className="w-full min-w-0 px-3 sm:px-4 md:px-6 pb-6 sm:pb-8 overflow-x-hidden">
                 <Link
-                    to={fromAddResult ? '/add-result' : '/markets'}
-                    state={fromAddResult && market ? (market.marketType === 'startline' ? { marketType: 'starline' } : market.marketType === 'king' ? { marketType: 'king' } : undefined) : undefined}
+                    to={fromAddResult ? '/add-result' : marketListPathFromType(market.marketType)}
+                    state={
+                        fromAddResult && market
+                            ? (market.marketType === 'startline'
+                                ? { marketType: 'starline' }
+                                : market.marketType === 'king'
+                                ? { marketType: 'king' }
+                                : undefined)
+                            : undefined
+                    }
                     className="inline-flex items-center gap-2 text-gray-400 hover:text-yellow-500 text-sm mb-4 transition-colors"
                 >
                     <FaArrowLeft className="w-4 h-4" /> {fromAddResult ? 'Add Result' : 'Markets Management'}
@@ -2055,14 +2064,18 @@ const MarketDetail = ({ fromAddResult: fromAddResultProp = false }) => {
 
                 <div className="mt-8 pt-4 border-t border-gray-700 flex flex-wrap items-center gap-3">
                     <Link
-                        to={fromAddResult ? '/add-result' : '/markets'}
+                        to={fromAddResult ? '/add-result' : marketListPathFromType(market.marketType)}
                         state={
                             fromAddResult
-                                ? (market.marketType === 'startline' ? { marketType: 'starline' } : market.marketType === 'king' ? { marketType: 'king' } : undefined)
-                                : (market.marketType === 'startline' 
-                                    ? { marketType: 'starline', starlineMarketKey: (market.starlineGroup || '').toString().trim().toLowerCase() } 
+                                ? (market.marketType === 'startline'
+                                    ? { marketType: 'starline' }
                                     : market.marketType === 'king'
-                                    ? { marketType: 'king', kingBazaarMarketKey: (market.kingBazaarGroup || '').toString().trim().toLowerCase() }
+                                    ? { marketType: 'king' }
+                                    : undefined)
+                                : (market.marketType === 'startline'
+                                    ? { starlineMarketKey: (market.starlineGroup || '').toString().trim().toLowerCase() }
+                                    : market.marketType === 'king'
+                                    ? { kingBazaarMarketKey: (market.kingBazaarGroup || '').toString().trim().toLowerCase() }
                                     : undefined)
                         }
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-semibold border border-gray-600 transition-colors"
