@@ -98,6 +98,11 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
 
   const isSearching = Boolean(searchQuery.trim());
 
+  const popularMarkets = useMemo(
+    () => filteredMarkets.filter((market) => market.showInPopular),
+    [filteredMarkets],
+  );
+
   const allMarkets = useMemo(
     () => sortMarketsPopularFirst(filteredMarkets),
     [filteredMarkets],
@@ -135,18 +140,35 @@ export default function DesktopHomeSections({ searchQuery = '' }) {
   return (
     <div id="market-sections" className="mx-auto w-full max-w-[1440px] space-y-1 px-4 lg:px-6 xl:px-8">
       {loading ? (
-        <MarketRowSkeleton scrollable={false} gapClass="gap-4" />
+        <>
+          <MarketRowSkeleton scrollable gapClass="gap-4" />
+          <MarketRowSkeleton scrollable={false} gapClass="gap-4" />
+        </>
       ) : (
-        <MarketRow
-          titleKey="dashboard.allMarkets"
-          fallbackTitle="All Markets"
-          icon={FaThLarge}
-          section="popular"
-          markets={allMarkets}
-          scrollable={false}
-          showAction={false}
-          gapClass="gap-4"
-        />
+        <>
+          {popularMarkets.length > 0 && (
+            <MarketRow
+              titleKey="dashboard.popularMarkets"
+              fallbackTitle="Popular Markets"
+              icon={MdLocalFireDepartment}
+              section="popular"
+              markets={popularMarkets}
+              scrollable
+              onAction={() => navigate('/markets')}
+              gapClass="gap-4"
+            />
+          )}
+          <MarketRow
+            titleKey="dashboard.allMarkets"
+            fallbackTitle="All Markets"
+            icon={FaThLarge}
+            section="popular"
+            markets={allMarkets}
+            scrollable={false}
+            showAction={false}
+            gapClass="gap-4"
+          />
+        </>
       )}
     </div>
   );
