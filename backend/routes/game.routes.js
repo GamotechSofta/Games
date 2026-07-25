@@ -1,5 +1,5 @@
 import express from 'express';
-import { launchGame, addGame, listGames, toggleGame, listActiveGames } from '../controllers/game.controller.js';
+import { launchGame, addGame, listGames, toggleGame, listActiveGames, updateGame } from '../controllers/game.controller.js';
 import { verifyAdmin } from '../middleware/adminAuth.js';
 
 const gameRoutes = express.Router();
@@ -18,6 +18,7 @@ gameRoutes.get('/list', listActiveGames);
 
 // Admin game management
 adminGameRoutes.post('/add', verifyAdmin, addGame);
+adminGameRoutes.put('/update', verifyAdmin, updateGame);
 adminGameRoutes.get('/list', verifyAdmin, listGames);
 adminGameRoutes.put('/toggle', verifyAdmin, toggleGame);
 

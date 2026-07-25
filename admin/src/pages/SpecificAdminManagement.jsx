@@ -12,6 +12,7 @@ const TAB_OPTIONS = [
     { path: '/add-result', label: 'Add Result' },
     { path: '/update-rate', label: 'Update Rate' },
     { path: '/bet-history', label: 'Bet History' },
+    { path: '/game-management', label: 'Games' },
     { path: '/payment-management', label: 'Transactions' },
     { path: '/deposit-withdrawal-history', label: 'Deposit & Withdrawal History' },
     { path: '/wallet', label: 'Wallet' },

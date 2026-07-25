@@ -1,11 +1,153 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { FaDice, FaGamepad, FaTimes } from 'react-icons/fa';
 import { iconBtn, textPrimary } from '../styles/appTheme';
+import { BACKEND_BASE_URL } from '../config/api';
+import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+
+function getLoggedInUserId() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    return String(user?.id || user?._id || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+function GameIframeOverlay({ title, launchUrl, onClose }) {
+  const { t } = useTranslation();
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  useBodyScrollLock(true);
+
+  useEffect(() => {
+    document.documentElement.classList.add('game-iframe-open');
+    return () => document.documentElement.classList.remove('game-iframe-open');
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[10040] flex flex-col bg-black"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title || 'Game'}
+    >
+      <div
+        className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-[#141415] px-3"
+        style={{
+          paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))',
+          paddingBottom: '0.5rem',
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/15"
+          aria-label={t('common.close', { defaultValue: 'Close' })}
+        >
+          <FaTimes className="h-4 w-4" />
+        </button>
+        <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
+          {title || t('games.play', { defaultValue: 'Play' })}
+        </h2>
+      </div>
+
+      <div className="relative min-h-0 flex-1 bg-black">
+        {!iframeLoaded && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#d32f2f]" />
+          </div>
+        )}
+        <iframe
+          title={title || 'Game'}
+          src={launchUrl}
+          className="h-full w-full border-0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; gamepad"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+          onLoad={() => setIframeLoaded(true)}
+        />
+      </div>
+    </div>
+  );
+}
 
 const Games = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [games, setGames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [launchingId, setLaunchingId] = useState('');
+  const [activeGame, setActiveGame] = useState(null);
+
+  const loadGames = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/api/game/list`);
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || 'Failed to load games');
+      }
+      setGames(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to load games'));
+      setGames([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadGames();
+  }, [loadGames]);
+
+  const closeGame = useCallback(() => {
+    setActiveGame(null);
+  }, []);
+
+  const handlePlay = async (game) => {
+    const userId = getLoggedInUserId();
+    if (!userId) {
+      setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
+      return;
+    }
+    const gameId = String(game?.gameId || '').trim();
+    if (!gameId) return;
+
+    setError('');
+    setLaunchingId(gameId);
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/api/game/launch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, gameId }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success || !data?.launchUrl) {
+        throw new Error(data?.message || 'Failed to launch game');
+      }
+      setActiveGame({
+        title: game.name || game.title || gameId,
+        launchUrl: String(data.launchUrl),
+      });
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to launch game'));
+    } finally {
+      setLaunchingId('');
+    }
+  };
 
   return (
     <div className="w-full text-gray-900 dark:text-white px-3 py-4 min-h-[50vh] flex flex-col">
@@ -25,14 +167,89 @@ const Games = () => {
         </h1>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center text-center px-4 py-12">
-        <p className="text-2xl sm:text-3xl font-bold text-[#d4af37] dark:text-amber-400">
-          {t('games.comingSoon', { defaultValue: 'Coming Soon' })}
-        </p>
-        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-          {t('games.comingSoonHint', { defaultValue: 'Casino games will be available here shortly.' })}
-        </p>
-      </div>
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-36 rounded-2xl bg-gray-200/80 animate-pulse dark:bg-white/10"
+            />
+          ))}
+        </div>
+      ) : games.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center text-center px-4 py-12">
+          <FaGamepad className="mb-3 h-10 w-10 text-gray-400 dark:text-white/30" />
+          <p className="text-lg font-semibold text-gray-700 dark:text-white/80">
+            {t('games.noneAvailable', { defaultValue: 'No games available yet' })}
+          </p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+            {t('games.noneAvailableHint', {
+              defaultValue: 'Ask admin to add an active game in Game Management.',
+            })}
+          </p>
+          <button
+            type="button"
+            onClick={loadGames}
+            className="mt-4 rounded-xl bg-[#d32f2f] px-4 py-2 text-sm font-semibold text-white"
+          >
+            {t('common.retry', { defaultValue: 'Retry' })}
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {games.map((game) => {
+            const busy = launchingId === game.gameId;
+            return (
+              <button
+                key={game.gameId || game._id}
+                type="button"
+                disabled={busy}
+                onClick={() => handlePlay(game)}
+                className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 text-left shadow-sm transition active:scale-[0.98] disabled:opacity-60 dark:border-white/10 dark:bg-[#1a1a1c]"
+              >
+                <div className="mb-3 flex h-24 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a1212] to-[#120808]">
+                  {game.image ? (
+                    <img
+                      src={game.image}
+                      alt=""
+                      className="h-full w-full object-cover rounded-xl"
+                    />
+                  ) : (
+                    <FaDice className="h-10 w-10 text-[#f0c27a]" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
+                    {game.name || game.title || game.gameId}
+                  </p>
+                  <p className="mt-0.5 truncate text-[11px] text-gray-500 dark:text-white/45">
+                    {game.provider || 'Game'}
+                  </p>
+                </div>
+                <span className="mt-3 inline-flex rounded-lg bg-[#d32f2f] px-2.5 py-1 text-[11px] font-semibold text-white">
+                  {busy
+                    ? t('games.opening', { defaultValue: 'Opening...' })
+                    : t('games.play', { defaultValue: 'Play' })}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {activeGame?.launchUrl && (
+        <GameIframeOverlay
+          title={activeGame.title}
+          launchUrl={activeGame.launchUrl}
+          onClose={closeGame}
+        />
+      )}
     </div>
   );
 };

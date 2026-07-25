@@ -984,6 +984,12 @@ html.call-overlay-open .app-bottom-nav-fixed {
   pointer-events: none !important;
 }
 
+html.game-iframe-open #app-bottom-nav,
+html.game-iframe-open .app-bottom-nav-fixed {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 #root {
   min-height: 100%;
   min-height: -webkit-fill-available;

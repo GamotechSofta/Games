@@ -43,6 +43,7 @@ function getRequiredTabs(path, method) {
 
     if (path.startsWith('/api/v1/reports/revenue')) return ['/revenue'];
     if (path.startsWith('/api/v1/reports')) return ['/reports'];
+    if (path.startsWith('/api/v1/admin/game')) return ['/game-management'];
 
     if (!path.startsWith('/api/v1/markets')) return null;
 

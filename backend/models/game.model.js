@@ -25,6 +25,12 @@ const gameSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        /** Self-hosted / Spring Boot game entry URL (e.g. https://ludo-frontend.onrender.com/) */
+        launchBaseUrl: {
+            type: String,
+            default: '',
+            trim: true,
+        },
         title: {
             type: String,
             default: '',
@@ -48,14 +54,14 @@ const gameSchema = new mongoose.Schema(
 gameSchema.index({ status: 1, createdAt: -1 });
 
 // Keep status and isActive aligned for compatibility.
-gameSchema.pre('save', function (next) {
+// Mongoose 9+: pre('save') must not use next callback.
+gameSchema.pre('save', function () {
     if (this.isModified('status')) {
         this.isActive = this.status === 'active';
     } else if (this.isModified('isActive')) {
         this.status = this.isActive ? 'active' : 'inactive';
     }
     if (!this.title) this.title = this.name || '';
-    next();
 });
 
 const Game = mongoose.model('Game', gameSchema);

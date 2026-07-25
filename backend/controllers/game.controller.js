@@ -4,10 +4,38 @@ import { Wallet } from '../models/wallet/wallet.js';
 import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
+import { generateUserToken } from '../utils/jwt.js';
 import logger, { sanitizeForLog } from '../utils/logger.js';
 
 /** Validate Mongo ObjectId text. */
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || ''));
+
+const DEFAULT_RETURN_URL = () =>
+    `${String(process.env.FRONTEND_BASE_URL || 'https://www.aakda.in').replace(/\/$/, '')}/games`;
+
+/**
+ * Build launch URL for self-hosted games (Spring Boot frontend on Render).
+ * Pattern: {launchBaseUrl}?userId=&gameId=&sessionId=&token=&returnUrl=
+ */
+function buildSelfHostedLaunchUrl(launchBaseUrl, params) {
+    const base = String(launchBaseUrl || '').trim();
+    if (!base) return '';
+    let url;
+    try {
+        url = new URL(base.includes('://') ? base : `https://${base}`);
+    } catch {
+        return '';
+    }
+    // Admin may paste a URL with leftover query; always rebuild params.
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('userId', params.userId);
+    url.searchParams.set('gameId', params.gameId);
+    url.searchParams.set('sessionId', params.sessionId);
+    if (params.token) url.searchParams.set('token', params.token);
+    url.searchParams.set('returnUrl', params.returnUrl);
+    return url.toString();
+}
 
 const auditLaunch = (req, status, meta = {}) => {
     const body = req.body || {};
@@ -49,7 +77,7 @@ export const launchGame = async (req, res) => {
             });
         }
 
-        const user = await User.findById(userId).select('_id +balance').lean();
+        const user = await User.findById(userId).select('_id phone +balance').lean();
         if (!user) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'User not found' } });
             return res.status(404).json({
@@ -59,7 +87,6 @@ export const launchGame = async (req, res) => {
         }
         let wallet = await Wallet.findOne({ userId: user._id }).select('balance').lean();
         if (!wallet) {
-            // Backward compatibility: seed missing wallet from legacy user.balance.
             const created = await Wallet.create({
                 userId: user._id,
                 balance: Number(user.balance || 0),
@@ -92,24 +119,45 @@ export const launchGame = async (req, res) => {
         };
 
         logger.info('[GAME] Launch request', { userId: String(user._id), gameId: payload.gameId });
+
         let gapResponse = null;
         let launchUrl = '';
-        let sessionId = '';
-        try {
-            gapResponse = await gapRequest('/launch-game', payload);
-            launchUrl = gapResponse?.launchUrl || gapResponse?.data?.launchUrl || '';
-            sessionId = gapResponse?.sessionId || gapResponse?.data?.sessionId || '';
-        } catch (providerErr) {
-            logger.warn('[GAME] GAP launch failed, using mock launch URL', { error: providerErr.message });
+        let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+        // Self-hosted / Spring Boot: skip GAP when launchBaseUrl is set.
+        if (game.launchBaseUrl) {
+            const token = generateUserToken({
+                id: String(user._id),
+                phone: user.phone || '',
+            });
+            launchUrl = buildSelfHostedLaunchUrl(game.launchBaseUrl, {
+                userId: String(user._id),
+                gameId: payload.gameId,
+                sessionId,
+                token,
+                returnUrl: DEFAULT_RETURN_URL(),
+            });
+            if (!launchUrl) {
+                auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid launchBaseUrl' } });
+                return res.status(500).json({
+                    success: false,
+                    message: 'Invalid launchBaseUrl on game',
+                });
+            }
+        } else {
+            try {
+                gapResponse = await gapRequest('/launch-game', payload);
+                launchUrl = gapResponse?.launchUrl || gapResponse?.data?.launchUrl || '';
+                sessionId = gapResponse?.sessionId || gapResponse?.data?.sessionId || sessionId;
+            } catch (providerErr) {
+                logger.warn('[GAME] GAP launch failed, using mock launch URL', { error: providerErr.message });
+            }
+
+            if (!launchUrl) {
+                launchUrl = `${process.env.GAP_BASE_URL || 'https://provider-game-url.com'}/session/${sessionId}?gameId=${encodeURIComponent(payload.gameId)}&userId=${encodeURIComponent(String(user._id))}`;
+            }
         }
 
-        // Provider fallback: keep launch flow functional while integration is in progress.
-        if (!launchUrl) {
-            sessionId = sessionId || `mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-            launchUrl = `${process.env.GAP_BASE_URL || 'https://provider-game-url.com'}/session/${sessionId}?gameId=${encodeURIComponent(String(gameId).trim())}&userId=${encodeURIComponent(String(user._id))}`;
-        }
-
-        // Bonus: store launch session for audit/debugging.
         await GameSession.create({
             userId: user._id,
             gameId: payload.gameId,
@@ -129,6 +177,7 @@ export const launchGame = async (req, res) => {
             message: 'Game launch successful',
         });
     } catch (error) {
+        logger.error('[GAME] launch failed', { message: error?.message });
         auditLaunch(req, 'FAILED', { responseSummary: { message: 'Failed to launch game' } });
         return res.status(500).json({
             success: false,
@@ -139,11 +188,11 @@ export const launchGame = async (req, res) => {
 
 /**
  * POST /api/admin/game/add
- * Body: { name, gameId, provider, status? }
+ * Body: { name, gameId, provider, status?, launchBaseUrl? }
  */
 export const addGame = async (req, res) => {
     try {
-        const { name, gameId, provider, status } = req.body || {};
+        const { name, gameId, provider, status, launchBaseUrl } = req.body || {};
         if (!name || !gameId || !provider) {
             return res.status(400).json({
                 success: false,
@@ -164,15 +213,70 @@ export const addGame = async (req, res) => {
             title: String(name).trim(),
             gameId: String(gameId).trim(),
             provider: String(provider).trim(),
+            launchBaseUrl: launchBaseUrl ? String(launchBaseUrl).trim() : '',
             status: status === 'inactive' ? 'inactive' : 'active',
             isActive: status === 'inactive' ? false : true,
         });
 
         return res.status(201).json({ success: true, data: game });
     } catch (error) {
+        if (error?.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: 'gameId already exists',
+            });
+        }
+        logger.error('[GAME] addGame failed', { message: error?.message, name: error?.name });
         return res.status(500).json({
             success: false,
             message: error.message || 'Failed to add game',
+        });
+    }
+};
+
+/**
+ * PUT /api/admin/game/update
+ * Body: { gameId, name?, provider?, status?, launchBaseUrl? }
+ */
+export const updateGame = async (req, res) => {
+    try {
+        const { gameId, name, provider, status, launchBaseUrl } = req.body || {};
+        if (!gameId) {
+            return res.status(400).json({
+                success: false,
+                message: 'gameId is required',
+            });
+        }
+
+        const game = await Game.findOne({ gameId: String(gameId).trim() });
+        if (!game) {
+            return res.status(404).json({
+                success: false,
+                message: 'Game not found',
+            });
+        }
+
+        if (name != null && String(name).trim()) {
+            game.name = String(name).trim();
+            game.title = game.name;
+        }
+        if (provider != null && String(provider).trim()) {
+            game.provider = String(provider).trim();
+        }
+        if (launchBaseUrl !== undefined) {
+            game.launchBaseUrl = String(launchBaseUrl || '').trim();
+        }
+        if (status === 'active' || status === 'inactive') {
+            game.status = status;
+            game.isActive = status === 'active';
+        }
+
+        await game.save();
+        return res.status(200).json({ success: true, data: game });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to update game',
         });
     }
 };

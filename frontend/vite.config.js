@@ -76,6 +76,11 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
         secure: false,
       },
+      '/api/game': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
       '/socket.io': {
         target: devProxyTarget,
         changeOrigin: true,
