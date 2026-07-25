@@ -8,13 +8,17 @@
     "build": "vite build",
     "build:analyze": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.mjs",
+    "serve:prod": "npm run build && node server.mjs"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.12.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.100.14",
     "axios": "^1.14.0",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.7",
     "i18next": "^25.8.11",
     "i18next-browser-languagedetector": "^8.2.1",
     "react": "^19.2.0",
