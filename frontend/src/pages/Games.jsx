@@ -141,9 +141,9 @@ const Games = () => {
         /fashionbuddies\.in/i.test(launchUrl) ||
         String(game?.provider || '').toLowerCase().includes('potludo');
 
-      // PotLudo blocks / breaks inside iframes — open full window.
+      // Doc: redirect recommended (iframe optional). PotLudo needs full navigation.
       if (external) {
-        window.open(launchUrl, '_blank', 'noopener,noreferrer');
+        window.location.href = launchUrl;
         return;
       }
 

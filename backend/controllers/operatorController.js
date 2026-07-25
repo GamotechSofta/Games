@@ -17,15 +17,44 @@ function pickToken(req) {
     if (auth.toLowerCase().startsWith('bearer ')) {
         return auth.slice(7).trim();
     }
+    const headerToken = String(
+        req.headers['x-access-token'] ||
+            req.headers['x-operator-token'] ||
+            req.headers['x-user-token'] ||
+            ''
+    ).trim();
+    if (headerToken) return headerToken;
+
     return String(
         body.token ||
             body.id ||
             body.userToken ||
             body.operator_user_token ||
+            body.operatorUserToken ||
             q.token ||
             q.id ||
             ''
     ).trim();
+}
+
+function userPayload(user, wallet, token, extra = {}) {
+    const name = user.username || user.phone || 'Player';
+    const id = String(user._id);
+    return {
+        id,
+        userId: id,
+        user_id: id,
+        name,
+        username: name,
+        displayName: name,
+        phone: user.phone || '',
+        mobile: user.phone || '',
+        balance: Number(wallet?.balance || 0),
+        token: token || '',
+        image: '',
+        avatar: '',
+        ...extra,
+    };
 }
 
 function pickUserId(req, decoded) {
@@ -60,8 +89,9 @@ async function getOrCreateWallet(userId) {
 }
 
 function ok(res, data, message = 'success') {
-    // PotLudo operator gateway treats non-zero `code`/`status` as failure
-    // (error was: "Operator gateway request failed with status 200.")
+    // PotLudo operator gateway: non-zero code/status = failure.
+    // Also flatten `data` fields to top-level (Spring clients often read userId/balance there).
+    const payload = data && typeof data === 'object' ? data : {};
     return res.status(200).json({
         status: 0,
         success: true,
@@ -69,8 +99,9 @@ function ok(res, data, message = 'success') {
         errorCode: 0,
         message,
         errorMessage: message,
-        data,
-        result: data,
+        ...payload,
+        data: payload,
+        result: payload,
     });
 }
 
@@ -171,17 +202,10 @@ export const operatorUserLogin = async (req, res) => {
 
         return ok(
             res,
-            {
-                id: String(user._id),
-                user_id: String(user._id),
-                name: user.username || user.phone || 'Player',
-                username: user.username || user.phone || 'Player',
-                phone: user.phone || '',
-                mobile: user.phone || '',
-                balance: Number(wallet.balance || 0),
-                token: sessionToken,
-                game_id: decoded.gameId || req.body?.game_id || process.env.APP_OPERATOR_GAME_ID || '2',
-            },
+            userPayload(user, wallet, sessionToken, {
+                game_id: decoded.gameId || req.body?.game_id || req.body?.gameId || process.env.APP_OPERATOR_GAME_ID || '2',
+                gameId: Number(decoded.gameId || req.body?.game_id || req.body?.gameId || process.env.APP_OPERATOR_GAME_ID || 2) || 2,
+            }),
             'Login successful'
         );
     } catch (error) {
@@ -202,18 +226,7 @@ export const operatorUserDetail = async (req, res) => {
         }
 
         const { user, wallet, token } = resolved;
-        return ok(res, {
-            id: String(user._id),
-            user_id: String(user._id),
-            name: user.username || user.phone || 'Player',
-            username: user.username || user.phone || 'Player',
-            phone: user.phone || '',
-            mobile: user.phone || '',
-            balance: Number(wallet.balance || 0),
-            token,
-            image: '',
-            avatar: '',
-        });
+        return ok(res, userPayload(user, wallet, token));
     } catch (error) {
         logger.error('[OPERATOR] user detail failed', { message: error?.message });
         return fail(res, 500, 'Internal server error');
@@ -245,6 +258,7 @@ export const operatorUserBalanceV2 = async (req, res) => {
         // Read-only balance
         if (!hasAmount) {
             return ok(res, {
+                userId: String(resolved.user._id),
                 user_id: String(resolved.user._id),
                 balance: Number(resolved.wallet.balance || 0),
                 currency: 'INR',

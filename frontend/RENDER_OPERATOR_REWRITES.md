@@ -1,55 +1,57 @@
-# Fix PotLudo 502: "Operator gateway request failed with status 200."
+# Fix PotLudo session 502 (read with backend/.md)
 
-## Root cause (verified live)
+Per `backend/.md`, Ludo is configured as:
 
-```text
-POST https://aakda.in/operator/user/login   → HTTP 200, empty body
-POST https://api.aakda.in/operator/user/login → JSON { code: 0, ... }  ✅
+```dotenv
+APP_OPERATOR_BASE_URL=https://aakda.in
+APP_OPERATOR_LOGIN_PATH=/operator/user/login
+APP_OPERATOR_USER_DETAIL_PATH=/service/user/detail
+APP_OPERATOR_BALANCE_PATH=/service/operator/user/balance/v2
+APP_OPERATOR_GAME_ID=2
 ```
 
-PotLudo is configured to call **aakda.in**. The Render **static site** does not
-proxy `/operator` / `/service`, so PotLudo sees empty HTTP 200 and returns 502.
+Flow:
 
-## Fix options (pick one)
+1. Platform opens `https://fashionbuddies.in/play/online?id=<TOKEN>&game_id=2`
+2. Client `POST /api/v1/identity/operator/session` with `{ "id": "<TOKEN>", "gameId": 2 }`
+3. Ludo backend calls **aakda.in** user-detail / login / balance
 
-### A) Fastest — change PotLudo operator base URL
-
-Set operator / callback base to:
+## Verified failure
 
 ```text
-https://api.aakda.in
+POST https://aakda.in/operator/user/login     → HTTP 200, empty body ❌
+POST https://api.aakda.in/operator/user/login → JSON { code: 0, ... } ✅
 ```
 
-Paths stay the same:
+Empty HTTP 200 on `aakda.in` → PotLudo error:
+`Operator gateway request failed with status 200.`
 
-- `/operator/user/login`
-- `/service/user/detail`
-- `/service/operator/user/balance/v2`
+## Fix (pick one — required for session 200)
 
-### B) Keep https://aakda.in — convert frontend to Web Service
+### 1) Cloudflare Worker (fastest if aakda.in is orange-cloud)
 
-1. In Render, open the **aakda.in** service
-2. If it is a **Static Site**, create/switch to a **Web Service**:
-   - Root: `frontend`
-   - Build: `npm ci && npm run build`
-   - Start: `npm start`
-   - Env: `OPERATOR_PROXY_TARGET=https://api.aakda.in`
-3. Deploy this repo (`frontend/server.mjs` proxies `/operator` + `/service`)
+File: `frontend/cloudflare-operator-worker.js`
 
-### C) Keep Static Site — Dashboard rewrites
+Routes:
 
-Render → aakda.in → **Redirects/Rewrites** (above SPA catch-all):
+- `aakda.in/operator*`
+- `aakda.in/service*`
+- `www.aakda.in/operator*`
+- `www.aakda.in/service*`
 
-| Type    | Source        | Destination                     |
-|---------|---------------|---------------------------------|
+### 2) Render Web Service proxy
+
+`frontend/server.mjs` + `npm start`  
+Env: `OPERATOR_PROXY_TARGET=https://api.aakda.in`
+
+### 3) Render Static Site rewrites
+
+| Type | Source | Destination |
+|------|--------|-------------|
 | Rewrite | `/operator/*` | `https://api.aakda.in/operator/*` |
-| Rewrite | `/service/*`  | `https://api.aakda.in/service/*`  |
-| Rewrite | `/*`          | `/index.html`                   |
+| Rewrite | `/service/*` | `https://api.aakda.in/service/*` |
 
-> Note: some Render static setups do not forward POST bodies correctly.
-> If C still returns empty 200, use **A** or **B**.
-
-## Verify after deploy
+## Verify before testing Play Online
 
 ```bash
 curl -sS -X POST https://aakda.in/operator/user/login \
@@ -57,5 +59,4 @@ curl -sS -X POST https://aakda.in/operator/user/login \
   -d '{"id":"test"}'
 ```
 
-Expect JSON (e.g. `code: 401`), **not** an empty response.
-Then retry PotLudo Play Online.
+Must return **JSON**, not empty. Then session can succeed.
