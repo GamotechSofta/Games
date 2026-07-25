@@ -25,6 +25,7 @@ import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
 import telecallerRoutes from './routes/telecaller/telecallerRoutes.js';
 import callRoutes from './routes/call/callRoutes.js';
+import operatorRoutes, { operatorServiceRouter } from './routes/operator/operatorRoutes.js';
 import { getIceConfigStatus } from './config/iceServers.js';
 import { isWebPushConfigured } from './services/callPushService.js';
 import { getClientIp } from './utils/activityLogger.js';
@@ -175,6 +176,17 @@ app.get('/test-reset', requireDevToolsAccess, async (req, res) => {
 
 app.use('/api', requireDbReady);
 app.use('/api', apiRequestTimeout());
+
+// PotLudo operator callbacks — public paths expected by fashionbuddies
+// https://aakda.in/operator/user/login
+// https://aakda.in/service/user/detail
+// https://aakda.in/service/operator/user/balance/v2
+app.use('/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);
+app.use('/service', requireDbReady, apiRequestTimeout(), operatorServiceRouter);
+app.use('/api/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);
+app.use('/api/service', requireDbReady, apiRequestTimeout(), operatorServiceRouter);
+app.use('/api/v1/operator', operatorRoutes);
+app.use('/api/v1/service', operatorServiceRouter);
 
 app.use('/api/v1/markets', marketRoutes);
 app.use('/api/v1/admin', adminRoutes);

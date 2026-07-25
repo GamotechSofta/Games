@@ -4,7 +4,7 @@ import { Wallet } from '../models/wallet/wallet.js';
 import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
-import { generateUserToken } from '../utils/jwt.js';
+import { generateUserToken, generateOperatorUserToken } from '../utils/jwt.js';
 import logger, { sanitizeForLog } from '../utils/logger.js';
 
 /** Validate Mongo ObjectId text. */
@@ -12,6 +12,43 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || '')
 
 const DEFAULT_RETURN_URL = () =>
     `${String(process.env.FRONTEND_BASE_URL || 'https://www.aakda.in').replace(/\/$/, '')}/games`;
+
+const POTLUDO_LAUNCH_BASE =
+    process.env.LUDO_LAUNCH_BASE_URL ||
+    process.env.POTLUDO_LAUNCH_URL ||
+    'https://fashionbuddies.in/play/online';
+
+const APP_OPERATOR_GAME_ID = String(process.env.APP_OPERATOR_GAME_ID || '2');
+
+/**
+ * PotLudo / fashionbuddies launch URL:
+ *   https://fashionbuddies.in/play/online?id=<OPERATOR_USER_TOKEN>&game_id=2
+ */
+function buildPotLudoLaunchUrl(baseUrl, { operatorToken, gameId }) {
+    const base = String(baseUrl || POTLUDO_LAUNCH_BASE || '').trim();
+    if (!base) return '';
+    let url;
+    try {
+        url = new URL(base.includes('://') ? base : `https://${base}`);
+    } catch {
+        return '';
+    }
+    url.search = '';
+    url.hash = '';
+    url.searchParams.set('id', operatorToken);
+    url.searchParams.set('game_id', String(gameId || APP_OPERATOR_GAME_ID));
+    return url.toString();
+}
+
+function isPotLudoGame(game) {
+    const provider = String(game?.provider || '').toLowerCase();
+    const launch = String(game?.launchBaseUrl || '').toLowerCase();
+    const gameId = String(game?.gameId || '').trim();
+    if (launch.includes('fashionbuddies.in')) return true;
+    if (provider.includes('potludo') || provider.includes('fashionbuddies')) return true;
+    if (gameId && gameId === APP_OPERATOR_GAME_ID) return true;
+    return false;
+}
 
 /**
  * Build launch URL for self-hosted games (Spring Boot frontend on Render).
@@ -124,8 +161,30 @@ export const launchGame = async (req, res) => {
         let launchUrl = '';
         let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
-        // Self-hosted / Spring Boot: skip GAP when launchBaseUrl is set.
-        if (game.launchBaseUrl) {
+        // PotLudo (fashionbuddies): id = operator user token, game_id = APP_OPERATOR_GAME_ID
+        if (isPotLudoGame(game)) {
+            const operatorToken = generateOperatorUserToken({
+                id: String(user._id),
+                phone: user.phone || '',
+                gameId: APP_OPERATOR_GAME_ID,
+            });
+            const potludoBase =
+                game.launchBaseUrl &&
+                String(game.launchBaseUrl).toLowerCase().includes('fashionbuddies')
+                    ? game.launchBaseUrl
+                    : POTLUDO_LAUNCH_BASE;
+            launchUrl = buildPotLudoLaunchUrl(potludoBase, {
+                operatorToken,
+                gameId: APP_OPERATOR_GAME_ID,
+            });
+            if (!launchUrl) {
+                auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid PotLudo launch URL' } });
+                return res.status(500).json({
+                    success: false,
+                    message: 'Invalid PotLudo launch URL',
+                });
+            }
+        } else if (game.launchBaseUrl) {
             const token = generateUserToken({
                 id: String(user._id),
                 phone: user.phone || '',

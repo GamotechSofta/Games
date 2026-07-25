@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react';
 import AdminMenu from './AdminMenu';
 import { adminApi } from '../utils/api';
 
-const defaultForm = { name: '', gameId: '', provider: '', status: 'active' };
+const defaultForm = {
+    name: '',
+    gameId: '',
+    provider: '',
+    launchBaseUrl: '',
+    status: 'active',
+};
 
 const GameManager = () => {
     const [form, setForm] = useState(defaultForm);
@@ -76,15 +82,16 @@ const GameManager = () => {
 
                 <div className="rounded-xl border border-white/10 bg-[#1f2023] p-4 mb-5">
                     <h2 className="text-white font-semibold mb-3">Add Game</h2>
-                    <form onSubmit={onAddGame} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <form onSubmit={onAddGame} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Game ID" value={form.gameId} onChange={(e) => setForm((p) => ({ ...p, gameId: e.target.value }))} />
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Provider" value={form.provider} onChange={(e) => setForm((p) => ({ ...p, provider: e.target.value }))} />
+                        <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white sm:col-span-2" placeholder="Launch URL (e.g. https://fashionbuddies.in/play/online)" value={form.launchBaseUrl} onChange={(e) => setForm((p) => ({ ...p, launchBaseUrl: e.target.value }))} />
                         <select className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={form.status} onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}>
                             <option value="active">active</option>
                             <option value="inactive">inactive</option>
                         </select>
-                        <button disabled={loading} className="sm:col-span-2 lg:col-span-4 py-2 rounded bg-yellow-500 text-black font-semibold hover:bg-yellow-400 disabled:opacity-50">
+                        <button disabled={loading} className="sm:col-span-2 lg:col-span-3 py-2 rounded bg-yellow-500 text-black font-semibold hover:bg-yellow-400 disabled:opacity-50">
                             {loading ? 'Saving...' : 'Add Game'}
                         </button>
                     </form>
@@ -101,6 +108,7 @@ const GameManager = () => {
                                     <th className="py-2 pr-3">Name</th>
                                     <th className="py-2 pr-3">Game ID</th>
                                     <th className="py-2 pr-3">Provider</th>
+                                    <th className="py-2 pr-3">Launch URL</th>
                                     <th className="py-2 pr-3">Status</th>
                                     <th className="py-2">Action</th>
                                 </tr>
@@ -111,6 +119,9 @@ const GameManager = () => {
                                         <td className="py-2 pr-3">{g.name}</td>
                                         <td className="py-2 pr-3">{g.gameId}</td>
                                         <td className="py-2 pr-3">{g.provider}</td>
+                                        <td className="py-2 pr-3 max-w-[220px] truncate text-gray-400" title={g.launchBaseUrl || ''}>
+                                            {g.launchBaseUrl || '—'}
+                                        </td>
                                         <td className="py-2 pr-3">
                                             <span className={`px-2 py-0.5 rounded text-xs ${g.status === 'active' ? 'bg-green-700/50 text-green-200' : 'bg-gray-700 text-gray-200'}`}>
                                                 {g.status}
@@ -128,7 +139,7 @@ const GameManager = () => {
                                 ))}
                                 {games.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="py-4 text-gray-400">No games found.</td>
+                                        <td colSpan={6} className="py-4 text-gray-400">No games found.</td>
                                     </tr>
                                 )}
                             </tbody>

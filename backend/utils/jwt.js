@@ -38,6 +38,43 @@ export function generateUserToken(payload) {
     );
 }
 
+const OPERATOR_USER_TOKEN_EXPIRY =
+    process.env.OPERATOR_USER_TOKEN_EXPIRY || '2h';
+
+/**
+ * Short-lived token passed to external games as `id` query param
+ * (e.g. PotLudo / fashionbuddies.in).
+ */
+export function generateOperatorUserToken(payload) {
+    return jwt.sign(
+        {
+            id: String(payload.id),
+            phone: payload.phone || '',
+            gameId: payload.gameId ? String(payload.gameId) : undefined,
+            role: 'user',
+            type: 'operator_user',
+        },
+        JWT_SECRET,
+        { expiresIn: OPERATOR_USER_TOKEN_EXPIRY }
+    );
+}
+
+/**
+ * Verify operator-user launch token (`id` from game URL).
+ * @returns decoded payload or null
+ */
+export function verifyOperatorUserToken(token) {
+    try {
+        const decoded = jwt.verify(String(token || ''), JWT_SECRET);
+        if (decoded.type !== 'operator_user' && decoded.type !== 'user') {
+            return null;
+        }
+        return decoded;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Verify JWT and return decoded payload
  * @returns { id, username, role } or null if invalid

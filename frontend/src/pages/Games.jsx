@@ -136,9 +136,20 @@ const Games = () => {
       if (!res.ok || !data?.success || !data?.launchUrl) {
         throw new Error(data?.message || 'Failed to launch game');
       }
+      const launchUrl = String(data.launchUrl);
+      const external =
+        /fashionbuddies\.in/i.test(launchUrl) ||
+        String(game?.provider || '').toLowerCase().includes('potludo');
+
+      // PotLudo blocks / breaks inside iframes — open full window.
+      if (external) {
+        window.open(launchUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
       setActiveGame({
         title: game.name || game.title || gameId,
-        launchUrl: String(data.launchUrl),
+        launchUrl,
       });
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to launch game'));
