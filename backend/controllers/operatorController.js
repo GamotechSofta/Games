@@ -2,71 +2,44 @@ import mongoose from 'mongoose';
 import User from '../models/user/user.js';
 import { Wallet } from '../models/wallet/wallet.js';
 import GapWalletTransaction from '../models/gapWalletTransaction.model.js';
-import {
-    generateOperatorUserToken,
-    verifyOperatorUserToken,
-} from '../utils/jwt.js';
+import { verifyOperatorUserToken } from '../utils/jwt.js';
 import logger from '../utils/logger.js';
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || ''));
 
+const PLATFORM_OPERATOR_ID = String(
+    process.env.APP_OPERATOR_ID || process.env.OPERATOR_ID || '1'
+).trim() || '1';
+
+/**
+ * PotLudo handoff: token comes from header `token` (preferred),
+ * or Authorization Bearer, or body/query.
+ */
 function pickToken(req) {
-    const body = req.body || {};
-    const q = req.query || {};
+    const headerToken = String(req.headers.token || '').trim();
+    if (headerToken) return headerToken;
+
     const auth = String(req.headers.authorization || '');
     if (auth.toLowerCase().startsWith('bearer ')) {
         return auth.slice(7).trim();
     }
-    const headerToken = String(
+
+    const alt = String(
         req.headers['x-access-token'] ||
             req.headers['x-operator-token'] ||
             req.headers['x-user-token'] ||
             ''
     ).trim();
-    if (headerToken) return headerToken;
+    if (alt) return alt;
 
+    const body = req.body || {};
+    const q = req.query || {};
     return String(
         body.token ||
             body.id ||
             body.userToken ||
-            body.operator_user_token ||
-            body.operatorUserToken ||
             q.token ||
             q.id ||
-            ''
-    ).trim();
-}
-
-function userPayload(user, wallet, token, extra = {}) {
-    const name = user.username || user.phone || 'Player';
-    const id = String(user._id);
-    return {
-        id,
-        userId: id,
-        user_id: id,
-        name,
-        username: name,
-        displayName: name,
-        phone: user.phone || '',
-        mobile: user.phone || '',
-        balance: Number(wallet?.balance || 0),
-        token: token || '',
-        image: '',
-        avatar: '',
-        ...extra,
-    };
-}
-
-function pickUserId(req, decoded) {
-    const body = req.body || {};
-    const q = req.query || {};
-    return String(
-        body.user_id ||
-            body.userId ||
-            body.userid ||
-            q.user_id ||
-            q.userId ||
-            decoded?.id ||
             ''
     ).trim();
 }
@@ -88,27 +61,68 @@ async function getOrCreateWallet(userId) {
     return { user, wallet };
 }
 
-function ok(res, data, message = 'success') {
-    // PotLudo operator gateway: non-zero code/status = failure.
-    // Also flatten `data` fields to top-level (Spring clients often read userId/balance there).
-    const payload = data && typeof data === 'object' ? data : {};
+/**
+ * Resolve authenticated platform user from the launch/API token.
+ */
+async function resolveByUserToken(req) {
+    const token = pickToken(req);
+    if (!token) {
+        return { error: { code: 400, message: 'Invalid or missing user token / user_id' } };
+    }
+
+    const decoded = verifyOperatorUserToken(token);
+    if (!decoded?.id || !isValidObjectId(decoded.id)) {
+        return { error: { code: 401, message: 'Invalid or missing user token / user_id' } };
+    }
+
+    const { user, wallet } = await getOrCreateWallet(decoded.id);
+    if (!user) {
+        return { error: { code: 404, message: 'User not found' } };
+    }
+    if (user.isActive === false) {
+        return { error: { code: 403, message: 'Account suspended' } };
+    }
+
+    return { user, wallet, token, decoded };
+}
+
+function userObject(user, wallet) {
+    const name = user.username || user.phone || 'Player';
+    const id = String(user._id);
+    const balance = Number(wallet?.balance || 0);
+    return {
+        user_id: id,
+        userId: id,
+        id,
+        operator_id: PLATFORM_OPERATOR_ID,
+        operatorId: PLATFORM_OPERATOR_ID,
+        username: name,
+        display_name: name,
+        displayName: name,
+        name,
+        balance: String(balance),
+        available_balance: String(balance),
+        availableBalance: balance,
+        currency: 'INR',
+    };
+}
+
+/** PotLudo requires top-level status: true (boolean). */
+function ok(res, payload = {}) {
     return res.status(200).json({
-        status: 0,
+        status: true,
         success: true,
         code: 0,
         errorCode: 0,
-        message,
-        errorMessage: message,
+        message: 'success',
         ...payload,
-        data: payload,
-        result: payload,
     });
 }
 
 function fail(res, httpCode, message, extra = {}) {
     const code = Number(httpCode) || 400;
     return res.status(code).json({
-        status: code,
+        status: false,
         success: false,
         code,
         errorCode: code,
@@ -118,7 +132,7 @@ function fail(res, httpCode, message, extra = {}) {
     });
 }
 
-/** Log raw operator requests to diagnose PotLudo gateway contract. */
+/** Log raw operator requests (PotLudo gateway diagnostics). */
 export function logOperatorRequest(req, _res, next) {
     try {
         logger.info('[OPERATOR] request', {
@@ -126,6 +140,7 @@ export function logOperatorRequest(req, _res, next) {
             path: req.originalUrl || req.url,
             query: req.query || {},
             body: req.body || {},
+            tokenHeader: Boolean(req.headers.token),
             auth: req.headers.authorization ? 'present' : 'absent',
             contentType: req.headers['content-type'] || '',
         });
@@ -134,80 +149,26 @@ export function logOperatorRequest(req, _res, next) {
 }
 
 /**
- * Resolve user from operator launch token or user_id + token.
- */
-async function resolveOperatorUser(req) {
-    const token = pickToken(req);
-    const decoded = token ? verifyOperatorUserToken(token) : null;
-    const userId = pickUserId(req, decoded);
-
-    if (!userId || !isValidObjectId(userId)) {
-        return { error: { code: 400, message: 'Invalid or missing user token / user_id' } };
-    }
-
-    // If a token was sent, it must match the user.
-    if (token && decoded && String(decoded.id) !== String(userId)) {
-        return { error: { code: 401, message: 'Token does not match user' } };
-    }
-    if (token && !decoded) {
-        return { error: { code: 401, message: 'Invalid or expired operator token' } };
-    }
-
-    const { user, wallet } = await getOrCreateWallet(userId);
-    if (!user) {
-        return { error: { code: 404, message: 'User not found' } };
-    }
-    if (user.isActive === false) {
-        return { error: { code: 403, message: 'Account suspended' } };
-    }
-
-    return {
-        user,
-        wallet,
-        token: token || generateOperatorUserToken({ id: user._id, phone: user.phone }),
-        decoded,
-    };
-}
-
-/**
- * POST /operator/user/login
- * Body/query: { id|token } — the OPERATOR_USER_TOKEN from launch URL
- *
- * Called by PotLudo when the player opens:
- * https://fashionbuddies.in/?id=<TOKEN>&game_id=2
+ * POST /operator/user/login (optional / internal)
+ * Accepts token via header/body; returns user + balance.
  */
 export const operatorUserLogin = async (req, res) => {
     try {
-        const token = pickToken(req);
-        if (!token) {
-            return fail(res, 400, 'token (id) is required');
+        const resolved = await resolveByUserToken(req);
+        if (resolved.error) {
+            return fail(res, resolved.error.code, resolved.error.message);
         }
-
-        const decoded = verifyOperatorUserToken(token);
-        if (!decoded?.id) {
-            return fail(res, 401, 'Invalid or expired operator token');
-        }
-
-        const { user, wallet } = await getOrCreateWallet(decoded.id);
-        if (!user) return fail(res, 404, 'User not found');
-        if (user.isActive === false) return fail(res, 403, 'Account suspended');
-
-        const sessionToken = generateOperatorUserToken({
-            id: user._id,
-            phone: user.phone,
-            gameId: decoded.gameId || req.body?.game_id || req.body?.gameId,
+        const { user, wallet, token } = resolved;
+        const u = userObject(user, wallet);
+        logger.info('[OPERATOR] user login', { userId: u.user_id });
+        return ok(res, {
+            user: u,
+            data: u,
+            token,
+            balance: u.balance,
+            user_id: u.user_id,
+            operator_id: u.operator_id,
         });
-
-        logger.info('[OPERATOR] user login', { userId: String(user._id) });
-
-        return ok(
-            res,
-            userPayload(user, wallet, sessionToken, {
-                game_id: decoded.gameId || req.body?.game_id || req.body?.gameId || process.env.APP_OPERATOR_GAME_ID || '2',
-                gameId: Number(decoded.gameId || req.body?.game_id || req.body?.gameId || process.env.APP_OPERATOR_GAME_ID || 2) || 2,
-            }),
-            'Login successful'
-        );
     } catch (error) {
         logger.error('[OPERATOR] login failed', { message: error?.message });
         return fail(res, 500, 'Internal server error');
@@ -215,18 +176,25 @@ export const operatorUserLogin = async (req, res) => {
 };
 
 /**
- * POST|GET /service/user/detail
- * Auth: Bearer token or body.token / body.user_id
+ * GET /service/user/detail  (required for Ludo session)
+ * Header: token: <USER_API_TOKEN>
+ *
+ * Success shape (handoff):
+ * { status: true, user: { user_id, operator_id, username, balance, currency } }
  */
 export const operatorUserDetail = async (req, res) => {
     try {
-        const resolved = await resolveOperatorUser(req);
+        const resolved = await resolveByUserToken(req);
         if (resolved.error) {
             return fail(res, resolved.error.code, resolved.error.message);
         }
-
-        const { user, wallet, token } = resolved;
-        return ok(res, userPayload(user, wallet, token));
+        const { user, wallet } = resolved;
+        const u = userObject(user, wallet);
+        logger.info('[OPERATOR] user detail', { userId: u.user_id });
+        return ok(res, {
+            user: u,
+            data: u,
+        });
     } catch (error) {
         logger.error('[OPERATOR] user detail failed', { message: error?.message });
         return fail(res, 500, 'Internal server error');
@@ -234,19 +202,15 @@ export const operatorUserDetail = async (req, res) => {
 };
 
 /**
- * POST|GET /service/operator/user/balance/v2
- *
- * Get balance:
- *   { user_id, token }
- *
- * Debit / credit (gameplay):
- *   { user_id, token, amount, txn_type|type, txn_id|transactionId, game_id? }
- *   txn_type: debit|0|DEBIT  or  credit|1|CREDIT
+ * POST /service/operator/user/balance/v2  (required for match entry debit)
+ * Header: token: <USER_API_TOKEN>
+ * Body: { txn_id, amount, description, txn_type: 0, ip, game_id, user_id, operator_id }
+ * txn_type: 0 = debit, 1 = credit (HTTP credit optional; primary credits via RabbitMQ)
  */
 export const operatorUserBalanceV2 = async (req, res) => {
     let session;
     try {
-        const resolved = await resolveOperatorUser(req);
+        const resolved = await resolveByUserToken(req);
         if (resolved.error) {
             return fail(res, resolved.error.code, resolved.error.message);
         }
@@ -255,13 +219,14 @@ export const operatorUserBalanceV2 = async (req, res) => {
         const amountRaw = body.amount ?? body.coins ?? body.value;
         const hasAmount = amountRaw !== undefined && amountRaw !== null && String(amountRaw) !== '';
 
-        // Read-only balance
         if (!hasAmount) {
+            const u = userObject(resolved.user, resolved.wallet);
             return ok(res, {
-                userId: String(resolved.user._id),
-                user_id: String(resolved.user._id),
-                balance: Number(resolved.wallet.balance || 0),
-                currency: 'INR',
+                user: u,
+                data: { user_id: u.user_id, balance: u.balance, currency: 'INR' },
+                balance: u.balance,
+                user_id: u.user_id,
+                operator_id: u.operator_id,
             });
         }
 
@@ -270,27 +235,21 @@ export const operatorUserBalanceV2 = async (req, res) => {
             return fail(res, 400, 'amount must be a positive number');
         }
 
-        const txnTypeRaw = String(
-            body.txn_type ?? body.type ?? body.transaction_type ?? body.action ?? 'get'
-        )
-            .trim()
-            .toLowerCase();
+        const txnTypeRaw = body.txn_type ?? body.type ?? body.transaction_type ?? body.action ?? 0;
+        const txnTypeNum = Number(txnTypeRaw);
+        const txnTypeStr = String(txnTypeRaw).trim().toLowerCase();
 
-        let op = null;
-        if (['debit', '0', 'debit_balance', 'bet', 'deduct', 'd'].includes(txnTypeRaw)) {
-            op = 'DEBIT';
-        } else if (['credit', '1', 'credit_balance', 'win', 'add', 'c'].includes(txnTypeRaw)) {
+        let op = 'DEBIT';
+        if (
+            txnTypeNum === 1 ||
+            ['credit', 'credit_balance', 'win', 'add', 'c'].includes(txnTypeStr)
+        ) {
             op = 'CREDIT';
-        } else {
-            // Unknown type with amount — treat as get if type empty, else error
-            if (!txnTypeRaw || txnTypeRaw === 'get' || txnTypeRaw === 'balance') {
-                return ok(res, {
-                    user_id: String(resolved.user._id),
-                    balance: Number(resolved.wallet.balance || 0),
-                    currency: 'INR',
-                });
-            }
-            return fail(res, 400, 'txn_type must be debit or credit');
+        } else if (
+            txnTypeNum === 0 ||
+            ['debit', 'debit_balance', 'bet', 'deduct', 'd', '0'].includes(txnTypeStr)
+        ) {
+            op = 'DEBIT';
         }
 
         const transactionId = String(
@@ -300,22 +259,27 @@ export const operatorUserBalanceV2 = async (req, res) => {
             return fail(res, 400, 'txn_id is required for debit/credit');
         }
 
-        const existingTx = await GapWalletTransaction.findOne({
-            transactionId,
-        }).lean();
+        // Optional body user_id must match token user when provided
+        const bodyUserId = String(body.user_id || body.userId || '').trim();
+        if (bodyUserId && bodyUserId !== String(resolved.user._id)) {
+            return fail(res, 403, 'user_id does not match token');
+        }
+
+        const existingTx = await GapWalletTransaction.findOne({ transactionId }).lean();
         if (existingTx) {
             return ok(res, {
+                balance: String(Number(existingTx.balanceAfter || 0)),
                 user_id: String(resolved.user._id),
-                balance: Number(existingTx.balanceAfter || 0),
+                operator_id: PLATFORM_OPERATOR_ID,
                 transactionId,
                 duplicate: true,
-            }, 'Duplicate transaction ignored');
+            });
         }
 
         const gameId = String(
             body.game_id || body.gameId || process.env.APP_OPERATOR_GAME_ID || '2'
         ).trim();
-        const roundId = String(body.round_id || body.roundId || '').trim();
+        const roundId = String(body.round_id || body.roundId || body.txn_ref_id || '').trim();
 
         session = await mongoose.startSession();
         let finalBalance = 0;
@@ -357,7 +321,12 @@ export const operatorUserBalanceV2 = async (req, res) => {
                         amount,
                         status: 'SUCCESS',
                         balanceAfter: finalBalance,
-                        requestMeta: { ip: req.ip, source: 'operator-balance-v2' },
+                        requestMeta: {
+                            ip: body.ip || req.ip,
+                            source: 'operator-balance-v2',
+                            description: body.description || '',
+                            operator_id: PLATFORM_OPERATOR_ID,
+                        },
                         gameId,
                         roundId,
                         rolledBack: false,
@@ -377,11 +346,12 @@ export const operatorUserBalanceV2 = async (req, res) => {
         });
 
         return ok(res, {
+            balance: String(finalBalance),
             user_id: String(resolved.user._id),
-            balance: finalBalance,
+            operator_id: PLATFORM_OPERATOR_ID,
             transactionId,
             type: op,
-        }, `${op} successful`);
+        });
     } catch (error) {
         if (error?.code === 11000) {
             const txId = String(
@@ -391,14 +361,14 @@ export const operatorUserBalanceV2 = async (req, res) => {
                 ? await GapWalletTransaction.findOne({ transactionId: txId }).lean()
                 : null;
             return ok(res, {
-                balance: Number(existingTx?.balanceAfter || 0),
+                balance: String(Number(existingTx?.balanceAfter || 0)),
                 transactionId: txId || null,
                 duplicate: true,
-            }, 'Duplicate transaction ignored');
+            });
         }
         if (error.code === 'INSUFFICIENT_BALANCE') {
             return fail(res, 400, 'Insufficient balance', {
-                data: { balance: Number(error.currentBalance || 0) },
+                balance: String(Number(error.currentBalance || 0)),
             });
         }
         if (error.code === 'USER_NOT_FOUND' || error.message === 'User not found') {

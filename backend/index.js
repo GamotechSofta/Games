@@ -177,10 +177,10 @@ app.get('/test-reset', requireDevToolsAccess, async (req, res) => {
 app.use('/api', requireDbReady);
 app.use('/api', apiRequestTimeout());
 
-// PotLudo operator callbacks — public paths expected by fashionbuddies
-// https://aakda.in/operator/user/login
-// https://aakda.in/service/user/detail
-// https://aakda.in/service/operator/user/balance/v2
+// PotLudo operator callbacks — Ludo uses APP_OPERATOR_BASE_URL=https://api.aakda.in
+// GET  /service/user/detail (+ header token)
+// POST /service/operator/user/balance/v2 (+ header token)
+// POST /operator/user/login (optional)
 app.use('/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);
 app.use('/service', requireDbReady, apiRequestTimeout(), operatorServiceRouter);
 app.use('/api/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);

@@ -4,7 +4,7 @@ import { Wallet } from '../models/wallet/wallet.js';
 import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
-import { generateUserToken, generateOperatorUserToken } from '../utils/jwt.js';
+import { generateUserToken, verifyOperatorUserToken } from '../utils/jwt.js';
 import logger, { sanitizeForLog } from '../utils/logger.js';
 
 /** Validate Mongo ObjectId text. */
@@ -161,20 +161,31 @@ export const launchGame = async (req, res) => {
         let launchUrl = '';
         let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
-        // PotLudo (fashionbuddies): id = operator user token, game_id = APP_OPERATOR_GAME_ID
+        // PotLudo: id = authenticated user API token (same token header on detail/balance)
         if (isPotLudoGame(game)) {
-            const operatorToken = generateOperatorUserToken({
-                id: String(user._id),
-                phone: user.phone || '',
-                gameId: APP_OPERATOR_GAME_ID,
-            });
+            const authHeader = String(req.headers.authorization || '');
+            let userApiToken = '';
+            if (authHeader.toLowerCase().startsWith('bearer ')) {
+                const bearer = authHeader.slice(7).trim();
+                const decoded = verifyOperatorUserToken(bearer);
+                if (decoded?.id && String(decoded.id) === String(user._id)) {
+                    userApiToken = bearer;
+                }
+            }
+            if (!userApiToken) {
+                userApiToken = generateUserToken({
+                    id: String(user._id),
+                    phone: user.phone || '',
+                });
+            }
+
             const potludoBase =
                 game.launchBaseUrl &&
                 String(game.launchBaseUrl).toLowerCase().includes('fashionbuddies')
                     ? game.launchBaseUrl
                     : POTLUDO_LAUNCH_BASE;
             launchUrl = buildPotLudoLaunchUrl(potludoBase, {
-                operatorToken,
+                operatorToken: userApiToken,
                 gameId: APP_OPERATOR_GAME_ID,
             });
             if (!launchUrl) {

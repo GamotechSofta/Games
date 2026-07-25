@@ -9,12 +9,11 @@ import {
 const router = express.Router();
 
 /**
- * PotLudo / fashionbuddies operator callbacks (configured on aakda.in):
- *   POST /operator/user/login
- *   POST /service/user/detail
- *   POST /service/operator/user/balance/v2
- *
- * Also accept GET for detail/balance (some providers probe with GET).
+ * PotLudo / fashionbuddies operator callbacks
+ * (APP_OPERATOR_BASE_URL=https://api.aakda.in):
+ *   GET  /service/user/detail              (+ header token)
+ *   POST /service/operator/user/balance/v2 (+ header token)
+ *   POST /operator/user/login              (optional)
  */
 router.use(logOperatorRequest);
 router.post('/user/login', operatorUserLogin);
@@ -22,8 +21,8 @@ router.get('/user/login', operatorUserLogin);
 
 export const operatorServiceRouter = express.Router();
 operatorServiceRouter.use(logOperatorRequest);
-operatorServiceRouter.post('/user/detail', operatorUserDetail);
 operatorServiceRouter.get('/user/detail', operatorUserDetail);
+operatorServiceRouter.post('/user/detail', operatorUserDetail);
 operatorServiceRouter.post('/operator/user/balance/v2', operatorUserBalanceV2);
 operatorServiceRouter.get('/operator/user/balance/v2', operatorUserBalanceV2);
 

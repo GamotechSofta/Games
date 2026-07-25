@@ -6,6 +6,7 @@ import { FaDice, FaGamepad, FaTimes } from 'react-icons/fa';
 import { iconBtn, textPrimary } from '../styles/appTheme';
 import { BACKEND_BASE_URL } from '../config/api';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
+import { getUserToken } from '../utils/auth';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
 function getLoggedInUserId() {
@@ -127,9 +128,14 @@ const Games = () => {
     setError('');
     setLaunchingId(gameId);
     try {
+      const authToken = String(getUserToken() || '').trim();
+
       const res = await fetch(`${BACKEND_BASE_URL}/api/game/launch`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
         body: JSON.stringify({ userId, gameId }),
       });
       const data = await res.json();
@@ -141,7 +147,7 @@ const Games = () => {
         /fashionbuddies\.in/i.test(launchUrl) ||
         String(game?.provider || '').toLowerCase().includes('potludo');
 
-      // Doc: redirect recommended (iframe optional). PotLudo needs full navigation.
+      // Doc: redirect recommended. Pass user API token as `id` query param.
       if (external) {
         window.location.href = launchUrl;
         return;
