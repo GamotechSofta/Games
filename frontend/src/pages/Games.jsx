@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaDice, FaGamepad, FaTimes } from 'react-icons/fa';
@@ -35,24 +36,18 @@ function GameIframeOverlay({ title, launchUrl, onClose }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  return (
+  const overlay = (
     <div
-      className="fixed inset-0 z-[10040] flex flex-col bg-black"
+      className="game-iframe-overlay"
       role="dialog"
       aria-modal="true"
       aria-label={title || 'Game'}
     >
-      <div
-        className="flex shrink-0 items-center gap-3 border-b border-white/10 bg-[#141415] px-3"
-        style={{
-          paddingTop: 'max(0.5rem, env(safe-area-inset-top, 0px))',
-          paddingBottom: '0.5rem',
-        }}
-      >
+      <div className="game-iframe-toolbar">
         <button
           type="button"
           onClick={onClose}
-          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/15"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/15"
           aria-label={t('common.close', { defaultValue: 'Close' })}
         >
           <FaTimes className="h-4 w-4" />
@@ -62,7 +57,7 @@ function GameIframeOverlay({ title, launchUrl, onClose }) {
         </h2>
       </div>
 
-      <div className="relative min-h-0 flex-1 bg-black">
+      <div className="game-iframe-stage">
         {!iframeLoaded && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#d32f2f]" />
@@ -71,8 +66,8 @@ function GameIframeOverlay({ title, launchUrl, onClose }) {
         <iframe
           title={title || 'Game'}
           src={launchUrl}
-          className="h-full w-full border-0"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; gamepad"
+          className="game-iframe-frame"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; gamepad; accelerometer; gyroscope"
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
           onLoad={() => setIframeLoaded(true)}
@@ -80,6 +75,9 @@ function GameIframeOverlay({ title, launchUrl, onClose }) {
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined' || !document.body) return overlay;
+  return createPortal(overlay, document.body);
 }
 
 const Games = () => {
