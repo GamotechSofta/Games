@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/operator/:path*",
+      "destination": "https://api.aakda.in/operator/:path*"
+    },
+    {
+      "source": "/service/:path*",
+      "destination": "https://api.aakda.in/service/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

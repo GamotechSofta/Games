@@ -81,6 +81,16 @@ export default defineConfig(({ mode }) => {
         changeOrigin: true,
         secure: false,
       },
+      '/operator': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/service': {
+        target: devProxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
       '/socket.io': {
         target: devProxyTarget,
         changeOrigin: true,
