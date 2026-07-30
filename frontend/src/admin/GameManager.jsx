@@ -86,7 +86,7 @@ const GameManager = () => {
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Game ID" value={form.gameId} onChange={(e) => setForm((p) => ({ ...p, gameId: e.target.value }))} />
                         <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" placeholder="Provider" value={form.provider} onChange={(e) => setForm((p) => ({ ...p, provider: e.target.value }))} />
-                        <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white sm:col-span-2" placeholder="Launch URL (e.g. https://fashionbuddies.in/play/online)" value={form.launchBaseUrl} onChange={(e) => setForm((p) => ({ ...p, launchBaseUrl: e.target.value }))} />
+                        <input className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white sm:col-span-2" placeholder="Launch URL (e.g. https://www.doormart.shop/ or https://fashionbuddies.in/play/online)" value={form.launchBaseUrl} onChange={(e) => setForm((p) => ({ ...p, launchBaseUrl: e.target.value }))} />
                         <select className="px-3 py-2 rounded bg-black/40 border border-white/10 text-white" value={form.status} onChange={(e) => setForm((p) => ({ ...p, status: e.target.value }))}>
                             <option value="active">active</option>
                             <option value="inactive">inactive</option>

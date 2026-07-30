@@ -143,11 +143,15 @@ const Games = () => {
         throw new Error(data?.message || 'Failed to launch game');
       }
       const launchUrl = String(data.launchUrl);
+      const provider = String(game?.provider || '').toLowerCase();
       const external =
         /fashionbuddies\.in/i.test(launchUrl) ||
-        String(game?.provider || '').toLowerCase().includes('potludo');
+        /doormart\.shop/i.test(launchUrl) ||
+        provider.includes('potludo') ||
+        provider.includes('teenpatti') ||
+        provider.includes('doormart');
 
-      // Doc: redirect recommended. Pass user API token as `id` query param.
+      // Operator games: full redirect with user API token as `id`.
       if (external) {
         window.location.href = launchUrl;
         return;

@@ -18,14 +18,25 @@ const POTLUDO_LAUNCH_BASE =
     process.env.POTLUDO_LAUNCH_URL ||
     'https://fashionbuddies.in/play/online';
 
+const TEENPATTI_LAUNCH_BASE =
+    process.env.TEENPATTI_LAUNCH_BASE_URL ||
+    process.env.DOORMART_LAUNCH_URL ||
+    'https://www.doormart.shop/';
+
 const APP_OPERATOR_GAME_ID = String(process.env.APP_OPERATOR_GAME_ID || '2');
+const TEENPATTI_OPERATOR_GAME_ID = String(
+    process.env.TEENPATTI_OPERATOR_GAME_ID || process.env.TEENPATTI_GAME_ID || '2'
+);
+const TEENPATTI_CATALOG_GAME_ID = String(
+    process.env.TEENPATTI_CATALOG_GAME_ID || 'teenpatti'
+);
 
 /**
- * PotLudo / fashionbuddies launch URL:
- *   https://fashionbuddies.in/play/online?id=<OPERATOR_USER_TOKEN>&game_id=2
+ * Operator-platform launch URL (PotLudo, Teen Patti, etc.):
+ *   https://your-game-client/?id=<platform_token>&game_id=2
  */
-function buildPotLudoLaunchUrl(baseUrl, { operatorToken, gameId }) {
-    const base = String(baseUrl || POTLUDO_LAUNCH_BASE || '').trim();
+function buildOperatorPlatformLaunchUrl(baseUrl, { operatorToken, gameId }) {
+    const base = String(baseUrl || '').trim();
     if (!base) return '';
     let url;
     try {
@@ -43,11 +54,51 @@ function buildPotLudoLaunchUrl(baseUrl, { operatorToken, gameId }) {
 function isPotLudoGame(game) {
     const provider = String(game?.provider || '').toLowerCase();
     const launch = String(game?.launchBaseUrl || '').toLowerCase();
-    const gameId = String(game?.gameId || '').trim();
     if (launch.includes('fashionbuddies.in')) return true;
     if (provider.includes('potludo') || provider.includes('fashionbuddies')) return true;
-    if (gameId && gameId === APP_OPERATOR_GAME_ID) return true;
     return false;
+}
+
+function isTeenPattiGame(game) {
+    const provider = String(game?.provider || '').toLowerCase();
+    const launch = String(game?.launchBaseUrl || '').toLowerCase();
+    const gameId = String(game?.gameId || '').trim().toLowerCase();
+    if (launch.includes('doormart.shop')) return true;
+    if (
+        provider.includes('teenpatti') ||
+        provider.includes('doormart') ||
+        provider.includes('teen_patti')
+    ) {
+        return true;
+    }
+    if (gameId === TEENPATTI_CATALOG_GAME_ID.toLowerCase() || gameId === 'teenpatti') {
+        return true;
+    }
+    return false;
+}
+
+/** Games that launch with ?id=<user_api_token>&game_id=<n> */
+function isOperatorPlatformGame(game) {
+    return isPotLudoGame(game) || isTeenPattiGame(game);
+}
+
+function resolveOperatorLaunchBase(game) {
+    const configured = String(game?.launchBaseUrl || '').trim();
+    if (isTeenPattiGame(game)) {
+        if (configured && configured.toLowerCase().includes('doormart')) return configured;
+        return TEENPATTI_LAUNCH_BASE;
+    }
+    if (isPotLudoGame(game)) {
+        if (configured && configured.toLowerCase().includes('fashionbuddies')) return configured;
+        return POTLUDO_LAUNCH_BASE;
+    }
+    return configured;
+}
+
+function resolveOperatorLaunchGameId(game) {
+    if (isTeenPattiGame(game)) return TEENPATTI_OPERATOR_GAME_ID;
+    if (isPotLudoGame(game)) return APP_OPERATOR_GAME_ID;
+    return String(game?.gameId || APP_OPERATOR_GAME_ID);
 }
 
 /**
@@ -161,8 +212,8 @@ export const launchGame = async (req, res) => {
         let launchUrl = '';
         let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
-        // PotLudo: id = authenticated user API token (same token header on detail/balance)
-        if (isPotLudoGame(game)) {
+        // Operator platform (PotLudo / Teen Patti): id = user API token, game_id = operator game id
+        if (isOperatorPlatformGame(game)) {
             const authHeader = String(req.headers.authorization || '');
             let userApiToken = '';
             if (authHeader.toLowerCase().startsWith('bearer ')) {
@@ -179,20 +230,17 @@ export const launchGame = async (req, res) => {
                 });
             }
 
-            const potludoBase =
-                game.launchBaseUrl &&
-                String(game.launchBaseUrl).toLowerCase().includes('fashionbuddies')
-                    ? game.launchBaseUrl
-                    : POTLUDO_LAUNCH_BASE;
-            launchUrl = buildPotLudoLaunchUrl(potludoBase, {
+            launchUrl = buildOperatorPlatformLaunchUrl(resolveOperatorLaunchBase(game), {
                 operatorToken: userApiToken,
-                gameId: APP_OPERATOR_GAME_ID,
+                gameId: resolveOperatorLaunchGameId(game),
             });
             if (!launchUrl) {
-                auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid PotLudo launch URL' } });
+                auditLaunch(req, 'FAILED', {
+                    responseSummary: { message: 'Invalid operator platform launch URL' },
+                });
                 return res.status(500).json({
                     success: false,
-                    message: 'Invalid PotLudo launch URL',
+                    message: 'Invalid operator platform launch URL',
                 });
             }
         } else if (game.launchBaseUrl) {
