@@ -76,6 +76,28 @@ export function verifyOperatorUserToken(token) {
 }
 
 /**
+ * Short-lived JWT for launching external/self-hosted games (PotLudo / Ludo King / Teen Patti).
+ * Includes display identity + snapshot balance so the game UI can show name/wallet immediately.
+ */
+export function generateGameLaunchToken(payload) {
+    const body = {
+        id: payload.id,
+        phone: payload.phone || '',
+        username: payload.username || '',
+        name: payload.name || payload.username || '',
+        balance: Number(payload.balance || 0),
+        currency: payload.currency || 'INR',
+        gameId: payload.gameId || '',
+        sessionId: payload.sessionId || '',
+        role: 'user',
+        type: 'game_launch',
+    };
+    return jwt.sign(body, JWT_SECRET, {
+        expiresIn: process.env.GAME_LAUNCH_TOKEN_EXPIRY || '2h',
+    });
+}
+
+/**
  * Verify JWT and return decoded payload
  * @returns { id, username, role } or null if invalid
  */

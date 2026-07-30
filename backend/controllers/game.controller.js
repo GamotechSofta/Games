@@ -4,7 +4,11 @@ import { Wallet } from '../models/wallet/wallet.js';
 import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
+<<<<<<< Updated upstream
 import { generateUserToken, verifyOperatorUserToken } from '../utils/jwt.js';
+=======
+import { generateGameLaunchToken } from '../utils/jwt.js';
+>>>>>>> Stashed changes
 import logger, { sanitizeForLog } from '../utils/logger.js';
 
 /** Validate Mongo ObjectId text. */
@@ -13,6 +17,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || '')
 const DEFAULT_RETURN_URL = () =>
     `${String(process.env.FRONTEND_BASE_URL || 'https://www.aakda.in').replace(/\/$/, '')}/games`;
 
+<<<<<<< Updated upstream
 const POTLUDO_LAUNCH_BASE =
     process.env.LUDO_LAUNCH_BASE_URL ||
     process.env.POTLUDO_LAUNCH_URL ||
@@ -99,13 +104,35 @@ function resolveOperatorLaunchGameId(game) {
     if (isTeenPattiGame(game)) return TEENPATTI_OPERATOR_GAME_ID;
     if (isPotLudoGame(game)) return APP_OPERATOR_GAME_ID;
     return String(game?.gameId || APP_OPERATOR_GAME_ID);
+=======
+/** Providers that historically expect ?id=<JWT>&game_id=<code> (PotLudo / Teen Patti style). */
+const POT_STYLE_PROVIDERS = new Set(['POTLUDO', 'TEENPATTI', 'DOORMART']);
+
+function resolveDisplayName(user) {
+    const username = String(user?.username || '').trim();
+    if (username) return username;
+    const composed = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
+    if (composed) return composed;
+    const name = String(user?.name || '').trim();
+    if (name) return name;
+    const phone = String(user?.phone || '').trim();
+    if (phone) return `Player ${phone.slice(-4)}`;
+    return 'Player';
+>>>>>>> Stashed changes
 }
 
 /**
- * Build launch URL for self-hosted games (Spring Boot frontend on Render).
- * Pattern: {launchBaseUrl}?userId=&gameId=&sessionId=&token=&returnUrl=
+ * Build launch URL for self-hosted games.
+ * Shares the same player identity PotLudo gets: wallet, username, token, etc.
+ *
+ * Standard (Ludo King / Spring):
+ *   ?userId&username&name&balance&currency&phone&gameId&sessionId&token&returnUrl
+ *   + aliases: id=<token>&game_id=<gameId> (PotLudo-compatible)
+ *
+ * Pot-style providers:
+ *   ?id=<JWT>&game_id=<gameId>  (JWT already contains username + balance)
  */
-function buildSelfHostedLaunchUrl(launchBaseUrl, params) {
+function buildSelfHostedLaunchUrl(launchBaseUrl, params, { potStyle = false } = {}) {
     const base = String(launchBaseUrl || '').trim();
     if (!base) return '';
     let url;
@@ -117,10 +144,27 @@ function buildSelfHostedLaunchUrl(launchBaseUrl, params) {
     // Admin may paste a URL with leftover query; always rebuild params.
     url.search = '';
     url.hash = '';
+
+    if (potStyle) {
+        if (params.token) url.searchParams.set('id', params.token);
+        url.searchParams.set('game_id', params.gameId);
+        return url.toString();
+    }
+
     url.searchParams.set('userId', params.userId);
+    url.searchParams.set('username', params.username);
+    url.searchParams.set('name', params.username);
+    url.searchParams.set('balance', String(params.balance));
+    url.searchParams.set('currency', params.currency || 'INR');
+    if (params.phone) url.searchParams.set('phone', params.phone);
     url.searchParams.set('gameId', params.gameId);
     url.searchParams.set('sessionId', params.sessionId);
-    if (params.token) url.searchParams.set('token', params.token);
+    if (params.token) {
+        url.searchParams.set('token', params.token);
+        // PotLudo-compatible aliases so one launch format works across games.
+        url.searchParams.set('id', params.token);
+    }
+    url.searchParams.set('game_id', params.gameId);
     url.searchParams.set('returnUrl', params.returnUrl);
     return url.toString();
 }
@@ -165,7 +209,9 @@ export const launchGame = async (req, res) => {
             });
         }
 
-        const user = await User.findById(userId).select('_id phone +balance').lean();
+        const user = await User.findById(userId)
+            .select('_id phone username firstName lastName name +balance')
+            .lean();
         if (!user) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'User not found' } });
             return res.status(404).json({
@@ -199,11 +245,14 @@ export const launchGame = async (req, res) => {
             });
         }
 
+        const displayName = resolveDisplayName(user);
+        const balance = Number(wallet.balance || 0);
         const payload = {
             operatorId: process.env.OPERATOR_ID,
             userId: String(user._id),
-            balance: Number(wallet.balance || 0),
+            balance,
             gameId: String(gameId).trim(),
+            username: displayName,
         };
 
         logger.info('[GAME] Launch request', { userId: String(user._id), gameId: payload.gameId });
@@ -212,6 +261,7 @@ export const launchGame = async (req, res) => {
         let launchUrl = '';
         let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
+<<<<<<< Updated upstream
         // Operator platform (PotLudo / Teen Patti): id = user API token, game_id = operator game id
         if (isOperatorPlatformGame(game)) {
             const authHeader = String(req.headers.authorization || '');
@@ -245,16 +295,37 @@ export const launchGame = async (req, res) => {
             }
         } else if (game.launchBaseUrl) {
             const token = generateUserToken({
+=======
+        // Self-hosted / Spring Boot / PotLudo: skip GAP when launchBaseUrl is set.
+        if (game.launchBaseUrl) {
+            const providerKey = String(game.provider || '').trim().toUpperCase();
+            const potStyle = POT_STYLE_PROVIDERS.has(providerKey);
+            const token = generateGameLaunchToken({
+>>>>>>> Stashed changes
                 id: String(user._id),
                 phone: user.phone || '',
-            });
-            launchUrl = buildSelfHostedLaunchUrl(game.launchBaseUrl, {
-                userId: String(user._id),
+                username: displayName,
+                name: displayName,
+                balance,
+                currency: 'INR',
                 gameId: payload.gameId,
                 sessionId,
-                token,
-                returnUrl: DEFAULT_RETURN_URL(),
             });
+            launchUrl = buildSelfHostedLaunchUrl(
+                game.launchBaseUrl,
+                {
+                    userId: String(user._id),
+                    username: displayName,
+                    phone: user.phone || '',
+                    balance,
+                    currency: 'INR',
+                    gameId: payload.gameId,
+                    sessionId,
+                    token,
+                    returnUrl: DEFAULT_RETURN_URL(),
+                },
+                { potStyle },
+            );
             if (!launchUrl) {
                 auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid launchBaseUrl' } });
                 return res.status(500).json({
