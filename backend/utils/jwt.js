@@ -50,6 +50,10 @@ export function generateOperatorUserToken(payload) {
         {
             id: String(payload.id),
             phone: payload.phone || '',
+            username: payload.username || '',
+            name: payload.name || payload.username || '',
+            balance: Number(payload.balance || 0),
+            currency: payload.currency || 'INR',
             gameId: payload.gameId ? String(payload.gameId) : undefined,
             role: 'user',
             type: 'operator_user',
