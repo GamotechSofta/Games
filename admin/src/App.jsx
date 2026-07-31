@@ -28,6 +28,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const TopWinners = lazy(() => import('./pages/TopWinners'));
 const SpecificAdminManagement = lazy(() => import('./pages/SpecificAdminManagement'));
 const TelecallerManagement = lazy(() => import('./pages/TelecallerManagement'));
+const GameManagement = lazy(() => import('./pages/GameManagement'));
 
 const PageFallback = () => (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-8">
@@ -98,7 +99,7 @@ const App = () => {
                     <Route path="/suspend-player" element={<Navigate to="/all-users" replace />} />
                     <Route path="/suspend-bookie" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/bookie-management" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/game-management" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/game-management" element={<PrivateRoute><GameManagement /></PrivateRoute>} />
                     <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
                     <Route path="/specific-admin" element={<PrivateRoute><SpecificAdminManagement /></PrivateRoute>} />
                     <Route path="/telecaller-management" element={<PrivateRoute><TelecallerManagement /></PrivateRoute>} />
