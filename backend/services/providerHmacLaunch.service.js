@@ -189,13 +189,13 @@ export function normalizeProviderGames(payload) {
 }
 
 /**
- * GET /api/v1/operators/:operatorId/enabled-games
+ * GET /api/v1/enabled-games?operatorId=AAKDA-001
  */
 export async function fetchEnabledGames() {
     const cfg = providerConfig();
     requireProviderAuth(cfg);
 
-    const path = `/api/v1/operators/${encodeURIComponent(cfg.operatorId)}/enabled-games`;
+    const path = `/api/v1/enabled-games?operatorId=${encodeURIComponent(cfg.operatorId)}`;
     const { response, data } = await signedProviderRequest({
         method: 'GET',
         path,

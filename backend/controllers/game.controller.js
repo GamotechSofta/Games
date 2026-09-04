@@ -588,7 +588,7 @@ export const listActiveGames = async (req, res) => {
 /**
  * GET /api/game/enabled
  * Proxies provider:
- *   GET {PROVIDER_BASE_URL}/api/v1/operators/{OPERATOR_ID}/enabled-games
+ *   GET {PROVIDER_BASE_URL}/api/v1/enabled-games?operatorId={OPERATOR_ID}
  */
 export const listProviderEnabledGames = async (req, res) => {
     try {
