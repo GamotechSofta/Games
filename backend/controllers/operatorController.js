@@ -8,7 +8,7 @@ import logger from '../utils/logger.js';
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(String(id || ''));
 
 const PLATFORM_OPERATOR_ID = String(
-    process.env.APP_OPERATOR_ID || process.env.OPERATOR_ID || '1'
+    process.env.OPERATOR_ID || process.env.APP_OPERATOR_ID || '1'
 ).trim() || '1';
 
 /**

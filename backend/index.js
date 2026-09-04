@@ -25,7 +25,10 @@ import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
 import telecallerRoutes from './routes/telecaller/telecallerRoutes.js';
 import callRoutes from './routes/call/callRoutes.js';
-import operatorRoutes, { operatorServiceRouter } from './routes/operator/operatorRoutes.js';
+import operatorRoutes, {
+    operatorServiceRouter,
+    operatorUserRootRouter,
+} from './routes/operator/operatorRoutes.js';
 import { getIceConfigStatus } from './config/iceServers.js';
 import { isWebPushConfigured } from './services/callPushService.js';
 import { getClientIp } from './utils/activityLogger.js';
@@ -177,12 +180,13 @@ app.get('/test-reset', requireDevToolsAccess, async (req, res) => {
 app.use('/api', requireDbReady);
 app.use('/api', apiRequestTimeout());
 
-// PotLudo operator callbacks — Ludo uses APP_OPERATOR_BASE_URL=https://api.aakda.in
+// Operator callbacks (PotLudo, Teen Patti) — APP_OPERATOR_BASE_URL=https://api.aakda.in
 // GET  /service/user/detail (+ header token)
 // POST /service/operator/user/balance/v2 (+ header token)
 // POST /operator/user/login (optional)
 app.use('/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);
 app.use('/service', requireDbReady, apiRequestTimeout(), operatorServiceRouter);
+app.use('/user', requireDbReady, apiRequestTimeout(), operatorUserRootRouter);
 app.use('/api/operator', requireDbReady, apiRequestTimeout(), operatorRoutes);
 app.use('/api/service', requireDbReady, apiRequestTimeout(), operatorServiceRouter);
 app.use('/api/v1/operator', operatorRoutes);

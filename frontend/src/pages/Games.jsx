@@ -94,7 +94,7 @@ const Games = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_BASE_URL}/api/game/list`);
+      const res = await fetch(`${BACKEND_BASE_URL}/api/game/enabled`);
       const data = await res.json();
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || 'Failed to load games');
@@ -122,11 +122,11 @@ const Games = () => {
       setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
       return;
     }
-    const gameId = String(game?.gameId || '').trim();
-    if (!gameId) return;
+    const gameCode = String(game?.gameCode || game?.gameId || '').trim();
+    if (!gameCode) return;
 
     setError('');
-    setLaunchingId(gameId);
+    setLaunchingId(gameCode);
     try {
       const authToken = String(getUserToken() || '').trim();
 
@@ -136,31 +136,21 @@ const Games = () => {
           'Content-Type': 'application/json',
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         },
-        body: JSON.stringify({ userId, gameId }),
+        body: JSON.stringify({
+          userId,
+          gameId: gameCode,
+          gameCode,
+          source: game?.source || 'provider',
+          currency: game?.currency || 'INR',
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success || !data?.launchUrl) {
         throw new Error(data?.message || 'Failed to launch game');
       }
       const launchUrl = String(data.launchUrl);
-      const provider = String(game?.provider || '').toLowerCase();
-      const external =
-        /fashionbuddies\.in/i.test(launchUrl) ||
-        /doormart\.shop/i.test(launchUrl) ||
-        provider.includes('potludo') ||
-        provider.includes('teenpatti') ||
-        provider.includes('doormart');
-
-      // Operator games: full redirect with user API token as `id`.
-      if (external) {
-        window.location.href = launchUrl;
-        return;
-      }
-
-      setActiveGame({
-        title: game.name || game.title || gameId,
-        launchUrl,
-      });
+      // Provider games always open in a full redirect.
+      window.location.href = launchUrl;
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to launch game'));
     } finally {
@@ -182,7 +172,7 @@ const Games = () => {
           </svg>
         </button>
         <h1 className={`text-xl font-bold ${textPrimary}`}>
-          {t('markets.casinoGames', { defaultValue: 'All Casino Games' })}
+          {t('sidebar.games', { defaultValue: 'Games' })}
         </h1>
       </div>
 
@@ -208,8 +198,8 @@ const Games = () => {
             {t('games.noneAvailable', { defaultValue: 'No games available yet' })}
           </p>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-            {t('games.noneAvailableHint', {
-              defaultValue: 'Ask admin to add an active game in Game Management.',
+            {t('games.noneAvailableProviderHint', {
+              defaultValue: 'No enabled games returned for this operator yet.',
             })}
           </p>
           <button
@@ -223,10 +213,11 @@ const Games = () => {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {games.map((game) => {
-            const busy = launchingId === game.gameId;
+            const code = game.gameCode || game.gameId;
+            const busy = launchingId === code;
             return (
               <button
-                key={game.gameId || game._id}
+                key={game._key || code}
                 type="button"
                 disabled={busy}
                 onClick={() => handlePlay(game)}
@@ -245,10 +236,10 @@ const Games = () => {
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-gray-900 dark:text-white">
-                    {game.name || game.title || game.gameId}
+                    {game.name || game.title || code}
                   </p>
                   <p className="mt-0.5 truncate text-[11px] text-gray-500 dark:text-white/45">
-                    {game.provider || 'Game'}
+                    {game.provider || code}
                   </p>
                 </div>
                 <span className="mt-3 inline-flex rounded-lg bg-[#d32f2f] px-2.5 py-1 text-[11px] font-semibold text-white">

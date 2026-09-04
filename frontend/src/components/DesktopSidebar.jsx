@@ -41,6 +41,12 @@ const MAIN_NAV = [
     icon: HiHome,
   },
   {
+    id: 'games',
+    labelKey: 'sidebar.games',
+    path: '/games',
+    icon: IconCasinoFilled,
+  },
+  {
     id: 'casino',
     labelKey: 'sidebar.casino',
     icon: IconCasinoFilled,

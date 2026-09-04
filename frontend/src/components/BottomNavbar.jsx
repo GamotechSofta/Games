@@ -28,6 +28,7 @@ const SidebarLocaleSettings = lazy(() => import('./SidebarLocaleSettings'));
 
 const MAIN_MENU_NAV = [
   { id: 'home', labelKey: 'navigation.home', path: '/', icon: HiHome },
+  { id: 'games', labelKey: 'sidebar.games', path: '/games', icon: IconCasinoFilled },
   {
     id: 'casino',
     labelKey: 'sidebar.casino',

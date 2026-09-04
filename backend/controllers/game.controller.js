@@ -5,6 +5,10 @@ import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
 import {
+    launchTeenPattiSession,
+    fetchEnabledGames,
+} from '../services/providerHmacLaunch.service.js';
+import {
     generateOperatorUserToken,
     generateGameLaunchToken,
     verifyOperatorUserToken,
@@ -94,20 +98,15 @@ function isTeenPattiGame(game) {
     return false;
 }
 
-/** Games that launch with ?id=<user_api_token>&game_id=<n> */
-function isOperatorPlatformGame(game) {
-    return isPotLudoGame(game) || isTeenPattiGame(game);
-}
-
 function resolveOperatorLaunchBase(game) {
     const configured = String(game?.launchBaseUrl || '').trim();
-    if (isTeenPattiGame(game)) {
-        if (configured && configured.toLowerCase().includes('doormart')) return configured;
-        return TEENPATTI_LAUNCH_BASE;
-    }
     if (isPotLudoGame(game)) {
         if (configured && configured.toLowerCase().includes('fashionbuddies')) return configured;
         return POTLUDO_LAUNCH_BASE;
+    }
+    if (isTeenPattiGame(game)) {
+        if (configured && configured.toLowerCase().includes('doormart')) return configured;
+        return TEENPATTI_LAUNCH_BASE;
     }
     return configured;
 }
@@ -170,18 +169,24 @@ const auditLaunch = (req, status, meta = {}) => {
 
 /**
  * POST /api/game/launch
- * Body: { userId, gameId }
+ * Body: { userId, gameId?, gameCode? }
+ * Provider games can launch with gameCode only (no local Game row required).
  */
 export const launchGame = async (req, res) => {
     try {
-        const { userId, gameId } = req.body || {};
+        const { userId, gameId, gameCode } = req.body || {};
         auditLaunch(req, 'REQUESTED');
 
-        if (!userId || !gameId) {
-            auditLaunch(req, 'FAILED', { responseSummary: { message: 'userId and gameId are required' } });
+        const providerGameCode = String(gameCode || '').trim();
+        const localGameId = String(gameId || providerGameCode || '').trim();
+
+        if (!userId || (!localGameId && !providerGameCode)) {
+            auditLaunch(req, 'FAILED', {
+                responseSummary: { message: 'userId and gameId/gameCode are required' },
+            });
             return res.status(400).json({
                 success: false,
-                message: 'userId and gameId are required',
+                message: 'userId and gameId/gameCode are required',
             });
         }
         if (!isValidObjectId(userId)) {
@@ -211,7 +216,67 @@ export const launchGame = async (req, res) => {
             wallet = { balance: Number(created.balance || 0) };
         }
 
-        const game = await Game.findOne({ gameId: String(gameId).trim() }).lean();
+        const game = localGameId
+            ? await Game.findOne({ gameId: localGameId }).lean()
+            : null;
+
+        // Provider HMAC launch when gameCode is present, or local Teen Patti row, or source provider
+        const useProviderLaunch =
+            Boolean(providerGameCode) ||
+            (game && isTeenPattiGame(game)) ||
+            String(req.body?.source || '').toLowerCase() === 'provider';
+
+        if (useProviderLaunch && !game) {
+            // Provider-only catalog game — no local Game document required
+            const code = (providerGameCode || localGameId).toUpperCase();
+            try {
+                const providerLaunch = await launchTeenPattiSession({
+                    playerId: String(user._id),
+                    gameCode: code,
+                    currency: String(req.body?.currency || 'INR'),
+                });
+                const sessionId =
+                    providerLaunch.sessionId ||
+                    `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+                await GameSession.create({
+                    userId: user._id,
+                    gameId: code,
+                    sessionId: String(sessionId),
+                    launchUrl: String(providerLaunch.launchUrl),
+                    provider: 'provider',
+                    rawResponse: providerLaunch.raw,
+                });
+
+                auditLaunch(req, 'SUCCESS', {
+                    responseSummary: {
+                        message: 'Provider game launch successful',
+                        sessionId: String(sessionId),
+                    },
+                });
+                return res.status(200).json({
+                    success: true,
+                    launchUrl: providerLaunch.launchUrl,
+                    sessionId,
+                    message: 'Game launch successful',
+                });
+            } catch (providerErr) {
+                logger.error('[GAME] provider launch failed', {
+                    message: providerErr?.message,
+                    status: providerErr?.status,
+                });
+                auditLaunch(req, 'FAILED', {
+                    responseSummary: {
+                        message: providerErr?.message || 'Provider launch failed',
+                    },
+                });
+                return res.status(502).json({
+                    success: false,
+                    message: providerErr?.message || 'Provider launch failed',
+                });
+            }
+        }
+
         if (!game) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'Game not found' } });
             return res.status(404).json({
@@ -234,7 +299,7 @@ export const launchGame = async (req, res) => {
             operatorId: process.env.OPERATOR_ID,
             userId: String(user._id),
             balance,
-            gameId: String(gameId).trim(),
+            gameId: String(game.gameId || localGameId).trim(),
             username: displayName,
         };
 
@@ -244,8 +309,39 @@ export const launchGame = async (req, res) => {
         let launchUrl = '';
         let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
-        // PotLudo / Teen Patti: ?id=<JWT with username+balance>&game_id=<n>
-        if (isOperatorPlatformGame(game)) {
+        // Teen Patti / provider HMAC launch
+        if (isTeenPattiGame(game) || useProviderLaunch) {
+            try {
+                const providerLaunch = await launchTeenPattiSession({
+                    playerId: String(user._id),
+                    gameCode:
+                        providerGameCode ||
+                        process.env.TEENPATTI_GAME_CODE ||
+                        String(game.gameId || 'TEENPATTI'),
+                    currency: process.env.TEENPATTI_CURRENCY || 'INR',
+                });
+                launchUrl = providerLaunch.launchUrl;
+                if (providerLaunch.sessionId) {
+                    sessionId = providerLaunch.sessionId;
+                }
+                gapResponse = providerLaunch.raw;
+            } catch (providerErr) {
+                logger.error('[GAME] Teen Patti provider launch failed', {
+                    message: providerErr?.message,
+                    status: providerErr?.status,
+                });
+                auditLaunch(req, 'FAILED', {
+                    responseSummary: {
+                        message: providerErr?.message || 'Teen Patti launch failed',
+                    },
+                });
+                return res.status(502).json({
+                    success: false,
+                    message: providerErr?.message || 'Teen Patti launch failed',
+                });
+            }
+        // PotLudo: ?id=<JWT>&game_id=<n>
+        } else if (isPotLudoGame(game)) {
             const authHeader = String(req.headers.authorization || '');
             let userApiToken = '';
             if (authHeader.toLowerCase().startsWith('bearer ')) {
@@ -485,6 +581,31 @@ export const listActiveGames = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: error.message || 'Failed to list active games',
+        });
+    }
+};
+
+/**
+ * GET /api/game/enabled
+ * Proxies provider:
+ *   GET {PROVIDER_BASE_URL}/api/v1/operators/{OPERATOR_ID}/enabled-games
+ */
+export const listProviderEnabledGames = async (req, res) => {
+    try {
+        const result = await fetchEnabledGames();
+        return res.status(200).json({
+            success: true,
+            operatorId: result.operatorId,
+            data: result.games,
+        });
+    } catch (error) {
+        logger.error('[GAME] enabled-games failed', {
+            message: error?.message,
+            status: error?.status,
+        });
+        return res.status(error?.status && error.status >= 400 ? error.status : 502).json({
+            success: false,
+            message: error?.message || 'Failed to load provider games',
         });
     }
 };
