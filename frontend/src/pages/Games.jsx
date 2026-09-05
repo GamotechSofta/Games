@@ -9,15 +9,6 @@ import { getApiErrorMessage } from '../utils/apiErrorMessage';
 import { getUserToken } from '../utils/auth';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 
-function getLoggedInUserId() {
-  try {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    return String(user?.id || user?._id || '').trim();
-  } catch {
-    return '';
-  }
-}
-
 function GameIframeOverlay({ title, launchUrl, onClose }) {
   const { t } = useTranslation();
   const [iframeLoaded, setIframeLoaded] = useState(false);
@@ -117,8 +108,8 @@ const Games = () => {
   }, []);
 
   const handlePlay = async (game) => {
-    const userId = getLoggedInUserId();
-    if (!userId) {
+    const authToken = String(getUserToken() || '').trim();
+    if (!authToken) {
       setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
       return;
     }
@@ -128,29 +119,19 @@ const Games = () => {
     setError('');
     setLaunchingId(gameCode);
     try {
-      const authToken = String(getUserToken() || '').trim();
-
       const res = await fetch(`${BACKEND_BASE_URL}/api/game/launch`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({
-          userId,
-          gameId: gameCode,
-          gameCode,
-          source: game?.source || 'provider',
-          currency: game?.currency || 'INR',
-        }),
+        body: JSON.stringify({ gameCode }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success || !data?.launchUrl) {
         throw new Error(data?.message || 'Failed to launch game');
       }
-      const launchUrl = String(data.launchUrl);
-      // Provider games always open in a full redirect.
-      window.location.href = launchUrl;
+      window.location.href = String(data.launchUrl);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to launch game'));
     } finally {
@@ -215,6 +196,7 @@ const Games = () => {
           {games.map((game) => {
             const code = game.gameCode || game.gameId;
             const busy = launchingId === code;
+            const thumb = String(game.thumbnail || game.image || '').trim();
             return (
               <button
                 key={game._key || code}
@@ -223,16 +205,25 @@ const Games = () => {
                 onClick={() => handlePlay(game)}
                 className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 text-left shadow-sm transition active:scale-[0.98] disabled:opacity-60 dark:border-white/10 dark:bg-[#1a1a1c]"
               >
-                <div className="mb-3 flex h-24 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a1212] to-[#120808]">
-                  {game.image ? (
+                <div className="mb-3 relative flex h-28 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#2a1212] to-[#120808]">
+                  {thumb ? (
                     <img
-                      src={game.image}
-                      alt=""
+                      src={thumb}
+                      alt={game.name || code}
                       className="h-full w-full object-cover rounded-xl"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget.nextElementSibling;
+                        if (fallback) fallback.classList.remove('hidden');
+                      }}
                     />
-                  ) : (
-                    <FaDice className="h-10 w-10 text-[#f0c27a]" />
-                  )}
+                  ) : null}
+                  <FaDice
+                    className={`h-10 w-10 text-[#f0c27a] ${thumb ? 'hidden' : ''}`}
+                    aria-hidden={Boolean(thumb)}
+                  />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold text-gray-900 dark:text-white">

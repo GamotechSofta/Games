@@ -59,8 +59,7 @@ class GameLaunchService {
     }
 
     final payload = jsonEncode({
-      'userId': externalPlayerId,
-      'gameId': normalizedCode,
+      'gameCode': normalizedCode,
     });
 
     final response = await http.post(
