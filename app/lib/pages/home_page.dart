@@ -433,16 +433,16 @@ class _HomeCategoryGrid extends StatelessWidget {
         childAspectRatio: wide ? 2.55 : 2.35,
         children: [
           HomeCategoryCard(
-            label: 'Casino',
+            label: 'Games',
             backgroundAsset: HomeAssets.casinoButtonBg,
             iconAsset: HomeAssets.casinoIcon,
             onTap: _openGames,
           ),
           HomeCategoryCard(
-            label: 'Skill Games',
+            label: 'Markets',
             backgroundAsset: HomeAssets.skillGamesButtonBg,
             iconAsset: HomeAssets.skillGamesIcon,
-            onTap: _openGames,
+            onTap: () => navigateMainRoute(shellContext, '/markets'),
           ),
           HomeCategoryCard(
             label: 'Starline',

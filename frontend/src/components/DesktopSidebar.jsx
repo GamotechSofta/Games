@@ -47,15 +47,6 @@ const MAIN_NAV = [
     icon: IconCasinoFilled,
   },
   {
-    id: 'casino',
-    labelKey: 'sidebar.casino',
-    icon: IconCasinoFilled,
-    children: [
-      { labelKey: 'sidebar.casinoGames', path: '/games?category=highEarning' },
-      { labelKey: 'sidebar.skillsGames', path: '/games?category=skills' },
-    ],
-  },
-  {
     id: 'starline',
     labelKey: 'markets.starline',
     path: '/startline-dashboard',
@@ -157,7 +148,7 @@ function DesktopSidebar({ collapsed }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const [openMenus, setOpenMenus] = useState({ casino: true });
+  const [openMenus, setOpenMenus] = useState({});
   const [hoveredFlyoutId, setHoveredFlyoutId] = useState(null);
   const [flyoutAnchor, setFlyoutAnchor] = useState(null);
 

@@ -30,15 +30,6 @@ const MAIN_MENU_NAV = [
   { id: 'home', labelKey: 'navigation.home', path: '/', icon: HiHome },
   { id: 'games', labelKey: 'sidebar.games', path: '/games', icon: IconCasinoFilled },
   {
-    id: 'casino',
-    labelKey: 'sidebar.casino',
-    icon: IconCasinoFilled,
-    children: [
-      { id: 'casino-games', labelKey: 'sidebar.casinoGames', path: '/games?category=highEarning' },
-      { id: 'skills-games', labelKey: 'sidebar.skillsGames', path: '/games?category=skills' },
-    ],
-  },
-  {
     id: 'sports',
     labelKey: 'sidebar.sports',
     icon: IconSportsFilled,
@@ -69,7 +60,7 @@ const BottomNavbar = () => {
   const { t } = useTranslation();
   const isCallOverlayOpen = useIsCallOverlayOpen();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState({ casino: true, sports: true });
+  const [openMenus, setOpenMenus] = useState({ sports: true });
   const [user, setUser] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || 'null');

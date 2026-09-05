@@ -197,6 +197,11 @@ const PREMIUM_GOLD_CARD_STYLE = {
 };
 
 export const HOME_CATEGORY_THEMES = {
+  games: {
+    ...PREMIUM_GOLD_CARD_STYLE,
+    cardBgImage: CASINO_BUTTON_BG,
+    iconImage: CASINO_ICON,
+  },
   casino: {
     ...PREMIUM_GOLD_CARD_STYLE,
     cardBgImage: CASINO_BUTTON_BG,
@@ -220,6 +225,7 @@ export const HOME_CATEGORY_THEMES = {
 };
 
 export const HOME_CATEGORY_ICONS = {
+  games: CasinoCategoryIcon,
   casino: CasinoCategoryIcon,
   markets: MarketsCategoryIcon,
   starline: StarlineCategoryIcon,

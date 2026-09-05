@@ -6,11 +6,7 @@ export function getActivePanelFromLocation(pathname, search = '') {
   if (pathname === '/markets') return 'markets';
   if (pathname === '/startline-dashboard' || pathname.startsWith('/starline-market')) return 'starline';
   if (pathname === '/king-bazaar-market') return 'kingBazaar';
-  if (pathname === '/games') {
-    const cat = new URLSearchParams(search).get('category');
-    if (cat === 'highEarning') return 'casino';
-    if (cat === 'skills' || cat === 'upcoming') return 'skills';
-  }
+  if (pathname === '/games') return 'games';
   if (pathname === '/') return 'home';
   return null;
 }
@@ -23,11 +19,10 @@ export function useDashboardNav() {
       case 'markets':
         navigate('/markets');
         break;
+      case 'games':
       case 'casino':
-        navigate('/games?category=highEarning');
-        break;
       case 'skills':
-        navigate('/games?category=skills');
+        navigate('/games');
         break;
       case 'kingBazaar':
         prefetchSpecialMarketChunks();

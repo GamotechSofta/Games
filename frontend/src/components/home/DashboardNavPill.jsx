@@ -10,13 +10,13 @@ import {
 const NAV_TABS = [
   { id: 'home', labelKey: 'navigation.home', panel: 'home', Icon: HiHome },
   { id: 'markets', labelKey: 'dashboard.catMarkets', panel: 'markets', Icon: HiCurrencyDollar },
-  { id: 'casino', labelKey: 'dashboard.catCasino', panel: 'casino', Icon: IconCasinoFilled },
+  { id: 'games', labelKey: 'sidebar.games', panel: 'games', Icon: IconCasinoFilled },
 ];
 
-export const FOCUSED_NAV_PANELS = ['markets', 'casino'];
+export const FOCUSED_NAV_PANELS = ['markets', 'games'];
 
 export function panelToNavTab(panel) {
-  if (panel === 'casino' || panel === 'skills') return 'casino';
+  if (panel === 'games' || panel === 'casino' || panel === 'skills') return 'games';
   if (panel === 'markets') return 'markets';
   if (panel === 'home') return 'home';
   return 'home';

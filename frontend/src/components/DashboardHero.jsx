@@ -9,7 +9,7 @@ import ResponsiveCloudinaryImage from './ResponsiveCloudinaryImage';
 import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './home/HomeCategoryCard';
 
 const CATEGORIES = [
-  { id: 'casino', labelKey: 'dashboard.catCasino', path: '/games?category=highEarning' },
+  { id: 'games', labelKey: 'sidebar.games', path: '/games' },
   { id: 'markets', labelKey: 'dashboard.catMarkets', path: '/markets' },
   { id: 'starline', labelKey: 'dashboard.catStarline', path: '/startline-dashboard' },
   { id: 'kingBazaar', labelKey: 'dashboard.catKingBazaar', path: '/king-bazaar-market' },
@@ -75,7 +75,7 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
 
         <button
           type="button"
-          onClick={() => navigate('/games?category=highEarning')}
+          onClick={() => navigate('/games')}
           className={`relative min-w-0 min-h-[160px] text-left ${panelClass} group transition sm:min-h-[220px] lg:min-h-0 lg:h-full hover:border-gray-300 dark:hover:border-white/[0.1]`}
         >
           <ResponsiveCloudinaryImage
@@ -127,7 +127,7 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
 
         <button
           type="button"
-          onClick={() => navigate('/games?category=highEarning')}
+          onClick={() => navigate('/games')}
           className={`flex min-w-0 flex-[3] items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900 dark:text-white/90 dark:hover:bg-[#303030] dark:hover:text-white ${controlPanelClass}`}
         >
           <HiOutlineAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-gray-500 dark:text-white/65" strokeWidth={1.75} />

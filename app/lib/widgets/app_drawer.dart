@@ -26,7 +26,7 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   static const _navActive = Color(0xFFFF6A63);
 
-  final Map<String, bool> _openMenus = {'casino': true, 'sports': true};
+  final Map<String, bool> _openMenus = {'sports': true};
 
   Map<String, dynamic>? _user;
 
@@ -488,23 +488,10 @@ class _AppDrawerState extends State<AppDrawer> {
   static const _mainMenu = <_MenuEntry>[
     _MenuEntry(id: 'home', label: 'Home', path: '/', icon: Icons.home_rounded),
     _MenuEntry(
-      id: 'casino',
-      label: 'Casino',
-      icon: Icons.casino_outlined,
-      children: [
-        _MenuEntry(
-          id: 'casino-games',
-          label: 'Casino Games',
-          path: '/games',
-          arguments: {'category': 'highEarning'},
-        ),
-        _MenuEntry(
-          id: 'skills-games',
-          label: 'Skills Games',
-          path: '/games',
-          arguments: {'category': 'skills'},
-        ),
-      ],
+      id: 'games',
+      label: 'Games',
+      path: '/games',
+      icon: Icons.sports_esports_outlined,
     ),
     _MenuEntry(
       id: 'sports',

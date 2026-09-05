@@ -116,7 +116,7 @@ const Layout = ({ children }) => {
   const showDesktopDashboardNav =
     location.pathname === '/' ||
     location.pathname === '/markets' ||
-    (location.pathname === '/games' && (activePanel === 'casino' || activePanel === 'skills'));
+    location.pathname === '/games';
 
   const hideBottomNavOnMobile =
     location.pathname === '/game-bid' || location.pathname === '/games';
