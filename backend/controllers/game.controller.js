@@ -168,37 +168,66 @@ const auditLaunch = (req, status, meta = {}) => {
 };
 
 /**
+ * Resolve logged-in user id from Bearer token (preferred) or body.userId.
+ */
+function resolveLaunchUserId(req) {
+    const auth = String(req.headers.authorization || '');
+    if (auth.toLowerCase().startsWith('bearer ')) {
+        const token = auth.slice(7).trim();
+        const decoded = verifyOperatorUserToken(token);
+        if (decoded?.id) return String(decoded.id);
+    }
+    return String(req.body?.userId || '').trim();
+}
+
+/**
  * POST /api/game/launch
- * Body: { userId, gameId?, gameCode? }
- * Provider games can launch with gameCode only (no local Game row required).
+ *
+ * Thin proxy to the provider HMAC launch API:
+ *   POST {PROVIDER_BASE_URL}{PROVIDER_LAUNCH_PATH}
+ *   Headers: X-API-Key, X-Timestamp, X-Signature
+ *   Body: { operatorId, playerId, gameCode, currency }
+ *
+ * Browser must not call the provider directly (API_SECRET stays server-side).
+ * Auth: Bearer user token
+ * Body: { gameCode }
  */
 export const launchGame = async (req, res) => {
     try {
-        const { userId, gameId, gameCode } = req.body || {};
+        const { gameId, gameCode } = req.body || {};
         auditLaunch(req, 'REQUESTED');
 
-        const providerGameCode = String(gameCode || '').trim();
-        const localGameId = String(gameId || providerGameCode || '').trim();
+        const userId = resolveLaunchUserId(req);
+        const code = String(gameCode || gameId || '').trim().toUpperCase();
 
-        if (!userId || (!localGameId && !providerGameCode)) {
+        if (!userId) {
             auditLaunch(req, 'FAILED', {
-                responseSummary: { message: 'userId and gameId/gameCode are required' },
+                responseSummary: { message: 'Authorization token is required' },
+            });
+            return res.status(401).json({
+                success: false,
+                message: 'Authorization token is required',
+            });
+        }
+        if (!code) {
+            auditLaunch(req, 'FAILED', {
+                responseSummary: { message: 'gameCode is required' },
             });
             return res.status(400).json({
                 success: false,
-                message: 'userId and gameId/gameCode are required',
+                message: 'gameCode is required',
             });
         }
         if (!isValidObjectId(userId)) {
-            auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid userId' } });
+            auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid user' } });
             return res.status(400).json({
                 success: false,
-                message: 'Invalid userId',
+                message: 'Invalid user',
             });
         }
 
         const user = await User.findById(userId)
-            .select('_id phone username firstName lastName name +balance')
+            .select('_id isActive')
             .lean();
         if (!user) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'User not found' } });
@@ -207,243 +236,58 @@ export const launchGame = async (req, res) => {
                 message: 'User not found',
             });
         }
-        let wallet = await Wallet.findOne({ userId: user._id }).select('balance').lean();
-        if (!wallet) {
-            const created = await Wallet.create({
-                userId: user._id,
-                balance: Number(user.balance || 0),
-            });
-            wallet = { balance: Number(created.balance || 0) };
-        }
-
-        const game = localGameId
-            ? await Game.findOne({ gameId: localGameId }).lean()
-            : null;
-
-        // Provider HMAC launch when gameCode is present, or local Teen Patti row, or source provider
-        const useProviderLaunch =
-            Boolean(providerGameCode) ||
-            (game && isTeenPattiGame(game)) ||
-            String(req.body?.source || '').toLowerCase() === 'provider';
-
-        if (useProviderLaunch && !game) {
-            // Provider-only catalog game — no local Game document required
-            const code = (providerGameCode || localGameId).toUpperCase();
-            try {
-                const providerLaunch = await launchTeenPattiSession({
-                    playerId: String(user._id),
-                    gameCode: code,
-                    currency: String(req.body?.currency || 'INR'),
-                });
-                const sessionId =
-                    providerLaunch.sessionId ||
-                    `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-
-                await GameSession.create({
-                    userId: user._id,
-                    gameId: code,
-                    sessionId: String(sessionId),
-                    launchUrl: String(providerLaunch.launchUrl),
-                    provider: 'provider',
-                    rawResponse: providerLaunch.raw,
-                });
-
-                auditLaunch(req, 'SUCCESS', {
-                    responseSummary: {
-                        message: 'Provider game launch successful',
-                        sessionId: String(sessionId),
-                    },
-                });
-                return res.status(200).json({
-                    success: true,
-                    launchUrl: providerLaunch.launchUrl,
-                    sessionId,
-                    message: 'Game launch successful',
-                });
-            } catch (providerErr) {
-                logger.error('[GAME] provider launch failed', {
-                    message: providerErr?.message,
-                    status: providerErr?.status,
-                });
-                auditLaunch(req, 'FAILED', {
-                    responseSummary: {
-                        message: providerErr?.message || 'Provider launch failed',
-                    },
-                });
-                return res.status(502).json({
-                    success: false,
-                    message: providerErr?.message || 'Provider launch failed',
-                });
-            }
-        }
-
-        if (!game) {
-            auditLaunch(req, 'FAILED', { responseSummary: { message: 'Game not found' } });
-            return res.status(404).json({
-                success: false,
-                message: 'Game not found',
-            });
-        }
-        const active = game.status ? game.status === 'active' : !!game.isActive;
-        if (!active) {
-            auditLaunch(req, 'FAILED', { responseSummary: { message: 'Game is inactive' } });
+        if (user.isActive === false) {
             return res.status(403).json({
                 success: false,
-                message: 'Game is inactive',
+                message: 'Account suspended',
             });
         }
 
-        const displayName = resolveDisplayName(user);
-        const balance = Number(wallet.balance || 0);
-        const payload = {
-            operatorId: process.env.OPERATOR_ID,
-            userId: String(user._id),
-            balance,
-            gameId: String(game.gameId || localGameId).trim(),
-            username: displayName,
-        };
+        // Real launch = PROVIDER_BASE_URL + PROVIDER_LAUNCH_PATH (HMAC-signed)
+        const providerLaunch = await launchTeenPattiSession({
+            playerId: String(user._id),
+            gameCode: code,
+            currency: 'INR',
+        });
 
-        logger.info('[GAME] Launch request', { userId: String(user._id), gameId: payload.gameId });
-
-        let gapResponse = null;
-        let launchUrl = '';
-        let sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-
-        // Teen Patti / provider HMAC launch
-        if (isTeenPattiGame(game) || useProviderLaunch) {
-            try {
-                const providerLaunch = await launchTeenPattiSession({
-                    playerId: String(user._id),
-                    gameCode:
-                        providerGameCode ||
-                        process.env.TEENPATTI_GAME_CODE ||
-                        String(game.gameId || 'TEENPATTI'),
-                    currency: process.env.TEENPATTI_CURRENCY || 'INR',
-                });
-                launchUrl = providerLaunch.launchUrl;
-                if (providerLaunch.sessionId) {
-                    sessionId = providerLaunch.sessionId;
-                }
-                gapResponse = providerLaunch.raw;
-            } catch (providerErr) {
-                logger.error('[GAME] Teen Patti provider launch failed', {
-                    message: providerErr?.message,
-                    status: providerErr?.status,
-                });
-                auditLaunch(req, 'FAILED', {
-                    responseSummary: {
-                        message: providerErr?.message || 'Teen Patti launch failed',
-                    },
-                });
-                return res.status(502).json({
-                    success: false,
-                    message: providerErr?.message || 'Teen Patti launch failed',
-                });
-            }
-        // PotLudo: ?id=<JWT>&game_id=<n>
-        } else if (isPotLudoGame(game)) {
-            const authHeader = String(req.headers.authorization || '');
-            let userApiToken = '';
-            if (authHeader.toLowerCase().startsWith('bearer ')) {
-                const bearer = authHeader.slice(7).trim();
-                const decoded = verifyOperatorUserToken(bearer);
-                if (decoded?.id && String(decoded.id) === String(user._id)) {
-                    userApiToken = bearer;
-                }
-            }
-            if (!userApiToken) {
-                userApiToken = generateOperatorUserToken({
-                    id: String(user._id),
-                    phone: user.phone || '',
-                    username: displayName,
-                    name: displayName,
-                    balance,
-                    currency: 'INR',
-                    gameId: resolveOperatorLaunchGameId(game),
-                });
-            }
-
-            launchUrl = buildOperatorPlatformLaunchUrl(resolveOperatorLaunchBase(game), {
-                operatorToken: userApiToken,
-                gameId: resolveOperatorLaunchGameId(game),
-            });
-            if (!launchUrl) {
-                auditLaunch(req, 'FAILED', {
-                    responseSummary: { message: 'Invalid operator platform launch URL' },
-                });
-                return res.status(500).json({
-                    success: false,
-                    message: 'Invalid operator platform launch URL',
-                });
-            }
-        } else if (game.launchBaseUrl) {
-            // Ludo King / other self-hosted: rich query params (wallet + username + token)
-            const token = generateGameLaunchToken({
-                id: String(user._id),
-                phone: user.phone || '',
-                username: displayName,
-                name: displayName,
-                balance,
-                currency: 'INR',
-                gameId: payload.gameId,
-                sessionId,
-            });
-            launchUrl = buildSelfHostedLaunchUrl(game.launchBaseUrl, {
-                userId: String(user._id),
-                username: displayName,
-                phone: user.phone || '',
-                balance,
-                currency: 'INR',
-                gameId: payload.gameId,
-                sessionId,
-                token,
-                returnUrl: DEFAULT_RETURN_URL(),
-            });
-            if (!launchUrl) {
-                auditLaunch(req, 'FAILED', { responseSummary: { message: 'Invalid launchBaseUrl' } });
-                return res.status(500).json({
-                    success: false,
-                    message: 'Invalid launchBaseUrl on game',
-                });
-            }
-        } else {
-            try {
-                gapResponse = await gapRequest('/launch-game', payload);
-                launchUrl = gapResponse?.launchUrl || gapResponse?.data?.launchUrl || '';
-                sessionId = gapResponse?.sessionId || gapResponse?.data?.sessionId || sessionId;
-            } catch (providerErr) {
-                logger.warn('[GAME] GAP launch failed, using mock launch URL', { error: providerErr.message });
-            }
-
-            if (!launchUrl) {
-                launchUrl = `${process.env.GAP_BASE_URL || 'https://provider-game-url.com'}/session/${sessionId}?gameId=${encodeURIComponent(payload.gameId)}&userId=${encodeURIComponent(String(user._id))}`;
-            }
-        }
+        const sessionId =
+            providerLaunch.sessionId ||
+            `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
         await GameSession.create({
             userId: user._id,
-            gameId: payload.gameId,
+            gameId: code,
             sessionId: String(sessionId),
-            launchUrl: String(launchUrl),
-            provider: game.provider || 'GAP',
-            rawResponse: gapResponse,
+            launchUrl: String(providerLaunch.launchUrl),
+            provider: 'provider',
+            rawResponse: providerLaunch.raw,
         });
 
         auditLaunch(req, 'SUCCESS', {
-            responseSummary: { message: 'Game launch successful', sessionId: String(sessionId || '') },
+            responseSummary: {
+                message: 'Provider launch successful',
+                sessionId: String(sessionId),
+                gameCode: code,
+            },
         });
         return res.status(200).json({
             success: true,
-            launchUrl,
+            launchUrl: providerLaunch.launchUrl,
             sessionId,
             message: 'Game launch successful',
         });
     } catch (error) {
-        logger.error('[GAME] launch failed', { message: error?.message });
-        auditLaunch(req, 'FAILED', { responseSummary: { message: 'Failed to launch game' } });
-        return res.status(500).json({
+        logger.error('[GAME] launch failed', {
+            message: error?.message,
+            status: error?.status,
+        });
+        auditLaunch(req, 'FAILED', {
+            responseSummary: { message: error?.message || 'Failed to launch game' },
+        });
+        const status = 502;
+        return res.status(status).json({
             success: false,
-            message: 'Failed to launch game',
+            message: error?.message || 'Failed to launch game',
         });
     }
 };
