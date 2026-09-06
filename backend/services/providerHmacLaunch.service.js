@@ -7,16 +7,10 @@ import logger from '../utils/logger.js';
  * Env:
  *   OPERATOR_ID           — e.g. AAKDA-001
  *   API_KEY               — X-API-Key header
- *   API_SECRET            — shared secret (same value AWS Secrets Manager holds for the operator)
- *   PROVIDER_BASE_URL     — e.g. https://provider-1-bmsb.onrender.com
+ *   API_SECRET            — shared secret
+ *   OPERATOR_GAMES        — full enabled-games URL, e.g. https://games.dpbossking.com/api/v1/enabled-games
+ *   PROVIDER_BASE_URL     — launch host, e.g. https://launch.dpbossking.com
  *   PROVIDER_LAUNCH_PATH  — e.g. /api/v1/launch
- *
- * Launch (server → provider only; never from the browser):
- *   POST {PROVIDER_BASE_URL}{PROVIDER_LAUNCH_PATH}
- *   Payload = `{timestamp}\n{METHOD}\n{path}\n{rawBody}`
- *   Signature = HMAC-SHA256(API_SECRET, payload) as hex
- *
- * apiSecretPath is NOT sent in the launch request — provider resolves it via operatorId.
  */
 
 export function buildHmacSignature({ timestamp, method, path, rawBody, secret }) {
@@ -29,7 +23,7 @@ function providerConfig() {
     const baseUrl = String(
         process.env.PROVIDER_BASE_URL ||
             process.env.TEENPATTI_PROVIDER_BASE_URL ||
-            'https://provider-1-bmsb.onrender.com'
+            'https://launch.dpbossking.com'
     )
         .trim()
         .replace(/\/$/, '');
@@ -40,9 +34,15 @@ function providerConfig() {
             '/api/v1/launch'
     ).trim();
 
+    const operatorGamesUrl = String(
+        process.env.OPERATOR_GAMES ||
+            'https://games.dpbossking.com/api/v1/enabled-games'
+    ).trim();
+
     return {
         baseUrl,
         launchPath: launchPath.startsWith('/') ? launchPath : `/${launchPath}`,
+        operatorGamesUrl,
         apiKey: String(process.env.API_KEY || '').trim(),
         secret: String(process.env.API_SECRET || '').trim(),
         operatorId: String(process.env.OPERATOR_ID || '').trim(),
@@ -62,20 +62,22 @@ function buildCompactJson(obj) {
     return JSON.stringify(obj);
 }
 
-function buildLaunchBody({ operatorId, playerId, gameCode, currency }) {
-    // Fixed key order matches provider docs / curl examples.
+function buildLaunchBody({ operatorId, playerId, playerUsername, gameCode, currency }) {
+    // Fixed key order — HMAC signs this exact compact JSON string.
     return buildCompactJson({
         operatorId: String(operatorId),
         playerId: String(playerId),
+        playerUsername: String(playerUsername || ''),
         gameCode: String(gameCode),
         currency: String(currency || 'INR'),
     });
 }
 
-async function signedProviderRequest({ method, path, rawBody = '' }) {
+async function signedProviderRequest({ method, path, rawBody = '', baseUrl }) {
     const cfg = providerConfig();
     requireProviderAuth(cfg);
 
+    const host = String(baseUrl || cfg.baseUrl).replace(/\/$/, '');
     const timestamp = String(Math.floor(Date.now() / 1000));
     const { signature } = buildHmacSignature({
         timestamp,
@@ -85,7 +87,7 @@ async function signedProviderRequest({ method, path, rawBody = '' }) {
         secret: cfg.secret,
     });
 
-    const url = `${cfg.baseUrl}${path}`;
+    const url = `${host}${path}`;
     const headers = {
         Accept: 'application/json',
         'X-API-Key': cfg.apiKey,
@@ -237,17 +239,37 @@ export function normalizeProviderGames(payload) {
 }
 
 /**
- * GET /api/v1/enabled-games?operatorId=AAKDA-001
+ * GET {OPERATOR_GAMES}?operatorId=AAKDA-001
+ * e.g. https://games.dpbossking.com/api/v1/enabled-games?operatorId=AAKDA-001
  */
 export async function fetchEnabledGames() {
     const cfg = providerConfig();
     requireProviderAuth(cfg);
 
-    const path = `/api/v1/enabled-games?operatorId=${encodeURIComponent(cfg.operatorId)}`;
+    if (!cfg.operatorGamesUrl) {
+        throw new Error('OPERATOR_GAMES is not configured');
+    }
+
+    let gamesUrl;
+    try {
+        gamesUrl = new URL(
+            cfg.operatorGamesUrl.includes('://')
+                ? cfg.operatorGamesUrl
+                : `https://${cfg.operatorGamesUrl}`
+        );
+    } catch {
+        throw new Error('OPERATOR_GAMES is not a valid URL');
+    }
+
+    gamesUrl.searchParams.set('operatorId', cfg.operatorId);
+    const pathWithQuery = `${gamesUrl.pathname}${gamesUrl.search}`;
+    const baseUrl = gamesUrl.origin;
+
     const { response, data } = await signedProviderRequest({
         method: 'GET',
-        path,
+        path: pathWithQuery,
         rawBody: '',
+        baseUrl,
     });
 
     if (!response.ok) {
@@ -272,7 +294,8 @@ export async function fetchEnabledGames() {
 
 /**
  * Call provider POST {PROVIDER_LAUNCH_PATH} with HMAC headers + compact JSON body.
- * @param {{ playerId: string, gameCode?: string, currency?: string, operatorId?: string }} input
+ * Body: { operatorId, playerId, playerUsername, gameCode, currency }
+ * @param {{ playerId: string, playerUsername?: string, gameCode?: string, currency?: string, operatorId?: string }} input
  */
 export async function launchTeenPattiSession(input = {}) {
     const cfg = providerConfig();
@@ -283,10 +306,16 @@ export async function launchTeenPattiSession(input = {}) {
         throw new Error('playerId is required for provider launch');
     }
 
+    const playerUsername = String(input.playerUsername || '').trim();
+    if (!playerUsername) {
+        throw new Error('playerUsername is required for provider launch');
+    }
+
     // One-line compact JSON only — pretty JSON breaks HMAC verification.
     const rawBody = buildLaunchBody({
         operatorId: input.operatorId || cfg.operatorId,
         playerId,
+        playerUsername,
         gameCode: String(input.gameCode || cfg.gameCode).trim().toUpperCase(),
         currency: String(input.currency || cfg.currency).trim().toUpperCase() || 'INR',
     });
@@ -316,7 +345,6 @@ export async function launchTeenPattiSession(input = {}) {
             body: data,
         });
         const err = new Error(String(message));
-        // Never surface upstream 404 as "our route missing" — keep 502 Bad Gateway.
         err.status = 502;
         err.providerStatus = response.status;
         err.providerBody = data;

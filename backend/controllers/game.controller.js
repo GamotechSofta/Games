@@ -186,7 +186,7 @@ function resolveLaunchUserId(req) {
  * Thin proxy to the provider HMAC launch API:
  *   POST {PROVIDER_BASE_URL}{PROVIDER_LAUNCH_PATH}
  *   Headers: X-API-Key, X-Timestamp, X-Signature
- *   Body: { operatorId, playerId, gameCode, currency }
+ *   Body: { operatorId, playerId, playerUsername, gameCode, currency }
  *
  * Browser must not call the provider directly (API_SECRET stays server-side).
  * Auth: Bearer user token
@@ -227,7 +227,7 @@ export const launchGame = async (req, res) => {
         }
 
         const user = await User.findById(userId)
-            .select('_id isActive')
+            .select('_id username phone firstName lastName name isActive')
             .lean();
         if (!user) {
             auditLaunch(req, 'FAILED', { responseSummary: { message: 'User not found' } });
@@ -243,9 +243,12 @@ export const launchGame = async (req, res) => {
             });
         }
 
+        const playerUsername = resolveDisplayName(user);
+
         // Real launch = PROVIDER_BASE_URL + PROVIDER_LAUNCH_PATH (HMAC-signed)
         const providerLaunch = await launchTeenPattiSession({
             playerId: String(user._id),
+            playerUsername,
             gameCode: code,
             currency: 'INR',
         });
@@ -268,6 +271,7 @@ export const launchGame = async (req, res) => {
                 message: 'Provider launch successful',
                 sessionId: String(sessionId),
                 gameCode: code,
+                playerUsername,
             },
         });
         return res.status(200).json({
@@ -432,7 +436,7 @@ export const listActiveGames = async (req, res) => {
 /**
  * GET /api/game/enabled
  * Proxies provider:
- *   GET {PROVIDER_BASE_URL}/api/v1/enabled-games?operatorId={OPERATOR_ID}
+ *   GET {OPERATOR_GAMES}?operatorId={OPERATOR_ID}
  */
 export const listProviderEnabledGames = async (req, res) => {
     try {

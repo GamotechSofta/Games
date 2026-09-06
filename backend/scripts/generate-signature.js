@@ -8,7 +8,7 @@ if (!timestamp || !secret || bodyParts.length === 0) {
   node scripts/generate-signature.js POST /api/v1/launch <timestamp> <secret> '<json-body>'
 
 Example:
-  node scripts/generate-signature.js POST /api/v1/launch 1725440000 sk_live_test '{"operatorId":"AAKDA-001","playerId":"P1001","gameCode":"TEENPATTI","currency":"INR"}'
+  node scripts/generate-signature.js POST /api/v1/launch 1725440000 sk_live_test '{"operatorId":"AAKDA-001","playerId":"P1001","playerUsername":"john_doe","gameCode":"TEENPATTI","currency":"INR"}'
 `);
   process.exit(1);
 }
