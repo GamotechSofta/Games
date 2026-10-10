@@ -86,7 +86,7 @@ export async function authenticateUser({ username, userId, currency = 'INR', clo
 
 /** Fetch the providers list. */
 export async function getProviders() {
-  return providerPost();
+  return providerPost({ opType: OP_TYPES.PROVIDERS });
 }
 
 /** Fetch the game list. */

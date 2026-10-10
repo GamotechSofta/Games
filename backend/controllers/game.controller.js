@@ -8,6 +8,7 @@ import { gapRequest } from '../services/gap.service.js';
 import {
     authenticateUser,
     getGameList,
+    getProviders,
     buildLaunchUrl,
     CALLBACK_OP_TYPES,
 } from '../services/casinoProvider.service.js';
@@ -447,10 +448,29 @@ export const listActiveGames = async (req, res) => {
 export const listProviderEnabledGames = async (req, res) => {
     try {
         const result = await getGameList();
+        let gamesList = Array.isArray(result?.games)
+            ? result.games
+            : Array.isArray(result?.data)
+            ? result.data
+            : Array.isArray(result?.message)
+            ? result.message
+            : Array.isArray(result)
+            ? result
+            : [];
+
+        const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
+        const parsedPage = Number.parseInt((req.query.page || '').toString(), 10);
+
+        if (Number.isFinite(parsedLimit) && parsedLimit > 0) {
+            const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+            const start = (page - 1) * parsedLimit;
+            gamesList = gamesList.slice(start, start + parsedLimit);
+        }
+
         return res.status(200).json({
             success: true,
             operatorId: process.env.OPERATOR_ID,
-            data: result?.games || result?.data || result,
+            data: gamesList,
         });
     } catch (error) {
         logger.error('[GAME] enabled-games failed', {
@@ -460,6 +480,39 @@ export const listProviderEnabledGames = async (req, res) => {
         return res.status(error?.status && error.status >= 400 ? error.status : 502).json({
             success: false,
             message: error?.message || 'Failed to load provider games',
+        });
+    }
+};
+
+/**
+ * GET /api/game/providers
+ * Returns list of casino providers (opType 1070)
+ */
+export const listProviders = async (req, res) => {
+    try {
+        const result = await getProviders();
+        const providersList = Array.isArray(result?.providers)
+            ? result.providers
+            : Array.isArray(result?.data)
+            ? result.data
+            : Array.isArray(result?.message)
+            ? result.message
+            : Array.isArray(result)
+            ? result
+            : [];
+        return res.status(200).json({
+            success: true,
+            operatorId: process.env.OPERATOR_ID,
+            data: providersList,
+        });
+    } catch (error) {
+        logger.error('[GAME] providers list failed', {
+            message: error?.message,
+            status: error?.status,
+        });
+        return res.status(error?.status && error.status >= 400 ? error.status : 502).json({
+            success: false,
+            message: error?.message || 'Failed to load providers',
         });
     }
 };

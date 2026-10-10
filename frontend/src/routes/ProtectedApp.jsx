@@ -45,6 +45,7 @@ const StarlineMarket = lazy(() => import('../pages/StarlineMarket'));
 const KingBazaarMarket = lazy(() => import('../pages/KingBazaarMarket'));
 const GameRate = lazy(() => import('../pages/GameRate'));
 const Games = lazy(() => import('../pages/Games'));
+const Providers = lazy(() => import('../pages/Providers'));
 const Wallet = lazy(() => import('../pages/Wallet'));
 const AdminDashboard = lazy(() => import('../admin/AdminDashboard'));
 const GameManager = lazy(() => import('../admin/GameManager'));
@@ -329,6 +330,7 @@ export default function ProtectedApp() {
             <Route path="/top-winners" element={<TopWinners />} />
             <Route path="/game-rate" element={<GameRate />} />
             <Route path="/games" element={<Games />} />
+            <Route path="/providers" element={<Providers />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/protected-example" element={<ProtectedRoute><ProtectedDemo /></ProtectedRoute>} />
             <Route path="/admin-panel" element={<Navigate to="/admin-panel/dashboard" replace />} />

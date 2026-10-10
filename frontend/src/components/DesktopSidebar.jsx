@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
+import { FaLayerGroup } from 'react-icons/fa';
 import {
   DashboardIcon,
   HiHome,
@@ -63,6 +64,12 @@ const MAIN_NAV = [
     labelKey: 'markets.casinoGames',
     path: '/games',
     icon: IconCasinoFilled,
+  },
+  {
+    id: 'providers',
+    labelKey: 'sidebar.providers',
+    path: '/providers',
+    icon: FaLayerGroup,
   },
 ];
 
