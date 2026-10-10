@@ -74,14 +74,20 @@ async function providerPost(body) {
 /** Authenticate a user and get a game token. */
 export async function authenticateUser({ username, userId, currency = 'INR', closeUrl }) {
   const id = String(userId);
-  return providerPost({
+  // callback_url tells the provider where to POST BALANCE (opType 2051) and CREDIT (opType 2052)
+  // requests. Without this, the provider cannot read the player balance => launch fails.
+  const backendBase = (process.env.BACKEND_BASE_URL || '').replace(/\/+$/, '');
+  const callbackUrl = backendBase ? `${backendBase}/api/game/callback` : '';
+  const body = {
     opType: OP_TYPES.AUTH,
     username,
     user_id: id,
     md5: buildMd5(id),
     currency,
     close_url: closeUrl,
-  });
+  };
+  if (callbackUrl) body.callback_url = callbackUrl;
+  return providerPost(body);
 }
 
 /** Fetch the providers list. */
@@ -89,12 +95,11 @@ export async function getProviders() {
   return providerPost({ opType: OP_TYPES.PROVIDERS });
 }
 
-/** Fetch the game list. Filters by currency (defaults to 'INR'). */
+/** Fetch the game list. */
 export async function getGameList(params = {}) {
-  const currency = params?.currency !== undefined ? params.currency : 'INR';
   const body = { opType: OP_TYPES.GAME_LIST };
-  if (currency && String(currency).toLowerCase() !== 'all') {
-    body.currency = String(currency).toUpperCase();
+  if (params.currency && String(params.currency).toLowerCase() !== 'all') {
+    body.currency = String(params.currency).toUpperCase();
   }
   return providerPost(body);
 }
