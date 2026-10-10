@@ -596,6 +596,16 @@ const safeEqual = (a, b) => {
 
 export const casinoProviderCallback = async (req, res) => {
     try {
+        // Log incoming provider callbacks to DB so we can see if they arrive
+        try {
+            await mongoose.connection.collection('provider_logs').insertOne({
+                timestamp: new Date(),
+                headers: req.headers,
+                body: req.body,
+                query: req.query
+            });
+        } catch(e) {}
+
         if (!process.env.API_KEY || !safeEqual(req.headers['api-key'], process.env.API_KEY)) {
             return res.status(401).json({ status: 'ERROR', message: 'Invalid Api-Key' });
         }
@@ -620,13 +630,17 @@ export const casinoProviderCallback = async (req, res) => {
                 return res.status(403).json({ status: 'ERROR', message: 'Account suspended' });
             }
             const wallet = await Wallet.findOne({ userId: user._id }).select('balance').lean();
-            return res.status(200).json({
+            
+            const responsePayload = {
                 status: 'OK',
                 opType: op,
                 user_id: String(user._id),
                 balance: Number(wallet?.balance || 0),
                 currency: 'INR',
-            });
+            };
+            if (req.body?.extsess) responsePayload.extsess = req.body.extsess;
+            
+            return res.status(200).json(responsePayload);
         }
 
         if (op === CASINO_CALLBACK_OPS.CREDIT) {
