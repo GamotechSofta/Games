@@ -64,6 +64,12 @@ const MAIN_NAV = [
     path: '/markets',
     icon: HiCurrencyDollar,
   },
+  {
+    id: 'all-casino-games',
+    labelKey: 'markets.casinoGames',
+    path: '/games',
+    icon: IconCasinoFilled,
+  },
 ];
 
 const ACCOUNT_NAV = [

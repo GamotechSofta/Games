@@ -46,5 +46,4 @@ router.post('/debit', walletLimiter, verifyGapSignature, debitWallet);
 router.post('/credit', walletLimiter, verifyGapSignature, creditWallet);
 router.post('/rollback', walletLimiter, verifyGapSignature, rollbackWallet);
 router.get('/transaction/:transactionId', walletLimiter, verifyLookupAccess, getWalletTransactionById);
-
 export default router;

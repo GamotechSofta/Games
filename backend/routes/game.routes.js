@@ -1,5 +1,5 @@
 import express from 'express';
-import { launchGame, addGame, listGames, toggleGame, listActiveGames, updateGame, listProviderEnabledGames } from '../controllers/game.controller.js';
+import { launchGame, addGame, listGames, toggleGame, listActiveGames, updateGame, listProviderEnabledGames, casinoProviderCallback } from '../controllers/game.controller.js';
 import { verifyAdmin } from '../middleware/adminAuth.js';
 
 const gameRoutes = express.Router();
@@ -16,6 +16,7 @@ gameRoutes.get('/health', (req, res) => {
 gameRoutes.post('/launch', launchGame);
 gameRoutes.get('/list', listActiveGames);
 gameRoutes.get('/enabled', listProviderEnabledGames);
+gameRoutes.post('/callback', casinoProviderCallback);
 
 // Admin game management
 adminGameRoutes.post('/add', verifyAdmin, addGame);

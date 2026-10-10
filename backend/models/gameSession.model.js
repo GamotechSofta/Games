@@ -20,6 +20,12 @@ const gameSessionSchema = new mongoose.Schema(
             trim: true,
             index: true,
         },
+        providerToken: {
+            type: String,
+            default: '',
+            trim: true,
+            index: true,
+        },
         launchUrl: {
             type: String,
             default: '',

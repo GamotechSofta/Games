@@ -1,13 +1,16 @@
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import User from '../models/user/user.js';
-import { Wallet } from '../models/wallet/wallet.js';
+import { Wallet, WalletTransaction } from '../models/wallet/wallet.js';
 import Game from '../models/game.model.js';
 import GameSession from '../models/gameSession.model.js';
 import { gapRequest } from '../services/gap.service.js';
 import {
-    launchTeenPattiSession,
-    fetchEnabledGames,
-} from '../services/providerHmacLaunch.service.js';
+    authenticateUser,
+    getGameList,
+    buildLaunchUrl,
+    CALLBACK_OP_TYPES,
+} from '../services/casinoProvider.service.js';
 import {
     generateOperatorUserToken,
     generateGameLaunchToken,
@@ -183,12 +186,10 @@ function resolveLaunchUserId(req) {
 /**
  * POST /api/game/launch
  *
- * Thin proxy to the provider HMAC launch API:
- *   POST {PROVIDER_BASE_URL}{PROVIDER_LAUNCH_PATH}
- *   Headers: X-API-Key, X-Timestamp, X-Signature
- *   Body: { operatorId, playerId, playerUsername, gameCode, currency }
+ * Authenticates the user with the casino provider (opType 1050) to get a token,
+ * then builds LAUNCHER_URL/{partner_code}/launch/{gid}/{token}.
  *
- * Browser must not call the provider directly (API_SECRET stays server-side).
+ * Browser must not call the provider directly (API_KEY stays server-side).
  * Auth: Bearer user token
  * Body: { gameCode }
  */
@@ -198,7 +199,7 @@ export const launchGame = async (req, res) => {
         auditLaunch(req, 'REQUESTED');
 
         const userId = resolveLaunchUserId(req);
-        const code = String(gameCode || gameId || '').trim().toUpperCase();
+        const code = String(gameCode || gameId || '').trim();
 
         if (!userId) {
             auditLaunch(req, 'FAILED', {
@@ -245,23 +246,29 @@ export const launchGame = async (req, res) => {
 
         const playerUsername = resolveDisplayName(user);
 
-        // Real launch = PROVIDER_BASE_URL + PROVIDER_LAUNCH_PATH (HMAC-signed)
-        const providerLaunch = await launchTeenPattiSession({
-            playerId: String(user._id),
-            playerUsername,
-            gameCode: code,
+        const authRes = await authenticateUser({
+            username: playerUsername,
+            userId: String(user._id),
             currency: 'INR',
+            closeUrl: DEFAULT_RETURN_URL(),
         });
+        const providerToken = authRes?.token || authRes?.data?.token;
+        if (!providerToken) {
+            throw new Error(authRes?.message || authRes?.error || 'Provider did not return a token');
+        }
+        const providerLaunch = {
+            launchUrl: buildLaunchUrl(code, providerToken),
+            raw: authRes,
+        };
 
-        const sessionId =
-            providerLaunch.sessionId ||
-            `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+        const sessionId = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
         await GameSession.create({
             userId: user._id,
             gameId: code,
             sessionId: String(sessionId),
             launchUrl: String(providerLaunch.launchUrl),
+            providerToken: String(providerToken),
             provider: 'provider',
             rawResponse: providerLaunch.raw,
         });
@@ -435,16 +442,15 @@ export const listActiveGames = async (req, res) => {
 
 /**
  * GET /api/game/enabled
- * Proxies provider:
- *   GET {OPERATOR_GAMES}?operatorId={OPERATOR_ID}
+ * Proxies provider game list (opType 1071).
  */
 export const listProviderEnabledGames = async (req, res) => {
     try {
-        const result = await fetchEnabledGames();
+        const result = await getGameList();
         return res.status(200).json({
             success: true,
-            operatorId: result.operatorId,
-            data: result.games,
+            operatorId: process.env.OPERATOR_ID,
+            data: result?.games || result?.data || result,
         });
     } catch (error) {
         logger.error('[GAME] enabled-games failed', {
@@ -496,5 +502,116 @@ export const toggleGame = async (req, res) => {
             success: false,
             message: error.message || 'Failed to toggle game status',
         });
+    }
+};
+
+/**
+ * POST /api/game/callback  (provider -> our platform wallet endpoint)
+ * Header: Api-Key (must equal API_KEY)
+ * Body: { opType, token, user_id, extsess }
+ *   opType 2051 = balance request
+ */
+const CASINO_CALLBACK_OPS = CALLBACK_OP_TYPES;
+const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+const safeEqual = (a, b) => {
+    const x = Buffer.from(String(a || ''));
+    const y = Buffer.from(String(b || ''));
+    return x.length === y.length && crypto.timingSafeEqual(x, y);
+};
+
+export const casinoProviderCallback = async (req, res) => {
+    try {
+        if (!process.env.API_KEY || !safeEqual(req.headers['api-key'], process.env.API_KEY)) {
+            return res.status(401).json({ status: 'ERROR', message: 'Invalid Api-Key' });
+        }
+
+        const { opType, user_id: providerUserId } = req.body || {};
+        const op = Number(opType);
+
+        if (op === CASINO_CALLBACK_OPS.BALANCE) {
+            if (!isValidObjectId(providerUserId)) {
+                return res.status(400).json({ status: 'ERROR', message: 'Invalid user_id' });
+            }
+            const user = await User.findById(providerUserId).select('_id isActive').lean();
+            if (!user) {
+                return res.status(404).json({ status: 'ERROR', message: 'User not found' });
+            }
+            if (user.isActive === false) {
+                return res.status(403).json({ status: 'ERROR', message: 'Account suspended' });
+            }
+            const wallet = await Wallet.findOne({ userId: user._id }).select('balance').lean();
+            return res.status(200).json({
+                status: 'OK',
+                opType: op,
+                user_id: String(user._id),
+                balance: Number(wallet?.balance || 0),
+                currency: 'INR',
+            });
+        }
+
+        if (op === CASINO_CALLBACK_OPS.CREDIT) {
+            const { token, tranid } = req.body || {};
+            const bet = round2(req.body?.bet || 0);
+            const win = round2(req.body?.win || 0);
+            if (!token || tranid == null || bet < 0 || win < 0 || !Number.isFinite(bet + win)) {
+                return res.status(400).json({ status: 'ERROR', message: 'Invalid token, tranid, bet or win' });
+            }
+
+            const session = await GameSession.findOne({ providerToken: String(token) })
+                .select('userId')
+                .lean();
+            if (!session) {
+                return res.status(404).json({ status: 'ERROR', message: 'Invalid token' });
+            }
+            const userId = session.userId;
+            const ref = `casino:${tranid}`;
+            const respond = async (extra = {}) => {
+                const w = await Wallet.findOne({ userId }).select('balance').lean();
+                return res.status(200).json({
+                    status: 'OK',
+                    opType: op,
+                    tranid,
+                    balance: Number(w?.balance || 0),
+                    currency: 'INR',
+                    ...extra,
+                });
+            };
+
+            // Idempotency: provider may retry the same tranid.
+            if (await WalletTransaction.exists({ userId, referenceId: ref })) {
+                return respond({ duplicate: true });
+            }
+
+            const net = round2(win - bet);
+            const updated = await Wallet.findOneAndUpdate(
+                net < 0 ? { userId, balance: { $gte: -net } } : { userId },
+                { $inc: { balance: net } },
+                { new: true }
+            );
+            if (!updated) {
+                return res.status(402).json({ status: 'ERROR', message: 'Insufficient funds' });
+            }
+
+            const meta = `${req.body?.game_type || 'game'} gid:${req.body?.gid ?? ''}`;
+            const txs = [];
+            if (bet > 0) txs.push({ userId, type: 'debit', amount: bet, description: `Casino bet ${meta}`, referenceId: ref });
+            if (win > 0) txs.push({ userId, type: 'credit', amount: win, description: `Casino win ${meta}`, referenceId: ref });
+            if (txs.length === 0) txs.push({ userId, type: 'credit', amount: 0, description: `Casino round ${meta}`, referenceId: ref });
+            await WalletTransaction.insertMany(txs);
+
+            return res.status(200).json({
+                status: 'OK',
+                opType: op,
+                tranid,
+                balance: Number(updated.balance),
+                currency: 'INR',
+            });
+        }
+
+        return res.status(400).json({ status: 'ERROR', message: `Unsupported opType ${opType}` });
+    } catch (error) {
+        logger.error('[GAME] provider callback failed', { message: error?.message });
+        return res.status(500).json({ status: 'ERROR', message: 'Internal error' });
     }
 };
