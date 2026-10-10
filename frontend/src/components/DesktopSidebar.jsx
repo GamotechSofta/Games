@@ -41,12 +41,6 @@ const MAIN_NAV = [
     icon: HiHome,
   },
   {
-    id: 'games',
-    labelKey: 'sidebar.games',
-    path: '/games',
-    icon: IconCasinoFilled,
-  },
-  {
     id: 'starline',
     labelKey: 'markets.starline',
     path: '/startline-dashboard',
