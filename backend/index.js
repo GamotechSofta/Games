@@ -20,6 +20,7 @@ import helpDeskRoutes from './routes/helpDesk/helpDeskRoutes.js';
 import dashboardRoutes from './routes/dashboard/dashboardRoutes.js';
 import rateRoutes from './routes/rate/rateRoutes.js';
 import gameRoutes, { adminGameRoutes } from './routes/game.routes.js';
+import { casinoProviderCallback } from './controllers/game.controller.js';
 import bankDetailRoutes from './routes/bankDetail/bankDetailRoutes.js';
 import commissionRoutes from './routes/commission/commissionRoutes.js';
 import settlementRoutes from './routes/settlement/settlementRoutes.js';
@@ -226,6 +227,31 @@ app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/wallet', gapWalletRoutes);
 app.use('/api/game', gameRoutes);
 app.use('/api/v1/game', gameRoutes);
+
+// ── Chimera Hub callback aliases ──────────────────────────────────────────
+// Chimera Hub was given https://api.aakda.in as base URL.
+// They may append any of these standard paths for wallet callbacks.
+// All routes below forward to the same casinoProviderCallback handler.
+const CHIMERA_CB_PATHS = [
+    '/callback',
+    '/wallet',
+    '/wallet/callback',
+    '/balance',
+    '/credit',
+    '/debit',
+    '/casino/callback',
+    '/game/callback',
+    '/provider/callback',
+    '/api/callback',
+    '/api/balance',
+    '/api/credit',
+    '/api/debit',
+];
+for (const p of CHIMERA_CB_PATHS) {
+    app.post(p, casinoProviderCallback);
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.use('/api/admin/game', adminGameRoutes);
 app.use('/api/v1/admin/game', adminGameRoutes);
 app.use('/api/v1/reports', reportRoutes);
