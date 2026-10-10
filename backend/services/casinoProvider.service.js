@@ -94,12 +94,22 @@ export async function getGameList() {
   return providerPost({ opType: OP_TYPES.GAME_LIST });
 }
 
-/** Build the launch URL: LAUNCHER_URL/[partner_code]/launch/[gid]/[token] */
+/** Build the launch URL: providerBaseURL/[:partner_code]/launch/[:gid]/[:token] */
 export function buildLaunchUrl(gid, token) {
-  const { partnerCode } = cfg();
-  const launcher = (process.env.LAUNCHER_URL || '').replace(/\/+$/, '');
-  if (!launcher) throw new Error('LAUNCHER_URL env is missing');
-  return `${launcher}/${partnerCode}/launch/${encodeURIComponent(gid)}/${encodeURIComponent(token)}`;
+  const { baseUrl, partnerCode } = cfg();
+  let launcherBase = (process.env.LAUNCHER_URL || '').trim().replace(/\/+$/, '');
+  if (!launcherBase) {
+    try {
+      launcherBase = new URL(baseUrl).origin;
+    } catch {
+      launcherBase = baseUrl.replace(/\/+$/, '');
+    }
+  }
+  // Strip trailing /${partnerCode} if launcherBase already contains it to prevent duplication
+  if (launcherBase.endsWith(`/${partnerCode}`)) {
+    launcherBase = launcherBase.slice(0, -(`/${partnerCode}`.length));
+  }
+  return `${launcherBase}/${encodeURIComponent(partnerCode)}/launch/${encodeURIComponent(gid)}/${encodeURIComponent(token)}`;
 }
 
 export default { authenticateUser, getProviders, getGameList, buildLaunchUrl, buildMd5 };

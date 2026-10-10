@@ -192,15 +192,15 @@ function resolveLaunchUserId(req) {
  *
  * Browser must not call the provider directly (API_KEY stays server-side).
  * Auth: Bearer user token
- * Body: { gameCode }
+ * Body: { gameCode } or { gid } or { gameId }
  */
 export const launchGame = async (req, res) => {
     try {
-        const { gameId, gameCode } = req.body || {};
+        const { gameId, gameCode, gid } = req.body || {};
         auditLaunch(req, 'REQUESTED');
 
         const userId = resolveLaunchUserId(req);
-        const code = String(gameCode || gameId || '').trim();
+        const code = String(gid || gameCode || gameId || '').trim();
 
         if (!userId) {
             auditLaunch(req, 'FAILED', {
@@ -213,11 +213,11 @@ export const launchGame = async (req, res) => {
         }
         if (!code) {
             auditLaunch(req, 'FAILED', {
-                responseSummary: { message: 'gameCode is required' },
+                responseSummary: { message: 'Game ID (gid or gameCode) is required' },
             });
             return res.status(400).json({
                 success: false,
-                message: 'gameCode is required',
+                message: 'Game ID (gid or gameCode) is required',
             });
         }
         if (!isValidObjectId(userId)) {
@@ -253,9 +253,16 @@ export const launchGame = async (req, res) => {
             currency: 'INR',
             closeUrl: DEFAULT_RETURN_URL(),
         });
-        const providerToken = authRes?.token || authRes?.data?.token;
+        const providerToken =
+            authRes?.token ||
+            authRes?.data?.token ||
+            (authRes?.status && typeof authRes?.message === 'string' ? authRes.message : null);
         if (!providerToken) {
-            throw new Error(authRes?.message || authRes?.error || 'Provider did not return a token');
+            throw new Error(
+                (typeof authRes?.message === 'string' && !authRes?.status ? authRes.message : null) ||
+                authRes?.error ||
+                'Provider did not return a token'
+            );
         }
         const providerLaunch = {
             launchUrl: buildLaunchUrl(code, providerToken),
@@ -611,13 +618,16 @@ export const casinoProviderCallback = async (req, res) => {
                 return res.status(400).json({ status: 'ERROR', message: 'Invalid token, tranid, bet or win' });
             }
 
-            const session = await GameSession.findOne({ providerToken: String(token) })
-                .select('userId')
-                .lean();
-            if (!session) {
-                return res.status(404).json({ status: 'ERROR', message: 'Invalid token' });
+            let session = null;
+            if (token) {
+                session = await GameSession.findOne({ providerToken: String(token) })
+                    .select('userId')
+                    .lean();
             }
-            const userId = session.userId;
+            const userId = session?.userId || (req.body?.user_id && isValidObjectId(req.body.user_id) ? req.body.user_id : null);
+            if (!userId) {
+                return res.status(404).json({ status: 'ERROR', message: 'Invalid token or user' });
+            }
             const ref = `casino:${tranid}`;
             const respond = async (extra = {}) => {
                 const w = await Wallet.findOne({ userId }).select('balance').lean();

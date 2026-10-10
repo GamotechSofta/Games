@@ -243,7 +243,7 @@ const Games = () => {
       setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
       return;
     }
-    const gameCode = String(game?.gameCode || game?.gameId || game?.id || '').trim();
+    const gameCode = String(game?.gid || game?.gameCode || game?.gameId || game?.id || '').trim();
     if (!gameCode) return;
 
     setError('');
@@ -255,7 +255,7 @@ const Games = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ gameCode }),
+        body: JSON.stringify({ gameCode, gid: gameCode }),
       });
       const data = await res.json();
       if (!res.ok || !data?.success || !data?.launchUrl) {
