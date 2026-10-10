@@ -121,6 +121,30 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(limitApiConcurrency);
 
+// ── Chimera Hub request spy ────────────────────────────────────────────────
+// Logs EVERY request from the provider IP so we can see exactly what
+// path/method they call for balance/credit callbacks.
+const CHIMERA_IP = '144.48.177.154';
+app.use((req, res, next) => {
+    const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip || '';
+    if (String(ip).includes(CHIMERA_IP)) {
+        import('mongoose').then(({ default: mongoose }) => {
+            mongoose.connection.collection('chimera_requests').insertOne({
+                timestamp: new Date(),
+                method: req.method,
+                path: req.originalUrl,
+                headers: req.headers,
+                body: req.body,
+                query: req.query,
+            }).catch(() => {});
+        }).catch(() => {});
+        console.log(`[CHIMERA-SPY] ${req.method} ${req.originalUrl} | body:${JSON.stringify(req.body)}`);
+    }
+    next();
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
