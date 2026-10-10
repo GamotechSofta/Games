@@ -20,7 +20,7 @@ const Providers = () => {
     setError('');
     try {
       // 1. Fetch enabled games to calculate exact game count per provider
-      const gamesRes = await fetch(`${BACKEND_BASE_URL}/api/game/enabled`).catch(() => null);
+      const gamesRes = await fetch(`${BACKEND_BASE_URL}/api/game/enabled?currency=INR`).catch(() => null);
       let gamesList = [];
       if (gamesRes && gamesRes.ok) {
         const gamesData = await gamesRes.json();
@@ -86,16 +86,18 @@ const Providers = () => {
         });
       }
 
-      // 4. Merge game counts & sort by game count descending
-      const enriched = providerItems.map((p) => {
-        const nameKey = String(p.name || '').trim().toLowerCase();
-        const codeKey = String(p.code || '').trim().toLowerCase();
-        const count = countMap.get(nameKey) || countMap.get(codeKey) || 0;
-        return {
-          ...p,
-          gameCount: count,
-        };
-      });
+      // 4. Merge game counts & sort by game count descending (only active providers)
+      const enriched = providerItems
+        .map((p) => {
+          const nameKey = String(p.name || '').trim().toLowerCase();
+          const codeKey = String(p.code || '').trim().toLowerCase();
+          const count = countMap.get(nameKey) || countMap.get(codeKey) || 0;
+          return {
+            ...p,
+            gameCount: count,
+          };
+        })
+        .filter((p) => p.gameCount > 0);
 
       enriched.sort((a, b) => b.gameCount - a.gameCount || a.name.localeCompare(b.name));
       setProviders(enriched);

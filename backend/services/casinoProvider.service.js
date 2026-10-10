@@ -89,9 +89,14 @@ export async function getProviders() {
   return providerPost({ opType: OP_TYPES.PROVIDERS });
 }
 
-/** Fetch the game list. */
-export async function getGameList() {
-  return providerPost({ opType: OP_TYPES.GAME_LIST });
+/** Fetch the game list. Filters by currency (defaults to 'INR'). */
+export async function getGameList(params = {}) {
+  const currency = params?.currency !== undefined ? params.currency : 'INR';
+  const body = { opType: OP_TYPES.GAME_LIST };
+  if (currency && String(currency).toLowerCase() !== 'all') {
+    body.currency = String(currency).toUpperCase();
+  }
+  return providerPost(body);
 }
 
 /** Build the launch URL: providerBaseURL/[:partner_code]/launch/[:gid]/[:token] */

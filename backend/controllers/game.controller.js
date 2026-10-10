@@ -454,7 +454,9 @@ export const listActiveGames = async (req, res) => {
  */
 export const listProviderEnabledGames = async (req, res) => {
     try {
-        const result = await getGameList();
+        const currencyQuery = req.query.currency !== undefined ? String(req.query.currency).trim() : 'INR';
+        const targetCur = currencyQuery && currencyQuery.toLowerCase() !== 'all' ? currencyQuery.toUpperCase() : null;
+        const result = await getGameList(targetCur ? { currency: targetCur } : { currency: null });
         let gamesList = Array.isArray(result?.games)
             ? result.games
             : Array.isArray(result?.data)
@@ -464,6 +466,16 @@ export const listProviderEnabledGames = async (req, res) => {
             : Array.isArray(result)
             ? result
             : [];
+
+        // Secondary defense: if a game object explicitly specifies a non-empty currencies array, verify targetCur is included
+        if (targetCur) {
+            gamesList = gamesList.filter((g) => {
+                if (Array.isArray(g?.currencies) && g.currencies.length > 0) {
+                    return g.currencies.some((c) => String(c).toUpperCase() === targetCur);
+                }
+                return true;
+            });
+        }
 
         const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
         const parsedPage = Number.parseInt((req.query.page || '').toString(), 10);
@@ -477,6 +489,8 @@ export const listProviderEnabledGames = async (req, res) => {
         return res.status(200).json({
             success: true,
             operatorId: process.env.OPERATOR_ID,
+            currency: targetCur || 'ALL',
+            total: gamesList.length,
             data: gamesList,
         });
     } catch (error) {

@@ -100,7 +100,7 @@ const Games = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_BASE_URL}/api/game/enabled`);
+      const res = await fetch(`${BACKEND_BASE_URL}/api/game/enabled?currency=INR`);
       const data = await res.json();
       if (!res.ok || !data?.success) {
         throw new Error(data?.message || 'Failed to load games');
