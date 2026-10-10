@@ -600,14 +600,19 @@ export const casinoProviderCallback = async (req, res) => {
             return res.status(401).json({ status: 'ERROR', message: 'Invalid Api-Key' });
         }
 
-        const { opType, user_id: providerUserId } = req.body || {};
+        const { opType, user_id: providerUserId, token } = req.body || {};
         const op = Number(opType);
 
         if (op === CASINO_CALLBACK_OPS.BALANCE) {
-            if (!isValidObjectId(providerUserId)) {
-                return res.status(400).json({ status: 'ERROR', message: 'Invalid user_id' });
+            let userId = isValidObjectId(providerUserId) ? providerUserId : null;
+            if (!userId && token) {
+                const session = await GameSession.findOne({ providerToken: String(token) }).select('userId').lean();
+                if (session) userId = session.userId;
             }
-            const user = await User.findById(providerUserId).select('_id isActive').lean();
+            if (!userId) {
+                return res.status(400).json({ status: 'ERROR', message: 'Invalid user_id or token' });
+            }
+            const user = await User.findById(userId).select('_id isActive').lean();
             if (!user) {
                 return res.status(404).json({ status: 'ERROR', message: 'User not found' });
             }
