@@ -658,16 +658,19 @@ export const casinoProviderCallback = async (req, res) => {
                 return res.status(404).json({ status: 'ERROR', message: 'Invalid token or user' });
             }
             const ref = `casino:${tranid}`;
+            const extsess = req.body?.extsess;
             const respond = async (extra = {}) => {
                 const w = await Wallet.findOne({ userId }).select('balance').lean();
-                return res.status(200).json({
+                const resPayload = {
                     status: 'OK',
                     opType: op,
                     tranid,
                     balance: Number(w?.balance || 0),
                     currency: 'INR',
                     ...extra,
-                });
+                };
+                if (extsess) resPayload.extsess = extsess;
+                return res.status(200).json(resPayload);
             };
 
             // Idempotency: provider may retry the same tranid.
@@ -692,13 +695,15 @@ export const casinoProviderCallback = async (req, res) => {
             if (txs.length === 0) txs.push({ userId, type: 'credit', amount: 0, description: `Casino round ${meta}`, referenceId: ref });
             await WalletTransaction.insertMany(txs);
 
-            return res.status(200).json({
+            const finalPayload = {
                 status: 'OK',
                 opType: op,
                 tranid,
                 balance: Number(updated.balance),
                 currency: 'INR',
-            });
+            };
+            if (extsess) finalPayload.extsess = extsess;
+            return res.status(200).json(finalPayload);
         }
 
         return res.status(400).json({ status: 'ERROR', message: `Unsupported opType ${opType}` });
