@@ -603,7 +603,7 @@ export const casinoProviderCallback = async (req, res) => {
         } catch(e) {}
 
         if (!process.env.API_KEY || !safeEqual(req.headers['api-key'], process.env.API_KEY)) {
-            return res.status(401).json({ status: 'ERROR', message: 'Invalid Api-Key' });
+            return res.status(401).json({ status: false, message: 'Invalid Api-Key' });
         }
 
         const { opType, user_id: providerUserId, token } = req.body || {};
@@ -616,27 +616,23 @@ export const casinoProviderCallback = async (req, res) => {
                 if (session) userId = session.userId;
             }
             if (!userId) {
-                return res.status(400).json({ status: 'ERROR', message: 'Invalid user_id or token' });
+                return res.status(400).json({ status: false, message: 'Invalid user_id or token' });
             }
             const user = await User.findById(userId).select('_id isActive').lean();
             if (!user) {
-                return res.status(404).json({ status: 'ERROR', message: 'User not found' });
+                return res.status(404).json({ status: false, message: 'User not found' });
             }
             if (user.isActive === false) {
-                return res.status(403).json({ status: 'ERROR', message: 'Account suspended' });
+                return res.status(403).json({ status: false, message: 'Account suspended' });
             }
             const wallet = await Wallet.findOne({ userId: user._id }).select('balance').lean();
-            
-            const responsePayload = {
-                status: 'OK',
-                opType: op,
-                user_id: String(user._id),
-                balance: Number(wallet?.balance || 0),
-                currency: 'INR',
-            };
-            if (req.body?.extsess) responsePayload.extsess = req.body.extsess;
-            
-            return res.status(200).json(responsePayload);
+            const balance = round2(wallet?.balance || 0);
+
+            // Provider docs specification: {"status": true, "message": 52.75}
+            return res.status(200).json({
+                status: true,
+                message: balance,
+            });
         }
 
         if (op === CASINO_CALLBACK_OPS.CREDIT) {
@@ -644,7 +640,7 @@ export const casinoProviderCallback = async (req, res) => {
             const bet = round2(req.body?.bet || 0);
             const win = round2(req.body?.win || 0);
             if (!token || tranid == null || bet < 0 || win < 0 || !Number.isFinite(bet + win)) {
-                return res.status(400).json({ status: 'ERROR', message: 'Invalid token, tranid, bet or win' });
+                return res.status(400).json({ status: false, message: 'Invalid token, tranid, bet or win' });
             }
 
             let session = null;
@@ -655,27 +651,20 @@ export const casinoProviderCallback = async (req, res) => {
             }
             const userId = session?.userId || (req.body?.user_id && isValidObjectId(req.body.user_id) ? req.body.user_id : null);
             if (!userId) {
-                return res.status(404).json({ status: 'ERROR', message: 'Invalid token or user' });
+                return res.status(404).json({ status: false, message: 'Invalid token or user' });
             }
             const ref = `casino:${tranid}`;
-            const extsess = req.body?.extsess;
-            const respond = async (extra = {}) => {
+            const respond = async () => {
                 const w = await Wallet.findOne({ userId }).select('balance').lean();
-                const resPayload = {
-                    status: 'OK',
-                    opType: op,
-                    tranid,
-                    balance: Number(w?.balance || 0),
-                    currency: 'INR',
-                    ...extra,
-                };
-                if (extsess) resPayload.extsess = extsess;
-                return res.status(200).json(resPayload);
+                return res.status(200).json({
+                    status: true,
+                    message: round2(w?.balance || 0),
+                });
             };
 
             // Idempotency: provider may retry the same tranid.
             if (await WalletTransaction.exists({ userId, referenceId: ref })) {
-                return respond({ duplicate: true });
+                return respond();
             }
 
             const net = round2(win - bet);
@@ -685,7 +674,7 @@ export const casinoProviderCallback = async (req, res) => {
                 { new: true }
             );
             if (!updated) {
-                return res.status(402).json({ status: 'ERROR', message: 'Insufficient funds' });
+                return res.status(200).json({ status: false, message: 'Insufficient funds' });
             }
 
             const meta = `${req.body?.game_type || 'game'} gid:${req.body?.gid ?? ''}`;
@@ -695,20 +684,16 @@ export const casinoProviderCallback = async (req, res) => {
             if (txs.length === 0) txs.push({ userId, type: 'credit', amount: 0, description: `Casino round ${meta}`, referenceId: ref });
             await WalletTransaction.insertMany(txs);
 
-            const finalPayload = {
-                status: 'OK',
-                opType: op,
-                tranid,
-                balance: Number(updated.balance),
-                currency: 'INR',
-            };
-            if (extsess) finalPayload.extsess = extsess;
-            return res.status(200).json(finalPayload);
+            // Provider docs specification: {"status": true, "message": 52.75}
+            return res.status(200).json({
+                status: true,
+                message: round2(updated.balance),
+            });
         }
 
-        return res.status(400).json({ status: 'ERROR', message: `Unsupported opType ${opType}` });
+        return res.status(400).json({ status: false, message: `Unsupported opType ${opType}` });
     } catch (error) {
         logger.error('[GAME] provider callback failed', { message: error?.message });
-        return res.status(500).json({ status: 'ERROR', message: 'Internal error' });
+        return res.status(500).json({ status: false, message: error?.message || 'Internal error' });
     }
 };
