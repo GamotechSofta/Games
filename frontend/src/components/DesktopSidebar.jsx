@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { clearUserAuth } from '../utils/auth';
 import SidebarLocaleSettings from './SidebarLocaleSettings';
 import { FaLayerGroup } from 'react-icons/fa';
+import { MdOutlineAccountBalanceWallet } from 'react-icons/md';
 import {
   DashboardIcon,
   HiHome,
@@ -31,6 +32,7 @@ const BETS_SECTION_PATHS = [
   '/bet-history',
   '/starline-bet-history',
   '/king-bazaar-bet-history',
+  '/casino-bet-history',
   '/market-result-history',
 ];
 
@@ -74,6 +76,7 @@ const MAIN_NAV = [
 ];
 
 const ACCOUNT_NAV = [
+  { id: 'wallet', labelKey: 'sidebar.wallet', path: '/wallet', icon: MdOutlineAccountBalanceWallet },
   { id: 'myBets', labelKey: 'navigation.myBets', path: '/bids', icon: HiClipboardList },
   { id: 'funds', labelKey: 'navigation.funds', path: '/funds', icon: HiCash },
   { id: 'gameRate', labelKey: 'header.updateRate', path: '/game-rate', icon: HiChartBar },

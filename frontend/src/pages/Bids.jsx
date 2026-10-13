@@ -10,6 +10,8 @@ import { useRefreshOnMarketReset } from '../hooks/useRefreshOnMarketReset';
 import MyBetsSidebar from './bids/MyBetsSidebar';
 import MyBetsBetHistoryPanel from './bids/MyBetsBetHistoryPanel';
 import MyBetsGameResultsPanel, { GameResultsLoadingSkeleton } from './bids/MyBetsGameResultsPanel';
+import CasinoBetHistory from './CasinoBetHistory';
+import { IconCasinoFilled } from '../components/dashboard/dashboardIcons';
 import { getBidOptionLabel } from '../utils/betTypeLabels';
 import { backBtn } from '../styles/appTheme';
 import BetHistoryStatusTabs from '../components/BetHistoryStatusTabs';
@@ -61,7 +63,7 @@ const Bids = () => {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const myBetsSubPaths = ['/bids', '/bet-history', '/market-result-history', '/starline-bet-history', '/king-bazaar-bet-history'];
+  const myBetsSubPaths = ['/bids', '/bet-history', '/market-result-history', '/starline-bet-history', '/king-bazaar-bet-history', '/casino-bet-history'];
   const handleBack = () => {
     // Desktop: always go Home.
     try {
@@ -123,6 +125,15 @@ const Bids = () => {
       ),
     },
     {
+      key: 'casino-bet-history',
+      title: t('bids.casinoBetHistory'),
+      navLabel: t('bids.navCasino'),
+      subtitle: t('bids.casinoBetHistorySubtitle'),
+      theme: 'purple',
+      color: '#a855f7',
+      icon: <IconCasinoFilled className="w-5 h-5" />,
+    },
+    {
       key: 'game-results',
       title: t('bids.gameResults'),
       navLabel: t('bids.navMarketResults'),
@@ -142,12 +153,14 @@ const Bids = () => {
     'game-results': t('bids.gameResults'),
     'starline-bet-history': t('bids.starlineBetHistory'),
     'king-bazaar-bet-history': t('bids.kingBazaarBetHistory'),
+    'casino-bet-history': t('bids.casinoBetHistory'),
   }), [t, i18n.language]);
   const TITLE_TO_TAB = useMemo(() => ({
     [t('bids.betHistory')]: 'bet-history',
     [t('bids.gameResults')]: 'game-results',
     [t('bids.starlineBetHistory')]: 'starline-bet-history',
     [t('bids.kingBazaarBetHistory')]: 'king-bazaar-bet-history',
+    [t('bids.casinoBetHistory')]: 'casino-bet-history',
   }), [t, i18n.language]);
 
   const tabParam = (searchParams.get('tab') || '').toString();
@@ -157,6 +170,7 @@ const Bids = () => {
   const isBetHistoryPanel = activeTitle === t('bids.betHistory');
   const isStarlineBetHistoryPanel = activeTitle === t('bids.starlineBetHistory');
   const isKingBazaarBetHistoryPanel = activeTitle === t('bids.kingBazaarBetHistory');
+  const isCasinoBetHistoryPanel = activeTitle === t('bids.casinoBetHistory');
   const isGameResultsPanel = activeTitle === t('bids.gameResults');
   const rightPanelTitle = activeTitle === t('bids.gameResults') ? t('bids.marketResultHistory') : activeTitle;
   const historyScope = isStarlineBetHistoryPanel ? 'starline' : isKingBazaarBetHistoryPanel ? 'king' : 'all';
@@ -226,6 +240,10 @@ const Bids = () => {
     }
     if (item?.title === t('bids.kingBazaarBetHistory')) {
       navigate('/king-bazaar-bet-history');
+      return;
+    }
+    if (item?.title === t('bids.casinoBetHistory')) {
+      navigate('/casino-bet-history');
       return;
     }
     setActiveTitle(item?.title ?? activeTitle);
@@ -460,7 +478,9 @@ const Bids = () => {
                       ? 'bg-red-500'
                       : activeTheme === 'blue'
                         ? 'bg-blue-500'
-                        : 'bg-[#d4af37]'
+                        : activeTheme === 'purple'
+                          ? 'bg-purple-500'
+                          : 'bg-[#d4af37]'
                 }`}
                 aria-hidden
               />
@@ -510,12 +530,12 @@ const Bids = () => {
           content={isDesktop ? (
           <main
             className={
-              (isAnyHistoryPanel || isGameResultsPanel)
+              (isAnyHistoryPanel || isGameResultsPanel || isCasinoBetHistoryPanel)
                 ? 'bg-transparent border-0 shadow-none p-0'
                 : 'p-6'
             }
           >
-            {(isAnyHistoryPanel || isGameResultsPanel) ? null : (
+            {(isAnyHistoryPanel || isGameResultsPanel || isCasinoBetHistoryPanel) ? null : (
               <div className="flex items-center justify-center gap-4">
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center text-black shadow-[0_10px_20px_rgba(0,0,0,0.35)]"
@@ -537,7 +557,9 @@ const Bids = () => {
               </div>
             )}
 
-            {isAnyHistoryPanel ? (
+            {isCasinoBetHistoryPanel ? (
+              <CasinoBetHistory embedded />
+            ) : isAnyHistoryPanel ? (
               betsLoading ? (
                 <div className="mt-0">
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

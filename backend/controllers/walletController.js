@@ -7,6 +7,7 @@ import { logActivity, getClientIp } from '../utils/activityLogger.js';
 import { notifyPlayerWalletBalance } from '../utils/playerWalletNotify.js';
 import { toClientWalletTransaction } from '../utils/paymentDisplay.js';
 import { parsePagination, paginationMeta, escapeRegex } from '../utils/pagination.js';
+import { getGameMap } from '../services/casinoProvider.service.js';
 
 function intersectIds(allowed, filtered) {
     if (filtered === null) return allowed;
@@ -225,38 +226,74 @@ export const getMyTransactions = async (req, res) => {
 
         const sanitizeList = (list) => (list || []).map((t) => toClientWalletTransaction(t));
 
-        if (!includeBet || !Array.isArray(transactions) || transactions.length === 0) {
-            return res.status(200).json({ success: true, data: sanitizeList(transactions) });
+        if (!Array.isArray(transactions) || transactions.length === 0) {
+            return res.status(200).json({ success: true, data: [] });
         }
 
-        const isObjectIdLike = (v) => typeof v === 'string' && /^[a-f\d]{24}$/i.test(v.trim());
-        const refIds = Array.from(
-            new Set(transactions.map((t) => String(t?.referenceId || '').trim()).filter(isObjectIdLike))
-        );
+        // 1. Enrich Matka Bets
+        let betMap = new Map();
+        if (includeBet) {
+            const isObjectIdLike = (v) => typeof v === 'string' && /^[a-f\d]{24}$/i.test(v.trim());
+            const refIds = Array.from(
+                new Set(transactions.map((t) => String(t?.referenceId || '').trim()).filter(isObjectIdLike))
+            );
 
-        if (refIds.length === 0) {
-            return res.status(200).json({ success: true, data: sanitizeList(transactions) });
+            if (refIds.length > 0) {
+                const bets = await Bet.find({ _id: { $in: refIds }, userId })
+                    .populate('marketId', 'marketName')
+                    .select('betType betNumber marketId')
+                    .lean();
+                betMap = new Map((bets || []).map((b) => [String(b._id), b]));
+            }
         }
 
-        const bets = await Bet.find({ _id: { $in: refIds }, userId })
-            .populate('marketId', 'marketName')
-            .select('betType betNumber marketId')
-            .lean();
+        // 2. Enrich Casino / Arcade Games (by gid from description)
+        const gidSet = new Set();
+        for (const t of transactions) {
+            const desc = String(t?.description || '');
+            const m = desc.match(/gid:(\d+)/i);
+            if (m && m[1]) gidSet.add(m[1]);
+        }
 
-        const betMap = new Map((bets || []).map((b) => [String(b._id), b]));
+        let gameMap = new Map();
+        if (gidSet.size > 0) {
+            try {
+                gameMap = await getGameMap();
+            } catch (_) {}
+        }
+
         const enriched = transactions.map((t) => {
+            let item = { ...t };
             const ref = String(t?.referenceId || '').trim();
             const b = betMap.get(ref);
-            if (!b) return t;
-            return {
-                ...t,
-                bet: {
+            if (b) {
+                item.bet = {
                     betType: b?.betType,
                     betNumber: b?.betNumber,
                     marketId: b?.marketId?._id || b?.marketId,
                     marketName: b?.marketId?.marketName || '',
-                },
-            };
+                };
+            }
+
+            // Casino game name lookup
+            const desc = String(t?.description || '');
+            const gidMatch = desc.match(/gid:(\d+)/i);
+            if (gidMatch && gidMatch[1]) {
+                const gid = gidMatch[1];
+                const gameInfo = gameMap.get(String(gid));
+                if (gameInfo) {
+                    item.gameName = gameInfo.name;
+                    item.game = {
+                        id: gid,
+                        name: gameInfo.name,
+                        type: gameInfo.type,
+                        provider: gameInfo.provider,
+                        image: gameInfo.image,
+                    };
+                }
+            }
+
+            return item;
         });
 
         return res.status(200).json({ success: true, data: sanitizeList(enriched) });

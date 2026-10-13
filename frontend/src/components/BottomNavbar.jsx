@@ -42,6 +42,7 @@ const MAIN_MENU_NAV = [
 ];
 
 const ACCOUNT_MENU_NAV = [
+  { id: 'wallet', labelKey: 'sidebar.wallet', path: '/wallet', icon: MdOutlineAccountBalanceWallet },
   { id: 'my-bets', labelKey: 'navigation.myBets', path: '/bids', icon: HiClipboardList },
   { id: 'funds', labelKey: 'navigation.funds', path: '/funds?tab=add-fund', icon: HiCash },
   { id: 'game-rate', labelKey: 'header.updateRate', path: '/game-rate', icon: HiChartBar },

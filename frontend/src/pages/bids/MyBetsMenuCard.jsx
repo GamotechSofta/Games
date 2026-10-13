@@ -30,6 +30,13 @@ const THEMES = {
     chevron: 'bg-blue-100 border-blue-300/60 text-blue-800 dark:bg-blue-500/20 dark:border-blue-500/40 dark:text-blue-300',
     chevronActive: 'bg-blue-500 border-blue-600 text-white',
   },
+  purple: {
+    card: 'border-purple-200/80 bg-gradient-to-br from-purple-50 via-white to-purple-100/50 dark:border-purple-500/30 dark:from-[#251035] dark:via-[#1a1a1c] dark:to-[#1d102a]',
+    cardActive: 'border-2 border-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.2)]',
+    icon: 'border-purple-300/60 bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-[0_0_10px_rgba(168,85,247,0.35)]',
+    chevron: 'bg-purple-100 border-purple-300/60 text-purple-800 dark:bg-purple-500/20 dark:border-purple-500/40 dark:text-purple-300',
+    chevronActive: 'bg-purple-500 border-purple-600 text-white',
+  },
 };
 
 export default function MyBetsMenuCard({

@@ -312,3 +312,46 @@ export function clearMyBetHistoryCache() {
     /* ignore */
   }
 }
+
+/**
+ * Fetch casino bet and win history for logged-in user.
+ * @param {{ days?: number, limit?: number, force?: boolean }} [options]
+ * @returns {Promise<{ success: boolean, data?: Array, stats?: Object, message?: string }>}
+ */
+export async function getMyCasinoBetHistory({ days = 30, limit = 100, force = false } = {}) {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const userId = user?.id || user?._id || user?.userId;
+  if (!userId) {
+    return { success: false, message: 'Please log in' };
+  }
+
+  const cacheKey = `casino.history.${userId}.${days}.${limit}`;
+
+  const fetchFromNetwork = async () => {
+    const params = new URLSearchParams({
+      userId,
+      days: String(days),
+      limit: String(limit),
+    });
+    const url = `${API_BASE_URL}/bets/my-casino-history?${params.toString()}`;
+    const response = await fetchNoStore(url);
+    if (redirectToLoginIf401(response)) return { success: false, message: 'Session expired' };
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, message: data.message || 'Failed to fetch casino history' };
+    }
+    setSessionCache(cacheKey, data, 15 * 1000);
+    return data;
+  };
+
+  if (force) {
+    clearSessionCache(cacheKey);
+    return fetchFromNetwork();
+  }
+
+  const cached = getSessionCache(cacheKey);
+  if (cached) return cached;
+
+  return runSharedRequest(cacheKey, fetchFromNetwork);
+}

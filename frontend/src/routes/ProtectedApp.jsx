@@ -38,6 +38,7 @@ const Profile = lazy(() => import('../pages/Profile'));
 const BetHistory = lazy(() => import('../pages/BetHistory'));
 const StarlineBetHistory = lazy(() => import('../pages/StarlineBetHistory'));
 const KingBazaarBetHistory = lazy(() => import('../pages/KingBazaarBetHistory'));
+const CasinoBetHistory = lazy(() => import('../pages/CasinoBetHistory'));
 const MarketResultHistory = lazy(() => import('../pages/MarketResultHistory'));
 const StartlineDashboard = lazy(() => import('../pages/StartlineDashboard'));
 const TopWinners = lazy(() => import('../pages/TopWinners'));
@@ -322,6 +323,7 @@ export default function ProtectedApp() {
             <Route path="/bet-history" element={<BetHistory />} />
             <Route path="/starline-bet-history" element={<StarlineBetHistory />} />
             <Route path="/king-bazaar-bet-history" element={<KingBazaarBetHistory />} />
+            <Route path="/casino-bet-history" element={<CasinoBetHistory />} />
             <Route path="/market-result-history" element={<MarketResultHistory />} />
             <Route path="/startline-dashboard" element={<StartlineDashboard />} />
             <Route path="/starline-market" element={<StarlineMarket />} />

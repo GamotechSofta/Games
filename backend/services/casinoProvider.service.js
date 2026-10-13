@@ -122,4 +122,60 @@ export function buildLaunchUrl(gid, token) {
   return `${launcherBase}/${encodeURIComponent(partnerCode)}/launch/${encodeURIComponent(gid)}/${encodeURIComponent(token)}`;
 }
 
-export default { authenticateUser, getProviders, getGameList, buildLaunchUrl, buildMd5 };
+let cachedGameMap = null;
+let lastGameMapFetch = 0;
+const GAME_MAP_TTL = 3600 * 1000; // 1 hour
+
+/**
+ * Returns Map of gameId/gid -> { id, name, type, provider, image }
+ */
+export async function getGameMap() {
+  if (cachedGameMap && Date.now() - lastGameMapFetch < GAME_MAP_TTL) {
+    return cachedGameMap;
+  }
+  try {
+    const res = await getGameList({});
+    const list = res?.games || res?.data || res?.message || (Array.isArray(res) ? res : []);
+    if (Array.isArray(list) && list.length > 0) {
+      const map = new Map();
+      for (const g of list) {
+        const id = String(g.id || g.gid || g.gameId || '').trim();
+        if (id) {
+          map.set(id, {
+            id,
+            name: g.name || g.title || `Game #${id}`,
+            type: g.type || '',
+            provider: g?.provider_details?.name || g.provider || '',
+            image: g.media || g.thumbnail || g.image || '',
+          });
+        }
+      }
+      cachedGameMap = map;
+      lastGameMapFetch = Date.now();
+      return cachedGameMap;
+    }
+  } catch (err) {
+    if (cachedGameMap) return cachedGameMap;
+  }
+  return cachedGameMap || new Map();
+}
+
+/**
+ * Quick lookup by gid / gameId string or number
+ */
+export async function getGameInfoById(id) {
+  if (id == null || id === '') return null;
+  const strId = String(id).trim();
+  const map = await getGameMap();
+  return map.get(strId) || null;
+}
+
+export default {
+  authenticateUser,
+  getProviders,
+  getGameList,
+  buildLaunchUrl,
+  buildMd5,
+  getGameMap,
+  getGameInfoById,
+};

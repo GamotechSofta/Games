@@ -11,6 +11,7 @@ import {
     getProviders,
     buildLaunchUrl,
     CALLBACK_OP_TYPES,
+    getGameInfoById,
 } from '../services/casinoProvider.service.js';
 import {
     generateOperatorUserToken,
@@ -677,11 +678,22 @@ export const casinoProviderCallback = async (req, res) => {
                 return res.status(200).json({ status: false, message: 'Insufficient funds' });
             }
 
-            const meta = `${req.body?.game_type || 'game'} gid:${req.body?.gid ?? ''}`;
+            const gid = req.body?.gid;
+            let gameInfo = null;
+            try {
+                if (gid) gameInfo = await getGameInfoById(gid);
+            } catch (_) {}
+
+            const gameName = gameInfo?.name || '';
+            const gameType = req.body?.game_type || gameInfo?.type || 'game';
+            const meta = gameName
+                ? `${gameName} (${gameType}) gid:${gid ?? ''}`
+                : `${gameType} gid:${gid ?? ''}`;
+
             const txs = [];
-            if (bet > 0) txs.push({ userId, type: 'debit', amount: bet, description: `Casino bet ${meta}`, referenceId: ref });
-            if (win > 0) txs.push({ userId, type: 'credit', amount: win, description: `Casino win ${meta}`, referenceId: ref });
-            if (txs.length === 0) txs.push({ userId, type: 'credit', amount: 0, description: `Casino round ${meta}`, referenceId: ref });
+            if (bet > 0) txs.push({ userId, type: 'debit', amount: bet, description: `Casino bet: ${meta}`, referenceId: ref });
+            if (win > 0) txs.push({ userId, type: 'credit', amount: win, description: `Casino win: ${meta}`, referenceId: ref });
+            if (txs.length === 0) txs.push({ userId, type: 'credit', amount: 0, description: `Casino round: ${meta}`, referenceId: ref });
             await WalletTransaction.insertMany(txs);
 
             // Provider docs specification: {"status": true, "message": 52.75}

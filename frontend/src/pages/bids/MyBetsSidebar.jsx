@@ -23,6 +23,11 @@ const NAV_THEMES = {
     icon: 'bg-gradient-to-br from-blue-500 to-orange-500 text-white',
     dot: 'bg-blue-500',
   },
+  purple: {
+    active: 'border-purple-500 bg-purple-50/90 dark:bg-purple-950/40 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)]',
+    icon: 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white',
+    dot: 'bg-purple-500',
+  },
 };
 
 function CompactNavItem({ title, theme = 'gold', icon, active, onClick }) {

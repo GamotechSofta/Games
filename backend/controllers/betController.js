@@ -12,6 +12,7 @@ import { parseHalfSangamBetNumber } from '../utils/settleBets.js';
 import { isMongoTimeoutError, mongoTimeoutResponse } from '../utils/mongoErrors.js';
 import { parsePagination, paginationMeta } from '../utils/pagination.js';
 import { getTodayIST } from '../utils/resultReset.js';
+import { getGameMap } from '../services/casinoProvider.service.js';
 
 const DB_QUERY_MS = 12000;
 
@@ -754,5 +755,117 @@ export const getTopWinners = async (req, res) => {
         res.status(200).json({ success: true, data: winners });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+/**
+ * Get casino bet & win history for current user.
+ * Query params: userId, limit, days
+ */
+export const getMyCasinoHistory = async (req, res) => {
+    try {
+        const userId = req.user?._id || req.user?.id || req.query?.userId;
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'userId is required' });
+        }
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: 'Invalid userId' });
+        }
+
+        const limitRaw = req.query?.limit;
+        let limit = Number.parseInt(String(limitRaw || 100), 10);
+        if (!Number.isFinite(limit) || limit <= 0) limit = 100;
+        limit = Math.min(limit, 500);
+
+        const daysRaw = req.query?.days;
+        const days = Number.parseInt(String(daysRaw || 30), 10);
+
+        const query = {
+            userId: new mongoose.Types.ObjectId(userId),
+            $or: [
+                { referenceId: { $regex: /^casino:/i } },
+                { description: { $regex: /casino/i } },
+            ],
+        };
+
+        if (Number.isFinite(days) && days > 0) {
+            const todayIST = getTodayIST();
+            const since = new Date(`${todayIST}T00:00:00+05:30`);
+            since.setTime(since.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
+            query.createdAt = { $gte: since };
+        }
+
+        const transactions = await WalletTransaction.find(query)
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean();
+
+        let gameMap = new Map();
+        try {
+            gameMap = await getGameMap();
+        } catch (_) {}
+
+        let totalBet = 0;
+        let totalWin = 0;
+        let betCount = 0;
+        let winCount = 0;
+
+        const data = transactions.map((t) => {
+            const desc = String(t.description || '');
+            const gidMatch = desc.match(/gid:(\d+)/i);
+            const gid = gidMatch ? gidMatch[1] : null;
+            const gameInfo = gid ? gameMap.get(String(gid)) : null;
+
+            const isWin = t.type === 'credit' && Number(t.amount) > 0;
+            const isBet = t.type === 'debit' && Number(t.amount) > 0;
+            const isRound = t.type === 'credit' && Number(t.amount) === 0;
+
+            const amt = Number(t.amount) || 0;
+            if (isBet) {
+                totalBet += amt;
+                betCount++;
+            } else if (isWin) {
+                totalWin += amt;
+                winCount++;
+            }
+
+            const gameName = gameInfo?.name || t.gameName || 'Casino Game';
+            const gameType = gameInfo?.type || 'CASINO';
+            const provider = gameInfo?.provider || 'inout';
+
+            return {
+                _id: t._id,
+                id: t._id,
+                type: t.type,
+                amount: amt,
+                status: isWin ? 'win' : isBet ? 'placed' : 'round',
+                statusLabel: isWin ? 'WON' : isBet ? 'BET' : 'ROUND',
+                gameName,
+                gameType,
+                provider,
+                gameId: gid,
+                image: gameInfo?.image || '',
+                description: t.description,
+                referenceId: t.referenceId,
+                createdAt: t.createdAt,
+            };
+        });
+
+        res.set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+        return res.status(200).json({
+            success: true,
+            data,
+            stats: {
+                totalBet: Math.round(totalBet * 100) / 100,
+                totalWin: Math.round(totalWin * 100) / 100,
+                netPnL: Math.round((totalWin - totalBet) * 100) / 100,
+                totalCount: transactions.length,
+                betCount,
+                winCount,
+            },
+        });
+    } catch (error) {
+        console.error('[getMyCasinoHistory]', error.message || error);
+        return res.status(500).json({ success: false, message: error.message || 'Failed to fetch casino history' });
     }
 };
