@@ -1,76 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaDice, FaGamepad, FaSearch, FaTimes, FaLayerGroup } from 'react-icons/fa';
+import { FaGamepad, FaSearch, FaTimes, FaLayerGroup } from 'react-icons/fa';
 import { iconBtn, textPrimary } from '../styles/appTheme';
 import { BACKEND_BASE_URL } from '../config/api';
 import { getApiErrorMessage } from '../utils/apiErrorMessage';
 import { getUserToken } from '../utils/auth';
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
-
-function GameIframeOverlay({ title, launchUrl, onClose }) {
-  const { t } = useTranslation();
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-
-  useBodyScrollLock(true);
-
-  useEffect(() => {
-    document.documentElement.classList.add('game-iframe-open');
-    return () => document.documentElement.classList.remove('game-iframe-open');
-  }, []);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
-  const overlay = (
-    <div
-      className="game-iframe-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title || 'Game'}
-    >
-      <div className="game-iframe-toolbar">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/15"
-          aria-label={t('common.close', { defaultValue: 'Close' })}
-        >
-          <FaTimes className="h-4 w-4" />
-        </button>
-        <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-          {title || t('games.play', { defaultValue: 'Play' })}
-        </h2>
-      </div>
-
-      <div className="game-iframe-stage">
-        {!iframeLoaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-[#d32f2f]" />
-          </div>
-        )}
-        <iframe
-          title={title || 'Game'}
-          src={launchUrl}
-          className="game-iframe-frame"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; gamepad; accelerometer; gyroscope"
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-          onLoad={() => setIframeLoaded(true)}
-        />
-      </div>
-    </div>
-  );
-
-  if (typeof document === 'undefined' || !document.body) return overlay;
-  return createPortal(overlay, document.body);
-}
 
 const CATEGORIES = [
   { id: 'ALL', labelKey: 'games.allGames', fallback: 'All' },
@@ -90,7 +25,6 @@ const Games = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [launchingId, setLaunchingId] = useState('');
-  const [activeGame, setActiveGame] = useState(null);
 
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -233,11 +167,7 @@ const Games = () => {
     return filteredGames.slice(0, visibleCount);
   }, [filteredGames, visibleCount]);
 
-  const closeGame = useCallback(() => {
-    setActiveGame(null);
-  }, []);
-
-  const handlePlay = async (game) => {
+  const handlePlay = (game) => {
     const authToken = String(getUserToken() || '').trim();
     if (!authToken) {
       setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
@@ -246,27 +176,23 @@ const Games = () => {
     const gameCode = String(game?.gid || game?.gameCode || game?.gameId || game?.id || '').trim();
     if (!gameCode) return;
 
-    setError('');
-    setLaunchingId(gameCode);
+    const gameTitle = game?.name || game?.title || `Game #${gameCode}`;
     try {
-      const res = await fetch(`${BACKEND_BASE_URL}/api/game/launch`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ gameCode, gid: gameCode }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success || !data?.launchUrl) {
-        throw new Error(data?.message || 'Failed to launch game');
-      }
-      window.location.href = String(data.launchUrl);
-    } catch (err) {
-      setError(getApiErrorMessage(err, 'Failed to launch game'));
-    } finally {
-      setLaunchingId('');
-    }
+      sessionStorage.setItem(`game_title_${gameCode}`, gameTitle);
+      sessionStorage.setItem(
+        'active_game_info',
+        JSON.stringify({
+          id: gameCode,
+          name: gameTitle,
+          thumbnail: game?.thumbnail || game?.image || '',
+          provider: game?.provider || '',
+        })
+      );
+    } catch (_) {}
+
+    navigate(`/games/play/${encodeURIComponent(gameCode)}`, {
+      state: { game },
+    });
   };
 
   return (
@@ -503,15 +429,8 @@ const Games = () => {
         </>
       )}
 
-      {activeGame?.launchUrl && (
-        <GameIframeOverlay
-          title={activeGame.title}
-          launchUrl={activeGame.launchUrl}
-          onClose={closeGame}
-        />
-      )}
-    </div>
-  );
-};
+      </div>
+    );
+  };
 
 export default Games;

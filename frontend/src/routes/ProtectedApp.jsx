@@ -46,6 +46,7 @@ const StarlineMarket = lazy(() => import('../pages/StarlineMarket'));
 const KingBazaarMarket = lazy(() => import('../pages/KingBazaarMarket'));
 const GameRate = lazy(() => import('../pages/GameRate'));
 const Games = lazy(() => import('../pages/Games'));
+const GamePlayer = lazy(() => import('../pages/GamePlayer'));
 const Providers = lazy(() => import('../pages/Providers'));
 const Wallet = lazy(() => import('../pages/Wallet'));
 const AdminDashboard = lazy(() => import('../admin/AdminDashboard'));
@@ -115,13 +116,20 @@ const Layout = ({ children }) => {
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
   const activePanel = getActivePanelFromLocation(location.pathname, location.search);
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
+  const isGamePlayerPage =
+    location.pathname.startsWith('/games/play') ||
+    location.pathname.startsWith('/game/play');
+
   const showDesktopDashboardNav =
-    location.pathname === '/' ||
+    (location.pathname === '/' ||
     location.pathname === '/markets' ||
-    location.pathname === '/games';
+    location.pathname === '/games') &&
+    !isGamePlayerPage;
 
   const hideBottomNavOnMobile =
-    location.pathname === '/game-bid' || location.pathname === '/games';
+    location.pathname === '/game-bid' ||
+    location.pathname === '/games' ||
+    isGamePlayerPage;
 
   useEffect(() => {
     const check = (event) => {
@@ -226,6 +234,14 @@ const Layout = ({ children }) => {
   );
 
   if (isDesktop) {
+    if (isGamePlayerPage) {
+      return withAuthGate(wrapCalls(
+        <div className="h-screen w-screen overflow-hidden bg-black select-none">
+          {gatedChildren}
+        </div>
+      ));
+    }
+
     return withAuthGate(wrapCalls(
       <div className="dashboard-shell min-h-screen bg-[#f5f5f7] dark:bg-[#141415]">
         <Suspense fallback={<RouteFallback />}>
@@ -241,6 +257,14 @@ const Layout = ({ children }) => {
   }
 
   if (!isDesktop) {
+    if (isGamePlayerPage) {
+      return withAuthGate(wrapCalls(
+        <div className="fixed inset-0 h-[100dvh] w-full max-w-full overflow-hidden bg-black select-none z-50">
+          {gatedChildren}
+        </div>
+      ));
+    }
+
     const hasPromoBanner = shouldShowMobileInstallBanner(location.pathname) && !bannerDismissed;
     const isGameBidPage = location.pathname === '/game-bid';
     const isGameBidMobileShell = isGameBidPage;
@@ -332,6 +356,10 @@ export default function ProtectedApp() {
             <Route path="/top-winners" element={<TopWinners />} />
             <Route path="/game-rate" element={<GameRate />} />
             <Route path="/games" element={<Games />} />
+            <Route path="/games/play/:gameId" element={<GamePlayer />} />
+            <Route path="/games/play" element={<GamePlayer />} />
+            <Route path="/game/play/:gameId" element={<GamePlayer />} />
+            <Route path="/game/play" element={<GamePlayer />} />
             <Route path="/providers" element={<Providers />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/protected-example" element={<ProtectedRoute><ProtectedDemo /></ProtectedRoute>} />

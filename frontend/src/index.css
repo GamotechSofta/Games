@@ -1035,9 +1035,14 @@ html.game-iframe-open .app-bottom-nav-fixed {
   background: #000;
 }
 
-html.game-iframe-open header,
+html.game-iframe-open header:not(.game-player-bar),
 html.game-iframe-open .dashboard-shell {
   visibility: hidden !important;
+}
+
+.game-player-bar,
+.game-player-bar * {
+  visibility: visible !important;
 }
 
 #root {
