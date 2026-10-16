@@ -8,10 +8,6 @@ export const HOME_BANNERS = [
     src: '/banner-casino.png',
     alt: 'Black Gold Casino Night Banner',
   },
-  {
-    src: '/banner-aviator.png',
-    alt: 'Black Orange Offline Gaming Banner',
-  },
 ];
 
 /** Mobile dashboard hero banner carousel images */
@@ -27,10 +23,6 @@ export const MOBILE_HOME_BANNERS = [
   {
     src: '/banner-casino.png',
     alt: 'Black Gold Casino Night Banner',
-  },
-  {
-    src: '/banner-aviator.png',
-    alt: 'Black Orange Offline Gaming Banner',
   },
 ];
 
