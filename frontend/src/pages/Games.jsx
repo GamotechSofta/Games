@@ -83,6 +83,18 @@ const Games = () => {
         };
       });
 
+      const isChimeraSpin = (g) => {
+        const pName = String(g?.provider_details?.name || g?.provider || '')
+          .toLowerCase()
+          .replace(/[\s_-]+/g, '');
+        const pCode = String(g?.provider_details?.code || '')
+          .toLowerCase()
+          .replace(/[\s_-]+/g, '');
+        return pName.includes('chimeraspin') || pCode.includes('chimeraspin');
+      };
+
+      normalized.sort((a, b) => (isChimeraSpin(b) ? 1 : 0) - (isChimeraSpin(a) ? 1 : 0));
+
       setGames(normalized);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load games'));

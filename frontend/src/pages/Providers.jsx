@@ -99,7 +99,18 @@ const Providers = () => {
         })
         .filter((p) => p.gameCount > 0);
 
-      enriched.sort((a, b) => b.gameCount - a.gameCount || a.name.localeCompare(b.name));
+      const isChimeraSpinProv = (p) => {
+        const pName = String(p?.name || '').toLowerCase().replace(/[\s_-]+/g, '');
+        const pCode = String(p?.code || '').toLowerCase().replace(/[\s_-]+/g, '');
+        return pName.includes('chimeraspin') || pCode.includes('chimeraspin');
+      };
+
+      enriched.sort((a, b) => {
+        const aTop = isChimeraSpinProv(a) ? 1 : 0;
+        const bTop = isChimeraSpinProv(b) ? 1 : 0;
+        if (aTop !== bTop) return bTop - aTop;
+        return b.gameCount - a.gameCount || a.name.localeCompare(b.name);
+      });
       setProviders(enriched);
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to load providers'));

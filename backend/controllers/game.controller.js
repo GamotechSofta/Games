@@ -474,6 +474,20 @@ export const listProviderEnabledGames = async (req, res) => {
             ? result
             : [];
 
+        const isChimeraSpin = (g) => {
+            const pName = String(g?.provider_details?.name || g?.provider || '')
+                .toLowerCase()
+                .replace(/[\s_-]+/g, '');
+            const pCode = String(g?.provider_details?.code || '')
+                .toLowerCase()
+                .replace(/[\s_-]+/g, '');
+            return pName.includes('chimeraspin') || pCode.includes('chimeraspin');
+        };
+
+        gamesList = [...gamesList].sort(
+            (a, b) => (isChimeraSpin(b) ? 1 : 0) - (isChimeraSpin(a) ? 1 : 0)
+        );
+
         const parsedLimit = Number.parseInt((req.query.limit || '').toString(), 10);
         const parsedPage = Number.parseInt((req.query.page || '').toString(), 10);
 
