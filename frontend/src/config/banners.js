@@ -12,17 +12,17 @@ export const HOME_BANNERS = [
 
 /** Mobile dashboard hero banner carousel images */
 export const MOBILE_HOME_BANNERS = [
-  {
-    src: '/banner.jpeg',
-    alt: 'ChimeraSpin Banner',
-  },
+  // {
+  //   src: '/banner.jpeg',
+  //   alt: 'ChimeraSpin Banner',
+  // },
   {
     src: '/banner-mobile.png',
     alt: 'Real Games Real Rewards Banner',
   },
-  {
-    src: '/banner-casino.png',
-    alt: 'Black Gold Casino Night Banner',
-  },
+  // {
+  //   src: '/banner-casino.png',
+  //   alt: 'Black Gold Casino Night Banner',
+  // },
 ];
 
