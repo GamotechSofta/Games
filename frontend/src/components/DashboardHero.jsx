@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { categoryPathActive } from '../utils/dashboardNav';
 import { prefetchSpecialMarketChunks, prefetchSpecialMarketGroups } from '../api/prefetchSpecialMarkets';
@@ -16,7 +16,7 @@ const CATEGORIES = [
 ];
 
 const panelClass =
-  'rounded-2xl border border-gray-200 bg-white overflow-hidden dark:border-white/[0.06] dark:bg-[#1a1a1a]';
+  'rounded-2xl border border-gray-200 bg-[#0a0a0a] overflow-hidden dark:border-white/[0.06] dark:bg-[#1a1a1a]';
 
 const controlPanelClass =
   'min-h-[44px] rounded-[18px] border border-gray-200 bg-white shadow-sm dark:border-white/[0.04] dark:bg-[#282828] dark:shadow-none';
@@ -25,9 +25,35 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [bannerIndex, setBannerIndex] = useState(0);
 
-  const primaryBanner = HOME_BANNERS[0];
-  const secondaryBanner = HOME_BANNERS[1] || HOME_BANNERS[0];
+  useEffect(() => {
+    if (HOME_BANNERS.length <= 1) return undefined;
+
+    let timerId = null;
+    const advance = () => setBannerIndex((current) => (current + 1) % HOME_BANNERS.length);
+    const start = () => {
+      if (timerId) window.clearInterval(timerId);
+      timerId = window.setInterval(advance, 5000);
+    };
+    const stop = () => {
+      if (timerId) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') start();
+      else stop();
+    };
+
+    onVisibility();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   const handleCategory = (cat) => {
     if (!cat.path) return;
@@ -51,50 +77,63 @@ export default function DashboardHero({ searchQuery = '', onSearchChange }) {
 
   return (
     <section className="mb-6 space-y-4">
-      <div className="grid gap-3 lg:min-h-[220px] lg:grid-cols-[minmax(0,7fr)_minmax(260px,3fr)]">
-        <button
-          type="button"
-          onClick={() => navigate('/funds?tab=add-fund')}
-          className={`relative min-w-0 min-h-[180px] text-left ${panelClass} group transition sm:min-h-[220px] lg:min-h-0 lg:h-full hover:border-gray-300 dark:hover:border-white/[0.1]`}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate('/games')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            navigate('/games');
+          }
+        }}
+        className={`relative w-full cursor-pointer ${panelClass} group transition hover:border-gray-300 dark:hover:border-white/[0.1]`}
+      >
+        <div
+          className="relative w-full transition-transform duration-700 ease-out"
+          style={{ transform: `translateX(-${bannerIndex * 100}%)` }}
         >
-          <ResponsiveCloudinaryImage
-            src={primaryBanner.src}
-            alt={primaryBanner.alt || ''}
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-90 transition group-hover:opacity-100"
-            sizes="(max-width: 1024px) 100vw, 70vw"
-            widths={[480, 640, 768, 960, 1200, 1440]}
-            loading="eager"
-            fetchPriority="high"
-          />
-          <div className="relative z-[1] flex h-full min-h-[180px] flex-col justify-end p-5 sm:min-h-[220px] sm:p-6 md:p-8 lg:min-h-0">
-            <span className="inline-flex w-fit items-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition group-hover:bg-white/90">
-              {t('dashboard.participate')}
-            </span>
-          </div>
-        </button>
+          {HOME_BANNERS.map((banner, idx) => (
+            <div
+              key={banner.src}
+              className={
+                idx === bannerIndex
+                  ? 'relative w-full'
+                  : 'pointer-events-none absolute top-0 left-0 w-full'
+              }
+              style={{ transform: `translateX(${idx * 100}%)` }}
+            >
+              <ResponsiveCloudinaryImage
+                src={banner.src}
+                alt={banner.alt || ''}
+                className="block h-auto w-full object-contain"
+                sizes="100vw"
+                widths={[480, 640, 768, 960, 1200, 1440, 1920]}
+                loading={idx === 0 ? 'eager' : 'lazy'}
+                fetchPriority={idx === 0 ? 'high' : 'low'}
+              />
+            </div>
+          ))}
+        </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/games')}
-          className={`relative min-w-0 min-h-[160px] text-left ${panelClass} group transition sm:min-h-[220px] lg:min-h-0 lg:h-full hover:border-gray-300 dark:hover:border-white/[0.1]`}
-        >
-          <ResponsiveCloudinaryImage
-            src={secondaryBanner.src}
-            alt={secondaryBanner.alt || ''}
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-90"
-            sizes="(max-width: 1024px) 100vw, 30vw"
-            widths={[360, 480, 640, 768, 960]}
-            loading="lazy"
-          />
-          <div className="relative z-[1] flex h-full min-h-[160px] flex-col justify-between p-4 sm:min-h-[220px] md:p-5 lg:min-h-0">
-            <p className="text-sm font-semibold leading-snug text-gray-900 dark:text-white md:text-base">
-              {t('dashboard.bestGameWeek')}
-            </p>
-            <span className="inline-flex w-fit items-center rounded-xl bg-white px-4 py-2 text-xs font-semibold text-black transition group-hover:bg-white/90 md:text-sm">
-              {t('dashboard.playNow')}
-            </span>
+        {HOME_BANNERS.length > 1 && (
+          <div className="absolute bottom-3 left-0 right-0 z-10 flex items-center justify-center gap-2">
+            {HOME_BANNERS.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBannerIndex(idx);
+                }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === bannerIndex ? 'w-6 bg-amber-500' : 'w-2 bg-white/50 hover:bg-white/80'
+                }`}
+                aria-label={`Banner ${idx + 1}`}
+              />
+            ))}
           </div>
-        </button>
+        )}
       </div>
 
       <div className="flex gap-3">

@@ -81,25 +81,49 @@ function HeroBanner({ index, setIndex }) {
   }, [setIndex]);
 
   return (
-    <div className="relative w-full overflow-hidden">
+    <div className="relative w-full overflow-hidden bg-[#0a0a0a]">
       <div
-        className="flex transition-transform duration-700 ease-out"
+        className="relative w-full transition-transform duration-700 ease-out"
         style={{ transform: `translateX(-${index * 100}%)` }}
       >
         {MOBILE_HOME_BANNERS.map((banner, bannerIndex) => (
-          <div key={banner.src} className="relative w-full shrink-0 basis-full overflow-hidden">
+          <div
+            key={banner.src}
+            className={
+              bannerIndex === index
+                ? 'relative w-full'
+                : 'pointer-events-none absolute top-0 left-0 w-full'
+            }
+            style={{ transform: `translateX(${bannerIndex * 100}%)` }}
+          >
             <ResponsiveCloudinaryImage
               src={banner.src}
               alt={banner.alt}
-              className="block w-full h-auto object-contain opacity-95 dark:opacity-85"
+              className="block h-auto w-full object-contain opacity-95 dark:opacity-85"
               sizes="100vw"
               widths={[320, 420, 540, 640, 750, 960]}
               loading={bannerIndex === 0 ? 'eager' : 'lazy'}
-              fetchPriority={bannerIndex === 0 ? 'high' : undefined}
+              fetchPriority={bannerIndex === 0 ? 'high' : 'low'}
             />
           </div>
         ))}
       </div>
+
+      {MOBILE_HOME_BANNERS.length > 1 && (
+        <div className="absolute bottom-2.5 left-0 right-0 z-10 flex items-center justify-center gap-1.5">
+          {MOBILE_HOME_BANNERS.map((_, bannerIndex) => (
+            <button
+              key={bannerIndex}
+              type="button"
+              onClick={() => setIndex(bannerIndex)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                bannerIndex === index ? 'w-5 bg-amber-500' : 'w-1.5 bg-white/50'
+              }`}
+              aria-label={`Banner ${bannerIndex + 1}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
