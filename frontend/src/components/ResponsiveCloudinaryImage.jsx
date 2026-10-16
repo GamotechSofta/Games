@@ -13,7 +13,17 @@ function ResponsiveCloudinaryImage({
 }) {
   const isCloudinary = typeof src === 'string' && src.includes('res.cloudinary.com');
   if (!isCloudinary) {
-    return <img src={src} alt={alt} className={className} sizes={sizes} loading={loading} {...rest} />;
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        sizes={sizes}
+        loading={loading}
+        fetchPriority={fetchPriority}
+        {...rest}
+      />
+    );
   }
 
   const fallback = optimizeCloudinaryResponsiveUrl(src, { format: 'webp', width: 960 });

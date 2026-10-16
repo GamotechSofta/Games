@@ -6,18 +6,11 @@ import { MdLocalFireDepartment } from 'react-icons/md';
 import ResponsiveCloudinaryImage from '../ResponsiveCloudinaryImage';
 import HomeCategoryCard, { HOME_CATEGORY_ICONS, HOME_CATEGORY_THEMES } from './HomeCategoryCard';
 import { MarketsCategoryIcon } from './homeCategoryIcons';
-import { optimizeCloudinaryUrl } from '../../utils/cloudinary';
 import { useTheme } from '../../context/ThemeContext';
 import useMainMarkets from '../../hooks/useMainMarkets';
 import { sortMarketsPopularFirst } from '../../utils/marketSearch';
 import MarketCard from '../MarketCard';
-
-const MOBILE_HOME_BANNERS = [
-  {
-    src: optimizeCloudinaryUrl('https://res.cloudinary.com/dnyp5jknp/image/upload/v1780306728/ChatGPT_Image_Jun_1_2026_03_07_07_PM_2_htgyfn.png'),
-    alt: 'Black Orange Gaming Banner',
-  },
-];
+import { MOBILE_HOME_BANNERS } from '../../config/banners';
 
 const QUICK_LINKS = [
   { id: 'games', labelKey: 'sidebar.games', path: '/games' },
