@@ -17,7 +17,7 @@ function RouteFallback() {
 // Preserve any query string (e.g. ?ref=) for referral signups.
 const LoginRedirect = () => {
   const location = useLocation();
-  return <Navigate to={{ pathname: '/', search: location.search }} replace />;
+  return <Navigate to={{ pathname: '/', search: location.search }} state={{ openAuth: Date.now() }} replace />;
 };
 
 const AppRoutes = () => {

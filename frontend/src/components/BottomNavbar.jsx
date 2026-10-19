@@ -259,13 +259,26 @@ const BottomNavbar = () => {
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">
                   {user ? user.username || t('sidebar.defaultUser') : t('sidebar.logIn')}
                 </span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="inline-flex items-center rounded-lg bg-[#e60000] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#cc0000]"
-                >
-                  {t('header.logout', { defaultValue: 'Logout' })}
-                </button>
+                {user ? (
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center rounded-lg bg-[#e60000] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#cc0000]"
+                  >
+                    {t('header.logout', { defaultValue: 'Logout' })}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      window.dispatchEvent(new Event('openAuthModal'));
+                    }}
+                    className="inline-flex items-center rounded-lg bg-[#e60000] px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-[#cc0000]"
+                  >
+                    {t('sidebar.logIn', { defaultValue: 'Log In' })}
+                  </button>
+                )}
               </div>
 
               <div className="mt-3">

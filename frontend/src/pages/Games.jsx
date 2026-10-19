@@ -183,6 +183,7 @@ const Games = () => {
     const authToken = String(getUserToken() || '').trim();
     if (!authToken) {
       setError(t('games.loginRequired', { defaultValue: 'Please login to play.' }));
+      window.dispatchEvent(new Event('openAuthModal'));
       return;
     }
     const gameCode = String(game?.gid || game?.gameCode || game?.gameId || game?.id || '').trim();

@@ -107,18 +107,33 @@ const ScrollToTop = () => {
   return null;
 };
 
+const PUBLIC_BROWSE_PATHS = new Set([
+  '/',
+  '/games',
+  '/providers',
+  '/markets',
+  '/startline-dashboard',
+  '/starline-market',
+  '/king-bazaar-market',
+  '/game-rate',
+  '/download',
+]);
+
 const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isDesktop } = useBreakpoint();
   const onPanelChange = useDashboardNav();
   const [hasUser, setHasUser] = useState(() => !!localStorage.getItem('user'));
+  const [authModalDismissed, setAuthModalDismissed] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(() => isMobileInstallBannerDismissed());
+  const lastPublicRouteRef = useRef({ pathname: '/', search: '' });
   const activePanel = getActivePanelFromLocation(location.pathname, location.search);
   const isAdminPanel = location.pathname.startsWith('/admin-panel');
   const isGamePlayerPage =
     location.pathname.startsWith('/games/play') ||
     location.pathname.startsWith('/game/play');
+  const isPublicBrowseRoute = PUBLIC_BROWSE_PATHS.has(location.pathname);
 
   const showDesktopDashboardNav =
     (location.pathname === '/' ||
@@ -135,16 +150,24 @@ const Layout = ({ children }) => {
     const check = (event) => {
       const loggedIn = !!localStorage.getItem('user');
       setHasUser(loggedIn);
-      if (loggedIn && event?.type === 'userLogin') {
-        schedulePostLoginPrefetch();
+      if (loggedIn) {
+        setAuthModalDismissed(false);
+        if (event?.type === 'userLogin') {
+          schedulePostLoginPrefetch();
+        }
+      } else if (event?.type === 'userLogout') {
+        setAuthModalDismissed(false);
       }
     };
+    const onOpenAuthModal = () => setAuthModalDismissed(false);
     check();
     window.addEventListener('userLogin', check);
     window.addEventListener('userLogout', check);
+    window.addEventListener('openAuthModal', onOpenAuthModal);
     return () => {
       window.removeEventListener('userLogin', check);
       window.removeEventListener('userLogout', check);
+      window.removeEventListener('openAuthModal', onOpenAuthModal);
     };
   }, []);
 
@@ -193,19 +216,39 @@ const Layout = ({ children }) => {
   }, [location.pathname]);
 
   useEffect(() => {
-    if (isDesktop || hasUser || isAdminPanel) return;
-    if (location.pathname !== '/') {
-      navigate({ pathname: '/', search: location.search }, { replace: true });
+    if (isPublicBrowseRoute) {
+      const cleanState = location.state ? { ...location.state } : undefined;
+      if (cleanState) delete cleanState.openAuth;
+      lastPublicRouteRef.current = {
+        pathname: location.pathname,
+        search: location.search,
+        state: cleanState,
+      };
     }
-  }, [isDesktop, hasUser, isAdminPanel, location.pathname, location.search, navigate]);
+  }, [isPublicBrowseRoute, location.pathname, location.search, location.state]);
+
+  useEffect(() => {
+    if (hasUser || isAdminPanel) return;
+    if (location.state?.openAuth) {
+      setAuthModalDismissed(false);
+    }
+    if (!isPublicBrowseRoute) {
+      setAuthModalDismissed(false);
+      const fallback = lastPublicRouteRef.current || { pathname: '/', search: '' };
+      navigate(
+        { pathname: fallback.pathname || '/', search: fallback.search || '' },
+        { replace: true, state: { ...(fallback.state || {}), openAuth: Date.now() } },
+      );
+    }
+  }, [hasUser, isAdminPanel, isPublicBrowseRoute, location.state, navigate]);
 
   if (isAdminPanel) return <>{children}</>;
 
-  // Logged-out users: show the home page behind a non-dismissible login/sign up popup.
-  // Inner content stays locked until the user authenticates.
-  const gatedChildren = hasUser ? children : <Home />;
+  // Logged-out users can browse public routes (Home, Games, Markets, Starline, King Bazaar) once the popup is dismissed.
+  const gatedChildren = hasUser || isPublicBrowseRoute ? children : <Home />;
+  const showAuthModal = !hasUser && !authModalDismissed;
   const withAuthGate = (node) => {
-    if (hasUser) return node;
+    if (!showAuthModal) return node;
     return (
       <>
         <div
@@ -219,7 +262,7 @@ const Layout = ({ children }) => {
         >
           {node}
         </div>
-        <AuthModal />
+        <AuthModal onClose={() => setAuthModalDismissed(true)} />
       </>
     );
   };
@@ -272,7 +315,7 @@ const Layout = ({ children }) => {
     const mobileContentTop = showMobileHeader
       ? getMobileDashboardContentTop(hasPromoBanner)
       : undefined;
-    const showBottomNav = hasUser && !hideBottomNavOnMobile;
+    const showBottomNav = !hideBottomNavOnMobile;
     const mobileBottomPad =
       !showBottomNav
         ? 'pb-[env(safe-area-inset-bottom,0px)]'

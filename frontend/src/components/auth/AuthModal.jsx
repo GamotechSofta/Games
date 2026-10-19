@@ -4,13 +4,13 @@ import AuthForm from './AuthForm';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 /**
- * Non-dismissible login / sign up popup shown over the home page for logged-out users.
- * The user cannot access inner content until they authenticate.
+ * Login / sign up popup shown over the home page for logged-out users.
  *
  * Props:
  * - onSuccess?: () => void — called after successful auth
+ * - onClose?: () => void — called when the user clicks the close (cross) button
  */
-const AuthModal = ({ onSuccess }) => {
+const AuthModal = ({ onSuccess, onClose }) => {
   useBodyScrollLock(true);
 
   return (
@@ -26,7 +26,7 @@ const AuthModal = ({ onSuccess }) => {
     >
       <div className="pointer-events-auto flex w-full max-w-[360px] max-h-[min(100dvh-4rem,720px)] flex-col items-center overflow-y-auto overscroll-contain touch-auto">
         <img src={aakdaLogo} alt="Aakda" className="mb-5 h-12 w-auto shrink-0 object-contain opacity-95" />
-        <AuthForm onSuccess={onSuccess} />
+        <AuthForm onSuccess={onSuccess} onClose={onClose} />
       </div>
     </div>
   );

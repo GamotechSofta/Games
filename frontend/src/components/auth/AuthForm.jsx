@@ -15,8 +15,9 @@ const RESEND_COOLDOWN_SEC = 30;
  * Props:
  * - initialPasswordLogin?: boolean — start in password mode (default OTP)
  * - onSuccess?: () => void — called after successful auth (defaults to navigate('/'))
+ * - onClose?: () => void — called when closing the popup
  */
-const AuthForm = ({ initialPasswordLogin = false, onSuccess }) => {
+const AuthForm = ({ initialPasswordLogin = false, onSuccess, onClose }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const refParam = searchParams.get('ref');
@@ -222,9 +223,21 @@ const AuthForm = ({ initialPasswordLogin = false, onSuccess }) => {
     'w-full rounded-[10px] border border-[#1e2b41] bg-[#0d1625] px-3 py-3 text-center text-lg tracking-[0.4em] text-white placeholder:text-[#4c5b72] outline-none transition focus:border-red-500';
 
   return (
-    <div className="w-full max-w-[360px] rounded-2xl border border-[#1b2a43] bg-gradient-to-b from-[#0a1220] to-[#060c17] p-5 shadow-[0_0_50px_rgba(220,38,38,0.12)]">
+    <div className="relative w-full max-w-[360px] rounded-2xl border border-[#1b2a43] bg-gradient-to-b from-[#0a1220] to-[#060c17] p-5 shadow-[0_0_50px_rgba(220,38,38,0.12)]">
+      {typeof onClose === 'function' && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3.5 top-3.5 flex h-7 w-7 items-center justify-center rounded-full border border-[#1e2b41] bg-[#0d1625] text-[#9ba8bc] transition hover:border-red-500/50 hover:text-white"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
       <Toast toast={toast} onClose={hideToast} />
-      <div className="mb-4 flex border-b border-[#1d2a3e]">
+      <div className={`mb-4 flex border-b border-[#1d2a3e] ${typeof onClose === 'function' ? 'pr-8' : ''}`}>
         <button
           type="button"
           onClick={() => switchTab(true)}
