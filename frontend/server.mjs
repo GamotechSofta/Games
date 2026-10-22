@@ -53,9 +53,24 @@ const operatorProxy = createProxyMiddleware({
 
 app.use(operatorProxy);
 
-app.use(express.static(distDir, { index: false, maxAge: '1h' }));
+app.use(
+  express.static(distDir, {
+    index: false,
+    maxAge: '1h',
+    setHeaders(res, filePath) {
+      if (
+        filePath.endsWith('index.html') ||
+        filePath.endsWith('sw.js') ||
+        filePath.endsWith('manifest.webmanifest')
+      ) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    },
+  })
+);
 
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(distDir, 'index.html'), (err) => {
     if (err) {
       res.status(500).send('Frontend build missing — run npm run build');

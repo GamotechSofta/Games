@@ -44,6 +44,9 @@ export default defineConfig(({ mode }) => {
       filename: 'sw.js',
       registerType: 'autoUpdate',
       injectRegister: false,
+      injectManifest: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       devOptions: { enabled: true },
       includeAssets: ['favIcon.png', 'favIcon.webp', 'aakdaLogo.webp', 'callRingtone.mp3', 'delayTone.mp3'],
       manifest: {

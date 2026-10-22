@@ -14,13 +14,25 @@ import { bindCallAudioUnlock } from './services/callAudioUnlock'
 applyThemeToDocument(getStoredTheme())
 
 /** Register SW early — required for iPhone Home Screen push before subscribe. */
+if ('serviceWorker' in navigator) {
+  let refreshing = false
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return
+    refreshing = true
+    window.location.reload()
+  })
+}
+
 void import('virtual:pwa-register')
   .then(({ registerSW }) => {
     registerSW({
       immediate: true,
-      onRegisteredSW() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' })
+      onRegisteredSW(_swUrl, registration) {
+        if (registration) {
+          void registration.update()
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+          }
         }
       },
     })

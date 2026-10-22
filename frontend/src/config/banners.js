@@ -17,7 +17,7 @@ export const HOME_BANNERS = [
     alt: 'Real Games Real Rewards Banner'
   },
   {
-    src: 'banner-aviator.png',
+    src: '/banner-aviator.png',
     alt: 'Real Games Real Rewards Banner',
   }
 ];
